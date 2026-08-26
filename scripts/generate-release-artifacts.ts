@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
+import { existsSync } from 'node:fs';
 import {
   cp,
   mkdir,
@@ -687,6 +688,13 @@ function runPnpm(
   options: Parameters<typeof execFileSync>[2],
 ): Buffer | string {
   const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+  const corepackPnpmEntryPoint =
+    process.platform === 'win32'
+      ? join(dirname(process.execPath), 'node_modules', 'corepack', 'dist', 'pnpm.js')
+      : undefined;
+  if (corepackPnpmEntryPoint && existsSync(corepackPnpmEntryPoint)) {
+    return execFileSync(process.execPath, [corepackPnpmEntryPoint, ...args], options);
+  }
   return execFileSync(command, [...args], options);
 }
 
