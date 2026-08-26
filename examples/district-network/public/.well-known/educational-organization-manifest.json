@@ -1,0 +1,68 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://river-district.example/.well-known/educational-organization-manifest",
+  "type": "manifest",
+  "canonical": "https://river-district.example/.well-known/educational-organization-manifest",
+  "publisher": {
+    "id": "https://river-district.example/id/district",
+    "name": "River District",
+    "type": "district",
+    "website": "https://river-district.example/"
+  },
+  "scope": {
+    "origin": "https://river-district.example",
+    "paths": ["/"],
+    "jurisdictions": ["fictional-jurisdiction"],
+    "scopeStatement": "Public information for the River District network."
+  },
+  "organizations": [
+    {
+      "id": "https://river-district.example/id/district",
+      "type": "district",
+      "name": "River District",
+      "canonicalUrl": "https://river-district.example/eom/district.json",
+      "profile": "https://river-district.example/eom/district.json"
+    },
+    {
+      "id": "https://river-district.example/id/north-school",
+      "type": "secondary-school",
+      "name": {
+        "default": "en-GB",
+        "values": {
+          "en-GB": "North River School",
+          "fr": "École North River"
+        }
+      },
+      "canonicalUrl": "https://river-district.example/eom/north-school.json",
+      "profile": "https://river-district.example/eom/north-school.json",
+      "parent": "https://river-district.example/id/district"
+    }
+  ],
+  "capabilities": [],
+  "resources": [
+    {
+      "id": "https://river-district.example/eom/resource/district",
+      "type": "organization-profile",
+      "href": "https://river-district.example/eom/district.json",
+      "mediaType": "application/json",
+      "version": "1.0",
+      "subjects": ["https://river-district.example/id/district"],
+      "languages": ["en-GB", "fr"]
+    },
+    {
+      "id": "https://river-district.example/eom/resource/north-school",
+      "type": "organization-profile",
+      "href": "https://river-district.example/eom/north-school.json",
+      "mediaType": "application/json",
+      "version": "1.0",
+      "subjects": ["https://river-district.example/id/north-school"],
+      "languages": ["en-GB", "fr"]
+    }
+  ],
+  "defaultLanguage": "en-GB",
+  "supportedLanguages": ["en-GB", "fr"],
+  "modified": "2027-05-01T00:00:00Z",
+  "expires": "2028-05-01T00:00:00Z"
+}

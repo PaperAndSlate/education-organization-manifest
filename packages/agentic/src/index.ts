@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import {
   isJsonObject,
+  parseStrictJson,
   stableJsonValue,
   stringifyCanonical,
   type JsonObject,
@@ -80,6 +81,319 @@ export interface ReviewReport {
   readonly requiredReviewStates: readonly ReviewState[];
   readonly changedResources: readonly string[];
   readonly noSensitiveValues: true;
+}
+
+export type ControlledSourceType =
+  | 'organization-publication'
+  | 'organization-website'
+  | 'organization-api'
+  | 'government-registry'
+  | 'government-statistical-dataset'
+  | 'standards-body'
+  | 'vendor-authorized-feed'
+  | 'human-submission'
+  | 'agent-extraction'
+  | 'foundation-derived'
+  | 'mirror'
+  | 'unknown';
+
+export type ControlledSourceFormat = 'html' | 'markdown' | 'plain-text' | 'json' | 'pdf';
+
+export interface ControlledExtractionSource {
+  readonly id: string;
+  readonly uri: string;
+  readonly title: string;
+  readonly sourceType: ControlledSourceType;
+  readonly format: ControlledSourceFormat;
+  readonly content: string | Uint8Array;
+  readonly retrievedAt: string;
+  readonly reviewOwner: string;
+  readonly modules?: readonly string[];
+  readonly licenseStatus?: 'permitted' | 'review-required' | 'restricted' | 'unknown';
+  readonly license?: string;
+  readonly accessRestrictions?: 'public' | 'operator-approved' | 'restricted' | 'unknown';
+}
+
+export interface ControlledExtractionClaim {
+  readonly id: string;
+  readonly resourceId: string;
+  readonly pointer: string;
+  readonly proposedValue: unknown;
+  readonly locator: {
+    readonly page?: number;
+    readonly section?: string;
+    readonly selector?: string;
+    readonly textRange?: string;
+    readonly sheet?: string;
+    readonly cell?: string;
+  };
+  readonly observedAt?: string;
+  readonly confidence?: number;
+  readonly authorityClass?: keyof typeof authorityRank;
+  readonly privacyClass?:
+    | 'public-reviewed'
+    | 'public-review-required'
+    | 'personal-data'
+    | 'sensitive-data'
+    | 'quarantined';
+  readonly owner?: string;
+  readonly method?: ClaimMethod;
+}
+
+export interface ControlledExtractionOptions {
+  readonly now?: Date;
+  readonly candidateId?: string;
+  readonly requiredOwners?: readonly string[];
+}
+
+export interface ControlledExtractionResult {
+  readonly source: JsonObject;
+  readonly claims: readonly JsonObject[];
+  readonly conflicts: readonly JsonObject[];
+  readonly candidate: JsonObject;
+  readonly privacy: PrivacyReviewReport;
+  readonly findings: readonly Finding[];
+  readonly directPublication: false;
+}
+
+const MAX_CONTROLLED_EXTRACTION_BYTES = 4 * 1024 * 1024;
+const MAX_CONTROLLED_EXTRACTION_CLAIMS = 10_000;
+const sensitiveSourcePattern =
+  /(?:student|pupil|gradebook|attendance|discipline|iep|504|medical|password|secret|token|credential|private\s*key|api\s*key)\s*[:=]/iu;
+
+/**
+ * Convert a controlled, operator-supplied source snapshot into review metadata.
+ *
+ * The raw source is intentionally never returned. Claims are explicit inputs so
+ * extraction remains evidence-led and a parser cannot silently promote inferred
+ * content. The resulting candidate is always review-gated and non-publishable.
+ */
+export function extractControlledCandidate(
+  sourceInput: ControlledExtractionSource,
+  claimInputs: readonly ControlledExtractionClaim[],
+  options: ControlledExtractionOptions = {},
+): ControlledExtractionResult {
+  assertAbsoluteUri(sourceInput.id, 'source id');
+  assertAbsoluteUri(sourceInput.uri, 'source URI');
+  if (!sourceInput.title.trim())
+    throw new CandidatePolicyError('EOM_EXTRACTION_SOURCE_INVALID', 'Source title is required.');
+  if (!sourceInput.reviewOwner.trim())
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_SOURCE_INVALID',
+      'Source review owner is required.',
+    );
+  if (Number.isNaN(Date.parse(sourceInput.retrievedAt))) {
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_SOURCE_INVALID',
+      'Source retrievedAt must be an RFC 3339 date-time.',
+    );
+  }
+
+  const sourceBytes = decodeExtractionBytes(sourceInput.content);
+  if (sourceBytes.byteLength > MAX_CONTROLLED_EXTRACTION_BYTES) {
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_SOURCE_TOO_LARGE',
+      `Controlled source snapshots are limited to ${MAX_CONTROLLED_EXTRACTION_BYTES} bytes.`,
+    );
+  }
+  if (claimInputs.length > MAX_CONTROLLED_EXTRACTION_CLAIMS) {
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_CLAIMS_TOO_MANY',
+      `Controlled extraction is limited to ${MAX_CONTROLLED_EXTRACTION_CLAIMS} claims.`,
+    );
+  }
+  const sourceText =
+    sourceInput.format === 'pdf' ? undefined : decodeExtractionText(sourceBytes, sourceInput.uri);
+  if (sourceInput.format === 'json') parseStrictJson(sourceText ?? '', sourceInput.uri);
+
+  const digest = digestForBytes(sourceBytes);
+  const source = asJsonObject({
+    type: 'source-record',
+    id: sourceInput.id,
+    uri: sourceInput.uri,
+    title: sourceInput.title,
+    sourceType: sourceInput.sourceType,
+    retrievedAt: sourceInput.retrievedAt,
+    reviewOwner: sourceInput.reviewOwner,
+    status: 'discovered',
+    contentDigest: digest,
+    snapshot: { kind: 'digest-only', digest },
+    licenseStatus: sourceInput.licenseStatus ?? 'unknown',
+    accessRestrictions: sourceInput.accessRestrictions ?? 'unknown',
+    ...(sourceInput.license ? { license: sourceInput.license } : {}),
+    ...(sourceInput.modules
+      ? { modules: [...new Set(sourceInput.modules)].sort(compareStrings) }
+      : {}),
+    notes:
+      'Raw source content is retained only by the controlled operator workflow; this record contains metadata and a digest.',
+  });
+
+  const claims = claimInputs.map((claim) => extractionClaimRecord(claim, sourceInput, digest));
+  const conflicts = detectConflicts(claims);
+  const privacy = reviewPrivacy({ claims });
+  const sourcePatternFinding = sensitiveSourcePattern.test(sourceText ?? '')
+    ? [
+        finding(
+          'EOM_AGENT_PRIVACY_QUARANTINE',
+          'privacy',
+          'The controlled source snapshot contains a sensitive-field pattern and is quarantined from publication.',
+          {
+            severity: 'error',
+            help: 'Remove private data and repeat human review; raw source content is not included in this result.',
+          },
+        ),
+      ]
+    : [];
+  const findings = uniqueFindings([...privacy.findings, ...sourcePatternFinding]);
+  const privacyResult: PrivacyReviewReport = {
+    status: findings.length === 0 ? 'clear' : 'quarantined',
+    findings,
+    redactedPaths: privacy.redactedPaths,
+    reportContainsSensitiveValues: false,
+  };
+  const now = options.now ?? new Date();
+  if (Number.isNaN(now.getTime()))
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_SOURCE_INVALID',
+      'Extraction clock must be valid.',
+    );
+  const candidateDigest = createHash('sha256')
+    .update(
+      `${sourceInput.id}\n${digest}\n${claims
+        .map((claim) => stringAt(claim, ['id']) ?? '')
+        .sort(compareStrings)
+        .join('\n')}`,
+      'utf8',
+    )
+    .digest('hex')
+    .slice(0, 24);
+  const candidateId = options.candidateId ?? `urn:eom:candidate:${candidateDigest}`;
+  assertAbsoluteUri(candidateId, 'candidate id');
+  const requiredOwners = [
+    ...new Set([
+      sourceInput.reviewOwner,
+      ...(options.requiredOwners ?? []),
+      ...claims.map((claim) => stringAt(claim, ['review', 'requiredOwner']) ?? '').filter(Boolean),
+    ]),
+  ].sort(compareStrings);
+  const candidate = asJsonObject({
+    type: 'candidate-workspace',
+    id: candidateId,
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+    status: 'extracted',
+    sourceSet: [sourceInput.id],
+    claims: claims.map((claim) => stringAt(claim, ['id']) ?? ''),
+    ...(conflicts.length > 0
+      ? { conflicts: conflicts.map((conflict) => stringAt(conflict, ['id']) ?? '') }
+      : {}),
+    requiredOwners,
+    directPublication: false,
+    privacyReview: privacyResult.status,
+    notes:
+      'Extraction is a candidate-only result. Human review, conflict resolution, privacy clearance, and release approval are required before publication.',
+  });
+  return {
+    source,
+    claims,
+    conflicts,
+    candidate,
+    privacy: privacyResult,
+    findings,
+    directPublication: false,
+  };
+}
+
+function extractionClaimRecord(
+  claim: ControlledExtractionClaim,
+  source: ControlledExtractionSource,
+  sourceDigest: string,
+): JsonObject {
+  assertAbsoluteUri(claim.id, 'claim id');
+  assertAbsoluteUri(claim.resourceId, 'claim resource id');
+  if (!isJsonPointer(claim.pointer))
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_CLAIM_INVALID',
+      `Invalid JSON Pointer for claim ${claim.id}.`,
+    );
+  if (!hasLocator(claim.locator))
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_CLAIM_INVALID',
+      `Claim ${claim.id} requires an evidence locator.`,
+    );
+  if (claim.observedAt !== undefined && Number.isNaN(Date.parse(claim.observedAt)))
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_CLAIM_INVALID',
+      `Claim ${claim.id} observedAt must be an RFC 3339 date-time.`,
+    );
+  if (
+    claim.confidence !== undefined &&
+    (!Number.isFinite(claim.confidence) || claim.confidence < 0 || claim.confidence > 1)
+  )
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_CLAIM_INVALID',
+      `Claim ${claim.id} confidence must be between 0 and 1.`,
+    );
+  if (!isJsonValue(claim.proposedValue))
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_CLAIM_INVALID',
+      `Claim ${claim.id} proposedValue must be JSON-compatible.`,
+    );
+  const observedAt = claim.observedAt ?? source.retrievedAt;
+  return asJsonObject({
+    type: 'claim-record',
+    id: claim.id,
+    target: { resourceId: claim.resourceId, pointer: claim.pointer },
+    proposedValue: claim.proposedValue,
+    source: { sourceId: source.id, locator: claim.locator },
+    evidence: { observedAt, contentDigest: sourceDigest },
+    method: { kind: claim.method ?? 'direct-extraction' },
+    confidence: claim.confidence ?? 0,
+    authorityClass: claim.authorityClass ?? 'unknown',
+    privacyClass: claim.privacyClass ?? 'public-review-required',
+    review: { state: 'pending', requiredOwner: claim.owner ?? source.reviewOwner },
+  });
+}
+
+function decodeExtractionBytes(value: string | Uint8Array): Uint8Array {
+  if (typeof value === 'string') return new TextEncoder().encode(value);
+  return new Uint8Array(value);
+}
+
+function decodeExtractionText(value: Uint8Array, source: string): string {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(value);
+  } catch {
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_SOURCE_INVALID',
+      `Controlled text source ${source} must be valid UTF-8.`,
+    );
+  }
+}
+
+function digestForBytes(value: Uint8Array): string {
+  return `sha-256=:${createHash('sha256').update(value).digest('base64')}:`;
+}
+
+function hasLocator(value: ControlledExtractionClaim['locator']): boolean {
+  return Object.values(value).some((part) =>
+    typeof part === 'string'
+      ? part.trim().length > 0
+      : typeof part === 'number' && Number.isInteger(part) && part > 0,
+  );
+}
+
+function assertAbsoluteUri(value: string, label: string): void {
+  try {
+    const parsed = new URL(value);
+    if (!parsed.protocol || (!parsed.hostname && parsed.protocol !== 'urn:'))
+      throw new Error('missing authority');
+  } catch {
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_URI_INVALID',
+      `${label} must be an absolute URI.`,
+    );
+  }
 }
 
 const authorityRank: Readonly<Record<string, number>> = {
@@ -290,7 +604,7 @@ export function reviewPrivacy(value: unknown): PrivacyReviewReport {
   return {
     status: unique.length === 0 ? 'clear' : 'quarantined',
     findings: unique,
-    redactedPaths: [...new Set(redactedPaths)].sort(),
+    redactedPaths: [...new Set(redactedPaths)].sort(compareStrings),
     reportContainsSensitiveValues: false,
   };
 }
@@ -608,8 +922,12 @@ function countValues(
     if (key) counts[key] = (counts[key] ?? 0) + 1;
   }
   return Object.fromEntries(
-    Object.entries(counts).sort(([left], [right]) => left.localeCompare(right)),
+    Object.entries(counts).sort(([left], [right]) => compareStrings(left, right)),
   );
+}
+
+function compareStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 function uniqueFindings(values: readonly Finding[]): readonly Finding[] {

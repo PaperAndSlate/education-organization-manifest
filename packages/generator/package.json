@@ -19,6 +19,7 @@
     "@paperandslate/eom-config": "workspace:*",
     "@paperandslate/eom-core": "workspace:*",
     "@paperandslate/eom-linter": "workspace:*",
+    "@paperandslate/eom-signatures": "workspace:*",
     "@paperandslate/eom-validator": "workspace:*",
     "yaml": "^2.8.1"
   },

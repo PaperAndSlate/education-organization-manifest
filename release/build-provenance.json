@@ -2,9 +2,9 @@
   "_type": "https://in-toto.io/Statement/v1",
   "predicate": {
     "buildDefinition": {
-      "buildType": "https://paperandslate.org/eom/build/reproducible-source-archive/v1",
+      "buildType": "https://paperandslate.org/eom/build/reproducible-source-archive/v2",
       "externalParameters": {
-        "releaseVersion": "1.0.0-rc.1",
+        "releaseVersion": "1.0.0-rc.2",
         "sourceDateEpoch": 0
       },
       "internalParameters": {
@@ -14,7 +14,13 @@
       "resolvedDependencies": [
         {
           "digest": {
-            "sha256": "c2d2ea66653afd445f3c144376af90c92e662de73afdc446939c872b7ed653fa"
+            "sha1": "f29f7f60c9fb4e763ff161dc37f8986b98844288"
+          },
+          "uri": "git:f29f7f60c9fb4e763ff161dc37f8986b98844288"
+        },
+        {
+          "digest": {
+            "sha256": "c4e7b63a1b2354b2108710533428bb18191d143b2ad0d459654d9b9592186c19"
           },
           "uri": "file:pnpm-lock.yaml"
         }
@@ -33,12 +39,50 @@
   },
   "predicateType": "https://slsa.dev/provenance/v1",
   "provenanceStatus": "local metadata; not a signed external attestation",
+  "sourceCommit": "f29f7f60c9fb4e763ff161dc37f8986b98844288",
+  "sourceTree": "a26dc5a9ad3b44a4fb3f2651d64de47606dcc097",
   "subject": [
     {
       "digest": {
-        "sha256": "27117b13e5f9d5b34a79f1556e7764ee540b01a996e5bd4184772ee5332fc6ac"
+        "sha256": "c155a13bc14bfef4e70556c200433400e7adab5a284e0869c1882d0475f1494c"
       },
-      "name": "educational-organization-manifest-1.0.0-rc.1.tar.gz"
+      "name": "educational-organization-manifest-1.0.0-rc.2.tar.gz"
+    },
+    {
+      "digest": {
+        "sha256": "494e1712b40d871b330a78bf932b772b9552906dda07bbf30ad6882e9557bc67"
+      },
+      "name": "eom-specification-1.0.0-rc.2.tar.gz"
+    },
+    {
+      "digest": {
+        "sha256": "ccb0fd862f75b6989574ec8fced85e8c3a8378043f9dd94d9426f5d960f1b13c"
+      },
+      "name": "eom-schemas-1.0.0-rc.2.tar.gz"
+    },
+    {
+      "digest": {
+        "sha256": "aae3a592bfa6d2af6f2706df84f2136c46558c4d890a4cceb0bfba10a2f8988b"
+      },
+      "name": "eom-vocabularies-1.0.0-rc.2.tar.gz"
+    },
+    {
+      "digest": {
+        "sha256": "bc225a0af2dce7d0a1e0b2cb68900be786d009907551426c0abc067c8803b52a"
+      },
+      "name": "eom-conformance-1.0.0-rc.2.tar.gz"
+    },
+    {
+      "digest": {
+        "sha256": "bbcfb03aeb59f72fa736be7fe0f27f1fbc7ee53f5278b503659bedc980e4f804"
+      },
+      "name": "eom-documentation-1.0.0-rc.2.tar.gz"
+    },
+    {
+      "digest": {
+        "sha256": "7fafbee782e0a0d0950f4699dfe3532399431bbe3b3d3686875d16da6cded73d"
+      },
+      "name": "sbom.cdx.json"
     }
   ]
 }

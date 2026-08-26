@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join } from 'node:path';
 import { isJsonObject, parseStrictJson, type JsonObject } from '@paperandslate/eom-core';
 
 export const SCHEMA_BASE_URI = 'https://paperandslate.org/schemas/eom/1.0/';
@@ -23,6 +23,8 @@ export const SCHEMA_FILES = [
   'module-registry.schema.json',
   'vocabulary-registry.schema.json',
   'vocabulary.schema.json',
+  'conformance-profile.schema.json',
+  'conformance-profile-registry.schema.json',
   'organization-profile.schema.json',
   'organization-index.schema.json',
   'resource-index.schema.json',
@@ -57,10 +59,11 @@ export type SchemaFile = (typeof SCHEMA_FILES)[number];
 
 const packageDirectory = dirname(fileURLToPath(import.meta.url));
 const bundledSchemaDirectory = join(packageDirectory, 'schemas', '1.0');
-const repositorySchemaDirectory = resolve(packageDirectory, '../../../schemas/1.0');
-const schemaDirectory = readFileExists(join(bundledSchemaDirectory, 'catalog.json'))
-  ? bundledSchemaDirectory
-  : repositorySchemaDirectory;
+if (!readFileExists(join(bundledSchemaDirectory, 'catalog.json'))) {
+  throw new Error('The published schema package is missing its bundled 1.0 schema catalog.');
+}
+const schemaDirectory = bundledSchemaDirectory;
+let cachedSchemas: readonly JsonObject[] | undefined;
 
 function readFileExists(path: string): boolean {
   try {
@@ -72,6 +75,9 @@ function readFileExists(path: string): boolean {
 }
 
 export function schemaPath(file: SchemaFile): string {
+  if (!SCHEMA_FILES.includes(file)) {
+    throw new Error(`Unknown bundled schema file: ${String(file)}`);
+  }
   return join(schemaDirectory, file);
 }
 
@@ -84,7 +90,9 @@ export function readSchema(file: SchemaFile): JsonObject {
 }
 
 export function readAllSchemas(): readonly JsonObject[] {
-  return SCHEMA_FILES.map(readSchema);
+  if (cachedSchemas) return cachedSchemas;
+  cachedSchemas = SCHEMA_FILES.map(readSchema);
+  return cachedSchemas;
 }
 
 export function schemaFileForType(type: string): SchemaFile | undefined {
@@ -104,6 +112,8 @@ export function schemaFileForType(type: string): SchemaFile | undefined {
     'module-registry': 'module-registry.schema.json',
     'vocabulary-registry': 'vocabulary-registry.schema.json',
     vocabulary: 'vocabulary.schema.json',
+    'conformance-profile': 'conformance-profile.schema.json',
+    'conformance-profile-registry': 'conformance-profile-registry.schema.json',
     'organization-profile': 'organization-profile.schema.json',
     'organization-index': 'organization-index.schema.json',
     'resource-index': 'resource-index.schema.json',

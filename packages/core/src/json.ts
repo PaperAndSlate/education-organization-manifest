@@ -2,12 +2,13 @@ export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
 export type JsonObject = { [key: string]: JsonValue };
 
-export class StrictJsonError extends Error {
-  public readonly code = 'EOM_JSON_DUPLICATE_KEY';
+export type StrictJsonErrorCode = 'EOM_JSON_DUPLICATE_KEY' | 'EOM_JSON_PARSE' | 'EOM_JSON_UNICODE';
 
+export class StrictJsonError extends Error {
   public constructor(
     message: string,
     public readonly source?: string,
+    public readonly code: StrictJsonErrorCode = 'EOM_JSON_PARSE',
   ) {
     super(message);
     this.name = 'StrictJsonError';
@@ -63,7 +64,11 @@ class DuplicateKeyScanner {
       this.string();
       const key = JSON.parse(this.text.slice(start, this.index)) as string;
       if (keys.has(key)) {
-        throw new StrictJsonError(`Duplicate JSON object key ${JSON.stringify(key)}.`, this.source);
+        throw new StrictJsonError(
+          `Duplicate JSON object key ${JSON.stringify(key)}.`,
+          this.source,
+          'EOM_JSON_DUPLICATE_KEY',
+        );
       }
       keys.add(key);
       this.skipWhitespace();
@@ -172,7 +177,46 @@ export function parseStrictJson(text: string, source?: string): JsonValue {
     throw new StrictJsonError(`Invalid JSON${source ? ` in ${source}` : ''}: ${detail}`, source);
   }
   new DuplicateKeyScanner(text, source).scan();
+  assertWellFormedUnicode(parsed, source);
   return parsed as JsonValue;
+}
+
+function assertWellFormedUnicode(value: unknown, source?: string): void {
+  if (typeof value === 'string') {
+    for (let index = 0; index < value.length; index += 1) {
+      const code = value.charCodeAt(index);
+      if (code >= 0xd800 && code <= 0xdbff) {
+        const next = value.charCodeAt(index + 1);
+        if (next >= 0xdc00 && next <= 0xdfff) {
+          index += 1;
+          continue;
+        }
+        throw new StrictJsonError(
+          `JSON contains an unpaired UTF-16 surrogate at string offset ${index}.`,
+          source,
+          'EOM_JSON_UNICODE',
+        );
+      }
+      if (code >= 0xdc00 && code <= 0xdfff) {
+        throw new StrictJsonError(
+          `JSON contains an unpaired UTF-16 surrogate at string offset ${index}.`,
+          source,
+          'EOM_JSON_UNICODE',
+        );
+      }
+    }
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) assertWellFormedUnicode(item, source);
+    return;
+  }
+  if (isJsonObject(value)) {
+    for (const [key, item] of Object.entries(value)) {
+      assertWellFormedUnicode(key, source);
+      assertWellFormedUnicode(item, source);
+    }
+  }
 }
 
 export function isJsonObject(value: unknown): value is JsonObject {
@@ -187,13 +231,20 @@ export function stableJsonValue(value: JsonValue): JsonValue {
     return value;
   }
   const sorted: JsonObject = {};
-  for (const key of Object.keys(value).sort((left, right) => left.localeCompare(right))) {
+  for (const key of Object.keys(value).sort(compareJsonKeys)) {
     const child = value[key];
     if (child !== undefined) {
       sorted[key] = stableJsonValue(child);
     }
   }
   return sorted;
+}
+
+/** Compare JSON object keys by UTF-16 code units, independent of host locale. */
+function compareJsonKeys(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
 }
 
 export function stringifyCanonical(value: JsonValue): string {

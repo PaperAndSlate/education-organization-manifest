@@ -1,0 +1,33 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/lifecycle-statuses/1.0",
+  "category": "lifecycle-statuses",
+  "compatibleProtocolVersions": ["1.0"],
+  "contentDigest": "sha256:1d9fcff1bdd78ad4689ec98b40de210909a62e6beaf5f643035901e28482e826",
+  "id": "https://paperandslate.org/vocabularies/eom/lifecycle-statuses/1.0",
+  "license": "CC0-1.0",
+  "openness": "extensible",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/lifecycle-statuses",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "active",
+      "definition": "A current public resource or term.",
+      "preferredLabel": "Active",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/lifecycle-statuses/active"
+    },
+    {
+      "code": "retired",
+      "definition": "A resource no longer current but retained for historical interpretation.",
+      "preferredLabel": "Retired",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/lifecycle-statuses/retired"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

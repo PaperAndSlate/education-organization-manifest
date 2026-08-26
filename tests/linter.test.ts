@@ -17,6 +17,14 @@ describe('EOM privacy and quality linting', () => {
     ).toBe(true);
   });
 
+  it('flags prohibited privacy fields regardless of naming style', () => {
+    const findings = lintPublication({
+      private_schedule: [{ id: 'https://school.example/id/private-schedule' }],
+      privateTransportAssignment: { id: 'https://school.example/id/private-assignment' },
+    });
+    expect(findings.filter((item) => item.code === 'EOM_PRIVACY_PROHIBITED_FIELD')).toHaveLength(2);
+  });
+
   it('warns when a publication has no expiry', () => {
     const findings = lintPublication({ type: 'manifest', id: 'https://school.example/id' });
     expect(

@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { format } from 'prettier';
 import {
   isJsonObject,
   parseStrictJson,
@@ -32,11 +33,16 @@ for (const entry of registry.modules) {
     'valid.json': source,
     'invalid-unknown-property.json': { ...source, unexpectedProperty: true },
     'invalid-privacy.json': withPrivacyMarker(source),
+    'invalid-security.json': withSecurityMarker(source),
     'extension.json': withExtension(source),
   };
   for (const [name, value] of Object.entries(files)) {
     const path = join(directory, name);
-    const content = stringifyCanonical(value);
+    const content = await format(JSON.stringify(parseStrictJson(stringifyCanonical(value))), {
+      parser: 'json',
+      printWidth: 100,
+      endOfLine: 'lf',
+    });
     let existing: string | undefined;
     try {
       existing = await readFile(path, 'utf8');
@@ -82,6 +88,17 @@ function withExtension(source: JsonObject): JsonObject {
     extensions: {
       ...(isJsonObject(source.extensions) ? source.extensions : {}),
       'https://fixture.example/eom/extensions/module-test': { value: 'preserved' },
+    },
+  };
+}
+
+function withSecurityMarker(source: JsonObject): JsonObject {
+  return {
+    ...source,
+    internalEndpoint: 'https://127.0.0.1/internal-only',
+    extensions: {
+      ...(isJsonObject(source.extensions) ? source.extensions : {}),
+      'https://fixture.example/eom/extensions/security-test': { apiKey: 'fixture-not-a-secret' },
     },
   };
 }

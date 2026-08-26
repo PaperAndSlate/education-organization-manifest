@@ -9,9 +9,7 @@
       "metric": "https://ecme-high.example/metrics/enrollment",
       "observedAt": "2027-10-01T00:00:00Z",
       "source": "https://ecme-high.example/reports/enrollment",
-      "subject": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "subject": { "id": "https://ecme-high.example/id/school" },
       "type": "statistic",
       "value": 500
     }

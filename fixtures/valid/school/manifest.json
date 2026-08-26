@@ -1,0 +1,31 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://school.example/.well-known/educational-organization-manifest",
+  "type": "manifest",
+  "canonical": "https://school.example/.well-known/educational-organization-manifest",
+  "publisher": {
+    "id": "https://school.example/id/publisher",
+    "name": "Example School",
+    "type": "school",
+    "website": "https://school.example/"
+  },
+  "scope": {
+    "origin": "https://school.example",
+    "paths": ["/"],
+    "scopeStatement": "Public resources for the fictional Example School."
+  },
+  "organizations": [
+    {
+      "id": "https://school.example/id/school",
+      "type": "secondary-school",
+      "name": "Example School",
+      "canonicalUrl": "https://school.example/"
+    }
+  ],
+  "capabilities": [],
+  "resources": [],
+  "modified": "2027-01-01T00:00:00Z",
+  "expires": "2028-01-01T00:00:00Z"
+}

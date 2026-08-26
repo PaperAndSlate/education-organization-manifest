@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json",
+  "title": "EOM conformance profile",
+  "type": "object",
+  "required": [
+    "$schema",
+    "specification",
+    "version",
+    "id",
+    "canonical",
+    "type",
+    "role",
+    "status",
+    "description",
+    "requirements",
+    "modes",
+    "lastReviewed"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json"
+    },
+    "specification": { "const": "https://paperandslate.org/spec/eom/1.0" },
+    "version": { "const": "1.0" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "canonical": { "$ref": "common.schema.json#/$defs/httpsUri" },
+    "type": { "const": "conformance-profile" },
+    "role": { "enum": ["publisher", "consumer", "generator", "validator", "module", "signature"] },
+    "status": { "enum": ["working-draft", "stable", "deprecated"] },
+    "description": { "$ref": "common.schema.json#/$defs/localized" },
+    "requirements": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "modes": {
+      "type": "array",
+      "items": { "enum": ["fixture", "publisher", "consumer", "generator"] },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "requiredChecks": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "externalEvidenceRequired": { "type": "boolean" },
+    "lastReviewed": { "$ref": "common.schema.json#/$defs/date" },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

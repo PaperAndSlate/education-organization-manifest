@@ -1,0 +1,241 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile-registry.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://paperandslate.org/eom/conformance/profiles/1.0",
+  "canonical": "https://paperandslate.org/eom/conformance/profiles/1.0",
+  "type": "conformance-profile-registry",
+  "status": "working-draft",
+  "changeController": "https://paperandslate.org/governance/eom",
+  "lastReviewed": "2026-08-26",
+  "profiles": [
+    {
+      "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json",
+      "specification": "https://paperandslate.org/spec/eom/1.0",
+      "version": "1.0",
+      "id": "https://paperandslate.org/spec/eom/1.0/profiles/core-publisher",
+      "canonical": "https://paperandslate.org/spec/eom/1.0/profiles/core-publisher",
+      "type": "conformance-profile",
+      "role": "publisher",
+      "status": "working-draft",
+      "description": "Core publisher publication and resource graph checks.",
+      "requirements": [
+        "one valid root manifest",
+        "one organization profile or index",
+        "safe local resource graph",
+        "privacy and semantic checks"
+      ],
+      "modes": ["fixture", "publisher"],
+      "requiredChecks": [
+        "profile-manifest",
+        "profile-organization",
+        "resource-graph",
+        "publication-set",
+        "validation",
+        "privacy-policy"
+      ],
+      "externalEvidenceRequired": false,
+      "lastReviewed": "2026-08-26"
+    },
+    {
+      "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json",
+      "specification": "https://paperandslate.org/spec/eom/1.0",
+      "version": "1.0",
+      "id": "https://paperandslate.org/spec/eom/1.0/profiles/school-publisher",
+      "canonical": "https://paperandslate.org/spec/eom/1.0/profiles/school-publisher",
+      "type": "conformance-profile",
+      "role": "publisher",
+      "status": "working-draft",
+      "description": "School publisher identity, public-data, and module checks.",
+      "requirements": [
+        "all core publisher requirements",
+        "school organization identity",
+        "public-only school module data"
+      ],
+      "modes": ["fixture", "publisher"],
+      "requiredChecks": [
+        "profile-manifest",
+        "profile-organization",
+        "school-identity",
+        "privacy-policy",
+        "resource-graph",
+        "publication-set"
+      ],
+      "externalEvidenceRequired": false,
+      "lastReviewed": "2026-08-26"
+    },
+    {
+      "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json",
+      "specification": "https://paperandslate.org/spec/eom/1.0",
+      "version": "1.0",
+      "id": "https://paperandslate.org/spec/eom/1.0/profiles/district-publisher",
+      "canonical": "https://paperandslate.org/spec/eom/1.0/profiles/district-publisher",
+      "type": "conformance-profile",
+      "role": "publisher",
+      "status": "working-draft",
+      "description": "District publisher profile with multiple organization relationships.",
+      "requirements": [
+        "all core publisher requirements",
+        "at least two public organizations",
+        "explicit organization relationships"
+      ],
+      "modes": ["fixture", "publisher"],
+      "requiredChecks": [
+        "district-organizations",
+        "profile-manifest",
+        "profile-organization",
+        "resource-graph",
+        "publication-set"
+      ],
+      "externalEvidenceRequired": false,
+      "lastReviewed": "2026-08-26"
+    },
+    {
+      "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json",
+      "specification": "https://paperandslate.org/spec/eom/1.0",
+      "version": "1.0",
+      "id": "https://paperandslate.org/spec/eom/1.0/profiles/module",
+      "canonical": "https://paperandslate.org/spec/eom/1.0/profiles/module",
+      "type": "conformance-profile",
+      "role": "module",
+      "status": "working-draft",
+      "description": "Independently validatable module resource checks.",
+      "requirements": [
+        "typed module resource",
+        "module schema validation",
+        "privacy and extension behavior"
+      ],
+      "modes": ["fixture"],
+      "requiredChecks": [
+        "module-resource",
+        "module-schema",
+        "publication-set",
+        "validation",
+        "privacy-policy"
+      ],
+      "externalEvidenceRequired": false,
+      "lastReviewed": "2026-08-26"
+    },
+    {
+      "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json",
+      "specification": "https://paperandslate.org/spec/eom/1.0",
+      "version": "1.0",
+      "id": "https://paperandslate.org/spec/eom/1.0/profiles/delegated-publisher",
+      "canonical": "https://paperandslate.org/spec/eom/1.0/profiles/delegated-publisher",
+      "type": "conformance-profile",
+      "role": "publisher",
+      "status": "working-draft",
+      "description": "Scoped cross-origin delegation checks.",
+      "requirements": [
+        "active delegation record",
+        "bounded origin and path scope",
+        "non-transitive authority"
+      ],
+      "modes": ["fixture", "publisher"],
+      "requiredChecks": [
+        "delegation-record",
+        "delegation-authority",
+        "validation",
+        "resource-graph",
+        "publication-set"
+      ],
+      "externalEvidenceRequired": false,
+      "lastReviewed": "2026-08-26"
+    },
+    {
+      "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json",
+      "specification": "https://paperandslate.org/spec/eom/1.0",
+      "version": "1.0",
+      "id": "https://paperandslate.org/spec/eom/1.0/profiles/signed-publisher",
+      "canonical": "https://paperandslate.org/spec/eom/1.0/profiles/signed-publisher",
+      "type": "conformance-profile",
+      "role": "signature",
+      "status": "working-draft",
+      "description": "Detached signature, digest, and public key publication checks.",
+      "requirements": [
+        "detached Ed25519 signature",
+        "RFC8785-compatible canonical payload",
+        "valid public key set"
+      ],
+      "modes": ["fixture", "publisher"],
+      "requiredChecks": [
+        "signature-record",
+        "signature-subject",
+        "signature-cryptographic",
+        "publication-set"
+      ],
+      "externalEvidenceRequired": false,
+      "lastReviewed": "2026-08-26"
+    },
+    {
+      "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json",
+      "specification": "https://paperandslate.org/spec/eom/1.0",
+      "version": "1.0",
+      "id": "https://paperandslate.org/spec/eom/1.0/profiles/consumer",
+      "canonical": "https://paperandslate.org/spec/eom/1.0/profiles/consumer",
+      "type": "conformance-profile",
+      "role": "consumer",
+      "status": "working-draft",
+      "description": "Consumer discovery, graph, and safe-capture checks.",
+      "requirements": [
+        "strict capture parsing",
+        "bounded graph handling",
+        "no untrusted link execution"
+      ],
+      "modes": ["fixture", "publisher", "consumer"],
+      "requiredChecks": [
+        "consumer-capture",
+        "resource-graph",
+        "publication-set",
+        "publisher-discovery"
+      ],
+      "externalEvidenceRequired": false,
+      "lastReviewed": "2026-08-26"
+    },
+    {
+      "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json",
+      "specification": "https://paperandslate.org/spec/eom/1.0",
+      "version": "1.0",
+      "id": "https://paperandslate.org/spec/eom/1.0/profiles/generator",
+      "canonical": "https://paperandslate.org/spec/eom/1.0/profiles/generator",
+      "type": "conformance-profile",
+      "role": "generator",
+      "status": "working-draft",
+      "description": "Generated-publication marker, canonical output, and reproducibility checks.",
+      "requirements": [
+        "generator-owned marker",
+        "reproducibility report",
+        "valid generated publication"
+      ],
+      "modes": ["fixture", "generator"],
+      "requiredChecks": [
+        "generator-marker",
+        "generator-reproducibility",
+        "publication-set",
+        "validation"
+      ],
+      "externalEvidenceRequired": false,
+      "lastReviewed": "2026-08-26"
+    },
+    {
+      "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json",
+      "specification": "https://paperandslate.org/spec/eom/1.0",
+      "version": "1.0",
+      "id": "https://paperandslate.org/spec/eom/1.0/profiles/validator",
+      "canonical": "https://paperandslate.org/spec/eom/1.0/profiles/validator",
+      "type": "conformance-profile",
+      "role": "validator",
+      "status": "working-draft",
+      "description": "Structural, semantic, privacy, and expected-finding checks.",
+      "requirements": [
+        "strict syntax handling",
+        "schema and semantic findings",
+        "stable expected result codes"
+      ],
+      "modes": ["fixture"],
+      "requiredChecks": ["validator-engine", "publication-set", "validation", "privacy-policy"],
+      "externalEvidenceRequired": false,
+      "lastReviewed": "2026-08-26"
+    }
+  ]
+}

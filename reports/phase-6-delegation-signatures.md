@@ -1,5 +1,9 @@
 # Phase 6: delegation and optional signatures
 
+> Historical phase report. Its local-slice evidence is retained, but completion claims are
+> superseded for current release acceptance by [`reports/remediation-audit.md`](remediation-audit.md)
+> and the rebuilt traceability matrix.
+
 Status: implemented locally as a working draft. This report is evidence of repository behavior, not a claim of external registration, institutional authorization, or production deployment.
 
 ## Delivered

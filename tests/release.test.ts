@@ -12,13 +12,20 @@ describe('EOM release evidence', () => {
     const manifest = parseStrictJson(readFileSync(join(releaseRoot, 'manifest.json'), 'utf8'));
     expect(isRecord(manifest)).toBe(true);
     if (!isRecord(manifest) || !Array.isArray(manifest.artifacts)) return;
-    expect(manifest.release).toBe('1.0.0-rc.1');
+    expect(manifest.release).toBe('1.0.0-rc.2');
     expect(manifest.channel).toBe('release-candidate');
     expect(manifest.protocolStatus).toBe('working-draft');
     expect(isRecord(manifest.externalGates)).toBe(true);
     if (isRecord(manifest.externalGates)) {
       expect(manifest.externalGates.ianaRegistration).toBe('blocked-external');
       expect(manifest.externalGates.independentPublisherConsumerPilot).toBe('blocked-external');
+    }
+    expect(manifest.sourceCommit).toMatch(/^[a-f0-9]{40}$/u);
+    expect(manifest.sourceTree).toMatch(/^[a-f0-9]{40}$/u);
+    expect(isRecord(manifest.historicalSuperseded)).toBe(true);
+    if (isRecord(manifest.historicalSuperseded)) {
+      expect(manifest.historicalSuperseded.release).toBe('1.0.0-rc.1');
+      expect(manifest.historicalSuperseded.status).toBe('preserved-immutable-superseded');
     }
     for (const artifact of manifest.artifacts) {
       expect(isRecord(artifact)).toBe(true);
@@ -28,6 +35,17 @@ describe('EOM release evidence', () => {
       const bytes = readFileSync(path);
       expect(artifact.bytes).toBe(bytes.length);
       expect(artifact.sha256).toBe(sha256(bytes));
+    }
+    for (const required of [
+      'eom-specification-1.0.0-rc.2.tar.gz',
+      'eom-schemas-1.0.0-rc.2.tar.gz',
+      'eom-vocabularies-1.0.0-rc.2.tar.gz',
+      'eom-conformance-1.0.0-rc.2.tar.gz',
+      'eom-documentation-1.0.0-rc.2.tar.gz',
+    ]) {
+      expect(
+        manifest.artifacts.some((artifact) => isRecord(artifact) && artifact.path === required),
+      ).toBe(true);
     }
   });
 

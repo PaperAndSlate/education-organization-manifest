@@ -1,0 +1,22 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/policy-catalog.schema.json",
+  "canonical": "https://ecme-high.example/eom/policies.json",
+  "expires": "2028-05-01T14:00:00Z",
+  "id": "https://ecme-high.example/eom/resource/policies",
+  "items": [
+    {
+      "category": "privacy",
+      "documentUrl": "https://ecme-high.example/policies/privacy",
+      "documentVersion": "2027.1",
+      "id": "https://ecme-high.example/id/policy/privacy",
+      "mediaType": "text/html",
+      "name": "Public Privacy Notice",
+      "type": "policy-document"
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "subjects": ["https://ecme-high.example/id/school"],
+  "type": "policy-catalog",
+  "version": "1.0"
+}

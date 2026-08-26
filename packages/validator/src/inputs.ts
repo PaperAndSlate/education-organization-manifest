@@ -39,13 +39,16 @@ export async function validatePublicationDirectory(
   options: PublicationValidationOptions = {},
 ): Promise<PublicationValidationResult> {
   const root = resolve(directory);
-  const paths = await publicationFiles(root);
   const maxFiles = positiveLimit(options.maxFiles, 256);
   const maxBytes = positiveLimit(options.maxBytes, 10 * 1024 * 1024);
+  const maxDepth = nonNegativeLimit(options.maxDepth, 32);
+  const maxTotalBytes = positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024);
+  const walked = await publicationFiles(root, maxFiles, maxDepth);
+  const paths = walked.paths;
   const findings: Finding[] = [];
   const documents: Record<string, unknown> = {};
   const files = paths.slice(0, maxFiles).map((path) => relative(root, path).replaceAll('\\', '/'));
-  if (paths.length > maxFiles) {
+  if (walked.fileLimitExceeded) {
     findings.push(
       finding(
         'EOM_GRAPH_FILE_LIMIT',
@@ -57,10 +60,33 @@ export async function validatePublicationDirectory(
       ),
     );
   }
+  if (walked.depthLimitExceeded) {
+    findings.push(
+      finding(
+        'EOM_GRAPH_DEPTH_LIMIT',
+        'transport',
+        `The publication contains files deeper than the configured ${maxDepth}-level limit.`,
+        { severity: 'error' },
+      ),
+    );
+  }
+  let totalBytes = 0;
   for (const path of paths.slice(0, maxFiles)) {
     const name = relative(root, path).replaceAll('\\', '/');
     try {
       const bytes = await readFile(path);
+      totalBytes += bytes.byteLength;
+      if (totalBytes > maxTotalBytes) {
+        findings.push(
+          finding(
+            'EOM_GRAPH_TOTAL_BYTES',
+            'transport',
+            `The publication exceeds the configured ${maxTotalBytes}-byte total limit.`,
+            { resource: name, severity: 'error' },
+          ),
+        );
+        break;
+      }
       if (bytes.byteLength > maxBytes) {
         findings.push(
           finding(
@@ -72,7 +98,7 @@ export async function validatePublicationDirectory(
         );
         continue;
       }
-      const document = parseStrictJson(bytes.toString('utf8'), path);
+      const document = parseStrictJson(decodeUtf8(bytes, path), path);
       documents[name] = document;
       const result = validateDocument(document, options);
       findings.push(
@@ -109,8 +135,14 @@ export async function validatePublicationUrl(
   const findings: Finding[] = [];
   let rootUrl: string | undefined;
   const files: string[] = [];
+  const fetchOptions: FetchOptions = {
+    ...options.fetch,
+    ...(options.maxBytes !== undefined && options.fetch?.maxBytes === undefined
+      ? { maxBytes: options.maxBytes }
+      : {}),
+  };
   try {
-    const rootResponse = await fetchManifest(originOrUrl, options.fetch);
+    const rootResponse = await fetchManifest(originOrUrl, fetchOptions);
     rootUrl = rootResponse.finalUrl;
     documents[rootResponse.finalUrl] = rootResponse.document;
     files.push(rootResponse.finalUrl);
@@ -127,18 +159,40 @@ export async function validatePublicationUrl(
       const maxTotalBytes = positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024);
       let totalBytes = Buffer.byteLength(rootResponse.body, 'utf8');
       const queue: Array<{ readonly href: string; readonly depth: number }> = [];
-      const queued = new Set<string>();
-      const cache = new Map<string, { readonly finalUrl: string; readonly document: unknown }>();
+      const queued = new Set<string>([
+        canonicalUrl(rootResponse.requestedUrl),
+        canonicalUrl(rootResponse.finalUrl),
+      ]);
+      const cache = new Map<
+        string,
+        { readonly finalUrl: string; readonly document: unknown; readonly bytes: number }
+      >();
+      let resourceLimitReported = false;
+      let totalBytesLimitReached = totalBytes > maxTotalBytes;
       cache.set(canonicalUrl(rootResponse.requestedUrl), {
         finalUrl: rootResponse.finalUrl,
         document: rootResponse.document,
+        bytes: totalBytes,
       });
       cache.set(canonicalUrl(rootResponse.finalUrl), {
         finalUrl: rootResponse.finalUrl,
         document: rootResponse.document,
+        bytes: totalBytes,
       });
-      enqueueResources(rootResponse.document, 1, queue, queued, maxDepth);
+      if (totalBytesLimitReached) {
+        findings.push(
+          finding(
+            'EOM_GRAPH_TOTAL_BYTES',
+            'transport',
+            `The publication graph exceeds the configured ${maxTotalBytes}-byte limit.`,
+            { resource: rootResponse.finalUrl, severity: 'error' },
+          ),
+        );
+      } else {
+        enqueueResources(rootResponse.document, 1, queue, queued, maxDepth);
+      }
       if (queue.length > maxResources) {
+        resourceLimitReported = true;
         findings.push(
           finding(
             'EOM_GRAPH_RESOURCE_LIMIT',
@@ -152,7 +206,7 @@ export async function validatePublicationUrl(
         );
       }
       let fetchedResources = 0;
-      while (queue.length > 0 && fetchedResources < maxResources) {
+      while (queue.length > 0 && fetchedResources < maxResources && !totalBytesLimitReached) {
         const next = queue.shift();
         if (!next) break;
         fetchedResources += 1;
@@ -161,28 +215,32 @@ export async function validatePublicationUrl(
           const cached = cache.get(requestKey);
           let finalUrl: string;
           let document: unknown;
+          let responseBytes: number;
           if (cached) {
             finalUrl = cached.finalUrl;
             document = cached.document;
+            responseBytes = cached.bytes;
           } else {
-            const response = await fetchEom(next.href, options.fetch);
-            totalBytes += Buffer.byteLength(response.body, 'utf8');
-            if (totalBytes > maxTotalBytes) {
-              findings.push(
-                finding(
-                  'EOM_GRAPH_TOTAL_BYTES',
-                  'transport',
-                  `The publication graph exceeds the configured ${maxTotalBytes}-byte limit.`,
-                  { resource: next.href, severity: 'error' },
-                ),
-              );
-              break;
-            }
+            const response = await fetchEom(next.href, fetchOptions);
+            responseBytes = Buffer.byteLength(response.body, 'utf8');
             finalUrl = response.finalUrl;
             document = parseStrictJson(response.body, response.finalUrl);
-            cache.set(requestKey, { finalUrl, document });
-            cache.set(canonicalUrl(finalUrl), { finalUrl, document });
+            cache.set(requestKey, { finalUrl, document, bytes: responseBytes });
+            cache.set(canonicalUrl(finalUrl), { finalUrl, document, bytes: responseBytes });
           }
+          if (totalBytes + responseBytes > maxTotalBytes) {
+            findings.push(
+              finding(
+                'EOM_GRAPH_TOTAL_BYTES',
+                'transport',
+                `The publication graph exceeds the configured ${maxTotalBytes}-byte limit.`,
+                { resource: next.href, severity: 'error' },
+              ),
+            );
+            totalBytesLimitReached = true;
+            break;
+          }
+          totalBytes += responseBytes;
           documents[finalUrl] = document;
           if (!files.includes(finalUrl)) files.push(finalUrl);
           const result = validateDocument(document, options);
@@ -199,7 +257,7 @@ export async function validatePublicationUrl(
           findings.push(fetchFinding(error, next.href));
         }
       }
-      if (queue.length > 0) {
+      if (queue.length > 0 && !resourceLimitReported && !totalBytesLimitReached) {
         findings.push(
           finding(
             'EOM_GRAPH_RESOURCE_LIMIT',
@@ -225,28 +283,63 @@ export async function validatePublicationUrl(
   };
 }
 
-async function publicationFiles(directory: string): Promise<string[]> {
+interface PublicationFileWalk {
+  readonly paths: readonly string[];
+  readonly fileLimitExceeded: boolean;
+  readonly depthLimitExceeded: boolean;
+}
+
+async function publicationFiles(
+  directory: string,
+  maxFiles: number,
+  maxDepth: number,
+): Promise<PublicationFileWalk> {
   const result: string[] = [];
-  async function visit(current: string): Promise<void> {
+  let fileLimitExceeded = false;
+  let depthLimitExceeded = false;
+  async function visit(current: string, depth: number): Promise<void> {
+    if (fileLimitExceeded) return;
+    if (depth > maxDepth) {
+      depthLimitExceeded = true;
+      return;
+    }
     const entries = (await readdir(current, { withFileTypes: true })).sort((left, right) =>
-      left.name.localeCompare(right.name),
+      compareStrings(left.name, right.name),
     );
     for (const entry of entries) {
+      if (fileLimitExceeded) return;
       if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name === 'build')
         continue;
       const path = join(current, entry.name);
-      if (entry.isDirectory()) await visit(path);
-      else if (
+      if (entry.isDirectory()) {
+        if (depth >= maxDepth) {
+          depthLimitExceeded = true;
+          continue;
+        }
+        await visit(path, depth + 1);
+      } else if (
         entry.isFile() &&
         (entry.name === 'educational-organization-manifest' ||
           (entry.name.endsWith('.json') && !isGeneratedMetadata(entry.name)))
       ) {
+        if (result.length >= maxFiles) {
+          fileLimitExceeded = true;
+          return;
+        }
         result.push(path);
       }
     }
   }
-  await visit(directory);
-  return result.sort((left, right) => left.localeCompare(right));
+  await visit(directory, 0);
+  return {
+    paths: result.sort(compareStrings),
+    fileLimitExceeded,
+    depthLimitExceeded,
+  };
+}
+
+function compareStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 function isGeneratedMetadata(name: string): boolean {
@@ -295,6 +388,16 @@ function fetchFinding(error: unknown, resource: string): Finding {
 
 function positiveLimit(value: number | undefined, fallback: number): number {
   return value !== undefined && Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+}
+
+function decodeUtf8(bytes: Uint8Array, source: string): string {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch (error) {
+    throw new Error(
+      `Invalid UTF-8 in ${source}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }
 
 function nonNegativeLimit(value: number | undefined, fallback: number): number {

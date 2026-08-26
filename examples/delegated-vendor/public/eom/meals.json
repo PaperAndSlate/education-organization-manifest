@@ -1,0 +1,23 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/meal-menu-catalog.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://delegated-school.example/eom/resource/meals",
+  "type": "meal-menu-catalog",
+  "canonical": "https://menus.delegated-vendor.example/customers/delegated-school/meals.json",
+  "subjects": ["https://delegated-school.example/id/school"],
+  "defaultLanguage": "en",
+  "supportedLanguages": ["en"],
+  "items": [
+    {
+      "id": "https://delegated-school.example/id/menu/2027-09-01",
+      "type": "meal-menu",
+      "name": "Example lunch menu",
+      "date": "2027-09-01",
+      "mealPeriod": "lunch",
+      "menuSections": [{ "name": "Main", "items": [{ "name": "Example grain bowl" }] }]
+    }
+  ],
+  "modified": "2027-01-01T00:00:00Z",
+  "expires": "2028-06-30T23:59:59Z"
+}

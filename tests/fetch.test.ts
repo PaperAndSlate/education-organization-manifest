@@ -1,10 +1,12 @@
 import { createServer, type Server } from 'node:http';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { discoveryUrl, fetchEom, fetchManifest } from '@paperandslate/eom-core';
-import { validateDocument } from '@paperandslate/eom-validator';
+import { validateDocument, validatePublicationUrl } from '@paperandslate/eom-validator';
 
 describe('EOM hardened HTTP retrieval', () => {
   let server: Server;
@@ -41,6 +43,12 @@ describe('EOM hardened HTTP retrieval', () => {
           .end(gzipSync(Buffer.from(manifest, 'utf8')));
         return;
       }
+      if (request.url === '/invalid-utf8') {
+        response
+          .writeHead(200, { 'content-type': 'application/json' })
+          .end(Buffer.from([0xc3, 0x28]));
+        return;
+      }
       response.writeHead(200, {
         'content-type': 'application/json; charset=utf-8',
         'cache-control': 'public, max-age=60',
@@ -75,6 +83,14 @@ describe('EOM hardened HTTP retrieval', () => {
     await expect(fetchManifest('https://127.0.0.1')).rejects.toMatchObject({
       code: 'EOM_FETCH_PRIVATE_HOST',
     });
+  });
+
+  it('rejects loopback, documentation, and mapped-private IPv6 targets', async () => {
+    for (const target of ['https://[::1]', 'https://[2001:db8::1]', 'https://[::ffff:127.0.0.1]']) {
+      await expect(fetchManifest(target)).rejects.toMatchObject({
+        code: 'EOM_FETCH_PRIVATE_HOST',
+      });
+    }
   });
 
   it('retrieves and validates a loopback fixture only with explicit test allowances', async () => {
@@ -116,6 +132,25 @@ describe('EOM hardened HTTP retrieval', () => {
     await expect(fetchEom(`${baseUrl}/compressed`, local)).rejects.toMatchObject({
       code: 'EOM_FETCH_CONTENT_ENCODING',
     });
+    await expect(fetchEom(`${baseUrl}/invalid-utf8`, local)).rejects.toMatchObject({
+      code: 'EOM_FETCH_JSON',
+    });
+  });
+
+  it('applies the publication maxBytes limit to the root URL request', async () => {
+    const result = await validatePublicationUrl(baseUrl, {
+      fetchGraph: false,
+      maxBytes: 32,
+      fetch: {
+        allowHttp: true,
+        allowPrivateHosts: true,
+        allowNonStandardPorts: true,
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_FETCH_TOO_LARGE' })]),
+    );
   });
 
   it('connects to the address returned by the validated resolver', async () => {
@@ -131,5 +166,30 @@ describe('EOM hardened HTTP retrieval', () => {
     });
     expect(result.status).toBe(200);
     expect(lookups).toBe(1);
+  });
+
+  it('does not trust a tampered cache response as an HTTP success', async () => {
+    const cacheDirectory = await mkdtemp(join(tmpdir(), 'eom-fetch-cache-'));
+    try {
+      const local = {
+        allowHttp: true,
+        allowPrivateHosts: true,
+        allowNonStandardPorts: true,
+        cacheDirectory,
+      } as const;
+      await fetchManifest(baseUrl, local);
+      const cachePathRoot = join(cacheDirectory, 'http');
+      const [cacheFile] = await readdir(cachePathRoot);
+      if (!cacheFile) throw new Error('The fetch cache did not produce an entry.');
+      const cachePath = join(cachePathRoot, cacheFile);
+      const cached = JSON.parse(await readFile(cachePath, 'utf8')) as Record<string, unknown>;
+      cached.body = manifest.replace('Ecme High School', 'Tampered School');
+      await writeFile(cachePath, JSON.stringify(cached), 'utf8');
+      const response = await fetchManifest(baseUrl, local);
+      expect(response.status).toBe(200);
+      expect(response.document).toMatchObject({ type: 'manifest' });
+    } finally {
+      await rm(cacheDirectory, { recursive: true, force: true });
+    }
   });
 });

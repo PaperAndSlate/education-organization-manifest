@@ -57,6 +57,10 @@ await build({
   format: 'iife',
   platform: 'browser',
   target: 'es2022',
+  alias: {
+    '@paperandslate/eom-core/ids': join(repository, 'packages', 'core', 'src', 'ids.ts'),
+    '@paperandslate/eom-core/json': join(repository, 'packages', 'core', 'src', 'json.ts'),
+  },
   outfile: join(output, 'app.js'),
   legalComments: 'none',
 });
@@ -76,7 +80,7 @@ process.stdout.write(`built local EOM playground at ${output}\n`);
 
 async function walkFiles(directory) {
   const entries = (await readdir(directory, { withFileTypes: true })).sort((left, right) =>
-    left.name.localeCompare(right.name),
+    left.name < right.name ? -1 : left.name > right.name ? 1 : 0,
   );
   const files = [];
   for (const entry of entries) {

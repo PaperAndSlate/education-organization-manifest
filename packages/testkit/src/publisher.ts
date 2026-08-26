@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { readFile, realpath, stat } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 export interface FixturePublisherOptions {
   readonly directory: string;
@@ -100,9 +100,19 @@ async function handleRequest(
     return;
   }
   try {
-    const fileStat = await stat(candidate);
+    const resolvedCandidate = await realpath(candidate);
+    const candidateRelative = relative(directory, resolvedCandidate);
+    if (
+      candidateRelative === '..' ||
+      candidateRelative.startsWith(`..${sep}`) ||
+      isAbsolute(candidateRelative)
+    ) {
+      send(response, 404, 'application/json', Buffer.from('{}\n'));
+      return;
+    }
+    const fileStat = await stat(resolvedCandidate);
     if (!fileStat.isFile()) throw new Error('not a file');
-    const body = await readFile(candidate);
+    const body = await readFile(resolvedCandidate);
     const contentType = options.contentTypes?.[path] ?? 'application/json';
     const etag = `"${createHash('sha256').update(body).digest('hex')}"`;
     const headers = {

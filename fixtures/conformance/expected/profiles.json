@@ -1,0 +1,73 @@
+{
+  "version": "1.0",
+  "cases": [
+    {
+      "id": "ecme-core",
+      "profile": "core",
+      "directory": "examples/ecme-high/public",
+      "status": "conforming",
+      "checks": ["profile-manifest", "profile-organization", "resource-graph", "publication-set"]
+    },
+    {
+      "id": "ecme-school",
+      "profile": "school",
+      "directory": "examples/ecme-high/public",
+      "status": "conforming",
+      "checks": ["school-identity", "publication-set"]
+    },
+    {
+      "id": "district-network",
+      "profile": "district",
+      "directory": "examples/district-network/public",
+      "status": "conforming",
+      "checks": ["district-organizations", "publication-set"]
+    },
+    {
+      "id": "ecme-modules",
+      "profile": "module",
+      "directory": "examples/ecme-high/public",
+      "status": "conforming",
+      "checks": ["module-resource", "module-schema", "publication-set"]
+    },
+    {
+      "id": "delegated-vendor",
+      "profile": "delegated",
+      "directory": "examples/delegated-vendor/public",
+      "status": "conforming",
+      "checks": ["delegation-record", "delegation-authority", "publication-set"]
+    },
+    {
+      "id": "signed-school",
+      "profile": "signed",
+      "directory": "examples/signed-school/public",
+      "status": "conforming",
+      "checks": [
+        "signature-record",
+        "signature-subject",
+        "signature-cryptographic",
+        "publication-set"
+      ]
+    },
+    {
+      "id": "ecme-consumer",
+      "profile": "consumer",
+      "directory": "examples/ecme-high/public",
+      "status": "conforming",
+      "checks": ["consumer-capture", "publication-set"]
+    },
+    {
+      "id": "ecme-generator",
+      "profile": "generator",
+      "directory": "examples/ecme-high/source",
+      "status": "conforming",
+      "checks": ["generator-marker", "generator-reproducibility", "publication-set"]
+    },
+    {
+      "id": "ecme-validator",
+      "profile": "validator",
+      "directory": "examples/ecme-high/public",
+      "status": "conforming",
+      "checks": ["validator-engine", "publication-set"]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readAllSchemas, SCHEMA_FILES } from '@paperandslate/eom-schema';
@@ -19,7 +19,11 @@ function propertyNames(schema: Record<string, unknown>): readonly string[] {
     Array.isArray(schema.properties)
   )
     return [];
-  return Object.keys(schema.properties).sort((left, right) => left.localeCompare(right));
+  return Object.keys(schema.properties).sort(compareStrings);
+}
+
+function compareStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 const lines = [
@@ -50,6 +54,24 @@ lines.push(
   'The catalog is descriptive. The versioned schema files are authoritative for validation.',
   '',
 );
-await mkdir(dirname(output), { recursive: true });
-await writeFile(output, lines.join('\n'), 'utf8');
-process.stdout.write(`generated ${output}\n`);
+const generated = lines.join('\n');
+if (process.argv.includes('--check')) {
+  let existing: string;
+  try {
+    existing = await readFile(output, 'utf8');
+  } catch {
+    throw new Error(
+      `Generated schema documentation is missing at ${output}. Run pnpm generate:docs.`,
+    );
+  }
+  if (existing !== generated) {
+    throw new Error(
+      `Generated schema documentation is stale at ${output}. Run pnpm generate:docs.`,
+    );
+  }
+  process.stdout.write(`generated schema documentation is current: ${output}\n`);
+} else {
+  await mkdir(dirname(output), { recursive: true });
+  await writeFile(output, generated, 'utf8');
+  process.stdout.write(`generated ${output}\n`);
+}

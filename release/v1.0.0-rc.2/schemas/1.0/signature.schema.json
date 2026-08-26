@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/signature.schema.json",
+  "title": "EOM detached Ed25519/JWS signature record",
+  "type": "object",
+  "required": [
+    "$schema",
+    "specification",
+    "version",
+    "id",
+    "type",
+    "canonical",
+    "subject",
+    "keyId",
+    "algorithm",
+    "canonicalization",
+    "payloadDigest",
+    "protected",
+    "signature",
+    "compact",
+    "detached",
+    "createdAt"
+  ],
+  "properties": {
+    "$schema": { "const": "https://paperandslate.org/schemas/eom/1.0/signature.schema.json" },
+    "specification": { "const": "https://paperandslate.org/spec/eom/1.0" },
+    "version": { "const": "1.0" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "type": { "const": "signature" },
+    "canonical": { "$ref": "common.schema.json#/$defs/httpsUri" },
+    "subject": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "keyId": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "algorithm": { "const": "EdDSA" },
+    "canonicalization": { "const": "RFC8785-JCS" },
+    "payloadDigest": {
+      "type": "string",
+      "pattern": "^sha-256=:[A-Za-z0-9+/]+={0,2}:$"
+    },
+    "protected": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+    "signature": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+    "compact": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
+    },
+    "detached": { "const": true },
+    "createdAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "expires": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "contentType": { "const": "application/json" },
+    "provenance": {
+      "type": "array",
+      "items": { "$ref": "provenance.schema.json" }
+    },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

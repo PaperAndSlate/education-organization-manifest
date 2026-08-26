@@ -1,5 +1,9 @@
 # Phase 1 Report — Protocol Core and Validation
 
+> Historical phase report. Its local-slice evidence is retained, but completion claims are
+> superseded for current release acceptance by [`reports/remediation-audit.md`](remediation-audit.md)
+> and the rebuilt traceability matrix.
+
 - Date: 2026-08-25
 - Scope: EOM 1.0 core schemas, generated types, local parsing/URI primitives, structural and semantic validation, privacy linting, CLI basics, canonical fixtures, and executable quickstart documentation
 - Result: complete for the core vertical slice; broader module and network slices remain in progress

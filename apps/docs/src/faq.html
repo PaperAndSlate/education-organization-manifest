@@ -9,6 +9,7 @@
     />
     <title>EOM FAQ and troubleshooting</title>
     <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="search.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -26,6 +27,11 @@
             <li><a href="faq.html" aria-current="page">FAQ</a></li>
           </ul>
         </nav>
+        <form class="site-search" data-doc-search role="search">
+          <label for="doc-search">Search documentation</label>
+          <input id="doc-search" type="search" autocomplete="off" placeholder="Search pages" />
+          <ul id="doc-search-results" aria-live="polite"></ul>
+        </form>
       </div>
     </header>
     <main id="main" class="shell prose">

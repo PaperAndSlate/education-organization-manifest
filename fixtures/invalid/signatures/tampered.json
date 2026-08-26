@@ -1,0 +1,7 @@
+{
+  "resource": "fixtures/signatures/unsigned-resource.json",
+  "signature": "fixtures/signatures/static-vector.json",
+  "keySet": "fixtures/signatures/key-set.json",
+  "mutation": "replace-last-signature-character",
+  "expected": "invalid"
+}

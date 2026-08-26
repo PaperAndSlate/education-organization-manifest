@@ -35,6 +35,31 @@ import {
     'api-reference',
   ]);
 
+  const fictionalFixture = {
+    $schema: `${SCHEMA_BASE}manifest.schema.json`,
+    specification: EOM_SPEC,
+    version: '1.0',
+    id: 'https://ecme-high.example/eom/manifest',
+    type: 'manifest',
+    canonical: 'https://ecme-high.example/eom/manifest',
+    publisher: {
+      id: 'https://ecme-high.example/#publisher',
+      name: 'Ecme High School',
+      type: 'school',
+    },
+    scope: { origin: 'https://ecme-high.example', paths: ['/'] },
+    organizations: [
+      {
+        id: 'https://ecme-high.example/#organization',
+        name: 'Ecme High School',
+        type: 'school',
+        canonicalUrl: 'https://ecme-high.example/',
+      },
+    ],
+    capabilities: [],
+    resources: [],
+  };
+
   const sourceField = document.querySelector('#source');
   const compareField = document.querySelector('#compare-source');
   const inputKind = document.querySelector('#input-kind');
@@ -192,6 +217,59 @@ import {
       list.append(item);
     }
     exploreOutput.append(heading, list);
+  }
+
+  function renderFixtureExplorer() {
+    exploreOutput.replaceChildren();
+    const heading = document.createElement('h3');
+    heading.textContent = 'Fixture explorer';
+    const note = document.createElement('p');
+    note.className = 'muted';
+    note.textContent =
+      'Only fictional, bundled fixture metadata is exposed here. Loading a fixture replaces the local editor value.';
+    const list = document.createElement('ul');
+    const item = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Load fictional Ecme manifest';
+    button.addEventListener('click', () => loadFixture(fictionalFixture));
+    item.append(button, ' — a minimal manifest for browser schema and privacy checks.');
+    list.append(item);
+    exploreOutput.append(heading, note, list);
+  }
+
+  function renderProvenance() {
+    const value = lastDocument ?? documentFromEditor();
+    exploreOutput.replaceChildren();
+    const heading = document.createElement('h3');
+    heading.textContent = 'Provenance and delegation viewer';
+    exploreOutput.append(heading);
+    if (!isPlainObject(value)) {
+      const message = document.createElement('p');
+      message.textContent = 'Load an object document to inspect its public provenance metadata.';
+      exploreOutput.append(message);
+      return;
+    }
+    const provenance = Array.isArray(value.provenance) ? value.provenance : [];
+    const delegations = Array.isArray(value.delegations) ? value.delegations : [];
+    const summary = document.createElement('p');
+    summary.textContent = `${provenance.length} provenance record(s) and ${delegations.length} delegation record(s). Values are displayed as metadata only; this view does not establish factual authority.`;
+    const list = document.createElement('ul');
+    for (const [kind, records] of [
+      ['provenance', provenance],
+      ['delegation', delegations],
+    ]) {
+      records.forEach((record, index) => {
+        const item = document.createElement('li');
+        item.textContent = `${kind} ${index + 1}: ${
+          isPlainObject(record) && typeof record.id === 'string'
+            ? record.id
+            : 'record without a stable id'
+        }`;
+        list.append(item);
+      });
+    }
+    exploreOutput.append(summary, list);
   }
 
   function renderConformance() {
@@ -449,34 +527,7 @@ import {
     }
   });
   document.querySelector('#fixture-button').addEventListener('click', () => {
-    const fixture = {
-      $schema: `${SCHEMA_BASE}manifest.schema.json`,
-      specification: EOM_SPEC,
-      version: '1.0',
-      id: 'https://ecme-high.example/eom/manifest',
-      type: 'manifest',
-      canonical: 'https://ecme-high.example/',
-      publisher: {
-        id: 'https://ecme-high.example/#publisher',
-        name: 'Ecme High School',
-        type: 'school',
-      },
-      scope: { origin: 'https://ecme-high.example', paths: ['/'] },
-      organizations: [
-        {
-          id: 'https://ecme-high.example/#organization',
-          name: 'Ecme High School',
-          type: 'school',
-          canonicalUrl: 'https://ecme-high.example/',
-        },
-      ],
-      capabilities: [],
-      resources: [],
-    };
-    sourceField.value = pretty(fixture);
-    inputKind.value = 'json';
-    lastDocument = fixture;
-    renderValidation(fixture, validateBrowserDocument(fixture));
+    loadFixture(fictionalFixture);
   });
   document.querySelector('#clear-button').addEventListener('click', () => {
     sourceField.value = '';
@@ -536,6 +587,16 @@ import {
       exploreOutput.textContent = error instanceof Error ? error.message : String(error);
     }
   });
+  document
+    .querySelector('#fixture-explorer-button')
+    ?.addEventListener('click', renderFixtureExplorer);
+  document.querySelector('#provenance-button')?.addEventListener('click', () => {
+    try {
+      renderProvenance();
+    } catch (error) {
+      exploreOutput.textContent = error instanceof Error ? error.message : String(error);
+    }
+  });
   document.querySelector('#report-button').addEventListener('click', () => {
     try {
       renderConformance();
@@ -573,6 +634,14 @@ import {
     parseSource,
     validateDocument: validateBrowserDocument,
     semanticDiff: semanticDiffBrowser,
+    verifyDetachedSignature: verifyDetachedBrowser,
     stable,
   };
+
+  function loadFixture(fixture) {
+    sourceField.value = pretty(fixture);
+    inputKind.value = 'json';
+    lastDocument = fixture;
+    renderValidation(fixture, validateBrowserDocument(fixture));
+  }
 })();

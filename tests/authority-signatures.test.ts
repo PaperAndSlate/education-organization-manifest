@@ -201,6 +201,7 @@ describe('EOM optional JCS and detached Ed25519 signatures', () => {
     expect(canonicalizeJson({ b: 2, a: 1 })).toBe('{"a":1,"b":2}');
     expect(canonicalizeJsonText('{ "b": 2, "a": 1 }')).toBe('{"a":1,"b":2}');
     expect(() => canonicalizeJsonText('{"a":1,"a":2}')).toThrow();
+    expect(() => canonicalizeJson('\ud800')).toThrow(/surrogate/u);
     const { privateKey, publicKey } = generateKeyPairSync('ed25519');
     const { publicKey: wrongPublicKey } = generateKeyPairSync('ed25519');
     const resource = fixture('fixtures/signatures/unsigned-resource.json');
@@ -260,6 +261,27 @@ describe('EOM optional JCS and detached Ed25519 signatures', () => {
       expect.arrayContaining([expect.objectContaining({ code: 'EOM_SIGNATURE_UNKNOWN_CRITICAL' })]),
     );
     expect(verifyUnsigned(resource).overall).toBe(true);
+  });
+
+  it('rejects malformed protected encodings without throwing from verification', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    const keyId = 'https://ecme-high.example/eom/keys#signing-2027';
+    const signature = signDetached(resource, { privateKey, keyId });
+    const malformed = {
+      ...signature,
+      protected: 'A',
+      compact: `A..${signature.signature}`,
+    };
+    const result = verifyDetached(resource, malformed, {
+      keys: [publicKeyRecord(publicKey, { keyId })],
+    });
+    expect(result.overall).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_SIGNATURE_PROTECTED_INVALID' }),
+      ]),
+    );
   });
 });
 

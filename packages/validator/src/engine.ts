@@ -15,8 +15,10 @@ type AddFormats = (ajv: Ajv2020) => unknown;
 const addFormats =
   (addFormatsModule as unknown as { default?: AddFormats }).default ??
   (addFormatsModule as unknown as AddFormats);
+let cachedAjv: Ajv2020 | undefined;
 
 function createAjv(): Ajv2020 {
+  if (cachedAjv) return cachedAjv;
   const ajv = new Ajv2020({
     allErrors: true,
     strict: true,
@@ -28,6 +30,7 @@ function createAjv(): Ajv2020 {
   for (const schema of readAllSchemas()) {
     ajv.addSchema(schema);
   }
+  cachedAjv = ajv;
   return ajv;
 }
 
@@ -62,10 +65,10 @@ export function validateDocument(
     );
     return { valid: false, structuralValid: false, semanticValid: false, findings };
   }
-  const ajv = createAjv();
   let valid: boolean;
   let schemaId: string | undefined;
   try {
+    const ajv = createAjv();
     const schema = readAllSchemas().find(
       (candidate) => typeof candidate.$id === 'string' && candidate.$id.endsWith(`/${schemaFile}`),
     );
@@ -126,7 +129,11 @@ export function validatePublication(
 }
 
 function ajvFinding(error: ErrorObject): Finding {
-  const pointer = error.instancePath || '/';
+  const instancePath = error.instancePath || '';
+  const pointer =
+    error.keyword === 'required' && typeof error.params.missingProperty === 'string'
+      ? `${instancePath}/${escapeJsonPointer(error.params.missingProperty)}`
+      : instancePath || '/';
   const detail = error.message ? `: ${error.message}` : '';
   return finding(
     `EOM_SCHEMA_${error.keyword.toUpperCase()}`,
@@ -137,6 +144,10 @@ function ajvFinding(error: ErrorObject): Finding {
       help: 'Fix the document to match the published EOM JSON Schema.',
     },
   );
+}
+
+function escapeJsonPointer(value: string): string {
+  return value.replace(/~/gu, '~0').replace(/\//gu, '~1');
 }
 
 export function isValidationResult(value: unknown): value is ValidationResult {

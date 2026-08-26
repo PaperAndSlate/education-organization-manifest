@@ -1,0 +1,64 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://ecme-high.example/.well-known/educational-organization-manifest",
+  "type": "manifest",
+  "canonical": "https://ecme-high.example/.well-known/educational-organization-manifest",
+  "publisher": {
+    "id": "https://ecme-high.example/eom/organization",
+    "name": "Ecme High School",
+    "type": "school",
+    "website": "https://ecme-high.example/"
+  },
+  "scope": { "origin": "https://ecme-high.example", "paths": ["/"] },
+  "organizations": [
+    {
+      "id": "https://ecme-high.example/eom/organization",
+      "type": "secondary-school",
+      "name": "Ecme High School",
+      "canonicalUrl": "https://ecme-high.example/eom/organization.json",
+      "profile": "https://ecme-high.example/eom/organization.json"
+    }
+  ],
+  "capabilities": [],
+  "resources": [
+    {
+      "id": "https://ecme-high.example/eom/resource/organization",
+      "type": "organization-profile",
+      "href": "https://ecme-high.example/eom/organization.json",
+      "mediaType": "application/json",
+      "version": "1.0",
+      "subjects": ["https://ecme-high.example/eom/organization"],
+      "languages": ["en"]
+    },
+    {
+      "id": "https://ecme-high.example/eom/resource/keys",
+      "type": "key-set",
+      "href": "https://ecme-high.example/eom/keys.json",
+      "mediaType": "application/json",
+      "version": "1.0",
+      "subjects": ["https://ecme-high.example/eom/organization"],
+      "languages": ["en"]
+    },
+    {
+      "id": "https://ecme-high.example/eom/resource/signature",
+      "type": "signature",
+      "href": "https://ecme-high.example/eom/signature.json",
+      "mediaType": "application/json",
+      "version": "1.0",
+      "subjects": ["https://ecme-high.example/eom/organization"],
+      "languages": ["en"]
+    }
+  ],
+  "signing": {
+    "keySet": "https://ecme-high.example/eom/keys.json",
+    "signatures": ["https://ecme-high.example/eom/signature.json"],
+    "required": false,
+    "algorithm": "EdDSA"
+  },
+  "defaultLanguage": "en",
+  "supportedLanguages": ["en"],
+  "modified": "2027-08-01T00:00:00Z",
+  "expires": "2030-01-01T00:00:00Z"
+}

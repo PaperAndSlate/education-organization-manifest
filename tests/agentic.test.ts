@@ -6,6 +6,7 @@ import {
   candidateGate,
   decodeJsonPointer,
   detectConflicts,
+  extractControlledCandidate,
   isJsonPointer,
   provenanceCoverage,
   reviewPrivacy,
@@ -118,5 +119,66 @@ describe('EOM evidence-led candidate workflows', () => {
     expect(sourcePathIsCandidate('review/candidates/ecme')).toBe(true);
     expect(sourcePathIsCandidate('examples/ecme-high/source')).toBe(false);
     expect(() => assertApprovedSourcePath('candidates/ecme-high')).toThrow(CandidatePolicyError);
+  });
+
+  it('turns an explicit controlled extraction into schema-valid, review-gated records', () => {
+    const result = extractControlledCandidate(
+      {
+        id: 'https://ecme-high.example/evidence/source/website',
+        uri: 'https://ecme-high.example/about',
+        title: 'Ecme High public website',
+        sourceType: 'organization-website',
+        format: 'html',
+        content: '<main><h1>Ecme High School</h1></main>',
+        retrievedAt: '2026-08-26T12:00:00Z',
+        reviewOwner: 'publication-admin',
+        modules: ['organization'],
+      },
+      [
+        {
+          id: 'https://ecme-high.example/evidence/claim/organization-name',
+          resourceId: 'https://ecme-high.example/eom/organization',
+          pointer: '/name',
+          proposedValue: 'Ecme High School',
+          locator: { selector: 'main h1' },
+          confidence: 0.98,
+          authorityClass: 'organization-origin',
+        },
+      ],
+      { now: new Date('2026-08-26T12:01:00Z') },
+    );
+
+    expect(validateDocument(result.source).valid).toBe(true);
+    expect(result.claims).toHaveLength(1);
+    expect(validateDocument(result.claims[0]).valid).toBe(true);
+    expect(validateDocument(result.candidate).valid).toBe(true);
+    expect(result.candidate).toMatchObject({ status: 'extracted', directPublication: false });
+    expect(result.privacy.status).toBe('clear');
+    expect(result.directPublication).toBe(false);
+  });
+
+  it('quarantines sensitive source content without returning the raw snapshot', () => {
+    const result = extractControlledCandidate(
+      {
+        id: 'https://ecme-high.example/evidence/source/review',
+        uri: 'https://ecme-high.example/restricted',
+        title: 'Restricted review copy',
+        sourceType: 'human-submission',
+        format: 'plain-text',
+        content: 'password: do-not-publish student name: Student Example',
+        retrievedAt: '2026-08-26T12:00:00Z',
+        reviewOwner: 'privacy-reviewer',
+      },
+      [],
+    );
+
+    const serialized = JSON.stringify(result);
+    expect(result.privacy.status).toBe('quarantined');
+    expect(result.candidate).toMatchObject({
+      privacyReview: 'quarantined',
+      directPublication: false,
+    });
+    expect(serialized).not.toContain('do-not-publish');
+    expect(serialized).not.toContain('Student Example');
   });
 });

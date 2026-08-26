@@ -26,15 +26,39 @@ export interface ReleasePreparation {
   readonly sourceTree: string;
 }
 
+export interface ReleaseSourceIdentity {
+  readonly sourceCommit?: string;
+  readonly sourceTree?: string;
+}
+
 export async function prepareReleaseArtifacts(
   targetRoot = outputRoot,
+  sourceIdentity: ReleaseSourceIdentity = {},
 ): Promise<ReleasePreparation> {
-  const sourceCommit = git('rev-parse', 'HEAD');
-  const sourceTree = git('rev-parse', `${sourceCommit}^{tree}`);
-  const status = git('status', '--porcelain=v1', '--untracked-files=all');
-  if (status.length > 0) {
+  const currentCommit = git('rev-parse', 'HEAD');
+  const currentTree = git('rev-parse', `${currentCommit}^{tree}`);
+  if ((sourceIdentity.sourceCommit === undefined) !== (sourceIdentity.sourceTree === undefined)) {
+    throw new Error('Release provenance must provide both sourceCommit and sourceTree.');
+  }
+  const sourceCommit = sourceIdentity.sourceCommit ?? currentCommit;
+  const sourceTree = sourceIdentity.sourceTree ?? currentTree;
+  if (git('rev-parse', `${sourceCommit}^{tree}`) !== sourceTree) {
+    throw new Error('Release provenance sourceCommit does not resolve to sourceTree.');
+  }
+  if (sourceIdentity.sourceCommit !== undefined && !sourceTreeMatchesWorkingSource(sourceTree)) {
     throw new Error(
-      'Release preparation requires a clean committed source revision. Commit source changes before generating artifacts.',
+      `Release provenance source tree is not the checked-out source outside release/ (${currentCommit}, ${currentTree}).`,
+    );
+  }
+  const status = git('status', '--porcelain=v1', '--untracked-files=all');
+  const sourceChanges = status
+    .split(/\r?\n/u)
+    .filter(Boolean)
+    .map((line) => line.slice(3).trim())
+    .filter((path) => path.length > 0 && !isReleasePath(path));
+  if (sourceChanges.length > 0) {
+    throw new Error(
+      `Release preparation requires a clean committed source revision outside release/. Commit source changes before generating artifacts: ${sourceChanges.join(', ')}`,
     );
   }
 
@@ -42,7 +66,7 @@ export async function prepareReleaseArtifacts(
   const candidateDirectory = join(targetRoot, `v${RELEASE_VERSION}`);
   await rm(candidateDirectory, { recursive: true, force: true });
   await mkdir(targetRoot, { recursive: true });
-  await copyCandidateArtifacts(candidateDirectory);
+  await copyCandidateArtifacts(candidateDirectory, sourceCommit);
 
   const archiveDefinitions: readonly ArchiveDefinition[] = [
     {
@@ -193,7 +217,7 @@ export async function prepareReleaseArtifacts(
         bytes: artifact.bytes.length,
         sha256: sha256(artifact.bytes),
       }))
-      .sort((left, right) => left.path.localeCompare(right.path)),
+      .sort((left, right) => compareStrings(left.path, right.path)),
     externalGates: {
       ianaRegistration: 'blocked-external',
       independentPublisherConsumerPilot: 'blocked-external',
@@ -228,7 +252,10 @@ interface ReleaseFile {
   readonly bytes: Buffer;
 }
 
-async function copyCandidateArtifacts(candidateDirectory: string): Promise<void> {
+async function copyCandidateArtifacts(
+  candidateDirectory: string,
+  sourceCommit: string,
+): Promise<void> {
   const sources: readonly [string, string][] = [
     ['spec/1.0', 'spec/1.0'],
     ['schemas/1.0', 'schemas/1.0'],
@@ -254,7 +281,7 @@ async function copyCandidateArtifacts(candidateDirectory: string): Promise<void>
       'The proposed well-known URI suffix is not claimed as IANA-registered.',
       'Independent pilots, legal review, external certification, and production deployment remain external gates.',
       '',
-      `Source commit: ${git('rev-parse', 'HEAD')}`,
+      `Source commit: ${sourceCommit}`,
       `Source date epoch: ${sourceDateEpoch} (${new Date(sourceDateEpoch * 1000).toISOString()})`,
       '',
     ].join('\n'),
@@ -314,7 +341,7 @@ async function sourceArchiveEntries(): Promise<ArchiveEntry[]> {
     ...(await Promise.all(roots.map((directory) => walk(join(root, directory))))).flat(),
   ]
     .filter((path) => isArchivePath(relative(root, path)))
-    .sort((left, right) => relative(root, left).localeCompare(relative(root, right)));
+    .sort((left, right) => compareStrings(relative(root, left), relative(root, right)));
   const entries: ArchiveEntry[] = [];
   for (const path of paths) {
     const relativePath = relative(root, path).replaceAll('\\', '/');
@@ -337,7 +364,7 @@ async function directoryArchiveEntries(
     ...(additionalFiles ? [join(root, additionalFiles)] : []),
   ]
     .filter((path) => isArchivePath(relative(root, path)))
-    .sort((left, right) => relative(root, left).localeCompare(relative(root, right)));
+    .sort((left, right) => compareStrings(relative(root, left), relative(root, right)));
   const entries: ArchiveEntry[] = [];
   for (const path of paths) {
     const relativePath = relative(root, path).replaceAll('\\', '/');
@@ -365,7 +392,7 @@ async function filesWithBytes(directory: string): Promise<ReleaseFile[]> {
       bytes: await readFile(path),
     });
   }
-  return files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+  return files.sort((left, right) => compareStrings(left.relativePath, right.relativePath));
 }
 
 async function readWorkspacePackageManifests(): Promise<readonly Record<string, unknown>[]> {
@@ -395,7 +422,7 @@ async function readWorkspacePackageManifests(): Promise<readonly Record<string, 
       licenses: value.license ? [{ license: { id: value.license } }] : undefined,
     });
   }
-  return components.sort((left, right) => String(left.purl).localeCompare(String(right.purl)));
+  return components.sort((left, right) => compareStrings(String(left.purl), String(right.purl)));
 }
 
 async function readLockedExternalComponents(
@@ -429,8 +456,12 @@ async function readLockedExternalComponents(
     });
   }
   return [...components.values()].sort((left, right) =>
-    String(left.purl).localeCompare(String(right.purl)),
+    compareStrings(String(left.purl), String(right.purl)),
   );
+}
+
+function compareStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 function parseLockPackageKey(key: string): { name: string; version: string } | undefined {
@@ -492,6 +523,23 @@ function sha256(bytes: Buffer): string {
 
 function git(...args: string[]): string {
   return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+}
+
+function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
+  try {
+    execFileSync('git', ['diff', '--quiet', sourceTree, '--', '.', ':(exclude)release/**'], {
+      cwd: root,
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isReleasePath(path: string): boolean {
+  const normalized = path.replaceAll('\\', '/').replace(/^"|"$/gu, '');
+  return normalized === 'release' || normalized.startsWith('release/');
 }
 
 async function exists(path: string): Promise<boolean> {

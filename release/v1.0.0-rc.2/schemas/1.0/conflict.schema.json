@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/conflict.schema.json",
+  "title": "EOM preserved claim conflict record",
+  "type": "object",
+  "required": ["type", "id", "target", "claims", "status", "reason"],
+  "properties": {
+    "type": { "const": "conflict-record" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "target": {
+      "type": "object",
+      "required": ["resourceId", "pointer"],
+      "properties": {
+        "resourceId": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+        "pointer": {
+          "type": "string",
+          "pattern": "^(?:|(?:/(?:[^~/]|~[01])*)+)$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["claimId", "value", "provenance"],
+        "properties": {
+          "claimId": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+          "value": {},
+          "provenance": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+          "observedAt": { "$ref": "common.schema.json#/$defs/dateTime" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "status": { "enum": ["unresolved", "resolved", "withdrawn"] },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "conflictType": {
+      "enum": [
+        "direct-disagreement",
+        "effective-date-mismatch",
+        "unit-mismatch",
+        "stale-source",
+        "naming-variation",
+        "identifier-collision",
+        "scope-mismatch",
+        "translation-disagreement",
+        "inferred-relationship"
+      ]
+    },
+    "recommendedClaimId": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "precedenceExplanation": { "type": "string", "minLength": 1 },
+    "materiality": { "enum": ["low", "medium", "high"] },
+    "reviewer": { "type": "string", "minLength": 1 },
+    "resolution": {
+      "type": "object",
+      "required": ["selectedClaimId", "decidedAt", "rationale"],
+      "properties": {
+        "selectedClaimId": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+        "decidedAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "followUp": { "type": "string", "maxLength": 1000 }
+      },
+      "additionalProperties": false
+    },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

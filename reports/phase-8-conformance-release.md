@@ -1,5 +1,10 @@
 # Phase 8 — conformance and release evidence
 
+> Historical RC1-era phase report. Its local-slice evidence is retained, but completion claims are
+> superseded for current release acceptance by [`reports/remediation-audit.md`](remediation-audit.md)
+> and the rebuilt traceability matrix. The current candidate is RC2 and must be accepted only from
+> its clean, source-revision-bound evidence.
+
 ## Completed locally
 
 - Added the offline `@paperandslate/eom-testkit` with versioned publisher, consumer, generator,

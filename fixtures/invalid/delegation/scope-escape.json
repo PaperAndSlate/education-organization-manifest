@@ -1,0 +1,16 @@
+{
+  "type": "delegation",
+  "id": "https://school.example/id/delegation/path-escape",
+  "delegate": "https://menus.example/id/provider",
+  "scope": {
+    "resourceTypes": ["meal-menu-catalog"],
+    "resourceIds": ["https://school.example/eom/resource/meals"],
+    "allowedOrigins": ["https://menus.example"],
+    "allowedPathPrefixes": ["/school/example/"]
+  },
+  "validFrom": "2027-01-01T00:00:00Z",
+  "validUntil": "2028-01-01T00:00:00Z",
+  "transitive": false,
+  "status": "active",
+  "subject": "https://school.example/id/school"
+}

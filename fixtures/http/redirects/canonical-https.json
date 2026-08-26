@@ -1,0 +1,8 @@
+{
+  "case": "redirects",
+  "initialStatus": 308,
+  "finalStatus": 200,
+  "allowedRedirects": 3,
+  "revalidateEachHop": true,
+  "expected": "accepted"
+}

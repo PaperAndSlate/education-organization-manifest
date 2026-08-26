@@ -440,6 +440,148 @@ export type Mapping = Readonly<{
   readonly "version": "1.0";
 }>;
 
+export type ModuleRegistryModule = Readonly<{
+  readonly "changeController": CommonAbsoluteUri;
+  readonly "collection": "single" | "items" | "paged" | "delegated";
+  readonly "compatibleProtocolVersions": ReadonlyArray<string>;
+  readonly "conformanceProfile": CommonAbsoluteUri;
+  readonly "currentVersion": string;
+  readonly "description": CommonLocalized;
+  readonly "example": string;
+  readonly "extensionPoints": ReadonlyArray<CommonAbsoluteUri>;
+  readonly "freshness": string;
+  readonly "lastReviewed": CommonDate;
+  readonly "mappings": ReadonlyArray<string>;
+  readonly "moduleUri": CommonAbsoluteUri;
+  readonly "privacyClass": string;
+  readonly "resourceType": string;
+  readonly "schema": CommonHttpsUri;
+  readonly "shortName": string;
+  readonly "status": "working-draft" | "stable" | "experimental" | "deprecated";
+  readonly "title": CommonLocalized;
+}>;
+
+export type ModuleRegistry = Readonly<{
+  readonly "$schema": "https://paperandslate.org/schemas/eom/1.0/module-registry.schema.json";
+  readonly "canonical": CommonHttpsUri;
+  readonly "changeController": CommonAbsoluteUri;
+  readonly "extensions"?: CommonExtensions;
+  readonly "id": CommonAbsoluteUri;
+  readonly "lastReviewed": CommonDate;
+  readonly "modules": ReadonlyArray<ModuleRegistryModule>;
+  readonly "specification": "https://paperandslate.org/spec/eom/1.0";
+  readonly "status": "working-draft" | "registered" | "deprecated";
+  readonly "type": "module-registry";
+  readonly "version": "1.0";
+}>;
+
+export type VocabularyRegistryVocabulary = Readonly<{
+  readonly "category": string;
+  readonly "compatibleProtocolVersions": ReadonlyArray<string>;
+  readonly "controller": CommonAbsoluteUri;
+  readonly "currentVersion": string;
+  readonly "description": CommonLocalized;
+  readonly "lastReviewed": CommonDate;
+  readonly "mappings": ReadonlyArray<string>;
+  readonly "openness": "open" | "closed" | "extensible";
+  readonly "schema": CommonHttpsUri;
+  readonly "snapshot": CommonHttpsUri;
+  readonly "status": "working-draft" | "stable" | "experimental" | "deprecated";
+  readonly "title": CommonLocalized;
+  readonly "vocabularyUri": CommonAbsoluteUri;
+}>;
+
+export type VocabularyRegistry = Readonly<{
+  readonly "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary-registry.schema.json";
+  readonly "canonical": CommonHttpsUri;
+  readonly "changeController": CommonAbsoluteUri;
+  readonly "extensions"?: CommonExtensions;
+  readonly "id": CommonAbsoluteUri;
+  readonly "lastReviewed": CommonDate;
+  readonly "specification": "https://paperandslate.org/spec/eom/1.0";
+  readonly "status": "working-draft" | "registered" | "deprecated";
+  readonly "type": "vocabulary-registry";
+  readonly "version": "1.0";
+  readonly "vocabularies": ReadonlyArray<VocabularyRegistryVocabulary>;
+}>;
+
+export type VocabularyMapping = Readonly<{
+  readonly "confidence": "high" | "medium" | "low" | "unreviewed";
+  readonly "evidence"?: string;
+  readonly "relation": "exactMatch" | "closeMatch" | "broaderMatch" | "narrowerMatch" | "relatedMatch" | "supersedes" | "approximateEquivalent";
+  readonly "target": CommonAbsoluteUri;
+}>;
+
+export type VocabularyTerm = Readonly<{
+  readonly "broader"?: ReadonlyArray<CommonAbsoluteUri>;
+  readonly "changeNote"?: CommonLocalized;
+  readonly "code": string;
+  readonly "definition": CommonLocalized;
+  readonly "effective"?: CommonPeriod;
+  readonly "jurisdiction"?: string;
+  readonly "license"?: string;
+  readonly "mappings"?: ReadonlyArray<VocabularyMapping>;
+  readonly "narrower"?: ReadonlyArray<CommonAbsoluteUri>;
+  readonly "preferredLabel": CommonLocalized;
+  readonly "related"?: ReadonlyArray<CommonAbsoluteUri>;
+  readonly "source"?: CommonAbsoluteUri;
+  readonly "status": "active" | "deprecated" | "proposed";
+  readonly "uri": CommonAbsoluteUri;
+}>;
+
+export type Vocabulary = Readonly<{
+  readonly "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json";
+  readonly "canonical": CommonHttpsUri;
+  readonly "category": string;
+  readonly "compatibleProtocolVersions"?: ReadonlyArray<string>;
+  readonly "contentDigest": string;
+  readonly "extensions"?: CommonExtensions;
+  readonly "id": CommonAbsoluteUri;
+  readonly "license": string;
+  readonly "openness": "open" | "closed" | "extensible";
+  readonly "retrievedAt": CommonDateTime;
+  readonly "source": CommonAbsoluteUri;
+  readonly "sourceVersion"?: string;
+  readonly "specification": "https://paperandslate.org/spec/eom/1.0";
+  readonly "terms": ReadonlyArray<VocabularyTerm>;
+  readonly "transformation"?: CommonLocalized;
+  readonly "type": "vocabulary";
+  readonly "updateMechanism"?: string;
+  readonly "version": "1.0";
+}>;
+
+export type ConformanceProfile = Readonly<{
+  readonly "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile.schema.json";
+  readonly "canonical": CommonHttpsUri;
+  readonly "description": CommonLocalized;
+  readonly "extensions"?: CommonExtensions;
+  readonly "externalEvidenceRequired"?: boolean;
+  readonly "id": CommonAbsoluteUri;
+  readonly "lastReviewed": CommonDate;
+  readonly "modes": ReadonlyArray<"fixture" | "publisher" | "consumer" | "generator">;
+  readonly "requiredChecks"?: ReadonlyArray<string>;
+  readonly "requirements": ReadonlyArray<string>;
+  readonly "role": "publisher" | "consumer" | "generator" | "validator" | "module" | "signature";
+  readonly "specification": "https://paperandslate.org/spec/eom/1.0";
+  readonly "status": "working-draft" | "stable" | "deprecated";
+  readonly "type": "conformance-profile";
+  readonly "version": "1.0";
+}>;
+
+export type ConformanceProfileRegistry = Readonly<{
+  readonly "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-profile-registry.schema.json";
+  readonly "canonical": CommonHttpsUri;
+  readonly "changeController": CommonAbsoluteUri;
+  readonly "extensions"?: CommonExtensions;
+  readonly "id": CommonAbsoluteUri;
+  readonly "lastReviewed": CommonDate;
+  readonly "profiles": ReadonlyArray<ConformanceProfile>;
+  readonly "specification": "https://paperandslate.org/spec/eom/1.0";
+  readonly "status": "working-draft" | "registered" | "deprecated";
+  readonly "type": "conformance-profile-registry";
+  readonly "version": "1.0";
+}>;
+
 export type OrganizationProfile = Readonly<{
   readonly "$schema": "https://paperandslate.org/schemas/eom/1.0/organization-profile.schema.json";
   readonly "address"?: CommonAddress;
@@ -988,13 +1130,13 @@ export type ModuleItemsStaff = Readonly<{
   readonly "name": CommonLocalized;
   readonly "profileUrl"?: CommonHttpsUri;
   readonly "provenance"?: ReadonlyArray<Provenance>;
+  readonly "publicCourses"?: ReadonlyArray<CommonEntityRef>;
   readonly "publicationReview": Readonly<{
   readonly "expires"?: CommonDateTime;
   readonly "reviewedAt": CommonDateTime;
   readonly "reviewedBy"?: CommonEntityRef;
   readonly "status": "approved" | "pending" | "withdrawn" | "expired";
 }>;
-  readonly "publicCourses"?: ReadonlyArray<CommonEntityRef>;
   readonly "teams"?: ReadonlyArray<CommonEntityRef>;
   readonly "type": "staff-member";
 }>;

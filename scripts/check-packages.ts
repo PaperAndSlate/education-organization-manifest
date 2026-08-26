@@ -1,17 +1,16 @@
 import { execFileSync } from 'node:child_process';
 import { gunzipSync } from 'node:zlib';
-import {
-  mkdtemp,
-  readFile,
-  readdir,
-  readFile as readFileAsync,
-  rm,
-  writeFile,
-} from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { existsSync } from 'node:fs';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 
 const root = resolve(process.cwd());
+const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+const corepackPnpmEntryPoint =
+  process.platform === 'win32'
+    ? join(dirname(process.execPath), 'node_modules', 'corepack', 'dist', 'pnpm.js')
+    : undefined;
 const packageDirectories = [
   ...(await readdir(join(root, 'packages'), { withFileTypes: true }))
     .filter((entry) => entry.isDirectory())
@@ -42,13 +41,12 @@ try {
         `${packageJson.name}: package exports must point to dist/index.js and dist/index.d.ts.`,
       );
     }
-    const output = execFileSync('pnpm', ['pack', '--pack-destination', smokeRoot, '--json'], {
+    const output = runPnpm(['pack', '--pack-destination', smokeRoot, '--json'], {
       cwd: directory,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
-      shell: process.platform === 'win32',
     });
-    const packed = JSON.parse(output) as {
+    const packed = JSON.parse(output.toString()) as {
       filename?: string;
       files?: readonly { path?: string }[];
     };
@@ -59,7 +57,7 @@ try {
       packed.files
         ?.map((entry) => entry.path)
         .filter((path): path is string => typeof path === 'string') ??
-      readTarEntries(await readFileAsync(packed.filename));
+      readTarEntries(await readFile(packed.filename));
     if (entries.some((entry) => entry.startsWith('src/')))
       throw new Error(`${packageJson.name}: packed source files are not allowed.`);
     if (!entries.includes('dist/index.js') || !entries.includes('dist/index.d.ts'))
@@ -78,11 +76,10 @@ try {
     `${JSON.stringify({ name: 'eom-clean-install-smoke', private: true, type: 'module', dependencies, pnpm: { overrides } }, null, 2)}\n`,
     'utf8',
   );
-  execFileSync('pnpm', ['install', '--offline', '--ignore-scripts', '--no-frozen-lockfile'], {
+  runPnpm(['install', '--offline', '--ignore-scripts', '--no-frozen-lockfile'], {
     cwd: smokeRoot,
     encoding: 'utf8',
     stdio: 'inherit',
-    shell: process.platform === 'win32',
   });
   const importScript = `const names = ${JSON.stringify(packageNames)}; for (const name of names) await import(name); console.log('clean package imports passed: ' + names.length);\n`;
   await writeFile(join(smokeRoot, 'runtime-smoke.mjs'), importScript, 'utf8');
@@ -136,4 +133,14 @@ function readTarEntries(bytes: Buffer): string[] {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function runPnpm(
+  args: readonly string[],
+  options: Parameters<typeof execFileSync>[2],
+): Buffer | string {
+  if (corepackPnpmEntryPoint && existsSync(corepackPnpmEntryPoint)) {
+    return execFileSync(process.execPath, [corepackPnpmEntryPoint, ...args], options);
+  }
+  return execFileSync(pnpmCommand, [...args], options);
 }

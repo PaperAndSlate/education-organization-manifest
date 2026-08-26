@@ -3,7 +3,7 @@
   "canonical": "https://paperandslate.org/vocabularies/eom/identifier-schemes/1.0",
   "category": "identifier-schemes",
   "compatibleProtocolVersions": ["1.0"],
-  "contentDigest": "sha256:df6fe49fab6dd5cb042ad804018aa7664a174729777c569e9d5da8de56fa7a90",
+  "contentDigest": "sha256:3f457a720aec4efc3a3dcc6d54a277b4c2478f2ea26a82d52ba53b8e8dbddf56",
   "id": "https://paperandslate.org/vocabularies/eom/identifier-schemes/1.0",
   "license": "CC0-1.0",
   "openness": "open",
@@ -18,14 +18,14 @@
       "license": "Public metadata",
       "preferredLabel": "US NCES school identifier",
       "status": "active",
-      "uri": "https://paperandslate.org/registry/identifier-schemes/us-nces-school"
+      "uri": "https://paperandslate.org/vocabularies/eom/identifier-schemes/us-nces-school"
     },
     {
       "code": "local",
       "definition": "A publisher-controlled identifier scheme with separately documented authority.",
       "preferredLabel": "Local organization identifier",
       "status": "active",
-      "uri": "https://paperandslate.org/registry/identifier-schemes/local"
+      "uri": "https://paperandslate.org/vocabularies/eom/identifier-schemes/local"
     }
   ],
   "type": "vocabulary",

@@ -1,5 +1,9 @@
 # Phase 2 — Authoring and deterministic generation
 
+> Historical phase report. Its local-slice evidence is retained, but completion claims are
+> superseded for current release acceptance by [`reports/remediation-audit.md`](remediation-audit.md)
+> and the rebuilt traceability matrix.
+
 Status: implemented locally as a working-draft toolchain slice on 2026-08-26.
 
 ## Delivered

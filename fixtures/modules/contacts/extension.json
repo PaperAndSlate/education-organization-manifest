@@ -6,9 +6,7 @@
       "audience": ["prospective-students", "parents-guardians"],
       "email": "admissions@ecme-high.example",
       "id": "https://ecme-high.example/id/contact/admissions",
-      "organization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "organization": { "id": "https://ecme-high.example/id/school" },
       "publicationReview": {
         "expires": "2028-05-01T00:00:00Z",
         "reviewedAt": "2027-05-01T12:00:00Z",
@@ -23,9 +21,7 @@
       "audience": ["current-students", "parents-guardians"],
       "email": "family-services@ecme-high.example",
       "id": "https://ecme-high.example/id/contact/family-services",
-      "organization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "organization": { "id": "https://ecme-high.example/id/school" },
       "publicationReview": {
         "expires": "2028-05-01T00:00:00Z",
         "reviewedAt": "2027-05-01T12:00:00Z",
@@ -38,11 +34,7 @@
   ],
   "defaultLanguage": "en-US",
   "expires": "2028-05-01T14:00:00Z",
-  "extensions": {
-    "https://fixture.example/eom/extensions/module-test": {
-      "value": "preserved"
-    }
-  },
+  "extensions": { "https://fixture.example/eom/extensions/module-test": { "value": "preserved" } },
   "id": "https://ecme-high.example/eom/resource/contacts",
   "modified": "2027-05-01T14:00:00Z",
   "specification": "https://paperandslate.org/spec/eom/1.0",

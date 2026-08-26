@@ -1,5 +1,9 @@
 # Phase 2 — Public module registry and envelopes
 
+> Historical phase report. Its local-slice evidence is retained, but completion claims are
+> superseded for current release acceptance by [`reports/remediation-audit.md`](remediation-audit.md)
+> and the rebuilt traceability matrix.
+
 Status: implemented locally as a working-draft protocol slice on 2026-08-26.
 
 ## Delivered

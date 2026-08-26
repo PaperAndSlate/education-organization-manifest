@@ -1,5 +1,9 @@
 # Phase 3 — Core school modules and deep course model
 
+> Historical phase report. Its local-slice evidence is retained, but completion claims are
+> superseded for current release acceptance by [`reports/remediation-audit.md`](remediation-audit.md)
+> and the rebuilt traceability matrix.
+
 Status: implemented locally as a working-draft core school slice on 2026-08-26.
 
 ## Delivered

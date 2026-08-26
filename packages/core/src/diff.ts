@@ -1,4 +1,4 @@
-import { isJsonObject, type JsonValue } from './json.js';
+import { isJsonObject, stringifyCanonical, type JsonValue } from './json.js';
 
 export type DiffChangeKind = 'added' | 'removed' | 'changed';
 
@@ -27,7 +27,7 @@ export interface SemanticDiffResult {
 export function semanticDiff(before: unknown, after: unknown): SemanticDiffResult {
   const changes: SemanticDiffChange[] = [];
   compare(before, after, '', changes);
-  const sorted = changes.sort((left, right) => left.path.localeCompare(right.path));
+  const sorted = changes.sort((left, right) => compareStrings(left.path, right.path));
   return {
     ...(isJsonObject(before) && typeof before.type === 'string' ? { fromType: before.type } : {}),
     ...(isJsonObject(after) && typeof after.type === 'string' ? { toType: after.type } : {}),
@@ -62,7 +62,7 @@ function compare(
   }
   if (isJsonObject(before) && isJsonObject(after)) {
     const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
-    for (const key of [...keys].sort((left, right) => left.localeCompare(right))) {
+    for (const key of [...keys].sort(compareStrings)) {
       compare(before[key], after[key], `${path}/${escapePointer(key)}`, changes);
     }
     return;
@@ -97,7 +97,7 @@ function compareArrays(
   const afterItems = indexedById(after);
   if (beforeItems && afterItems) {
     const ids = new Set([...beforeItems.keys(), ...afterItems.keys()]);
-    for (const id of [...ids].sort((left, right) => left.localeCompare(right))) {
+    for (const id of [...ids].sort(compareStrings)) {
       compare(beforeItems.get(id), afterItems.get(id), `${path}/@id/${escapePointer(id)}`, changes);
     }
     return;
@@ -120,7 +120,11 @@ function indexedById(value: readonly unknown[]): Map<string, unknown> | undefine
 }
 
 function sameJson(left: unknown, right: unknown): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
+  try {
+    return stringifyCanonical(left as JsonValue) === stringifyCanonical(right as JsonValue);
+  } catch {
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
 }
 
 function asJsonValue(value: unknown): JsonValue {
@@ -153,4 +157,10 @@ function lastPathSegment(path: string): string {
 
 function escapePointer(value: string): string {
   return value.replaceAll('~', '~0').replaceAll('/', '~1');
+}
+
+function compareStrings(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
 }

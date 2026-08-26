@@ -71,6 +71,7 @@ export interface SignatureVerificationResult {
   readonly delegationScopeValid: boolean | 'not-evaluated';
   readonly rootAuthorityStatus: 'accepted' | 'rejected' | 'not-evaluated';
   readonly resourceExpiryValid: boolean;
+  readonly signatureExpiryValid: boolean;
   readonly subjectMatch: boolean;
   readonly unsigned: false;
   readonly overall: boolean;
@@ -332,6 +333,16 @@ export function verifyDetached(
         { severity: 'error' },
       ),
     );
+  const signatureExpiryValid = isResourceCurrent(signature, now);
+  if (!signatureExpiryValid)
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_EXPIRED',
+        'freshness',
+        'The detached signature record is past its declared expiry.',
+        { severity: 'error' },
+      ),
+    );
   let authority: AuthorityResult | undefined;
   const hasAuthorityInputs =
     options.manifest !== undefined &&
@@ -356,6 +367,7 @@ export function verifyDetached(
     signatureValid &&
     subjectMatch &&
     resourceExpiryValid &&
+    signatureExpiryValid &&
     (authority === undefined || authority.accepted);
   return {
     canonicalizationValid,
@@ -366,6 +378,7 @@ export function verifyDetached(
     delegationScopeValid,
     rootAuthorityStatus,
     resourceExpiryValid,
+    signatureExpiryValid,
     subjectMatch,
     unsigned: false,
     overall,
@@ -447,7 +460,7 @@ function decodeProtectedHeader(
   }
   try {
     const decoded = parseStrictJson(
-      decodeBase64Url(value).toString('utf8'),
+      decodeUtf8(decodeBase64Url(value), 'signature protected header'),
       'signature protected header',
     );
     if (!isJsonObject(decoded)) throw new Error('Protected header must be a JSON object.');
@@ -534,29 +547,26 @@ function validateSignatureRecord(
   findings: Finding[],
 ): boolean {
   let valid = true;
-  if (stringAt(signature, ['algorithm']) !== 'EdDSA') {
-    findings.push(
-      finding(
-        'EOM_SIGNATURE_ALGORITHM_UNSUPPORTED',
-        'security',
-        'Only EdDSA with Ed25519 is allowed by the stable v1 profile.',
-        { severity: 'error' },
-      ),
-    );
-    valid = false;
-  }
-  if (stringAt(signature, ['canonicalization']) !== 'RFC8785-JCS') {
-    findings.push(
-      finding(
-        'EOM_SIGNATURE_PROFILE_INVALID',
-        'integrity',
-        'The signature record must declare RFC8785-JCS.',
-        {
-          severity: 'error',
-        },
-      ),
-    );
-    valid = false;
+  const requiredStrings: readonly [string, string][] = [
+    ['$schema', SIGNATURE_SCHEMA],
+    ['specification', SPECIFICATION],
+    ['version', '1.0'],
+    ['type', 'signature'],
+    ['algorithm', 'EdDSA'],
+    ['canonicalization', 'RFC8785-JCS'],
+  ];
+  for (const [field, expected] of requiredStrings) {
+    if (stringAt(signature, [field]) !== expected) {
+      findings.push(
+        finding(
+          'EOM_SIGNATURE_PROFILE_INVALID',
+          'integrity',
+          `The signature field ${field} must equal ${expected}.`,
+          { severity: 'error', pointer: `/${escapeJsonPointer(field)}` },
+        ),
+      );
+      valid = false;
+    }
   }
   if (valueAt(signature, ['detached']) !== true) {
     findings.push(
@@ -564,9 +574,81 @@ function validateSignatureRecord(
         'EOM_SIGNATURE_PROFILE_INVALID',
         'integrity',
         'The signature record must be detached.',
-        {
-          severity: 'error',
-        },
+        { severity: 'error', pointer: '/detached' },
+      ),
+    );
+    valid = false;
+  }
+  for (const field of ['id', 'subject', 'keyId'] as const) {
+    const value = stringAt(signature, [field]);
+    if (!value || !isAbsoluteHttpsOrUri(value)) {
+      findings.push(
+        finding(
+          'EOM_SIGNATURE_PROFILE_INVALID',
+          'integrity',
+          `The signature ${field} must be an absolute URI.`,
+          { severity: 'error', pointer: `/${field}` },
+        ),
+      );
+      valid = false;
+    }
+  }
+  const canonical = stringAt(signature, ['canonical']);
+  if (!canonical || !isHttpsUri(canonical)) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_PROFILE_INVALID',
+        'integrity',
+        'The signature canonical value must be an HTTPS URL.',
+        { severity: 'error', pointer: '/canonical' },
+      ),
+    );
+    valid = false;
+  }
+  const createdAt = stringAt(signature, ['createdAt']);
+  if (!createdAt || Number.isNaN(Date.parse(createdAt))) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_PROFILE_INVALID',
+        'integrity',
+        'The signature creation time must be a valid date-time.',
+        { severity: 'error', pointer: '/createdAt' },
+      ),
+    );
+    valid = false;
+  }
+  const expires = stringAt(signature, ['expires']);
+  if (expires !== undefined && Number.isNaN(Date.parse(expires))) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_PROFILE_INVALID',
+        'integrity',
+        'The signature expiry time must be a valid date-time.',
+        { severity: 'error', pointer: '/expires' },
+      ),
+    );
+    valid = false;
+  }
+  const contentType = stringAt(signature, ['contentType']);
+  if (contentType !== undefined && contentType !== 'application/json') {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_PROFILE_INVALID',
+        'integrity',
+        'The signature content type must be application/json.',
+        { severity: 'error', pointer: '/contentType' },
+      ),
+    );
+    valid = false;
+  }
+  const payloadDigest = stringAt(signature, ['payloadDigest']);
+  if (!payloadDigest || !/^sha-256=:[A-Za-z0-9+/]+={0,2}:$/u.test(payloadDigest)) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_PROFILE_INVALID',
+        'integrity',
+        'The signature payload digest is not a valid SHA-256 digest record.',
+        { severity: 'error', pointer: '/payloadDigest' },
       ),
     );
     valid = false;
@@ -660,19 +742,39 @@ function encodeBase64Url(value: Uint8Array): string {
 }
 
 function decodeBase64Url(value: string): Buffer {
-  if (!/^[A-Za-z0-9_-]+$/u.test(value))
+  if (!value || !/^[A-Za-z0-9_-]+$/u.test(value) || value.length % 4 === 1)
     throw new SignaturePolicyError(
       'EOM_SIGNATURE_BASE64_INVALID',
       'Signature encoding is not valid base64url.',
     );
   const padded =
     value.replaceAll('-', '+').replaceAll('_', '/') + '='.repeat((4 - (value.length % 4)) % 4);
-  return Buffer.from(padded, 'base64');
+  const decoded = Buffer.from(padded, 'base64');
+  if (encodeBase64Url(decoded) !== value)
+    throw new SignaturePolicyError(
+      'EOM_SIGNATURE_BASE64_INVALID',
+      'Signature encoding is not canonical base64url.',
+    );
+  return decoded;
+}
+
+function decodeUtf8(value: Uint8Array, source: string): string {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(value);
+  } catch (error) {
+    throw new SignaturePolicyError(
+      'EOM_SIGNATURE_UTF8_INVALID',
+      `The ${source} is not valid UTF-8: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }
 
 function canonicalValue(value: JsonValue): string {
-  if (value === null || typeof value === 'boolean' || typeof value === 'string')
+  if (value === null || typeof value === 'boolean') return JSON.stringify(value);
+  if (typeof value === 'string') {
+    assertWellFormedUnicode(value);
     return JSON.stringify(value);
+  }
   if (typeof value === 'number') {
     if (!Number.isFinite(value))
       throw new SignaturePolicyError(
@@ -683,7 +785,12 @@ function canonicalValue(value: JsonValue): string {
   }
   if (Array.isArray(value)) return `[${value.map(canonicalValue).join(',')}]`;
   const entries = Object.keys(value).sort(jcsKeyCompare);
-  return `{${entries.map((key) => `${JSON.stringify(key)}:${canonicalValue(value[key] as JsonValue)}`).join(',')}}`;
+  return `{${entries
+    .map((key) => {
+      assertWellFormedUnicode(key);
+      return `${JSON.stringify(key)}:${canonicalValue(value[key] as JsonValue)}`;
+    })
+    .join(',')}}`;
 }
 
 function jcsKeyCompare(left: string, right: string): number {
@@ -691,11 +798,49 @@ function jcsKeyCompare(left: string, right: string): number {
 }
 
 function isJsonValue(value: unknown): value is JsonValue {
-  if (value === null || typeof value === 'string' || typeof value === 'boolean') return true;
+  if (value === null || typeof value === 'boolean') return true;
+  if (typeof value === 'string') return true;
   if (typeof value === 'number') return Number.isFinite(value);
   if (Array.isArray(value)) return value.every(isJsonValue);
   if (isJsonObject(value)) return Object.values(value).every(isJsonValue);
   return false;
+}
+
+function isWellFormedUnicode(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        index += 1;
+        continue;
+      }
+      return false;
+    }
+    if (code >= 0xdc00 && code <= 0xdfff) return false;
+  }
+  return true;
+}
+
+function assertWellFormedUnicode(value: string): void {
+  if (!isWellFormedUnicode(value))
+    throw new SignaturePolicyError(
+      'EOM_CANONICALIZATION_UNICODE',
+      'Unpaired UTF-16 surrogates are not valid JCS text.',
+    );
+}
+
+function isHttpsUri(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
+function escapeJsonPointer(value: string): string {
+  return value.replaceAll('~', '~0').replaceAll('/', '~1');
 }
 
 function stringAt(value: unknown, path: readonly string[]): string | undefined {

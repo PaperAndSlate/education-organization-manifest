@@ -2,11 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/staff-directory.schema.json",
   "canonical": "https://ecme-high.example/eom/staff.json",
   "expires": "2028-05-01T14:00:00Z",
-  "extensions": {
-    "https://fixture.example/eom/extensions/module-test": {
-      "value": "preserved"
-    }
-  },
+  "extensions": { "https://fixture.example/eom/extensions/module-test": { "value": "preserved" } },
   "id": "https://ecme-high.example/eom/resource/staff",
   "items": [
     {

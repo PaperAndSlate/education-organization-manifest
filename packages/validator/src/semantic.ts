@@ -4,7 +4,8 @@ import {
   isSameOrigin,
   normalizeOrigin,
   originOf,
-} from '@paperandslate/eom-core';
+} from '@paperandslate/eom-core/ids';
+import { stringifyCanonical } from '@paperandslate/eom-core/json';
 import type { Finding } from './findings.js';
 import { finding } from './findings.js';
 
@@ -50,8 +51,14 @@ export function publicationSetFindings(
     const documentId = stringValue(document.id);
     if (documentId) {
       const documentType = stringValue(document.type);
+      const documentFingerprint = canonicalValueKey(document);
       const previous = known.get(documentId);
-      if (previous) {
+      const isIdenticalManifestAlias =
+        documentType === 'manifest' &&
+        previous?.type === 'manifest' &&
+        previous.fingerprint !== undefined &&
+        previous.fingerprint === documentFingerprint;
+      if (previous && !isIdenticalManifestAlias) {
         findings.push(
           finding(
             'EOM_PUBLICATION_DUPLICATE_ID',
@@ -69,16 +76,13 @@ export function publicationSetFindings(
           documentName,
           pointer: `${documentName}/id`,
           ...(documentType ? { type: documentType } : {}),
+          ...(documentFingerprint === undefined ? {} : { fingerprint: documentFingerprint }),
         });
       }
     }
-    const items = Array.isArray(document.items)
-      ? document.items
-      : document.type === 'contact-directory' && Array.isArray(document.contacts)
-        ? document.contacts
-        : document.type === 'organization-index' && Array.isArray(document.organizations)
-          ? document.organizations
-          : [];
+    if (stringValue(document.type) === 'manifest') continue;
+    const collection = collectionForDocument(document);
+    const items = collection.items;
     items.forEach((item, index) => {
       if (!isRecord(item) || typeof item.id !== 'string') return;
       const previous = known.get(item.id);
@@ -89,7 +93,7 @@ export function publicationSetFindings(
             'semantic',
             `The stable id ${item.id} is published more than once in the resource set.`,
             {
-              pointer: `/${escapePointer(documentName)}/items/${index}/id`,
+              pointer: `/${escapePointer(documentName)}/${collection.field}/${index}/id`,
               related: [previous.documentName, previous.pointer],
               help: 'Keep one canonical definition for each stable public identifier.',
             },
@@ -97,10 +101,12 @@ export function publicationSetFindings(
         );
       } else {
         const entityType = stringValue(item.type);
+        const itemFingerprint = canonicalValueKey(item);
         known.set(item.id, {
           documentName,
-          pointer: `${documentName}/items/${index}`,
+          pointer: `${documentName}/${collection.field}/${index}`,
           ...(entityType ? { type: entityType } : {}),
+          ...(itemFingerprint === undefined ? {} : { fingerprint: itemFingerprint }),
         });
       }
     });
@@ -111,7 +117,7 @@ export function publicationSetFindings(
         if (!known.has(period.id)) {
           known.set(period.id, {
             documentName,
-            pointer: `${documentName}/items/${itemIndex}/periods/${periodIndex}`,
+            pointer: `${documentName}/${collection.field}/${itemIndex}/periods/${periodIndex}`,
             type: 'academic-period',
           });
         }
@@ -121,11 +127,12 @@ export function publicationSetFindings(
 
   for (const [documentName, document] of Object.entries(documents)) {
     if (!isRecord(document)) continue;
-    const items = Array.isArray(document.items) ? document.items : [];
+    const collection = collectionForDocument(document);
+    const items = collection.items;
     const type = stringValue(document.type);
     items.forEach((item, index) => {
       if (!isRecord(item)) return;
-      const pointer = `/${escapePointer(documentName)}/items/${index}`;
+      const pointer = `/${escapePointer(documentName)}/${collection.field}/${index}`;
       if (type === 'course-offering-catalog' && stringValue(item.type) === 'course-offering') {
         checkEntityReference(item.course, known, findings, `${pointer}/course`, ['course']);
         checkEntityReference(item.provider, known, findings, `${pointer}/provider`, [
@@ -166,15 +173,162 @@ export function publicationSetFindings(
           'program',
         ]);
       }
+      checkModuleItemReferences(type, item, known, findings, pointer);
     });
   }
   return findings;
+}
+
+interface DocumentCollection {
+  readonly field: 'items' | 'contacts' | 'organizations';
+  readonly items: readonly unknown[];
+}
+
+function collectionForDocument(document: UnknownRecord): DocumentCollection {
+  if (Array.isArray(document.contacts)) return { field: 'contacts', items: document.contacts };
+  if (Array.isArray(document.organizations)) {
+    return { field: 'organizations', items: document.organizations };
+  }
+  return { field: 'items', items: arrayValue(document.items) };
+}
+
+function checkModuleItemReferences(
+  documentType: string | undefined,
+  item: UnknownRecord,
+  known: ReadonlyMap<string, KnownEntity>,
+  findings: Finding[],
+  pointer: string,
+): void {
+  const references: Readonly<Record<string, readonly string[]>> =
+    documentType === 'campus-catalog'
+      ? {
+          operator: ['organization-profile', 'organization'],
+          organizationsServed: ['organization-profile', 'organization'],
+        }
+      : documentType === 'department-catalog'
+        ? {
+            parentOrganization: ['organization-profile', 'organization'],
+            parentDepartment: ['department'],
+            programs: ['program'],
+            courses: ['course'],
+            campuses: ['campus'],
+            leadership: ['staff-member'],
+          }
+        : documentType === 'staff-directory'
+          ? {
+              departments: ['department'],
+              publicCourses: ['course'],
+              teams: ['sports-team'],
+            }
+          : documentType === 'contact-directory'
+            ? {
+                organization: ['organization-profile', 'organization'],
+                department: ['department'],
+              }
+            : documentType === 'course-catalog'
+              ? {
+                  campuses: ['campus'],
+                  locations: ['facility', 'campus'],
+                }
+              : documentType === 'course-offering-catalog'
+                ? {
+                    campuses: ['campus'],
+                    locations: ['facility', 'campus'],
+                    instructors: ['staff-member'],
+                  }
+                : documentType === 'program-catalog'
+                  ? {
+                      qualifications: ['qualification'],
+                      certifications: ['certification'],
+                      partnerOrganizations: ['organization-profile', 'organization'],
+                      campuses: ['campus'],
+                      contact: ['role-contact'],
+                    }
+                  : documentType === 'event-catalog'
+                    ? { location: ['facility', 'campus'] }
+                    : documentType === 'facility-catalog'
+                      ? { campus: ['campus'] }
+                      : documentType === 'service-catalog'
+                        ? {
+                            provider: ['organization-profile', 'organization'],
+                            locations: ['facility', 'campus'],
+                          }
+                        : documentType === 'policy-catalog'
+                          ? {
+                              organization: ['organization-profile', 'organization'],
+                              supersedes: ['policy'],
+                              supersededBy: ['policy'],
+                            }
+                          : documentType === 'admissions-profile'
+                            ? {
+                                organization: ['organization-profile', 'organization'],
+                                program: ['program'],
+                              }
+                            : documentType === 'sports-catalog'
+                              ? {
+                                  organization: ['organization-profile', 'organization'],
+                                  homeFacilities: ['facility'],
+                                  coaches: ['staff-member'],
+                                  contact: ['role-contact'],
+                                }
+                              : documentType === 'transportation-catalog'
+                                ? {
+                                    provider: ['organization-profile', 'organization'],
+                                    organizations: ['organization-profile', 'organization'],
+                                    campuses: ['campus'],
+                                  }
+                                : documentType === 'meal-menu-catalog'
+                                  ? { campus: ['campus'] }
+                                  : documentType === 'club-catalog'
+                                    ? {
+                                        organization: ['organization-profile', 'organization'],
+                                        department: ['department'],
+                                        advisor: ['staff-member'],
+                                        location: ['facility', 'campus'],
+                                      }
+                                    : documentType === 'job-catalog'
+                                      ? {
+                                          hiringOrganization: [
+                                            'organization-profile',
+                                            'organization',
+                                          ],
+                                          department: ['department'],
+                                          location: ['facility', 'campus'],
+                                          contact: ['role-contact'],
+                                        }
+                                      : documentType === 'news-feed'
+                                        ? { author: ['staff-member', 'role-contact'] }
+                                        : documentType === 'statistics-profile'
+                                          ? { subject: ['organization-profile', 'organization'] }
+                                          : documentType === 'api-reference'
+                                            ? {
+                                                provider: ['organization-profile', 'organization'],
+                                              }
+                                            : {};
+
+  for (const [field, expectedTypes] of Object.entries(references)) {
+    const value = item[field];
+    if (Array.isArray(value)) {
+      checkEntityReferenceArray(value, known, findings, `${pointer}/${field}`, expectedTypes);
+    } else {
+      checkEntityReference(value, known, findings, `${pointer}/${field}`, expectedTypes);
+    }
+  }
 }
 
 interface KnownEntity {
   readonly documentName: string;
   readonly pointer: string;
   readonly type?: string;
+  readonly fingerprint?: string;
+}
+
+function canonicalValueKey(value: unknown): string | undefined {
+  try {
+    return stringifyCanonical(value as never);
+  } catch {
+    return undefined;
+  }
 }
 
 function inspectCourseCatalog(document: UnknownRecord, findings: Finding[]): void {
@@ -208,26 +362,35 @@ function inspectCourseCatalog(document: UnknownRecord, findings: Finding[]): voi
     const corequisites = arrayValue(value.corequisites)
       .map(entityRefId)
       .filter((ref): ref is string => ref !== undefined);
-    for (const [refIndex, prerequisiteId] of [
-      ...prerequisites.map((ref) => ({ ref, kind: 'prerequisite' as const })),
-      ...corequisites.map((ref) => ({ ref, kind: 'corequisite' as const })),
-    ].entries()) {
-      if (!courseIds.has(prerequisiteId.ref)) {
-        findings.push(
-          finding(
-            prerequisiteId.kind === 'prerequisite'
-              ? 'EOM_PREREQUISITE_UNKNOWN_COURSE'
-              : 'EOM_COREQUISITE_UNKNOWN_COURSE',
-            'semantic',
-            `The ${prerequisiteId.kind} references a course that is not in this catalog.`,
-            {
-              pointer: `${pointer}/${prerequisiteId.kind === 'prerequisite' ? 'prerequisites' : 'corequisites'}/${refIndex}`,
-              related: [prerequisiteId.ref],
-              help: 'Publish the referenced course in the same catalog or remove the stale relationship.',
-            },
-          ),
-        );
-      }
+    for (const [refIndex, prerequisiteId] of prerequisites.entries()) {
+      if (courseIds.has(prerequisiteId)) continue;
+      findings.push(
+        finding(
+          'EOM_PREREQUISITE_UNKNOWN_COURSE',
+          'semantic',
+          'The prerequisite references a course that is not in this catalog.',
+          {
+            pointer: `${pointer}/prerequisites/${refIndex}`,
+            related: [prerequisiteId],
+            help: 'Publish the referenced course in the same catalog or remove the stale relationship.',
+          },
+        ),
+      );
+    }
+    for (const [refIndex, corequisiteId] of corequisites.entries()) {
+      if (courseIds.has(corequisiteId)) continue;
+      findings.push(
+        finding(
+          'EOM_COREQUISITE_UNKNOWN_COURSE',
+          'semantic',
+          'The corequisite references a course that is not in this catalog.',
+          {
+            pointer: `${pointer}/corequisites/${refIndex}`,
+            related: [corequisiteId],
+            help: 'Publish the referenced course in the same catalog or remove the stale relationship.',
+          },
+        ),
+      );
     }
     for (const field of ['replaces', 'replacedBy']) {
       const reference = entityRefId(value[field]);
@@ -281,24 +444,6 @@ function inspectCourseCatalog(document: UnknownRecord, findings: Finding[]): voi
     inspectCourseOfferingLeak(value, findings, pointer);
   });
 
-  for (const [courseId, prerequisites] of graph) {
-    for (const prerequisite of prerequisites) {
-      if (!courseIds.has(prerequisite)) {
-        findings.push(
-          finding(
-            'EOM_PREREQUISITE_UNKNOWN_COURSE',
-            'semantic',
-            'A prerequisite references a course that is not in this catalog.',
-            {
-              pointer: `/items/${courseIndex(items, courseId)}/prerequisites`,
-              related: [prerequisite],
-              help: 'Publish the referenced course in the same catalog or represent an external requirement explicitly.',
-            },
-          ),
-        );
-      }
-    }
-  }
   for (const cycle of prerequisiteCycles(graph)) {
     const first = cycle[0];
     if (!first) continue;
@@ -726,6 +871,7 @@ function inspectResource(document: UnknownRecord, findings: Finding[], now: Date
   inspectLanguageDefaults(document, findings, '');
   inspectFreshness(document, findings, now, '');
   inspectPeriodValue(document.effective, findings, '/effective');
+  inspectModuleItems(document, findings);
   inspectUniqueIds(arrayValue(document.provenance), findings, '/provenance');
   const id = stringValue(document.id);
   if (id && !isAbsoluteUri(id)) {
@@ -749,6 +895,115 @@ function inspectResource(document: UnknownRecord, findings: Finding[], now: Date
       ),
     );
   }
+}
+
+function inspectModuleItems(document: UnknownRecord, findings: Finding[]): void {
+  const documentType = stringValue(document.type);
+  const collection = collectionForDocument(document);
+  const items = collection.items;
+  items.forEach((value, index) => {
+    if (!isRecord(value)) return;
+    const pointer = `/${collection.field}/${index}`;
+    if (documentType !== 'course-catalog' && documentType !== 'program-catalog') {
+      inspectPeriodValue(value.effective, findings, `${pointer}/effective`);
+    }
+    if (documentType === 'academic-calendar') {
+      inspectDateOrder(value, 'start', 'end', findings, `${pointer}`, 'EOM_CALENDAR_DATE_ORDER');
+      for (const [periodIndex, period] of arrayValue(value.periods).entries()) {
+        if (isRecord(period)) {
+          inspectDateOrder(
+            period,
+            'start',
+            'end',
+            findings,
+            `${pointer}/periods/${periodIndex}`,
+            'EOM_ACADEMIC_PERIOD_DATE_ORDER',
+          );
+        }
+      }
+    }
+    if (documentType === 'event-catalog') {
+      inspectDateOrder(value, 'start', 'end', findings, pointer, 'EOM_EVENT_DATE_ORDER');
+    }
+    if (documentType === 'job-catalog') {
+      inspectDateOrder(value, 'postedAt', 'closingAt', findings, pointer, 'EOM_JOB_DATE_ORDER');
+    }
+    if (documentType === 'news-feed') {
+      inspectDateOrder(
+        value,
+        'publishedAt',
+        'modifiedAt',
+        findings,
+        pointer,
+        'EOM_NEWS_DATE_ORDER',
+      );
+    }
+    if (documentType === 'statistics-profile') {
+      inspectDateOrder(
+        value,
+        'observedAt',
+        'publishedAt',
+        findings,
+        pointer,
+        'EOM_STATISTIC_PUBLICATION_ORDER',
+      );
+      const suppression = isRecord(value.suppression) ? value.suppression : undefined;
+      if (suppression?.suppressed === false && typeof suppression.suppressionReason === 'string') {
+        findings.push(
+          finding(
+            'EOM_STATISTIC_SUPPRESSION_METADATA',
+            'semantic',
+            'A non-suppressed statistic must not carry a suppression reason.',
+            {
+              pointer: `${pointer}/suppression/suppressionReason`,
+              help: 'Remove suppression metadata or set suppressed to true before publication.',
+            },
+          ),
+        );
+      }
+    }
+    if (documentType === 'admissions-profile') {
+      inspectDateRanges(value.applicationWindows, findings, `${pointer}/applicationWindows`);
+    }
+    if (documentType === 'staff-directory') {
+      const review = isRecord(value.publicationReview) ? value.publicationReview : undefined;
+      if (review) {
+        inspectDateOrder(
+          review,
+          'reviewedAt',
+          'expires',
+          findings,
+          `${pointer}/publicationReview`,
+          'EOM_PUBLICATION_REVIEW_ORDER',
+        );
+      }
+    }
+  });
+}
+
+function inspectDateRanges(value: unknown, findings: Finding[], pointer: string): void {
+  for (const [index, range] of arrayValue(value).entries()) {
+    if (isRecord(range)) inspectPeriodValue(range, findings, `${pointer}/${index}`);
+  }
+}
+
+function inspectDateOrder(
+  value: UnknownRecord,
+  startField: string,
+  endField: string,
+  findings: Finding[],
+  pointer: string,
+  code: string,
+): void {
+  const start = parseDate(value[startField]);
+  const end = parseDate(value[endField]);
+  if (!start || !end || start <= end) return;
+  findings.push(
+    finding(code, 'semantic', `${startField} must be earlier than or equal to ${endField}.`, {
+      pointer: `${pointer}/${endField}`,
+      help: `Correct the ${startField}/${endField} range before publication.`,
+    }),
+  );
 }
 
 function inspectLanguageDefaults(

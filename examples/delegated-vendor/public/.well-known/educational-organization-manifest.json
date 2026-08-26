@@ -1,0 +1,74 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://delegated-school.example/.well-known/educational-organization-manifest",
+  "type": "manifest",
+  "canonical": "https://delegated-school.example/.well-known/educational-organization-manifest",
+  "publisher": {
+    "id": "https://delegated-school.example/id/school",
+    "name": "Delegated Example School",
+    "type": "school",
+    "website": "https://delegated-school.example/"
+  },
+  "scope": {
+    "origin": "https://delegated-school.example",
+    "paths": ["/"],
+    "scopeStatement": "Public school resources and explicitly delegated vendor resources."
+  },
+  "organizations": [
+    {
+      "id": "https://delegated-school.example/id/school",
+      "type": "secondary-school",
+      "name": "Delegated Example School",
+      "canonicalUrl": "https://delegated-school.example/eom/organization.json",
+      "profile": "https://delegated-school.example/eom/organization.json"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "https://delegated-school.example/eom/capability/meals",
+      "version": "1.0",
+      "status": "active",
+      "resources": ["https://delegated-school.example/eom/resource/meals"]
+    }
+  ],
+  "resources": [
+    {
+      "id": "https://delegated-school.example/eom/resource/meals",
+      "type": "meal-menu-catalog",
+      "href": "https://menus.delegated-vendor.example/customers/delegated-school/meals.json",
+      "mediaType": "application/json",
+      "version": "1.0",
+      "subjects": ["https://delegated-school.example/id/school"],
+      "languages": ["en"]
+    }
+  ],
+  "delegations": [
+    {
+      "type": "delegation",
+      "id": "https://delegated-school.example/id/delegation/meals",
+      "delegate": {
+        "id": "https://menus.delegated-vendor.example/id/vendor",
+        "name": "Delegated Example Foods",
+        "type": "authorized-vendor",
+        "website": "https://menus.delegated-vendor.example/"
+      },
+      "scope": {
+        "resourceTypes": ["meal-menu-catalog"],
+        "resourceIds": ["https://delegated-school.example/eom/resource/meals"],
+        "allowedOrigins": ["https://menus.delegated-vendor.example"],
+        "allowedPathPrefixes": ["/customers/delegated-school/"]
+      },
+      "validFrom": "2026-07-01T00:00:00Z",
+      "validUntil": "2028-06-30T23:59:59Z",
+      "transitive": false,
+      "status": "active",
+      "subject": "https://delegated-school.example/id/school"
+    }
+  ],
+  "defaultLanguage": "en",
+  "supportedLanguages": ["en"],
+  "modified": "2027-07-01T00:00:00Z",
+  "expires": "2028-06-30T23:59:59Z"
+}

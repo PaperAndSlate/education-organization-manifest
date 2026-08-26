@@ -41,6 +41,20 @@ Course authoring keeps reusable definitions separate from offerings and sections
 
 Build reports use relative paths and content digests so identical source/config inputs can be compared across directories. Generated public output is not written when a blocking finding is present. A dry run performs all discovery and validation without replacing the output directory.
 
+For sensitive public modules, an authoring configuration may record the explicit review
+acknowledgements supplied by the relevant owner:
+
+```yaml
+validation:
+  privacyAcknowledgements:
+    - transportation
+    - meals
+```
+
+These entries are audit metadata, not a substitute for the privacy/security linter or human
+publication approval. The generator copies them into the protected build report and still blocks
+prohibited data.
+
 ## Commands
 
 ```powershell

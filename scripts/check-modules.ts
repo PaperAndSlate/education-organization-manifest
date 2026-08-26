@@ -8,6 +8,8 @@ const root = resolve(process.cwd());
 const registryPath = join(root, 'modules', 'registry.json');
 const registry = parseStrictJson(await readFile(registryPath, 'utf8'), registryPath);
 const failures: string[] = [];
+const moduleSchemaBase = 'https://paperandslate.org/schemas/eom/1.0/';
+const moduleProfile = 'https://paperandslate.org/spec/eom/1.0/profiles/module';
 const expected = [
   'organization',
   'campuses',
@@ -40,9 +42,13 @@ if (!isJsonObject(registry) || !Array.isArray(registry.modules)) {
   if (!registryResult.valid)
     failures.push(`modules/registry.json: ${JSON.stringify(registryResult.findings)}`);
   const entries = registry.modules.filter(isJsonObject);
+  if (entries.length !== expected.length)
+    failures.push(`registry: expected ${expected.length} module records, found ${entries.length}`);
   const names = entries
     .map((entry) => entry.shortName)
     .filter((value): value is string => typeof value === 'string');
+  const moduleUris = new Set<string>();
+  const resourceTypes = new Set<string>();
   for (const name of expected)
     if (!names.includes(name)) failures.push(`registry: missing module ${name}`);
   for (const name of names)
@@ -53,17 +59,54 @@ if (!isJsonObject(registry) || !Array.isArray(registry.modules)) {
 
   for (const entry of entries) {
     const name = typeof entry.shortName === 'string' ? entry.shortName : '<unknown>';
+    const moduleUri = typeof entry.moduleUri === 'string' ? entry.moduleUri : '';
+    const resourceType = typeof entry.resourceType === 'string' ? entry.resourceType : '';
     const schemaUri = typeof entry.schema === 'string' ? entry.schema : '';
     const schemaFile = schemaUri.replace('https://paperandslate.org/schemas/eom/1.0/', '');
     const schemaPath = join(root, 'schemas', '1.0', schemaFile);
     const example = typeof entry.example === 'string' ? entry.example : '';
     const examplePath = join(root, example);
+
+    if (moduleUri) {
+      if (moduleUris.has(moduleUri)) failures.push(`${name}: moduleUri must be unique`);
+      moduleUris.add(moduleUri);
+      if (moduleUri !== `https://paperandslate.org/eom/modules/${name}`)
+        failures.push(`${name}: moduleUri must use the stable module URI convention`);
+    }
+    if (resourceType) {
+      if (resourceTypes.has(resourceType)) failures.push(`${name}: resourceType must be unique`);
+      resourceTypes.add(resourceType);
+    }
+    if (entry.currentVersion !== '1.0') failures.push(`${name}: currentVersion must be 1.0`);
+    if (
+      !Array.isArray(entry.compatibleProtocolVersions) ||
+      !entry.compatibleProtocolVersions.includes('1.0')
+    ) {
+      failures.push(`${name}: compatibleProtocolVersions must include 1.0`);
+    }
+    if (entry.conformanceProfile !== moduleProfile)
+      failures.push(`${name}: conformanceProfile must be the module profile`);
+    if (!Array.isArray(entry.extensionPoints) || entry.extensionPoints.length === 0)
+      failures.push(`${name}: extensionPoints must contain at least one extension URI`);
+    if (!Array.isArray(entry.mappings) || entry.mappings.length === 0)
+      failures.push(`${name}: mappings must contain at least one mapping note`);
+    if (resourceType) {
+      const expectedSchemaFile =
+        name === 'organization'
+          ? 'organization-profile.schema.json'
+          : name === 'contacts'
+            ? 'contact-directory.schema.json'
+            : `modules/${resourceType}.schema.json`;
+      if (schemaUri !== `${moduleSchemaBase}${expectedSchemaFile}`)
+        failures.push(`${name}: schema must match resourceType and the public schema layout`);
+    }
     for (const requiredPath of [
       schemaPath,
       examplePath,
       join(root, 'fixtures', 'modules', name, 'valid.json'),
       join(root, 'fixtures', 'modules', name, 'invalid-unknown-property.json'),
       join(root, 'fixtures', 'modules', name, 'invalid-privacy.json'),
+      join(root, 'fixtures', 'modules', name, 'invalid-security.json'),
       join(root, 'fixtures', 'modules', name, 'extension.json'),
     ]) {
       try {
@@ -93,6 +136,7 @@ if (!isJsonObject(registry) || !Array.isArray(registry.modules)) {
     await checkFixture(name, 'valid.json', true);
     await checkFixture(name, 'invalid-unknown-property.json', false);
     await checkFixture(name, 'invalid-privacy.json', false);
+    await checkFixture(name, 'invalid-security.json', false);
     await checkFixture(name, 'extension.json', true);
   }
 }
@@ -118,6 +162,12 @@ async function checkFixture(name: string, file: string, shouldBeValid: boolean):
       !lintPublication(value).some((finding) => finding.code === 'EOM_PRIVACY_PROHIBITED_FIELD')
     ) {
       failures.push(`${name}/${file}: privacy fixture did not trigger the privacy linter`);
+    }
+    if (
+      file === 'invalid-security.json' &&
+      !lintPublication(value).some((finding) => finding.code === 'EOM_SECURITY_SENSITIVE_FIELD')
+    ) {
+      failures.push(`${name}/${file}: security fixture did not trigger the security linter`);
     }
   } catch (error) {
     failures.push(`${name}/${file}: ${error instanceof Error ? error.message : String(error)}`);

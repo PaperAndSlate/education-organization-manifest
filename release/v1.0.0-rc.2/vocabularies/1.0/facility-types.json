@@ -1,0 +1,33 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/facility-types/1.0",
+  "category": "facility-types",
+  "compatibleProtocolVersions": ["1.0"],
+  "contentDigest": "sha256:c566cc4783c2b9a7662d21d00494cda716c709c06f332a5db7a14382da4dface",
+  "id": "https://paperandslate.org/vocabularies/eom/facility-types/1.0",
+  "license": "CC0-1.0",
+  "openness": "open",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/facility-types",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "classroom",
+      "definition": "A public learning room classification.",
+      "preferredLabel": "Classroom",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/facility-types/classroom"
+    },
+    {
+      "code": "laboratory",
+      "definition": "A public learning or research laboratory classification.",
+      "preferredLabel": "Laboratory",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/facility-types/laboratory"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

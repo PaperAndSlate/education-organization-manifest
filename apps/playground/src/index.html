@@ -45,7 +45,7 @@
           <label for="input-kind"
             >Input format<select id="input-kind">
               <option value="json">JSON</option>
-              <option value="yaml">Restricted authoring YAML</option>
+              <option value="yaml">Safe authoring YAML (aliases disabled)</option>
             </select></label
           ><label for="file-input"
             >Local file<input
@@ -169,6 +169,8 @@
           ><button id="schema-browser-button" type="button">Schema browser</button
           ><button id="schemaorg-button" type="button">Schema.org preview</button
           ><button id="coverage-button" type="button">Module coverage</button
+          ><button id="fixture-explorer-button" type="button">Fixture explorer</button
+          ><button id="provenance-button" type="button">Provenance/delegation view</button
           ><button id="report-button" type="button">Conformance report view</button
           ><button id="signature-button" type="button">Signature shape check</button>
         </div>
@@ -180,8 +182,8 @@
       <section id="compare" class="panel" aria-labelledby="compare-title">
         <h2 id="compare-title">Compare versions</h2>
         <p class="muted">
-          This local diff compares parsed JSON values and reports top-level additions, removals, and
-          changes. It does not mutate either document or claim migration equivalence.
+          This local semantic diff matches identified array entities and reports additions,
+          removals, and changes. It does not mutate either document or claim migration equivalence.
         </p>
         <label for="compare-source">Second document</label
         ><textarea

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/academic-period-types/1.0",
+  "category": "academic-period-types",
+  "compatibleProtocolVersions": ["1.0"],
+  "contentDigest": "sha256:bffaf8ea0883098fd6b5850fdca6194a3684b476dbeef727b414da522d89c33f",
+  "id": "https://paperandslate.org/vocabularies/eom/academic-period-types/1.0",
+  "license": "CC0-1.0",
+  "openness": "extensible",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/academic-period-types",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "semester",
+      "definition": "An academic period divided from a year by a local academic calendar.",
+      "preferredLabel": "Semester",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/academic-period-types/semester"
+    },
+    {
+      "code": "term",
+      "definition": "A locally defined academic period with explicit dates.",
+      "preferredLabel": "Term",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/academic-period-types/term"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

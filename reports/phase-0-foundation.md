@@ -1,5 +1,9 @@
 # Phase 0 Report — Research, Charter, and Governance Foundation
 
+> Historical bootstrap report. Its phase-local statements are retained for provenance, but its
+> completion claims are superseded for current release acceptance by
+> [`reports/remediation-audit.md`](remediation-audit.md) and the rebuilt traceability matrix.
+
 - Date: 2026-08-25
 - Commit/branch: local bootstrap; no remote or release commit
 - Owner: paper&slate / Codex implementation
@@ -8,7 +12,13 @@
 
 ## Executive summary
 
-The approved 195-file planning pack was read and checksum-verified before product implementation. The repository now has a strict pnpm/TypeScript baseline, source-of-truth and status documents, governance/security/contribution policies, licensing metadata, pinned CI/runtime configuration, architecture ADRs, RFC scaffolding, versioned draft specification entry points, the complete prompt library, a living requirement matrix, risks, and release evidence surfaces. No IANA registration, pilot, certification, legal approval, or production-readiness claim is made.
+The approved planning pack was read and checksum-verified before product implementation: 194 files are
+listed in `plans/pack-manifest.json`, with the manifest itself accounting for the 195-file total. The
+repository now has a strict pnpm/TypeScript baseline, source-of-truth and status documents,
+governance/security/contribution policies, licensing metadata, pinned CI/runtime configuration,
+architecture ADRs, RFC scaffolding, versioned draft specification entry points, the complete prompt
+library, a living requirement matrix, risks, and release evidence surfaces. No IANA registration,
+pilot, certification, legal approval, or production-readiness claim is made.
 
 ## Requirements completed or advanced
 
@@ -29,7 +39,7 @@ pnpm --version                         pass: 10.6.0
 pnpm install --lockfile-only           pass: lockfile generated
 node -e JSON.parse(package.json)       pass
 git diff --check                       pass
-planning-pack SHA-256 traversal       pass: 195 read, 0 mismatch
+planning-pack SHA-256 traversal       pass: 194 listed files, 0 mismatch (195 including manifest)
 ```
 
 ## Security and privacy impact

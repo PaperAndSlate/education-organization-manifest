@@ -1,0 +1,14 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/organization-profile.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://district.example/id/school-b",
+  "type": "organization-profile",
+  "canonical": "https://district.example/eom/schools/south.json",
+  "name": "Example South High",
+  "organizationType": "secondary-school",
+  "website": "https://district.example/schools/south",
+  "status": "active",
+  "modified": "2027-01-01T00:00:00Z",
+  "expires": "2028-01-01T00:00:00Z"
+}

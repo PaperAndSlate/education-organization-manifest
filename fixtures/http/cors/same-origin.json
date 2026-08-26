@@ -1,0 +1,6 @@
+{
+  "case": "cors",
+  "accessControlAllowOrigin": "same-origin",
+  "credentials": false,
+  "expected": "credential-free"
+}

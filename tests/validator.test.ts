@@ -172,4 +172,27 @@ describe('EOM structural and semantic validation', () => {
     });
     expect(findings.filter((item) => item.severity === 'error')).toHaveLength(0);
   });
+
+  it('reports module-specific date ordering with an exact item pointer', () => {
+    const fixtures = fixture('fixtures/valid/modules/catalog-fixtures.json') as Record<
+      string,
+      unknown
+    >;
+    const eventCatalog = structuredClone(fixtures['event-catalog']) as Record<string, unknown>;
+    const items = eventCatalog.items as Array<Record<string, unknown>>;
+    items[0] = {
+      ...items[0],
+      start: '2027-10-10T18:00:00Z',
+      end: '2027-10-10T17:00:00Z',
+    };
+    const result = validateDocument(eventCatalog);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'EOM_EVENT_DATE_ORDER',
+          pointer: '/items/0/end',
+        }),
+      ]),
+    );
+  });
 });

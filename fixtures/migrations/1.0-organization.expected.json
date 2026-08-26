@@ -1,0 +1,11 @@
+{
+  "type": "organization-profile",
+  "id": "https://school.example/id/school",
+  "canonical": "https://school.example/eom/organization.json",
+  "name": "Example School",
+  "title": "Example School",
+  "defaultLanguage": "en-US",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/organization-profile.schema.json"
+}

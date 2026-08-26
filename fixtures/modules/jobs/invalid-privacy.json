@@ -7,9 +7,7 @@
     {
       "applicationUrl": "https://ecme-high.example/jobs/science-teacher",
       "employmentType": "full-time",
-      "hiringOrganization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "hiringOrganization": { "id": "https://ecme-high.example/id/school" },
       "id": "https://ecme-high.example/id/job/science-teacher",
       "name": "Science Teacher",
       "postedAt": "2027-05-01T14:00:00Z",

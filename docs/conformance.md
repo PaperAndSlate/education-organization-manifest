@@ -18,10 +18,13 @@ status. `conforming` means the supplied local capture passed the named checks. I
 factual correctness, legal compliance, school quality, certification, registration, or paper&slate
 endorsement. Identical discovery aliases are accepted only when their bytes are identical.
 
-Available profiles are `publisher-core`, `consumer-core`, `generator`, `validator`, `module`, and
-`signature-optional`. The current runner is deliberately network-free: it resolves linked resources
-only inside the supplied capture. Live HTTPS, redirect, CORS, cache, and independent publisher /
-consumer exchange tests belong to the external pilot packet under `release/pilot/`.
+Available canonical profiles are `core`, `school`, `district`, `module`, `delegated`, `signed`,
+`consumer`, `generator`, and `validator`; compatibility aliases are `publisher-core`, `consumer-core`,
+and `signature-optional`. Offline mode resolves linked resources only inside the supplied capture.
+Publisher mode can target the controlled HTTP fixture server and checks discovery, content type,
+redirects, cache metadata, and HEAD behavior. Consumer mode accepts an explicit adapter contract, and
+generator/signed profiles check reproducibility and cryptographic verification respectively. An
+independent publisher/consumer exchange remains an external pilot gate under `release/pilot/`.
 
 Invalid one-rule fixtures are retained under `fixtures/invalid/` and the conformance expected-result
 records under `fixtures/conformance/`. A report must be regenerated after changing a fixture or

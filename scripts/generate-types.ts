@@ -37,6 +37,8 @@ const schemaFiles = [
   'module-registry.schema.json',
   'vocabulary-registry.schema.json',
   'vocabulary.schema.json',
+  'conformance-profile.schema.json',
+  'conformance-profile-registry.schema.json',
   'organization-profile.schema.json',
   'organization-index.schema.json',
   'resource-index.schema.json',
@@ -132,7 +134,7 @@ function schemaType(schema: Schema, currentFile: string, propertyName?: string):
     }
     const required = new Set(schema.required ?? []);
     const fields = Object.entries(schema.properties)
-      .sort(([left], [right]) => left.localeCompare(right))
+      .sort(([left], [right]) => compareStrings(left, right))
       .map(
         ([name, child]) =>
           `  readonly ${JSON.stringify(name)}${required.has(name) ? '' : '?'}: ${schemaType(child, currentFile, name)};`,
@@ -170,13 +172,17 @@ export async function generateTypesSource(): Promise<string> {
   ];
   for (const [file, schema] of loaded) {
     for (const [name, definition] of Object.entries(schema.$defs ?? {}).sort(([left], [right]) =>
-      left.localeCompare(right),
+      compareStrings(left, right),
     )) {
       lines.push(renderNamedInterface(definitionName(file, name), definition, file), '');
     }
     lines.push(renderNamedInterface(schemaName(file), schema, file), '');
   }
   return `${lines.join('\n').trimEnd()}\n`;
+}
+
+function compareStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 async function main(): Promise<void> {

@@ -8,9 +8,7 @@
       "category": "academic",
       "id": "https://ecme-high.example/id/club/robotics",
       "name": "Robotics Club",
-      "organization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "organization": { "id": "https://ecme-high.example/id/school" },
       "studentId": "https://student.example/id/never-publish",
       "type": "club"
     }

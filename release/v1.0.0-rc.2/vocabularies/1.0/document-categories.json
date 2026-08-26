@@ -1,0 +1,33 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/document-categories/1.0",
+  "category": "document-categories",
+  "compatibleProtocolVersions": ["1.0"],
+  "contentDigest": "sha256:5fa083d40fb375c9307190c2a12d62d801d8d89542d1a650f02a2b792a7e7ee6",
+  "id": "https://paperandslate.org/vocabularies/eom/document-categories/1.0",
+  "license": "CC0-1.0",
+  "openness": "extensible",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/document-categories",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "policy",
+      "definition": "A public policy document category.",
+      "preferredLabel": "Policy",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/document-categories/policy"
+    },
+    {
+      "code": "handbook",
+      "definition": "A public handbook document category.",
+      "preferredLabel": "Handbook",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/document-categories/handbook"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

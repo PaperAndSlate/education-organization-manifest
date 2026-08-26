@@ -1,4 +1,5 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { generateKeyPairSync } from 'node:crypto';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
@@ -9,6 +10,7 @@ import {
   type BuildReport,
 } from '@paperandslate/eom-generator';
 import { validateDocument } from '@paperandslate/eom-validator';
+import { verifyDetached } from '@paperandslate/eom-signatures';
 
 describe('EOM deterministic authoring generator', () => {
   it('rejects duplicate YAML keys and aliases before normalization', () => {
@@ -113,6 +115,16 @@ describe('EOM deterministic authoring generator', () => {
       expect(await readFile(join(output, 'eom', 'courses.json'), 'utf8')).toBe(
         await readFile(join(secondOutput, 'eom', 'courses.json'), 'utf8'),
       );
+
+      const checkedOutput = join(root, 'generated-checked', 'public');
+      const checked = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: checkedOutput,
+        now: new Date('2027-01-02T00:00:00Z'),
+        verifyDeterministic: true,
+      });
+      expect(checked.valid).toBe(true);
+      expect(checked.deterministic).toEqual({ checked: true, valid: true, differences: [] });
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -195,6 +207,173 @@ describe('EOM deterministic authoring generator', () => {
         unmarkedReport.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE'),
       ).toBe(true);
       expect(await readFile(join(unmarked, 'unrelated.txt'), 'utf8')).toBe('must survive');
+
+      await writeFile(
+        join(unmarked, '.eom-generated.json'),
+        JSON.stringify({
+          generator: 'other',
+          specification: 'https://paperandslate.org/spec/eom/1.0',
+        }),
+      );
+      const invalidMarkerReport = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: unmarked,
+      });
+      expect(
+        invalidMarkerReport.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE'),
+      ).toBe(true);
+      expect(await readFile(join(unmarked, 'unrelated.txt'), 'utf8')).toBe('must survive');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('requires and honors an organization selector for multi-organization sources', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-generator-organizations-'));
+    try {
+      await writeFile(
+        join(root, 'eom.config.yaml'),
+        [
+          'project: { name: Network, protocolVersion: "1.0", defaultLanguage: en-US }',
+          'publisher: { origin: https://network.example, manifestPath: /.well-known/educational-organization-manifest }',
+          'source: { root: source, modules: { organization: [organizations.yaml] } }',
+          'output: { root: generated/public }',
+          'signing: { enabled: false }',
+          '',
+        ].join('\n'),
+      );
+      await mkdir(join(root, 'source'), { recursive: true });
+      await writeFile(
+        join(root, 'source', 'organizations.yaml'),
+        [
+          'items:',
+          '  - id: https://network.example/id/school-a',
+          '    type: school',
+          '    name: School A',
+          '  - id: https://network.example/id/school-b',
+          '    type: school',
+          '    name: School B',
+          '',
+        ].join('\n'),
+      );
+      const missing = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: join(root, 'generated', 'missing', 'public'),
+      });
+      expect(missing.valid).toBe(false);
+      expect(
+        missing.findings.some((item) => item.code === 'EOM_GENERATOR_ORGANIZATION_REQUIRED'),
+      ).toBe(true);
+
+      const selected = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: join(root, 'generated', 'selected', 'public'),
+        organization: 'https://network.example/id/school-b',
+      });
+      expect(selected.valid, JSON.stringify(selected.findings)).toBe(true);
+      const organization = parseStrictJson(
+        await readFile(
+          join(root, 'generated', 'selected', 'public', 'eom', 'organization.json'),
+          'utf8',
+        ),
+      );
+      expect(organization).toMatchObject({
+        id: 'https://network.example/id/school-b',
+        name: 'School B',
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('applies restricted imports and overlays and can sign the generated publication', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-generator-overlay-signing-'));
+    try {
+      const { privateKey } = generateKeyPairSync('ed25519');
+      const keyId = 'https://overlay.example/eom/keys#build-2027';
+      const privateKeyPem = privateKey.export({ format: 'pem', type: 'pkcs8' }).toString();
+      await writeFile(join(root, 'signing-key.pem'), privateKeyPem, 'utf8');
+      await writeFile(
+        join(root, 'eom.config.yaml'),
+        [
+          'project: { name: Overlay School, protocolVersion: "1.0", defaultLanguage: en-US }',
+          'publisher: { origin: https://overlay.example, manifestPath: /.well-known/educational-organization-manifest }',
+          'source:',
+          '  root: source',
+          '  modules:',
+          '    organization: [organization.yaml]',
+          '    courses: [courses.yaml]',
+          '  imports:',
+          '    - module: courses',
+          '      patterns: [imports.yaml]',
+          '  overlays:',
+          '    - name: jurisdiction-overlay',
+          '      owner: https://overlay.example/id/jurisdiction',
+          '      priority: 10',
+          '      modules:',
+          '        courses: [overlays.yaml]',
+          '      allowedPointers: [/description]',
+          'output: { root: generated/public }',
+          'signing:',
+          '  enabled: true',
+          '  keyFile: signing-key.pem',
+          `  keyId: ${keyId}`,
+          '',
+        ].join('\n'),
+      );
+      await mkdir(join(root, 'source'), { recursive: true });
+      await writeFile(
+        join(root, 'source', 'organization.yaml'),
+        'id: https://overlay.example/id/school\ntype: secondary-school\nname: Overlay School\n',
+      );
+      await writeFile(
+        join(root, 'source', 'courses.yaml'),
+        'id: https://overlay.example/id/course/base\ntype: course\nname: Base Course\nprovider: https://overlay.example/id/school\n',
+      );
+      await writeFile(
+        join(root, 'source', 'imports.yaml'),
+        'id: https://overlay.example/id/course/imported\ntype: course\nname: Imported Course\nprovider: https://overlay.example/id/school\n',
+      );
+      await writeFile(
+        join(root, 'source', 'overlays.yaml'),
+        'id: https://overlay.example/id/course/base\ndescription: Jurisdiction-maintained description\n',
+      );
+
+      const report = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: join(root, 'generated', 'public'),
+        now: new Date('2027-01-01T00:00:00Z'),
+        cacheDirectory: join(root, '.cache'),
+      });
+      expect(report.valid, JSON.stringify(report.findings)).toBe(true);
+      expect(report.written).toBe(true);
+      expect(report.overlays).toHaveLength(1);
+      expect(report.signature).toMatchObject({ enabled: true, keyId, valid: true });
+      const organization = parseStrictJson(
+        await readFile(join(root, 'generated', 'public', 'eom', 'organization.json'), 'utf8'),
+      );
+      const signature = parseStrictJson(
+        await readFile(join(root, 'generated', 'public', 'eom', 'signature.json'), 'utf8'),
+      );
+      const keySet = parseStrictJson(
+        await readFile(join(root, 'generated', 'public', 'eom', 'keys.json'), 'utf8'),
+      );
+      expect(
+        verifyDetached(organization, signature, keySet, {
+          now: new Date('2027-01-01T00:00:00Z'),
+        }).overall,
+      ).toBe(true);
+      const courses = parseStrictJson(
+        await readFile(join(root, 'generated', 'public', 'eom', 'courses.json'), 'utf8'),
+      );
+      expect(
+        isJsonObject(courses) &&
+          Array.isArray(courses.items) &&
+          courses.items.some(
+            (item) =>
+              isJsonObject(item) && item.description === 'Jurisdiction-maintained description',
+          ),
+      ).toBe(true);
     } finally {
       await rm(root, { recursive: true, force: true });
     }

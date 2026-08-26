@@ -150,11 +150,15 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
   for (;;) {
     const address = await assertSafeTarget(current, options, redirects);
     if (current === requestedUrl) {
-      const cached = await readCachedResponse(cacheKey, options, maxBytes);
-      if (cached) {
+      const cached = await readCachedResponse(cacheKey, requestedUrl, options, maxBytes);
+      if (cached && cached.redirects.length <= maxRedirects) {
         // Cached responses must still revalidate the current and final DNS answers so the
         // cache cannot bypass the SSRF/rebinding policy.
         await assertSafeTarget(cached.finalUrl, options, redirects);
+        for (const hop of cached.redirects) {
+          await assertSafeTarget(hop.from, options, redirects);
+          await assertSafeTarget(hop.to, options, redirects);
+        }
         return { ...cached, requestedUrl, observedAt: new Date().toISOString() };
       }
     }
@@ -289,6 +293,7 @@ async function assertSafeTarget(
       redirects,
     );
   }
+  const hostname = parsed.hostname.replace(/^\[|\]$/gu, '');
   if (parsed.username || parsed.password) {
     throw new EomFetchError(
       'EOM_FETCH_USERINFO',
@@ -314,7 +319,7 @@ async function assertSafeTarget(
       redirects,
     );
   }
-  if (isPrivateOrLocalHostname(parsed.hostname) && options.allowPrivateHosts !== true) {
+  if (isPrivateOrLocalHostname(hostname) && options.allowPrivateHosts !== true) {
     throw new EomFetchError(
       'EOM_FETCH_PRIVATE_HOST',
       'Private and local hosts are not fetchable by default.',
@@ -322,8 +327,8 @@ async function assertSafeTarget(
       redirects,
     );
   }
-  if (isIP(parsed.hostname) !== 0) {
-    if (isBlockedIp(parsed.hostname) && options.allowPrivateHosts !== true) {
+  if (isIP(hostname) !== 0) {
+    if (isBlockedIp(hostname) && options.allowPrivateHosts !== true) {
       throw new EomFetchError(
         'EOM_FETCH_PRIVATE_HOST',
         'The target IP is private or reserved.',
@@ -331,11 +336,11 @@ async function assertSafeTarget(
         redirects,
       );
     }
-    return parsed.hostname;
+    return hostname;
   }
   let addresses: readonly { address: string }[];
   try {
-    addresses = await (options.dnsLookup ?? defaultDnsLookup)(parsed.hostname);
+    addresses = await (options.dnsLookup ?? defaultDnsLookup)(hostname);
   } catch (error) {
     throw new EomFetchError(
       'EOM_FETCH_DNS',
@@ -532,12 +537,24 @@ async function readBoundedBody(
   } finally {
     reader.releaseLock();
   }
-  return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk))).toString('utf8');
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(
+      Buffer.concat(chunks.map((chunk) => Buffer.from(chunk))),
+    );
+  } catch (error) {
+    throw new EomFetchError(
+      'EOM_FETCH_JSON',
+      `The response is not valid UTF-8: ${error instanceof Error ? error.message : String(error)}`,
+      url,
+      redirects,
+    );
+  }
 }
 
 function normalizeRequestUrl(value: string): string {
   try {
     const parsed = new URL(value);
+    parsed.hash = '';
     return parsed.toString();
   } catch {
     throw new EomFetchError('EOM_FETCH_SCHEME', 'The request URL is invalid.', value);
@@ -611,11 +628,12 @@ function boundedNonNegative(value: number, fallback: number): number {
 
 async function readCachedResponse(
   key: string,
+  requestedUrl: string,
   options: FetchOptions,
   maxBytes: number,
 ): Promise<FetchResponse | undefined> {
   if (!options.cacheDirectory) return undefined;
-  const path = join(resolve(options.cacheDirectory), `${key}.json`);
+  const path = join(httpCacheDirectory(options), `${key}.json`);
   try {
     const information = await stat(path);
     const maxAge = boundedNonNegative(
@@ -623,21 +641,43 @@ async function readCachedResponse(
       DEFAULT_FETCH_CACHE_MAX_AGE_MS,
     );
     if (Date.now() - information.mtimeMs > maxAge) return undefined;
-    const value = JSON.parse(await readFile(path, 'utf8')) as Partial<FetchResponse>;
+    const maxCacheBytes = Math.min(16 * 1024 * 1024, Math.max(maxBytes * 4, 1024 * 1024));
+    if (information.size > maxCacheBytes) return undefined;
+    const parsed = parseStrictJson(await readFile(path, 'utf8'), path);
+    if (!isRecord(parsed)) return undefined;
+    const value = parsed as Partial<FetchResponse> & { cacheIntegrity?: unknown };
+    const headers = value.headers;
+    const contentType =
+      typeof value.contentType === 'string'
+        ? value.contentType
+        : isRecordOfStrings(headers)
+          ? headers['content-type']
+          : undefined;
     if (
       typeof value.requestedUrl !== 'string' ||
+      canonicalUrl(value.requestedUrl) !== canonicalUrl(requestedUrl) ||
       typeof value.finalUrl !== 'string' ||
-      typeof value.status !== 'number' ||
+      value.status !== 200 ||
       typeof value.body !== 'string' ||
       Buffer.byteLength(value.body, 'utf8') > maxBytes ||
-      !value.headers ||
-      typeof value.headers !== 'object' ||
+      !isRecordOfStrings(headers) ||
+      !isJsonContentType(headers['content-type']) ||
+      !isJsonContentType(contentType) ||
+      (typeof contentType === 'string' &&
+        typeof headers['content-type'] === 'string' &&
+        contentType !== headers['content-type']) ||
+      (typeof headers['content-encoding'] === 'string' &&
+        headers['content-encoding'].toLowerCase() !== 'identity') ||
       !Array.isArray(value.redirects) ||
-      typeof value.observedAt !== 'string'
+      value.redirects.some((hop) => !isRedirectHop(hop)) ||
+      typeof value.observedAt !== 'string' ||
+      value.cacheIntegrity !==
+        `sha256:${createHash('sha256').update(value.body, 'utf8').digest('hex')}`
     ) {
       return undefined;
     }
-    return value as FetchResponse;
+    const { cacheIntegrity: _cacheIntegrity, ...cachedResponse } = value;
+    return cachedResponse as FetchResponse;
   } catch {
     return undefined;
   }
@@ -650,14 +690,14 @@ async function writeCachedResponse(
 ): Promise<void> {
   if (!options.cacheDirectory) return;
   try {
-    const directory = resolve(options.cacheDirectory);
+    const directory = httpCacheDirectory(options);
     await mkdir(directory, { recursive: true });
     const maxEntries = boundedPositive(
       options.cacheMaxEntries ?? DEFAULT_FETCH_CACHE_MAX_ENTRIES,
       DEFAULT_FETCH_CACHE_MAX_ENTRIES,
     );
     const entries = (await readdir(directory, { withFileTypes: true }))
-      .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+      .filter((entry) => entry.isFile() && /^[a-f0-9]{64}\.json$/u.test(entry.name))
       .map((entry) => join(directory, entry.name));
     if (entries.length >= maxEntries) {
       const dated = await Promise.all(
@@ -670,15 +710,45 @@ async function writeCachedResponse(
     }
     const path = join(directory, `${key}.json`);
     const temporary = `${path}.${process.pid}.tmp`;
-    await writeFile(temporary, JSON.stringify(response), 'utf8');
+    await writeFile(
+      temporary,
+      JSON.stringify({
+        ...response,
+        cacheIntegrity: `sha256:${createHash('sha256').update(response.body, 'utf8').digest('hex')}`,
+      }),
+      'utf8',
+    );
     await rename(temporary, path);
   } catch {
     // A cache is an optimization. Network retrieval remains authoritative when it cannot be written.
   }
 }
 
+function httpCacheDirectory(options: FetchOptions): string {
+  if (!options.cacheDirectory) throw new Error('An HTTP cache directory is required.');
+  return join(resolve(options.cacheDirectory), 'http');
+}
+
 function cacheKeyFor(url: string, method: string): string {
   return createHash('sha256').update(`${method}\0${url}`).digest('hex');
+}
+
+function isRecordOfStrings(value: unknown): value is Record<string, string> {
+  return isRecord(value) && Object.values(value).every((entry) => typeof entry === 'string');
+}
+
+function isRedirectHop(value: unknown): value is RedirectHop {
+  return (
+    isRecord(value) &&
+    typeof value.from === 'string' &&
+    typeof value.to === 'string' &&
+    typeof value.status === 'number' &&
+    typeof value.crossOrigin === 'boolean'
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function isBlockedIp(value: string): boolean {
@@ -708,17 +778,75 @@ function isBlockedIp(value: string): boolean {
 }
 
 function isBlockedIpv6(value: string): boolean {
+  const parsed = parseIpv6(value);
+  if (parsed === undefined || parsed === 0n || parsed === 1n) return true;
+  const mappedPrefix = hasIpv6Prefix(parsed, '00000000000000000000ffff', 96);
+  if (mappedPrefix) {
+    const mapped = Number(parsed & 0xffffffffn);
+    return isBlockedIp(
+      `${mapped >>> 24}.${(mapped >>> 16) & 0xff}.${(mapped >>> 8) & 0xff}.${mapped & 0xff}`,
+    );
+  }
+  return (
+    hasIpv6Prefix(parsed, 'fc', 7) ||
+    hasIpv6Prefix(parsed, 'fe80', 10) ||
+    hasIpv6Prefix(parsed, 'ff', 8) ||
+    hasIpv6Prefix(parsed, '20010db8', 32) ||
+    hasIpv6Prefix(parsed, '20010000', 32) ||
+    hasIpv6Prefix(parsed, '200100020000', 48) ||
+    hasIpv6Prefix(parsed, '2001001', 28) ||
+    hasIpv6Prefix(parsed, '0100000000000000', 64) ||
+    hasIpv6Prefix(parsed, '0064ff9b0000000000000000', 96) ||
+    hasIpv6Prefix(parsed, '3fff0', 20) ||
+    hasIpv6Prefix(parsed, '000000000000000000000000', 96)
+  );
+}
+
+function parseIpv6(value: string): bigint | undefined {
   const normalized = value.toLowerCase();
-  if (normalized === '::' || normalized === '::1') return true;
-  if (normalized.startsWith('fc') || normalized.startsWith('fd')) return true;
-  if (
-    normalized.startsWith('fe8') ||
-    normalized.startsWith('fe9') ||
-    normalized.startsWith('fea') ||
-    normalized.startsWith('feb')
-  )
-    return true;
-  if (normalized.startsWith('ff')) return true;
-  const mapped = normalized.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/u)?.[1];
-  return mapped ? isBlockedIp(mapped) : false;
+  if (!normalized || normalized.includes('%')) return undefined;
+  const separator = normalized.indexOf('::');
+  if (separator !== normalized.lastIndexOf('::')) return undefined;
+  const leftText = separator < 0 ? normalized : normalized.slice(0, separator);
+  const rightText = separator < 0 ? '' : normalized.slice(separator + 2);
+  const left = ipv6Groups(leftText);
+  const right = ipv6Groups(rightText);
+  if (left === undefined || right === undefined) return undefined;
+  const count = left.length + right.length;
+  if (separator < 0 ? count !== 8 : count >= 8) return undefined;
+  const groups =
+    separator < 0
+      ? [...left]
+      : [...left, ...Array.from({ length: 8 - count }, () => '0'), ...right];
+  return groups.reduce((result, group) => (result << 16n) | BigInt(`0x${group}`), 0n);
+}
+
+function ipv6Groups(value: string): string[] | undefined {
+  if (!value) return [];
+  const parts = value.split(':');
+  const result: string[] = [];
+  for (const [index, part] of parts.entries()) {
+    if (part.includes('.')) {
+      if (index !== parts.length - 1) return undefined;
+      const octets = part.split('.').map(Number);
+      if (
+        octets.length !== 4 ||
+        octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)
+      ) {
+        return undefined;
+      }
+      result.push(((octets[0] ?? 0) * 256 + (octets[1] ?? 0)).toString(16));
+      result.push(((octets[2] ?? 0) * 256 + (octets[3] ?? 0)).toString(16));
+    } else {
+      if (!/^[0-9a-f]{1,4}$/u.test(part)) return undefined;
+      result.push(part);
+    }
+  }
+  return result;
+}
+
+function hasIpv6Prefix(value: bigint, prefixHex: string, bits: number): boolean {
+  const prefixWidth = BigInt(prefixHex.length * 4);
+  const prefix = BigInt(`0x${prefixHex}`) >> (prefixWidth - BigInt(bits));
+  return value >> BigInt(128 - bits) === prefix;
 }

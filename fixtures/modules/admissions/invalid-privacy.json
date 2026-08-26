@@ -8,9 +8,7 @@
       "admissionsType": "secondary-school",
       "id": "https://ecme-high.example/id/admissions/general",
       "name": "General Admissions",
-      "organization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "organization": { "id": "https://ecme-high.example/id/school" },
       "studentId": "https://student.example/id/never-publish",
       "type": "admissions-profile"
     }

@@ -1,0 +1,117 @@
+{
+  "version": "1.0",
+  "cases": [
+    {
+      "id": "school-manifest",
+      "kind": "document",
+      "path": "fixtures/valid/school/manifest.json",
+      "expectedValid": true,
+      "profile": "school"
+    },
+    {
+      "id": "school-organization",
+      "kind": "document",
+      "path": "fixtures/valid/school/organization.json",
+      "expectedValid": true,
+      "profile": "module"
+    },
+    {
+      "id": "district-manifest",
+      "kind": "document",
+      "path": "fixtures/valid/district/manifest.json",
+      "expectedValid": true,
+      "profile": "district"
+    },
+    {
+      "id": "district-organization-a",
+      "kind": "document",
+      "path": "fixtures/valid/district/organization-a.json",
+      "expectedValid": true,
+      "profile": "module"
+    },
+    {
+      "id": "district-organization-b",
+      "kind": "document",
+      "path": "fixtures/valid/district/organization-b.json",
+      "expectedValid": true,
+      "profile": "module"
+    },
+    {
+      "id": "delegation-scoped",
+      "kind": "document",
+      "path": "fixtures/valid/delegation/scoped.json",
+      "expectedValid": true,
+      "profile": "delegated"
+    },
+    {
+      "id": "signature-unsigned",
+      "kind": "document",
+      "path": "fixtures/valid/signatures/unsigned-resource.json",
+      "expectedValid": true,
+      "profile": "signature-optional"
+    },
+    {
+      "id": "unknown-top-level",
+      "kind": "document",
+      "path": "fixtures/invalid/schema/unknown-top-level.json",
+      "expectedValid": false,
+      "findingCodes": ["EOM_SCHEMA_ADDITIONALPROPERTIES"]
+    },
+    {
+      "id": "relative-id",
+      "kind": "document",
+      "path": "fixtures/invalid/semantic/relative-id.json",
+      "expectedValid": false,
+      "findingCodes": ["EOM_SCHEMA_PATTERN"]
+    },
+    {
+      "id": "student-data",
+      "kind": "document",
+      "path": "fixtures/invalid/privacy/student-data.json",
+      "expectedValid": false,
+      "lintCodes": ["EOM_PRIVACY_PROHIBITED_FIELD"]
+    },
+    {
+      "id": "credential-field",
+      "kind": "document",
+      "path": "fixtures/invalid/security/credential-field.json",
+      "expectedValid": true,
+      "lintCodes": ["EOM_SECURITY_SENSITIVE_FIELD"]
+    },
+    {
+      "id": "transitive-delegation",
+      "kind": "authority",
+      "path": "fixtures/invalid/delegation/transitive.json",
+      "expectedValid": false,
+      "findingCodes": ["EOM_DELEGATION_TRANSITIVE_FORBIDDEN"],
+      "finalUrl": "https://menus.example/school/example/meals.json"
+    },
+    {
+      "id": "delegation-path-escape",
+      "kind": "authority",
+      "path": "fixtures/invalid/delegation/scope-escape.json",
+      "expectedValid": false,
+      "findingCodes": ["EOM_DELEGATION_PATH_OUT_OF_SCOPE"],
+      "finalUrl": "https://menus.example/private/meals.json"
+    },
+    {
+      "id": "tampered-signature",
+      "kind": "signature",
+      "path": "fixtures/invalid/signatures/tampered.json",
+      "expectedValid": false
+    },
+    {
+      "id": "migration-0.9-to-1.0",
+      "kind": "migration",
+      "path": "fixtures/migrations/0.9-organization.json",
+      "expectedPath": "fixtures/migrations/1.0-organization.expected.json",
+      "expectedValid": true
+    },
+    {
+      "id": "duplicate-json-key",
+      "kind": "malformed-json",
+      "path": "fixtures/http/malformed/duplicate-keys.json",
+      "expectedValid": false
+    }
+  ]
+}

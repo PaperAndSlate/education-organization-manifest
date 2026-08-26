@@ -9,6 +9,7 @@
     />
     <title>Integrate with EOM</title>
     <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="search.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -25,6 +26,11 @@
             <li><a href="govern.html">Govern</a></li>
           </ul>
         </nav>
+        <form class="site-search" data-doc-search role="search">
+          <label for="doc-search">Search documentation</label>
+          <input id="doc-search" type="search" autocomplete="off" placeholder="Search pages" />
+          <ul id="doc-search-results" aria-live="polite"></ul>
+        </form>
       </div>
     </header>
     <main id="main" class="shell prose">
@@ -78,6 +84,18 @@
         See the <a href="source-docs/interoperability.md">mapping guide</a> and versioned
         <a href="mappings/registry.json">mapping registry</a>. All bundled mappings are preview-only
         and explicitly make no external certification claim.
+      </p>
+      <p>
+        The
+        <a href="source-docs/integrations/paperandslate.org.md"
+          >paper&amp;slate integration asset</a
+        >
+        contains status-safe copy and link guidance for the main website. It is a static integration
+        surface, not a runtime dependency.
+      </p>
+      <p>
+        Review the <a href="source-docs/privacy-and-retention.md">privacy and retention notice</a>
+        before using paste, upload, mapping, or optional URL-audit features.
       </p>
       <h2>Hosting modes</h2>
       <ul>

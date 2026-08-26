@@ -1,14 +1,11 @@
 import { parseDocument } from 'yaml';
-import { isAbsoluteUri, isHttpsUri } from '@paperandslate/eom-core/ids';
 import { parseStrictJson } from '@paperandslate/eom-core/json';
+import { semanticFindings } from '../../../packages/validator/src/semantic.ts';
 import schemas from './generated-schemas.js';
 import { validatorsById } from './generated-validators.js';
 
 const SCHEMA_BASE = 'https://paperandslate.org/schemas/eom/1.0/';
 const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
-const PROHIBITED_KEY =
-  /(?:student|pupil|grade|attendance|discipline|iep|504|sen|medical|safeguard|password|secret|token|credential|private.?key|api.?key)/iu;
-const LANGUAGE_TAG = /^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/u;
 const TYPE_TO_SCHEMA = {
   manifest: 'manifest.schema.json',
   resource: 'resource.schema.json',
@@ -25,6 +22,8 @@ const TYPE_TO_SCHEMA = {
   'module-registry': 'module-registry.schema.json',
   'vocabulary-registry': 'vocabulary-registry.schema.json',
   vocabulary: 'vocabulary.schema.json',
+  'conformance-profile': 'conformance-profile.schema.json',
+  'conformance-profile-registry': 'conformance-profile-registry.schema.json',
   'organization-profile': 'organization-profile.schema.json',
   'organization-index': 'organization-index.schema.json',
   'resource-index': 'resource-index.schema.json',
@@ -41,7 +40,7 @@ export function browserSchemaCatalog() {
       ...(typeof schema.title === 'string' ? { title: schema.title } : {}),
       type: Object.entries(TYPE_TO_SCHEMA).find(([, file]) => schema.$id.endsWith(`/${file}`))?.[0],
     }))
-    .sort((left, right) => left.id.localeCompare(right.id));
+    .sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0));
 }
 
 export function parseBrowserSource(text, kind) {
@@ -121,7 +120,9 @@ export function validateBrowserDocument(value, options = {}) {
       }
     }
   }
-  inspectSemantics(value, findings, options.now ? new Date(options.now) : new Date());
+  findings.push(
+    ...semanticFindings(value, { now: options.now ? new Date(options.now) : new Date() }),
+  );
   const structural = !findings.some(
     (item) => item.category === 'structural' && item.severity === 'error',
   );
@@ -150,32 +151,155 @@ export function semanticDiffBrowser(before, after) {
   return { changed: changes.length > 0, breaking, changes };
 }
 
-export async function verifyDetachedBrowser(value, signature, keySet) {
+export async function verifyDetachedBrowser(value, signature, keySet, options = {}) {
   const findings = [];
   if (!isPlainObject(signature) || !isPlainObject(keySet)) {
     return { overall: false, findings: ['A signature and key-set object are required.'] };
   }
-  if (signature.algorithm !== 'EdDSA' || signature.canonicalization !== 'RFC8785-JCS') {
-    findings.push('Only the EOM EdDSA/RFC8785-JCS profile is supported.');
+  const now = options.now ? new Date(options.now) : new Date();
+  if (Number.isNaN(now.getTime())) findings.push('The verification time is invalid.');
+  for (const [field, expected] of [
+    ['$schema', 'https://paperandslate.org/schemas/eom/1.0/signature.schema.json'],
+    ['specification', 'https://paperandslate.org/spec/eom/1.0'],
+    ['version', '1.0'],
+    ['type', 'signature'],
+    ['algorithm', 'EdDSA'],
+    ['canonicalization', 'RFC8785-JCS'],
+    ['detached', true],
+  ]) {
+    if (signature[field] !== expected) findings.push(`The signature field ${field} is invalid.`);
   }
+  if (typeof signature.id !== 'string' || !isAbsoluteUri(signature.id))
+    findings.push('The signature id must be an absolute URI.');
+  if (typeof signature.canonical !== 'string' || !isHttpsUri(signature.canonical))
+    findings.push('The signature canonical URL must be HTTPS.');
+  if (typeof signature.subject !== 'string' || !isAbsoluteUri(signature.subject))
+    findings.push('The signature subject must be an absolute URI.');
+  if (typeof signature.keyId !== 'string' || !isAbsoluteUri(signature.keyId))
+    findings.push('The signature key id must be an absolute URI.');
+  if (typeof signature.createdAt !== 'string' || !validDate(signature.createdAt))
+    findings.push('The signature creation time is invalid.');
+  if (
+    signature.expires !== undefined &&
+    (typeof signature.expires !== 'string' || !validDate(signature.expires))
+  )
+    findings.push('The signature expiry time is invalid.');
+  if (
+    signature.expires &&
+    validDate(signature.expires) &&
+    Date.parse(signature.expires) < now.getTime()
+  )
+    findings.push('The detached signature has expired.');
+  if (signature.contentType !== undefined && signature.contentType !== 'application/json')
+    findings.push('The signature content type must be application/json.');
+  if (typeof signature.subject === 'string' && signature.subject !== value?.id)
+    findings.push('The signature subject does not match the resource id.');
+  if (
+    typeof signature.payloadDigest !== 'string' ||
+    !/^sha-256=:[A-Za-z0-9+/]+={0,2}:$/u.test(signature.payloadDigest)
+  )
+    findings.push('The signature payload digest is missing or malformed.');
+  if (typeof signature.protected !== 'string' || !/^[A-Za-z0-9_-]+$/u.test(signature.protected))
+    findings.push('The protected header encoding is invalid.');
+  if (typeof signature.signature !== 'string' || !/^[A-Za-z0-9_-]+$/u.test(signature.signature))
+    findings.push('The signature encoding is invalid.');
+  if (
+    typeof signature.compact !== 'string' ||
+    signature.compact !== `${signature.protected}..${signature.signature}`
+  )
+    findings.push('The compact detached representation does not match the signature fields.');
   const key = Array.isArray(keySet.keys)
     ? keySet.keys.find((candidate) => isPlainObject(candidate) && candidate.kid === signature.keyId)
     : undefined;
   if (!isPlainObject(key) || !isPlainObject(key.publicKeyJwk))
     findings.push('The signature key is missing from the supplied key set.');
-  const payload = canonicalJson(value);
-  if (typeof signature.payloadDigest !== 'string')
-    findings.push('The signature payload digest is missing.');
-  else {
-    const digest = await sha256Base64Url(payload);
+  if (isPlainObject(key)) {
+    if (key.status !== undefined && key.status !== 'active')
+      findings.push('The signing key is not active.');
+    if (
+      key.validFrom !== undefined &&
+      (typeof key.validFrom !== 'string' ||
+        !validDate(key.validFrom) ||
+        Date.parse(key.validFrom) > now.getTime())
+    )
+      findings.push('The signing key is not yet valid.');
+    if (
+      key.validUntil !== undefined &&
+      (typeof key.validUntil !== 'string' ||
+        !validDate(key.validUntil) ||
+        Date.parse(key.validUntil) < now.getTime())
+    )
+      findings.push('The signing key has expired.');
+    if (
+      key.revokedAt !== undefined &&
+      typeof key.revokedAt === 'string' &&
+      validDate(key.revokedAt) &&
+      Date.parse(key.revokedAt) <= now.getTime()
+    )
+      findings.push('The signing key has been revoked.');
+    if (key.alg !== undefined && key.alg !== 'EdDSA')
+      findings.push('The signing key does not allow EdDSA.');
+    if (
+      key.publicKeyJwk.kty !== 'OKP' ||
+      key.publicKeyJwk.crv !== 'Ed25519' ||
+      typeof key.publicKeyJwk.x !== 'string' ||
+      'd' in key.publicKeyJwk
+    )
+      findings.push('The supplied key is not a public Ed25519 key.');
+  }
+  let payload;
+  try {
+    payload = canonicalJson(value);
+  } catch (error) {
+    findings.push(error instanceof Error ? error.message : 'The resource cannot be canonicalized.');
+  }
+  if (
+    payload !== undefined &&
+    typeof signature.payloadDigest === 'string' &&
+    /^sha-256=:[A-Za-z0-9+/]+={0,2}:$/u.test(signature.payloadDigest)
+  ) {
+    const digest = await sha256Digest(payload);
     if (digest !== signature.payloadDigest)
       findings.push('The canonical payload digest does not match.');
+  }
+  let protectedHeader;
+  if (typeof signature.protected === 'string' && /^[A-Za-z0-9_-]+$/u.test(signature.protected)) {
+    try {
+      const decoded = parseStrictJson(
+        new TextDecoder().decode(fromBase64Url(signature.protected)),
+        'protected header',
+      );
+      if (!isPlainObject(decoded)) throw new Error('The protected header must be an object.');
+      protectedHeader = decoded;
+      if (
+        decoded.alg !== 'EdDSA' ||
+        decoded.b64 !== false ||
+        decoded.eom !== 'RFC8785-JCS' ||
+        decoded.cty !== 'application/json'
+      )
+        findings.push('The protected header does not declare the EOM detached profile.');
+      if (
+        !Array.isArray(decoded.crit) ||
+        decoded.crit.length !== 2 ||
+        !decoded.crit.includes('b64') ||
+        !decoded.crit.includes('eom')
+      )
+        findings.push('The protected header critical parameters are invalid.');
+      if (decoded.kid !== signature.keyId)
+        findings.push('The protected header key id does not match the signature record.');
+    } catch (error) {
+      findings.push(error instanceof Error ? error.message : 'The protected header is invalid.');
+    }
   }
   let cryptographic = false;
   if (
     findings.length === 0 &&
+    payload !== undefined &&
+    protectedHeader !== undefined &&
     typeof signature.protected === 'string' &&
-    typeof signature.signature === 'string'
+    typeof signature.signature === 'string' &&
+    isPlainObject(key) &&
+    isPlainObject(key.publicKeyJwk)
   ) {
     try {
       const cryptoKey = await globalThis.crypto.subtle.importKey(
@@ -200,108 +324,6 @@ export async function verifyDetachedBrowser(value, signature, keySet) {
     }
   }
   return { overall: findings.length === 0 && cryptographic, findings };
-}
-
-function inspectSemantics(value, findings, now) {
-  if (typeof value.id === 'string' && !isAbsoluteUri(value.id))
-    findings.push(
-      browserFinding(
-        'EOM_ID_ABSOLUTE_REQUIRED',
-        'semantic',
-        'Reusable identifiers must be absolute URIs.',
-        '/id',
-      ),
-    );
-  if (typeof value.canonical === 'string' && !isHttpsUri(value.canonical))
-    findings.push(
-      browserFinding(
-        'EOM_CANONICAL_HTTPS_REQUIRED',
-        'semantic',
-        'Canonical URLs must use HTTPS.',
-        '/canonical',
-      ),
-    );
-  if (typeof value.defaultLanguage === 'string' && !LANGUAGE_TAG.test(value.defaultLanguage))
-    findings.push(
-      browserFinding(
-        'EOM_LANGUAGE_INVALID',
-        'semantic',
-        'defaultLanguage must be a BCP 47 language tag.',
-        '/defaultLanguage',
-      ),
-    );
-  if (Array.isArray(value.supportedLanguages))
-    value.supportedLanguages.forEach((language, index) => {
-      if (typeof language !== 'string' || !LANGUAGE_TAG.test(language))
-        findings.push(
-          browserFinding(
-            'EOM_LANGUAGE_INVALID',
-            'semantic',
-            'supportedLanguages contains an invalid BCP 47 tag.',
-            `/supportedLanguages/${index}`,
-          ),
-        );
-    });
-  if (
-    typeof value.defaultLanguage === 'string' &&
-    Array.isArray(value.supportedLanguages) &&
-    value.supportedLanguages.length > 0 &&
-    !value.supportedLanguages.includes(value.defaultLanguage)
-  )
-    findings.push(
-      browserFinding(
-        'EOM_DEFAULT_LANGUAGE_UNSUPPORTED',
-        'semantic',
-        'defaultLanguage must be listed in supportedLanguages.',
-        '/defaultLanguage',
-      ),
-    );
-  if (typeof value.modified === 'string' && typeof value.expires === 'string') {
-    const modified = Date.parse(value.modified);
-    const expires = Date.parse(value.expires);
-    if (Number.isFinite(modified) && Number.isFinite(expires) && modified > expires)
-      findings.push(
-        browserFinding(
-          'EOM_FRESHNESS_ORDER',
-          'semantic',
-          'modified must be earlier than or equal to expires.',
-          '/expires',
-        ),
-      );
-    if (Number.isFinite(expires) && expires < now.getTime())
-      findings.push(
-        browserFinding(
-          'EOM_PUBLICATION_EXPIRED',
-          'freshness',
-          'The publication has passed its declared expiry.',
-          '/expires',
-          'warning',
-        ),
-      );
-  }
-  walkPrivacy(value, '', findings, new Set());
-}
-
-function walkPrivacy(value, pointer, findings, visited) {
-  if (!value || typeof value !== 'object' || visited.has(value)) return;
-  visited.add(value);
-  if (Array.isArray(value)) {
-    value.forEach((child, index) => walkPrivacy(child, `${pointer}/${index}`, findings, visited));
-    return;
-  }
-  for (const [key, child] of Object.entries(value)) {
-    const childPointer = `${pointer}/${escapePointer(key)}`;
-    if (PROHIBITED_KEY.test(key))
-      findings.push(
-        browserFinding(
-          'EOM_PRIVACY_PROHIBITED_FIELD',
-          'privacy',
-          'A prohibited or private-data field was found; remove it before publication.',
-          childPointer,
-        ),
-      );
-    else walkPrivacy(child, childPointer, findings, visited);
-  }
 }
 
 function compareValue(before, after, path, changes) {
@@ -345,18 +367,32 @@ function compareValue(before, after, path, changes) {
 }
 
 function canonicalJson(value) {
+  if (value === null || typeof value === 'boolean') {
+    return JSON.stringify(value);
+  }
+  if (typeof value === 'string') {
+    assertWellFormedUnicode(value);
+    return JSON.stringify(value);
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) throw new Error('Non-finite numbers are not valid JCS values.');
+    return JSON.stringify(Object.is(value, -0) ? 0 : value);
+  }
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
   if (isPlainObject(value))
     return `{${Object.keys(value)
-      .sort()
-      .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`)
+      .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
+      .map((key) => {
+        assertWellFormedUnicode(key);
+        return `${JSON.stringify(key)}:${canonicalJson(value[key])}`;
+      })
       .join(',')}}`;
-  return JSON.stringify(value);
+  throw new Error('Only JSON values can be canonicalized.');
 }
 
-async function sha256Base64Url(value) {
+async function sha256Digest(value) {
   const digest = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-  return toBase64Url(new Uint8Array(digest));
+  return `sha-256=:${toBase64(new Uint8Array(digest))}:`;
 }
 
 function result(valid, structuralValid, semanticValid, findings) {
@@ -373,11 +409,29 @@ function isPlainObject(value) {
 
 function assertJsonSafe(value, depth) {
   if (depth > 100) throw new Error('The browser input exceeds the maximum nesting depth.');
+  if (typeof value === 'string') assertWellFormedUnicode(value);
   if (typeof value === 'number' && !Number.isFinite(value))
     throw new Error('Non-finite numbers are not valid JSON.');
   if (Array.isArray(value)) value.forEach((item) => assertJsonSafe(item, depth + 1));
   else if (isPlainObject(value))
     Object.values(value).forEach((item) => assertJsonSafe(item, depth + 1));
+}
+
+function assertWellFormedUnicode(value) {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        index += 1;
+        continue;
+      }
+      throw new Error('Unpaired UTF-16 surrogates are not valid publication text.');
+    }
+    if (code >= 0xdc00 && code <= 0xdfff) {
+      throw new Error('Unpaired UTF-16 surrogates are not valid publication text.');
+    }
+  }
 }
 
 function escapePointer(value) {
@@ -391,10 +445,42 @@ function toBase64Url(bytes) {
 }
 
 function fromBase64Url(value) {
+  if (!value || !/^[A-Za-z0-9_-]+$/u.test(value) || value.length % 4 === 1)
+    throw new Error('Invalid base64url encoding.');
   const normalized = value
     .replaceAll('-', '+')
     .replaceAll('_', '/')
     .padEnd(Math.ceil(value.length / 4) * 4, '=');
   const binary = atob(normalized);
-  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  const decoded = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  if (toBase64Url(decoded) !== value) throw new Error('Non-canonical base64url encoding.');
+  return decoded;
+}
+
+function toBase64(bytes) {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+function isAbsoluteUri(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol.length > 1 && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
+function isHttpsUri(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
+function validDate(value) {
+  return typeof value === 'string' && !Number.isNaN(Date.parse(value));
 }

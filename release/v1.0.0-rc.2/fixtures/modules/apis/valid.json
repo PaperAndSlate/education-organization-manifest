@@ -1,0 +1,24 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/api-reference.schema.json",
+  "canonical": "https://ecme-high.example/eom/apis.json",
+  "expires": "2028-05-01T14:00:00Z",
+  "id": "https://ecme-high.example/eom/resource/apis",
+  "items": [
+    {
+      "baseUrl": "https://ecme-high.example/api",
+      "dataCategories": ["public-course-catalog"],
+      "documentation": "https://ecme-high.example/api/docs",
+      "id": "https://ecme-high.example/id/api/public-catalog",
+      "name": "Public catalog API",
+      "provider": {
+        "id": "https://ecme-high.example/id/school"
+      },
+      "type": "api-reference"
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "subjects": ["https://ecme-high.example/id/school"],
+  "type": "api-reference",
+  "version": "1.0"
+}

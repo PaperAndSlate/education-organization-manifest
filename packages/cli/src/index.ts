@@ -1,11 +1,17 @@
 import { access, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { tmpdir } from 'node:os';
-import { basename, join, resolve } from 'node:path';
-import { Command } from 'commander';
+import { homedir, tmpdir } from 'node:os';
+import { basename, dirname, join, resolve } from 'node:path';
+import { Command, CommanderError } from 'commander';
 import { buildReviewReport, detectConflicts, type ReviewReport } from '@paperandslate/eom-agentic';
 import { mapInput, supportedAdapterFormats, type AdapterFormat } from '@paperandslate/eom-adapters';
-import { buildPublication, type BuildReport } from '@paperandslate/eom-generator';
+import {
+  buildPublication,
+  GeneratorInputError,
+  loadAuthoringConfig,
+  type BuildReport,
+} from '@paperandslate/eom-generator';
 import { lintPublication } from '@paperandslate/eom-linter';
 import { signDetached, verifyDetached } from '@paperandslate/eom-signatures';
 import {
@@ -16,12 +22,16 @@ import {
 } from '@paperandslate/eom-testkit';
 import {
   EomFetchError,
+  StrictJsonError,
+  discoveryUrl,
+  fetchEom,
   fetchManifest,
   isJsonObject,
   migrateDocument,
   parseStrictJson,
   semanticDiff,
   stringifyCanonical,
+  type FetchOptions,
 } from '@paperandslate/eom-core';
 import {
   availableSchemaFiles,
@@ -52,18 +62,28 @@ export interface CliOutput {
   readonly summary?: Record<string, unknown>;
 }
 
+const MAX_CLI_INPUT_BYTES = 32 * 1024 * 1024;
+
+let activeProgram: Command | undefined;
+
 interface GlobalOptions {
   readonly json?: boolean;
+  readonly quiet?: boolean;
+  readonly verbose?: boolean;
+  readonly color?: boolean;
   readonly config?: string;
   readonly deterministic?: boolean;
   readonly offline?: boolean;
   readonly timeout?: number;
   readonly maxBytes?: number;
+  readonly maxRedirects?: number;
   readonly cacheDir?: string;
 }
 
 export function createCli(): Command {
   const program = new Command();
+  activeProgram = program;
+  program.exitOverride();
   program
     .name('eom')
     .description('Validate, lint, and inspect Educational Organization Manifest publications.')
@@ -75,8 +95,12 @@ export function createCli(): Command {
     .option('--offline', 'disable all network access')
     .option('--config <file>', 'default authoring configuration file')
     .option('--cache-dir <directory>', 'bounded cache directory for network operations')
+    .option('--deterministic', 'use a fixed clock for deterministic output')
     .option('--timeout <milliseconds>', 'default network timeout', parseNumberOption)
-    .option('--max-bytes <bytes>', 'default network response limit', parseNumberOption);
+    .option('--max-bytes <bytes>', 'default network response limit', parseNumberOption)
+    .option('--max-redirects <count>', 'default redirect limit', parseNumberOption);
+  applyUserOptions(program);
+  applyEnvironmentOptions(program);
 
   program
     .command('init')
@@ -115,7 +139,10 @@ export function createCli(): Command {
     .option('--dry-run', 'validate and report without writing output')
     .option('--module <module>', 'build one registered module plus organization')
     .option('--organization <uri>', 'select an organization identifier')
+    .option('--allow-external-output', 'allow an explicitly selected output outside the project')
+    .option('--sign', 'enable configured detached signing for this build')
     .option('--deterministic', 'use a fixed clock when no clock is injected')
+    .option('--verify-deterministic', 'build isolated outputs twice and compare every byte')
     .option('--report <file>', 'write the build report to a file')
     .option('--json', 'emit machine-readable JSON')
     .action(
@@ -127,7 +154,10 @@ export function createCli(): Command {
           dryRun?: boolean;
           module?: string;
           organization?: string;
+          allowExternalOutput?: boolean;
+          sign?: boolean;
           deterministic?: boolean;
+          verifyDeterministic?: boolean;
           report?: string;
           json?: boolean;
         },
@@ -141,9 +171,13 @@ export function createCli(): Command {
           dryRun: options.dryRun === true,
           ...(options.module ? { module: options.module } : {}),
           ...(options.organization ? { organization: options.organization } : {}),
+          ...(options.allowExternalOutput ? { allowExternalOutput: true } : {}),
+          ...(options.sign ? { sign: true } : {}),
+          ...(globalOptions.cacheDir ? { cacheDirectory: globalOptions.cacheDir } : {}),
           ...(options.deterministic || globalOptions.deterministic === true
             ? { deterministic: true }
             : {}),
+          ...(options.verifyDeterministic ? { verifyDeterministic: true } : {}),
         });
         if (options.report) {
           await writeFile(resolve(options.report), stringifyCanonical(report as never), 'utf8');
@@ -275,7 +309,7 @@ export function createCli(): Command {
         options: { key: string; keyId: string; output?: string; json?: boolean },
       ) => {
         const document = await readPublication(file);
-        const privateKey = await readFile(resolve(options.key), 'utf8');
+        const privateKey = await readTextInput(options.key);
         const signature = signDetached(document, {
           privateKey,
           keyId: options.keyId,
@@ -379,6 +413,11 @@ export function createCli(): Command {
     .option('--profile <profile>', 'versioned conformance profile', 'publisher-core')
     .option('--implementation <name>', 'implementation name recorded in the report')
     .option('--implementation-version <version>', 'implementation version recorded in the report')
+    .option('--mode <mode>', 'fixture, publisher, consumer, or generator execution mode')
+    .option('--origin <origin>', 'publisher origin used by publisher mode')
+    .option('--max-files <count>', 'maximum captured files', parseNumberOption)
+    .option('--max-total-bytes <bytes>', 'maximum captured bytes', parseNumberOption)
+    .option('--max-depth <count>', 'maximum captured directory depth', parseNumberOption)
     .option('--output <file>', 'write the canonical machine-readable report to a local file')
     .option('--json', 'emit machine-readable JSON')
     .action(
@@ -388,6 +427,11 @@ export function createCli(): Command {
           profile: string;
           implementation?: string;
           implementationVersion?: string;
+          mode?: string;
+          origin?: string;
+          maxFiles?: number;
+          maxTotalBytes?: number;
+          maxDepth?: number;
           output?: string;
           json?: boolean;
         },
@@ -395,13 +439,30 @@ export function createCli(): Command {
         if (!isConformanceProfileName(options.profile)) {
           throw new Error(`Unknown conformance profile ${options.profile}.`);
         }
+        const globalOptions = program.opts<GlobalOptions>();
+        if (
+          globalOptions.offline === true &&
+          (options.origin !== undefined || options.mode === 'publisher')
+        ) {
+          throw new EomFetchError(
+            'EOM_FETCH_NETWORK',
+            'Offline mode prevents publisher conformance network checks.',
+            options.origin,
+          );
+        }
         const report = await runConformance({
           directory,
           profile: options.profile,
+          ...(options.mode ? { mode: parseConformanceMode(options.mode) } : {}),
+          ...(options.origin ? { origin: options.origin } : {}),
           ...(options.implementation ? { implementationName: options.implementation } : {}),
           ...(options.implementationVersion
             ? { implementationVersion: options.implementationVersion }
             : {}),
+          ...(options.maxFiles === undefined ? {} : { maxFiles: options.maxFiles }),
+          ...(options.maxTotalBytes === undefined ? {} : { maxTotalBytes: options.maxTotalBytes }),
+          ...(options.maxDepth === undefined ? {} : { maxDepth: options.maxDepth }),
+          fetch: deploymentFetchOptions(globalOptions),
         });
         if (options.output) {
           await writeFile(resolve(options.output), stringifyCanonical(report as never), 'utf8');
@@ -421,7 +482,8 @@ export function createCli(): Command {
 
   program
     .command('validate')
-    .argument('<target>', 'local JSON file, publication directory, HTTPS URL, or - for stdin')
+    .argument('[target]', 'local JSON file, publication directory, HTTPS URL, or - for stdin')
+    .option('--origin <origin>', 'explicit HTTPS origin or manifest URL to validate')
     .option('--json', 'emit machine-readable JSON')
     .option('--no-semantic', 'skip semantic validation')
     .option('--format <format>', 'json, sarif, junit, html, or conformance')
@@ -433,8 +495,9 @@ export function createCli(): Command {
     .option('--max-total-bytes <bytes>', 'maximum combined graph response bytes', parseNumberOption)
     .action(
       async (
-        target: string,
+        target: string | undefined,
         options: {
+          origin?: string;
           json?: boolean;
           semantic?: boolean;
           format?: string;
@@ -446,34 +509,56 @@ export function createCli(): Command {
           maxTotalBytes?: number;
         },
       ) => {
+        const selectedTarget = options.origin ?? target;
+        if (!selectedTarget) throw new Error('Provide a target or --origin.');
         const format = options.format ? parseReportFormat(options.format) : undefined;
+        if (isAuthoringConfigPath(selectedTarget)) {
+          const result = await validateAuthoringProject(
+            selectedTarget,
+            program.opts<GlobalOptions>().deterministic === true,
+          );
+          if (format || options.output) {
+            await writeReport(renderValidationReport(result, format ?? 'json'), options.output);
+          } else {
+            emit(
+              { command: 'validate', file: selectedTarget, result },
+              jsonOutput(program, options.json),
+            );
+          }
+          if (!result.valid) process.exitCode = 1;
+          return;
+        }
+        const globalOptions = program.opts<GlobalOptions>();
         const validationOptions = {
           ...(options.semantic === undefined ? {} : { semantic: options.semantic }),
           ...(options.maxFiles === undefined ? {} : { maxFiles: options.maxFiles }),
           ...(options.maxResources === undefined ? {} : { maxResources: options.maxResources }),
           ...(options.maxDepth === undefined ? {} : { maxDepth: options.maxDepth }),
           ...(options.maxTotalBytes === undefined ? {} : { maxTotalBytes: options.maxTotalBytes }),
+          ...(globalOptions.maxBytes === undefined ? {} : { maxBytes: globalOptions.maxBytes }),
         };
-        if (isUrlTarget(target)) {
-          const globalOptions = program.opts<GlobalOptions>();
+        if (isOriginTarget(selectedTarget)) {
           if (globalOptions.offline === true) {
             throw new EomFetchError(
               'EOM_FETCH_NETWORK',
               'Offline mode prevents URL validation.',
-              target,
+              selectedTarget,
             );
           }
-          const publication = await validatePublicationUrl(target, {
+          const publication = await validatePublicationUrl(selectedTarget, {
             ...validationOptions,
             ...(options.graph === undefined ? {} : { fetchGraph: options.graph }),
             fetch: {
               ...(globalOptions.timeout === undefined ? {} : { timeoutMs: globalOptions.timeout }),
               ...(globalOptions.maxBytes === undefined ? {} : { maxBytes: globalOptions.maxBytes }),
+              ...(globalOptions.maxRedirects === undefined
+                ? {}
+                : { maxRedirects: globalOptions.maxRedirects }),
               ...(globalOptions.cacheDir ? { cacheDirectory: globalOptions.cacheDir } : {}),
             },
           });
           await emitPublicationReport(
-            target,
+            selectedTarget,
             publication,
             format,
             options.output,
@@ -482,11 +567,12 @@ export function createCli(): Command {
           if (!publication.valid) process.exitCode = 1;
           return;
         }
-        const information = target === '-' ? undefined : await stat(resolve(target));
+        const information =
+          selectedTarget === '-' ? undefined : await stat(resolve(selectedTarget));
         if (information?.isDirectory()) {
-          const publication = await validatePublicationDirectory(target, validationOptions);
+          const publication = await validatePublicationDirectory(selectedTarget, validationOptions);
           await emitPublicationReport(
-            target,
+            selectedTarget,
             publication,
             format,
             options.output,
@@ -495,12 +581,15 @@ export function createCli(): Command {
           if (!publication.valid) process.exitCode = 1;
           return;
         }
-        const document = await readPublication(target);
+        const document = await readPublication(selectedTarget);
         const result = validateDocument(document, validationOptions);
         if (format || options.output) {
           await writeReport(renderValidationReport(result, format ?? 'json'), options.output);
         } else {
-          emit({ command: 'validate', file: target, result }, jsonOutput(program, options.json));
+          emit(
+            { command: 'validate', file: selectedTarget, result },
+            jsonOutput(program, options.json),
+          );
         }
         if (!result.valid) process.exitCode = 1;
       },
@@ -508,7 +597,8 @@ export function createCli(): Command {
 
   program
     .command('lint')
-    .argument('<target>', 'local JSON file, publication directory, HTTPS URL, or - for stdin')
+    .argument('[target]', 'local JSON file, publication directory, HTTPS URL, or - for stdin')
+    .option('--origin <origin>', 'explicit HTTPS origin or manifest URL to lint')
     .option('--json', 'emit machine-readable JSON')
     .option('--strict-privacy', 'treat privacy findings as errors')
     .option('--format <format>', 'json, sarif, junit, html, or conformance')
@@ -520,8 +610,9 @@ export function createCli(): Command {
     .option('--max-total-bytes <bytes>', 'maximum combined graph response bytes', parseNumberOption)
     .action(
       async (
-        target: string,
+        target: string | undefined,
         options: {
+          origin?: string;
           json?: boolean;
           strictPrivacy?: boolean;
           format?: string;
@@ -533,29 +624,63 @@ export function createCli(): Command {
           maxTotalBytes?: number;
         },
       ) => {
+        const selectedTarget = options.origin ?? target;
+        if (!selectedTarget) throw new Error('Provide a target or --origin.');
         const format = options.format ? parseReportFormat(options.format) : undefined;
+        if (isAuthoringConfigPath(selectedTarget)) {
+          const result = await validateAuthoringProject(
+            selectedTarget,
+            program.opts<GlobalOptions>().deterministic === true,
+          );
+          const findings = options.strictPrivacy
+            ? result.findings.map((item) =>
+                item.category === 'privacy' && item.severity === 'warning'
+                  ? { ...item, severity: 'error' as const }
+                  : item,
+              )
+            : result.findings;
+          const lintResult: ValidationResult = {
+            ...result,
+            valid: !hasErrors(findings),
+            findings,
+          };
+          if (format || options.output) {
+            await writeReport(renderValidationReport(lintResult, format ?? 'json'), options.output);
+          } else {
+            emit(
+              { command: 'lint', file: selectedTarget, findings },
+              jsonOutput(program, options.json),
+            );
+          }
+          if (hasErrors(findings)) process.exitCode = 1;
+          return;
+        }
+        const globalOptions = program.opts<GlobalOptions>();
         const validationOptions = {
           ...(options.maxFiles === undefined ? {} : { maxFiles: options.maxFiles }),
           ...(options.maxResources === undefined ? {} : { maxResources: options.maxResources }),
           ...(options.maxDepth === undefined ? {} : { maxDepth: options.maxDepth }),
           ...(options.maxTotalBytes === undefined ? {} : { maxTotalBytes: options.maxTotalBytes }),
+          ...(globalOptions.maxBytes === undefined ? {} : { maxBytes: globalOptions.maxBytes }),
         };
         let findings: readonly Finding[];
-        if (isUrlTarget(target)) {
-          const globalOptions = program.opts<GlobalOptions>();
+        if (isOriginTarget(selectedTarget)) {
           if (globalOptions.offline === true) {
             throw new EomFetchError(
               'EOM_FETCH_NETWORK',
               'Offline mode prevents URL linting.',
-              target,
+              selectedTarget,
             );
           }
-          const publication = await validatePublicationUrl(target, {
+          const publication = await validatePublicationUrl(selectedTarget, {
             ...validationOptions,
             ...(options.graph === undefined ? {} : { fetchGraph: options.graph }),
             fetch: {
               ...(globalOptions.timeout === undefined ? {} : { timeoutMs: globalOptions.timeout }),
               ...(globalOptions.maxBytes === undefined ? {} : { maxBytes: globalOptions.maxBytes }),
+              ...(globalOptions.maxRedirects === undefined
+                ? {}
+                : { maxRedirects: globalOptions.maxRedirects }),
               ...(globalOptions.cacheDir ? { cacheDirectory: globalOptions.cacheDir } : {}),
             },
           });
@@ -567,12 +692,19 @@ export function createCli(): Command {
           if (format || options.output) {
             await writeReport(renderValidationReport(report, format ?? 'json'), options.output);
           } else {
-            emit({ command: 'lint', file: target, findings }, jsonOutput(program, options.json));
+            emit(
+              { command: 'lint', file: selectedTarget, findings },
+              jsonOutput(program, options.json),
+            );
           }
         } else {
-          const information = target === '-' ? undefined : await stat(resolve(target));
+          const information =
+            selectedTarget === '-' ? undefined : await stat(resolve(selectedTarget));
           if (information?.isDirectory()) {
-            const publication = await validatePublicationDirectory(target, validationOptions);
+            const publication = await validatePublicationDirectory(
+              selectedTarget,
+              validationOptions,
+            );
             findings = [
               ...publication.findings,
               ...lintDocuments(publication.documents, options.strictPrivacy),
@@ -581,10 +713,13 @@ export function createCli(): Command {
             if (format || options.output) {
               await writeReport(renderValidationReport(report, format ?? 'json'), options.output);
             } else {
-              emit({ command: 'lint', file: target, findings }, jsonOutput(program, options.json));
+              emit(
+                { command: 'lint', file: selectedTarget, findings },
+                jsonOutput(program, options.json),
+              );
             }
           } else {
-            const document = await readPublication(target);
+            const document = await readPublication(selectedTarget);
             findings = lintPublication(
               document,
               options.strictPrivacy === undefined ? {} : { strictPrivacy: options.strictPrivacy },
@@ -603,7 +738,10 @@ export function createCli(): Command {
                 options.output,
               );
             } else {
-              emit({ command: 'lint', file: target, findings }, jsonOutput(program, options.json));
+              emit(
+                { command: 'lint', file: selectedTarget, findings },
+                jsonOutput(program, options.json),
+              );
             }
           }
         }
@@ -626,14 +764,23 @@ export function createCli(): Command {
     .argument('[target]', 'authoring config, local publication file, or publication directory')
     .option('--config <file>', 'authoring configuration file')
     .option('--output <directory>', 'temporary output directory for a build check')
+    .option('--allow-external-output', 'allow an explicitly selected output outside the project')
     .option('--json', 'emit machine-readable JSON')
     .action(
       async (
         target: string | undefined,
-        options: { config?: string; output?: string; json?: boolean },
+        options: {
+          config?: string;
+          output?: string;
+          allowExternalOutput?: boolean;
+          json?: boolean;
+        },
       ) => {
-        const selected = options.config ?? target ?? 'eom.config.yaml';
+        const globalOptions = program.opts<GlobalOptions>();
+        const selected = options.config ?? target ?? globalOptions.config ?? 'eom.config.yaml';
         if (isAuthoringConfigPath(selected)) {
+          const config = await loadAuthoringConfig(selected);
+          const configuredOutput = resolve(dirname(resolve(selected)), config.output.root);
           const temporary = options.output
             ? undefined
             : await mkdtemp(join(tmpdir(), 'eom-check-'));
@@ -643,26 +790,59 @@ export function createCli(): Command {
               configFile: selected,
               ...(output ? { outputRoot: output } : {}),
               ...(temporary ? { allowExternalOutput: true } : {}),
+              ...(options.allowExternalOutput ? { allowExternalOutput: true } : {}),
+              ...(program.opts<GlobalOptions>().cacheDir
+                ? { cacheDirectory: program.opts<GlobalOptions>().cacheDir }
+                : {}),
+              ...(globalOptions.deterministic ? { deterministic: true } : {}),
             });
             const publication =
-              report.written && output ? await validatePublicationDirectory(output) : undefined;
-            const findings = publication
-              ? [...report.findings, ...publication.findings]
-              : report.findings;
+              report.written && output
+                ? await validatePublicationDirectory(output, {
+                    ...(globalOptions.maxBytes === undefined
+                      ? {}
+                      : { maxBytes: globalOptions.maxBytes }),
+                  })
+                : undefined;
+            const drift =
+              temporary && report.written && output
+                ? await compareGeneratedOutput(configuredOutput, output)
+                : undefined;
+            const findings = [
+              ...report.findings,
+              ...(publication?.findings ?? []),
+              ...(drift?.finding ? [drift.finding] : []),
+            ];
+            const valid = report.valid && (publication?.valid ?? true) && drift?.valid !== false;
             emit(
               {
                 command: 'check',
                 file: selected,
                 report: {
                   ...report,
-                  valid: report.valid && (publication?.valid ?? true),
+                  valid,
                   findings,
                 },
-                ...(publication ? { summary: { files: publication.files } } : {}),
+                ...(publication
+                  ? {
+                      summary: {
+                        files: publication.files,
+                        ...(drift
+                          ? {
+                              generatedOutput: configuredOutput,
+                              generatedDrift: drift.status,
+                              ...(drift.differences.length > 0
+                                ? { differences: drift.differences }
+                                : {}),
+                            }
+                          : {}),
+                      },
+                    }
+                  : {}),
               },
               jsonOutput(program, options.json),
             );
-            if (!report.valid || publication?.valid === false) process.exitCode = 1;
+            if (!valid) process.exitCode = 1;
           } finally {
             if (temporary) await rm(temporary, { recursive: true, force: true });
           }
@@ -677,7 +857,11 @@ export function createCli(): Command {
           ? selectedInformation
           : await stat(file);
         if (information.isDirectory()) {
-          const publication = await validatePublicationDirectory(file);
+          const publication = await validatePublicationDirectory(file, {
+            ...(program.opts<GlobalOptions>().maxBytes === undefined
+              ? {}
+              : { maxBytes: program.opts<GlobalOptions>().maxBytes }),
+          });
           const findings = [
             ...publication.findings,
             ...lintDocuments(publication.documents, undefined),
@@ -711,6 +895,13 @@ export function createCli(): Command {
       ) => {
         try {
           const globalOptions = program.opts<GlobalOptions>();
+          if (globalOptions.offline === true) {
+            throw new EomFetchError(
+              'EOM_FETCH_NETWORK',
+              'Offline mode prevents URL fetching.',
+              originOrUrl,
+            );
+          }
           const response = await fetchManifest(originOrUrl, {
             ...(options.timeout === undefined
               ? globalOptions.timeout === undefined
@@ -722,7 +913,11 @@ export function createCli(): Command {
                 ? {}
                 : { maxBytes: globalOptions.maxBytes }
               : { maxBytes: options.maxBytes }),
-            ...(options.maxRedirects === undefined ? {} : { maxRedirects: options.maxRedirects }),
+            ...(options.maxRedirects === undefined
+              ? globalOptions.maxRedirects === undefined
+                ? {}
+                : { maxRedirects: globalOptions.maxRedirects }
+              : { maxRedirects: options.maxRedirects }),
             ...(globalOptions.cacheDir ? { cacheDirectory: globalOptions.cacheDir } : {}),
           });
           const result = validateDocument(response.document);
@@ -752,6 +947,49 @@ export function createCli(): Command {
         }
       },
     );
+
+  program
+    .command('audit-url')
+    .argument('<origin-or-url>', 'HTTPS origin or manifest URL to audit')
+    .option('--json', 'emit machine-readable JSON')
+    .action(async (target: string, options: { json?: boolean }) => {
+      const globalOptions = program.opts<GlobalOptions>();
+      if (globalOptions.offline === true) {
+        emit(
+          {
+            command: 'audit-url',
+            file: target,
+            findings: [
+              {
+                code: 'EOM_DOCTOR_OFFLINE',
+                category: 'transport',
+                severity: 'error',
+                message: 'Offline mode prevents deployment auditing.',
+              },
+            ],
+          },
+          jsonOutput(program, options.json),
+        );
+        process.exitCode = 3;
+        return;
+      }
+      const deployment = await auditDeployment(target, globalOptions);
+      emit(
+        {
+          command: 'audit-url',
+          file: target,
+          summary: deployment as unknown as Record<string, unknown>,
+        },
+        jsonOutput(program, options.json),
+      );
+      if (!deployment.valid) {
+        process.exitCode = deployment.checks.some(
+          (check) => check.status === 'fail' && check.code.startsWith('EOM_FETCH_'),
+        )
+          ? 3
+          : 1;
+      }
+    });
 
   program
     .command('schema')
@@ -822,6 +1060,28 @@ export function createCli(): Command {
         const report = await buildPublication({ configFile: target, dryRun: true });
         summary.build = report;
         valid = report.valid;
+      } else if (target && isOriginTarget(target)) {
+        const globalOptions = program.opts<GlobalOptions>();
+        if (globalOptions.offline === true) {
+          summary.network = 'blocked-offline';
+          summary.deployment = {
+            valid: false,
+            target,
+            checks: [
+              {
+                code: 'EOM_DOCTOR_OFFLINE',
+                status: 'fail',
+                message: 'Offline mode prevents deployment auditing.',
+              },
+            ],
+          };
+          valid = false;
+        } else {
+          summary.network = 'used-explicitly';
+          const deployment = await auditDeployment(target, globalOptions);
+          summary.deployment = deployment;
+          valid = deployment.valid;
+        }
       } else if (target) {
         const file = await resolveLocalPublication(target);
         const document = await readPublication(file);
@@ -837,11 +1097,153 @@ export function createCli(): Command {
       if (!valid) process.exitCode = 1;
     });
 
+  program
+    .command('completion')
+    .argument('[shell]', 'bash, zsh, fish, or powershell', 'bash')
+    .option('--json', 'emit machine-readable JSON')
+    .action((shell: string, options: { json?: boolean }) => {
+      const script = completionScript(shell);
+      if (jsonOutput(program, options.json)) {
+        emit(
+          {
+            command: 'completion',
+            file: shell,
+            summary: { shell, script },
+          },
+          true,
+        );
+      } else {
+        process.stdout.write(script);
+      }
+    });
+
   return program;
 }
 
 function isUrlTarget(value: string): boolean {
   return /^https?:\/\//iu.test(value);
+}
+
+function isOriginTarget(value: string): boolean {
+  if (isUrlTarget(value)) return true;
+  return (
+    /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,63}(?::\d+)?$/iu.test(value) &&
+    !/\.(?:json|ya?ml)$/iu.test(value)
+  );
+}
+
+interface DeploymentAudit {
+  readonly valid: boolean;
+  readonly target: string;
+  readonly requestedUrl?: string;
+  readonly finalUrl?: string;
+  readonly status?: number;
+  readonly redirects?: readonly unknown[];
+  readonly checks: readonly {
+    readonly code: string;
+    readonly status: 'pass' | 'warn' | 'fail';
+    readonly message: string;
+  }[];
+}
+
+async function auditDeployment(
+  target: string,
+  globalOptions: GlobalOptions,
+): Promise<DeploymentAudit> {
+  const checks: DeploymentAudit['checks'][number][] = [];
+  const fetchOptions = deploymentFetchOptions(globalOptions);
+  let response: Awaited<ReturnType<typeof fetchManifest>> | undefined;
+  try {
+    response = await fetchManifest(target, fetchOptions);
+    checks.push({
+      code: 'EOM_DOCTOR_GET_200',
+      status: 'pass',
+      message: 'GET discovery returned HTTP 200 and valid JSON.',
+    });
+    checks.push({
+      code: 'EOM_DOCTOR_HTTPS',
+      status: response.finalUrl.startsWith('https://') ? 'pass' : 'fail',
+      message: response.finalUrl.startsWith('https://')
+        ? 'The final discovery URL uses HTTPS.'
+        : 'The final discovery URL does not use HTTPS.',
+    });
+    checks.push({
+      code: 'EOM_DOCTOR_CONTENT_TYPE',
+      status: response.contentType ? 'pass' : 'fail',
+      message: response.contentType
+        ? `The endpoint declared ${response.contentType}.`
+        : 'The endpoint did not declare a JSON content type.',
+    });
+    const cacheControl = response.headers['cache-control'];
+    checks.push({
+      code: 'EOM_DOCTOR_CACHE_CONTROL',
+      status: cacheControl ? 'pass' : 'warn',
+      message: cacheControl
+        ? `Cache policy observed: ${cacheControl}.`
+        : 'No Cache-Control policy was observed; choose an explicit bounded cache policy.',
+    });
+    const cors = response.headers['access-control-allow-origin'];
+    checks.push({
+      code: 'EOM_DOCTOR_CORS',
+      status: cors ? 'pass' : 'warn',
+      message: cors
+        ? `CORS policy observed: ${cors}.`
+        : 'No Access-Control-Allow-Origin header was observed; browser consumers may need a same-origin proxy.',
+    });
+    if (response.redirects.length > 0) {
+      checks.push({
+        code: 'EOM_DOCTOR_REDIRECTS',
+        status: 'warn',
+        message: `${response.redirects.length} redirect(s) occurred; verify the canonical origin and cache behavior.`,
+      });
+    }
+  } catch (error) {
+    checks.push({
+      code: error instanceof EomFetchError ? error.code : 'EOM_DOCTOR_GET_FAILED',
+      status: 'fail',
+      message: error instanceof Error ? error.message : 'GET discovery failed.',
+    });
+  }
+
+  try {
+    const head = await fetchEom(discoveryUrl(target), { ...fetchOptions, method: 'HEAD' });
+    checks.push({
+      code: 'EOM_DOCTOR_HEAD',
+      status: head.status === 200 ? 'pass' : 'fail',
+      message: `HEAD discovery returned HTTP ${head.status}.`,
+    });
+  } catch (error) {
+    checks.push({
+      code: 'EOM_DOCTOR_HEAD_FAILED',
+      status: 'warn',
+      message: error instanceof Error ? error.message : 'HEAD discovery failed.',
+    });
+  }
+
+  return {
+    valid: checks.every((check) => check.status !== 'fail'),
+    target,
+    ...(response
+      ? {
+          requestedUrl: response.requestedUrl,
+          finalUrl: response.finalUrl,
+          status: response.status,
+          redirects: response.redirects,
+        }
+      : {}),
+    checks,
+  };
+}
+
+function deploymentFetchOptions(globalOptions: GlobalOptions): FetchOptions {
+  return {
+    ...(globalOptions.timeout === undefined ? {} : { timeoutMs: globalOptions.timeout }),
+    ...(globalOptions.maxBytes === undefined ? {} : { maxBytes: globalOptions.maxBytes }),
+    ...(globalOptions.maxRedirects === undefined
+      ? {}
+      : { maxRedirects: globalOptions.maxRedirects }),
+    ...(globalOptions.cacheDir ? { cacheDirectory: globalOptions.cacheDir } : {}),
+  };
 }
 
 function parseReportFormat(value: string): ValidationReportFormat {
@@ -856,6 +1258,14 @@ function parseReportFormat(value: string): ValidationReportFormat {
     return value as ValidationReportFormat;
   }
   throw new Error(`Unknown report format ${value}. Supported formats: ${supported.join(', ')}`);
+}
+
+function parseConformanceMode(value: string): 'fixture' | 'publisher' | 'consumer' | 'generator' {
+  const supported = ['fixture', 'publisher', 'consumer', 'generator'] as const;
+  if (supported.includes(value as (typeof supported)[number])) {
+    return value as (typeof supported)[number];
+  }
+  throw new Error(`Unknown conformance mode ${value}. Supported modes: ${supported.join(', ')}`);
 }
 
 async function emitPublicationReport(
@@ -909,9 +1319,222 @@ async function writeReport(content: string, output: string | undefined): Promise
   process.stdout.write(content);
 }
 
+interface GeneratedOutputComparison {
+  readonly valid: boolean;
+  readonly status: 'clean' | 'different' | 'not-present' | 'unmarked';
+  readonly differences: readonly string[];
+  readonly finding?: Finding;
+}
+
+async function compareGeneratedOutput(
+  configuredOutput: string,
+  expectedOutput: string,
+): Promise<GeneratedOutputComparison> {
+  let information;
+  try {
+    information = await stat(configuredOutput);
+  } catch (error) {
+    if (isMissingPath(error)) {
+      return { valid: true, status: 'not-present', differences: [] };
+    }
+    throw error;
+  }
+  if (!information.isDirectory()) {
+    return {
+      valid: false,
+      status: 'unmarked',
+      differences: [configuredOutput],
+      finding: {
+        code: 'EOM_GENERATED_DRIFT',
+        category: 'quality',
+        severity: 'error',
+        message: 'The configured generated output path is not a directory.',
+        resource: configuredOutput,
+      },
+    };
+  }
+  let marker: unknown;
+  try {
+    marker = parseStrictJson(
+      await readFile(join(configuredOutput, '.eom-generated.json'), 'utf8'),
+      join(configuredOutput, '.eom-generated.json'),
+    );
+  } catch {
+    return {
+      valid: false,
+      status: 'unmarked',
+      differences: ['.eom-generated.json'],
+      finding: {
+        code: 'EOM_GENERATED_DRIFT',
+        category: 'quality',
+        severity: 'error',
+        message: 'The configured generated output is not marked as EOM generator-owned.',
+        resource: configuredOutput,
+      },
+    };
+  }
+  if (
+    !isJsonObject(marker) ||
+    marker.generator !== 'eom' ||
+    marker.specification !== 'https://paperandslate.org/spec/eom/1.0' ||
+    typeof marker.toolVersion !== 'string'
+  ) {
+    return {
+      valid: false,
+      status: 'unmarked',
+      differences: ['.eom-generated.json'],
+      finding: {
+        code: 'EOM_GENERATED_DRIFT',
+        category: 'quality',
+        severity: 'error',
+        message: 'The configured generated output marker is not valid.',
+        resource: configuredOutput,
+      },
+    };
+  }
+  const [actual, expected] = await Promise.all([
+    comparableFiles(configuredOutput),
+    comparableFiles(expectedOutput),
+  ]);
+  const names = [...new Set([...actual.keys(), ...expected.keys()])].sort();
+  const differences = names.filter((name) => {
+    const left = actual.get(name);
+    const right = expected.get(name);
+    return left === undefined || right === undefined || !left.equals(right);
+  });
+  if (differences.length === 0) return { valid: true, status: 'clean', differences };
+  return {
+    valid: false,
+    status: 'different',
+    differences,
+    finding: {
+      code: 'EOM_GENERATED_DRIFT',
+      category: 'quality',
+      severity: 'error',
+      message: `Generated output differs in ${differences.length} file(s).`,
+      resource: configuredOutput,
+      related: differences,
+    },
+  };
+}
+
+async function comparableFiles(directory: string): Promise<Map<string, Buffer>> {
+  const result = new Map<string, Buffer>();
+  async function visit(current: string): Promise<void> {
+    const entries = (await readdir(current, { withFileTypes: true })).sort((left, right) =>
+      compareStrings(left.name, right.name),
+    );
+    for (const entry of entries) {
+      const path = join(current, entry.name);
+      const relativePath = path.slice(directory.length + 1).replaceAll('\\', '/');
+      if (entry.isDirectory()) {
+        await visit(path);
+      } else if (entry.isFile()) {
+        result.set(relativePath, await readFile(path));
+      }
+    }
+  }
+  await visit(directory);
+  return result;
+}
+
+function isMissingPath(error: unknown): boolean {
+  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
+}
+
 function isAuthoringConfigPath(value: string): boolean {
   const lower = value.toLowerCase();
   return lower.endsWith('.yaml') || lower.endsWith('.yml');
+}
+
+async function validateAuthoringProject(
+  configFile: string,
+  deterministic: boolean,
+): Promise<ValidationResult> {
+  try {
+    await loadAuthoringConfig(configFile);
+    const report = await buildPublication({
+      configFile,
+      dryRun: true,
+      ...(deterministic ? { deterministic: true } : {}),
+    });
+    const errors = report.findings.filter((item) => item.severity === 'error');
+    return {
+      valid: report.valid,
+      structuralValid: !errors.some(
+        (item) => item.category === 'syntax' || item.category === 'structural',
+      ),
+      semanticValid: !errors.some(
+        (item) =>
+          item.category !== 'syntax' &&
+          item.category !== 'structural' &&
+          item.category !== 'quality',
+      ),
+      schema: 'config.schema.json and generated publication schemas',
+      findings: report.findings,
+    };
+  } catch (error) {
+    const findings =
+      error instanceof GeneratorInputError && error.findings.length > 0
+        ? error.findings
+        : [
+            {
+              code: 'EOM_GENERATOR_INPUT_INVALID',
+              category: 'syntax' as const,
+              severity: 'error' as const,
+              message:
+                error instanceof Error ? error.message : 'Authoring project validation failed.',
+              resource: configFile,
+            },
+          ];
+    return {
+      valid: false,
+      structuralValid: false,
+      semanticValid: false,
+      schema: 'config.schema.json',
+      findings,
+    };
+  }
+}
+
+function completionScript(shell: string): string {
+  const commands = [
+    'audit-url',
+    'build',
+    'candidate',
+    'check',
+    'completion',
+    'conformance',
+    'diff',
+    'doctor',
+    'explain',
+    'fetch',
+    'init',
+    'inspect',
+    'lint',
+    'map',
+    'migrate',
+    'schema',
+    'sign',
+    'validate',
+    'verify',
+  ] as const;
+  const values = commands.join(' ');
+  switch (shell.toLowerCase()) {
+    case 'bash':
+      return `# eom bash completion\n_eom_complete() {\n  local current="${'${COMP_WORDS[COMP_CWORD]}'}"\n  COMPREPLY=( $(compgen -W "${values}" -- "$current") )\n}\ncomplete -F _eom_complete eom\n`;
+    case 'zsh':
+      return `# eom zsh completion\n#compdef eom\n_arguments '1:command:(${commands.join('|')})'\n`;
+    case 'fish':
+      return `# eom fish completion\ncomplete -c eom -f -n '__fish_use_subcommand' -a '${commands.join(' ')}'\n`;
+    case 'powershell':
+    case 'pwsh':
+      return `$eomCommands = '${commands.join(' ')}'.Split(' ')\nRegister-ArgumentCompleter -Native -CommandName eom -ScriptBlock {\n  param($wordToComplete, $commandAst, $cursorPosition)\n  $eomCommands | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {\n    [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)\n  }\n}\n`;
+    default:
+      throw new Error(
+        `Unsupported completion shell ${shell}. Supported shells: bash, zsh, fish, powershell.`,
+      );
+  }
 }
 
 function parseAdapterFormat(value: string): AdapterFormat {
@@ -921,6 +1544,85 @@ function parseAdapterFormat(value: string): AdapterFormat {
   throw new Error(
     `Unknown adapter format ${value}. Supported formats: ${supportedAdapterFormats().join(', ')}`,
   );
+}
+
+const INIT_MODULE_KEYS = [
+  'organization',
+  'contacts',
+  'campuses',
+  'departments',
+  'staff',
+  'courses',
+  'offerings',
+  'programs',
+  'calendar',
+  'events',
+  'facilities',
+  'services',
+  'policies',
+  'admissions',
+  'sports',
+  'transportation',
+  'meals',
+  'clubs',
+  'jobs',
+  'news',
+  'statistics',
+  'apis',
+] as const;
+
+const INIT_MODULE_ALIASES: Readonly<Record<string, (typeof INIT_MODULE_KEYS)[number]>> = {
+  organization: 'organization',
+  organizations: 'organization',
+  profile: 'organization',
+  contact: 'contacts',
+  contactdirectory: 'contacts',
+  campus: 'campuses',
+  department: 'departments',
+  staffdirectory: 'staff',
+  course: 'courses',
+  'course-catalog': 'courses',
+  offering: 'offerings',
+  sections: 'offerings',
+  'course-offering-catalog': 'offerings',
+  program: 'programs',
+  pathways: 'programs',
+  calendar: 'calendar',
+  calendars: 'calendar',
+  academiccalendar: 'calendar',
+  'academic-calendar': 'calendar',
+  event: 'events',
+  facility: 'facilities',
+  service: 'services',
+  policy: 'policies',
+  documents: 'policies',
+  admission: 'admissions',
+  sport: 'sports',
+  athletics: 'sports',
+  transport: 'transportation',
+  routes: 'transportation',
+  meal: 'meals',
+  menus: 'meals',
+  menues: 'meals',
+  club: 'clubs',
+  activities: 'clubs',
+  job: 'jobs',
+  opportunities: 'jobs',
+  article: 'news',
+  announcements: 'news',
+  statistic: 'statistics',
+  stats: 'statistics',
+  api: 'apis',
+  apiservices: 'apis',
+  servicesdiscovery: 'apis',
+};
+
+function initModuleKey(value: string): (typeof INIT_MODULE_KEYS)[number] | undefined {
+  const normalized = value.toLowerCase().replaceAll('_', '-').replaceAll(' ', '-');
+  if ((INIT_MODULE_KEYS as readonly string[]).includes(normalized)) {
+    return normalized as (typeof INIT_MODULE_KEYS)[number];
+  }
+  return INIT_MODULE_ALIASES[normalized.replaceAll('-', '')] ?? INIT_MODULE_ALIASES[normalized];
 }
 
 async function initProject(
@@ -950,26 +1652,44 @@ async function initProject(
   } catch (error) {
     if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
   }
+  const requestedModules = (options.modules ?? 'organization,contacts')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const normalizedRequestedModules = requestedModules.map((value) => {
+    const key = initModuleKey(value);
+    if (!key) {
+      throw new Error(
+        `Unknown init module ${value}. Supported modules: ${INIT_MODULE_KEYS.join(', ')}.`,
+      );
+    }
+    return key;
+  });
+  const selectedModules = ['organization', 'contacts', ...normalizedRequestedModules].filter(
+    (value, index, values) => values.indexOf(value) === index,
+  );
   const starterFiles = [
     'eom.config.yaml',
     'source/organization.yaml',
     'source/contacts.yaml',
     'source/README.md',
+    ...selectedModules
+      .filter((module) => !['organization', 'contacts'].includes(module))
+      .map((module) => `source/modules/${module}.yaml`),
   ];
   if (existing.length > 0 && options.force !== true) {
     throw new Error(
       `Refusing to initialize non-empty directory ${target}; use --force only for starter files.`,
     );
   }
-  await mkdir(join(target, 'source'), { recursive: true });
+  await mkdir(join(target, 'source', 'modules'), { recursive: true });
   const name = templateName(options.template, basename(target));
-  const requestedModules = (options.modules ?? 'organization,contacts')
-    .split(',')
-    .map((value) => value.trim())
-    .filter(Boolean);
-  const unsupportedModules = requestedModules.filter(
-    (value) => !['organization', 'contacts'].includes(value),
-  );
+  const organizationType = options.template === 'district' ? 'district' : 'secondary-school';
+  const organizationIdSegment = options.template === 'district' ? 'district' : 'school';
+  const moduleConfig = selectedModules.flatMap((module) => [
+    `    ${module}:`,
+    `      - ${module === 'organization' ? 'organization.yaml' : module === 'contacts' ? 'contacts.yaml' : `modules/${module}.yaml`}`,
+  ]);
   const config = [
     `# Generated by eom init (${options.template})`,
     'project:',
@@ -982,10 +1702,7 @@ async function initProject(
     'source:',
     '  root: source',
     '  modules:',
-    '    organization:',
-    '      - organization.yaml',
-    '    contacts:',
-    '      - contacts.yaml',
+    ...moduleConfig,
     'output:',
     '  root: generated/public',
     'validation:',
@@ -996,9 +1713,9 @@ async function initProject(
     '',
   ].join('\n');
   const organization = [
-    `id: ${origin}/id/school`,
-    'type: secondary-school',
-    'organizationType: secondary-school',
+    `id: ${origin}/id/${organizationIdSegment}`,
+    `type: ${organizationType}`,
+    `organizationType: ${organizationType}`,
     `name: ${yamlQuote(name)}`,
     `canonical: ${origin}/eom/organization.json`,
     `website: ${origin}/`,
@@ -1019,9 +1736,7 @@ async function initProject(
     '',
     `Selected template: ${options.template}`,
     `Requested modules: ${requestedModules.join(', ')}`,
-    ...(unsupportedModules.length > 0
-      ? [`Module source templates not included yet: ${unsupportedModules.join(', ')}.`]
-      : []),
+    `Generated module source stubs: ${selectedModules.filter((module) => !['organization', 'contacts'].includes(module)).length}. Replace empty item lists with reviewed public data before building.`,
     'All example identifiers use the configured origin; replace them only with identifiers you control.',
     '',
   ].join('\n');
@@ -1031,6 +1746,10 @@ async function initProject(
     'source/contacts.yaml': contacts,
     'source/README.md': readme,
   };
+  for (const module of selectedModules) {
+    if (['organization', 'contacts'].includes(module)) continue;
+    files[`source/modules/${module}.yaml`] = 'items: []\n';
+  }
   const written: string[] = [];
   const skipped: string[] = [];
   for (const file of starterFiles) {
@@ -1049,7 +1768,7 @@ async function initProject(
     origin,
     language: options.language,
     requestedModules,
-    unsupportedModules,
+    selectedModules,
     written,
     skipped,
   };
@@ -1090,7 +1809,7 @@ function yamlQuote(value: string): string {
 }
 
 async function readAdapterInput(file: string, format: AdapterFormat): Promise<unknown> {
-  const text = await readFile(resolve(file), 'utf8');
+  const text = await readTextInput(file);
   if (
     format === 'qti-xml' ||
     format === 'common-cartridge-xml' ||
@@ -1124,6 +1843,123 @@ function parseNumberOption(value: string): number {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed < 0) throw new Error(`Invalid numeric option: ${value}`);
   return parsed;
+}
+
+function applyUserOptions(program: Command): void {
+  const explicit = process.env.EOM_USER_CONFIG?.trim();
+  const candidates = [
+    ...(explicit ? [resolve(explicit)] : []),
+    ...(process.env.APPDATA ? [join(process.env.APPDATA, 'eom', 'config.json')] : []),
+    ...(process.env.XDG_CONFIG_HOME
+      ? [join(process.env.XDG_CONFIG_HOME, 'eom', 'config.json')]
+      : []),
+    join(homedir(), '.config', 'eom', 'config.json'),
+  ].filter((path, index, paths) => paths.indexOf(path) === index);
+  const path = candidates.find((candidate) => existsSync(candidate));
+  if (!path) {
+    if (explicit) throw new CliInputError(`User CLI configuration was not found: ${explicit}`);
+    return;
+  }
+  const bytes = readFileSync(path);
+  if (bytes.byteLength > MAX_CLI_INPUT_BYTES) {
+    throw new CliInputError(
+      `User CLI configuration exceeds the ${MAX_CLI_INPUT_BYTES}-byte limit.`,
+    );
+  }
+  const parsed = parseStrictJson(decodeUtf8(bytes, path), path);
+  if (!isJsonObject(parsed))
+    throw new CliInputError('User CLI configuration must be a JSON object.');
+  const allowed = new Set([
+    'json',
+    'quiet',
+    'verbose',
+    'color',
+    'config',
+    'deterministic',
+    'offline',
+    'timeout',
+    'maxBytes',
+    'maxRedirects',
+    'cacheDir',
+  ]);
+  const unknown = Object.keys(parsed).filter((key) => !allowed.has(key));
+  if (unknown.length > 0) {
+    throw new CliInputError(
+      `User CLI configuration has unsupported option(s): ${unknown.join(', ')}`,
+    );
+  }
+  for (const option of ['json', 'quiet', 'verbose', 'color', 'deterministic', 'offline'] as const) {
+    const value = parsed[option];
+    if (value !== undefined) {
+      if (typeof value !== 'boolean')
+        throw new CliInputError(`User option ${option} must be boolean.`);
+      program.setOptionValue(option, value);
+    }
+  }
+  for (const option of ['timeout', 'maxBytes', 'maxRedirects'] as const) {
+    const value = parsed[option];
+    if (value !== undefined) {
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+        throw new CliInputError(`User option ${option} must be a non-negative finite number.`);
+      }
+      program.setOptionValue(option, value);
+    }
+  }
+  for (const option of ['config', 'cacheDir'] as const) {
+    const value = parsed[option];
+    if (value !== undefined) {
+      if (typeof value !== 'string' || value.trim() === '') {
+        throw new CliInputError(`User option ${option} must be a non-empty string.`);
+      }
+      program.setOptionValue(option, value);
+    }
+  }
+}
+
+function applyEnvironmentOptions(program: Command): void {
+  const booleanOptions = [
+    ['json', 'EOM_JSON'],
+    ['quiet', 'EOM_QUIET'],
+    ['verbose', 'EOM_VERBOSE'],
+    ['offline', 'EOM_OFFLINE'],
+    ['deterministic', 'EOM_DETERMINISTIC'],
+  ] as const;
+  for (const [option, variable] of booleanOptions) {
+    const value = process.env[variable];
+    if (value === undefined || value.trim() === '') continue;
+    program.setOptionValue(option, parseEnvironmentBoolean(variable, value));
+  }
+  const noColor = process.env.EOM_NO_COLOR ?? process.env.NO_COLOR;
+  if (noColor !== undefined && noColor.trim() !== '') {
+    program.setOptionValue('color', false);
+  }
+  const numericOptions = [
+    ['timeout', 'EOM_TIMEOUT'],
+    ['maxBytes', 'EOM_MAX_BYTES'],
+    ['maxRedirects', 'EOM_MAX_REDIRECTS'],
+  ] as const;
+  for (const [option, variable] of numericOptions) {
+    const value = process.env[variable];
+    if (value === undefined || value.trim() === '') continue;
+    try {
+      program.setOptionValue(option, parseNumberOption(value));
+    } catch {
+      throw new CliInputError(`${variable} must be a non-negative finite number.`);
+    }
+  }
+  if (process.env.EOM_CACHE_DIR?.trim()) {
+    program.setOptionValue('cacheDir', process.env.EOM_CACHE_DIR);
+  }
+  if (process.env.EOM_CONFIG?.trim()) {
+    program.setOptionValue('config', process.env.EOM_CONFIG);
+  }
+}
+
+function parseEnvironmentBoolean(variable: string, value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
+  throw new CliInputError(`${variable} must be true/false, 1/0, yes/no, or on/off.`);
 }
 
 function jsonOutput(program: Command, local: boolean | undefined): boolean {
@@ -1185,7 +2021,8 @@ function explainFinding(code: string): Record<string, unknown> {
 }
 
 async function readPublication(file: string): Promise<unknown> {
-  const text = file === '-' ? await readStdin() : await readFile(resolve(file), 'utf8');
+  const bytes = file === '-' ? await readStdin() : await readBoundedFile(file);
+  const text = decodeUtf8(bytes, file);
   return parseStrictJson(text, file);
 }
 
@@ -1195,12 +2032,54 @@ async function readJsonArray(file: string): Promise<readonly unknown[]> {
   return value.map((item: unknown) => item);
 }
 
-async function readStdin(): Promise<string> {
+async function readStdin(): Promise<Buffer> {
   const chunks: Buffer[] = [];
+  let total = 0;
   for await (const chunk of process.stdin) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
+    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk));
+    total += bytes.byteLength;
+    if (total > MAX_CLI_INPUT_BYTES) {
+      throw new CliInputError(
+        `Standard input exceeds the ${MAX_CLI_INPUT_BYTES}-byte CLI input limit.`,
+      );
+    }
+    chunks.push(bytes);
   }
-  return Buffer.concat(chunks).toString('utf8');
+  return Buffer.concat(chunks);
+}
+
+async function readBoundedFile(file: string): Promise<Buffer> {
+  const path = resolve(file);
+  const bytes = await readFile(path);
+  if (bytes.byteLength > MAX_CLI_INPUT_BYTES) {
+    throw new CliInputError(`${file} exceeds the ${MAX_CLI_INPUT_BYTES}-byte CLI input limit.`);
+  }
+  return bytes;
+}
+
+async function readTextInput(file: string): Promise<string> {
+  return decodeUtf8(await readBoundedFile(file), file);
+}
+
+class CliInputError extends Error {
+  public constructor(message: string) {
+    super(message);
+    this.name = 'CliInputError';
+  }
+}
+
+function compareStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+function decodeUtf8(bytes: Uint8Array, resource: string): string {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch (error) {
+    throw new Error(
+      `${resource} is not valid UTF-8: ${error instanceof Error ? error.message : 'invalid byte sequence.'}`,
+    );
+  }
 }
 
 function inspect(document: unknown): Record<string, unknown> {
@@ -1230,6 +2109,7 @@ function inspect(document: unknown): Record<string, unknown> {
 }
 
 function emit(output: CliOutput, json: boolean): void {
+  if (!json && activeProgram?.opts<GlobalOptions>().quiet === true) return;
   if (json) {
     process.stdout.write(stringifyCanonical(output as unknown as never));
     return;
@@ -1274,5 +2154,30 @@ function printFindings(findings: readonly Finding[]): void {
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : undefined;
 const modulePath = resolve(fileURLToPath(import.meta.url));
 if (invokedPath === modulePath) {
-  await createCli().parseAsync(process.argv);
+  try {
+    await createCli().parseAsync(process.argv);
+  } catch (error) {
+    if (
+      error instanceof CommanderError &&
+      (error.code === 'commander.helpDisplayed' || error.code === 'commander.version')
+    ) {
+      process.exitCode = 0;
+    } else {
+      process.stderr.write(`eom: ${error instanceof Error ? error.message : String(error)}\n`);
+      process.exitCode = cliExitCode(error);
+    }
+  }
+}
+
+function cliExitCode(error: unknown): number {
+  if (error instanceof CommanderError) return 2;
+  if (error instanceof EomFetchError) return 3;
+  if (
+    error instanceof StrictJsonError ||
+    error instanceof GeneratorInputError ||
+    error instanceof CliInputError
+  )
+    return 1;
+  if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return 2;
+  return 4;
 }

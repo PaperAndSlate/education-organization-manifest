@@ -1,0 +1,23 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/organization-profile.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://river-district.example/id/north-school",
+  "type": "organization-profile",
+  "canonical": "https://river-district.example/eom/north-school.json",
+  "name": {
+    "default": "en-GB",
+    "values": {
+      "en-GB": "North River School",
+      "fr": "École North River"
+    }
+  },
+  "organizationType": "secondary-school",
+  "parent": { "id": "https://river-district.example/id/district", "type": "district" },
+  "website": "https://river-district.example/north-school",
+  "defaultLanguage": "en-GB",
+  "supportedLanguages": ["en-GB", "fr"],
+  "status": "active",
+  "modified": "2027-05-01T00:00:00Z",
+  "expires": "2028-05-01T00:00:00Z"
+}

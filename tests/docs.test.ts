@@ -44,7 +44,7 @@ describe('static EOM documentation and browser tools', () => {
     expect(app).toMatch(/redirect:\s*['"]error['"]/u);
     expect(app).not.toMatch(/XMLHttpRequest|sendBeacon|innerHTML/iu);
     expect(app).toContain('parseBrowserSource');
-    expect(engine).toContain('EOM_PRIVACY_PROHIBITED_FIELD');
+    expect(engine).toContain('semanticFindings');
     expect(app).toContain('URL.createObjectURL');
   });
 });

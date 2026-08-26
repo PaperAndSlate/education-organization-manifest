@@ -1,0 +1,37 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://district.example/.well-known/educational-organization-manifest",
+  "type": "manifest",
+  "canonical": "https://district.example/.well-known/educational-organization-manifest",
+  "publisher": {
+    "id": "https://district.example/id/publisher",
+    "name": "Example District",
+    "type": "district",
+    "website": "https://district.example/"
+  },
+  "scope": {
+    "origin": "https://district.example",
+    "paths": ["/"],
+    "scopeStatement": "Public resources for the fictional Example District."
+  },
+  "organizations": [
+    {
+      "id": "https://district.example/id/school-a",
+      "type": "secondary-school",
+      "name": "Example North High",
+      "canonicalUrl": "https://district.example/schools/north"
+    },
+    {
+      "id": "https://district.example/id/school-b",
+      "type": "secondary-school",
+      "name": "Example South High",
+      "canonicalUrl": "https://district.example/schools/south"
+    }
+  ],
+  "capabilities": [],
+  "resources": [],
+  "modified": "2027-01-01T00:00:00Z",
+  "expires": "2028-01-01T00:00:00Z"
+}

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://atlas-international.example/.well-known/educational-organization-manifest",
+  "type": "manifest",
+  "canonical": "https://atlas-international.example/.well-known/educational-organization-manifest",
+  "publisher": {
+    "id": "https://atlas-international.example/id/school",
+    "name": {
+      "default": "ar",
+      "values": { "ar": "مدرسة أطلس الدولية", "en": "Atlas International School" },
+      "directions": { "ar": "rtl", "en": "ltr" }
+    },
+    "type": "international-school",
+    "website": "https://atlas-international.example/"
+  },
+  "scope": {
+    "origin": "https://atlas-international.example",
+    "paths": ["/"],
+    "jurisdictions": ["fictional-jurisdiction"],
+    "scopeStatement": {
+      "default": "ar",
+      "values": { "ar": "المعلومات المؤسسية العامة.", "en": "Public institutional information." },
+      "directions": { "ar": "rtl", "en": "ltr" }
+    }
+  },
+  "organizations": [
+    {
+      "id": "https://atlas-international.example/id/school",
+      "type": "international-school",
+      "name": {
+        "default": "ar",
+        "values": { "ar": "مدرسة أطلس الدولية", "en": "Atlas International School" },
+        "directions": { "ar": "rtl", "en": "ltr" }
+      },
+      "canonicalUrl": "https://atlas-international.example/eom/organization.json",
+      "profile": "https://atlas-international.example/eom/organization.json"
+    }
+  ],
+  "capabilities": [],
+  "resources": [
+    {
+      "id": "https://atlas-international.example/eom/resource/organization",
+      "type": "organization-profile",
+      "href": "https://atlas-international.example/eom/organization.json",
+      "mediaType": "application/json",
+      "version": "1.0",
+      "subjects": ["https://atlas-international.example/id/school"],
+      "languages": ["ar", "en"]
+    }
+  ],
+  "defaultLanguage": "ar",
+  "supportedLanguages": ["ar", "en"],
+  "modified": "2027-05-01T00:00:00Z",
+  "expires": "2028-05-01T00:00:00Z"
+}

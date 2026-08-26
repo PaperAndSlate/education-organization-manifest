@@ -10,5 +10,7 @@
 6. Roll back tooling with a new patch/deprecation release. Do not unpublish or rewrite prior
    immutable artifacts.
 
-The current candidate has no stable-to-stable migration promise. It is a working draft and all
-external review, registration, and deployment decisions remain open.
+`v1.0.0-rc.1` is retained as historical evidence and is superseded by `v1.0.0-rc.2`; neither is a
+stable-to-stable migration promise. RC2 adds package/export, registry, vocabulary, conformance, and
+tooling evidence while preserving the EOM 1.0 wire contract. It is a working draft and all external
+review, registration, and deployment decisions remain open.

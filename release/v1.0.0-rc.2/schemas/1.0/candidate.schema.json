@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/candidate.schema.json",
+  "title": "EOM evidence-led candidate workspace",
+  "type": "object",
+  "required": ["type", "id", "createdAt", "status", "sourceSet", "claims", "directPublication"],
+  "properties": {
+    "type": { "const": "candidate-workspace" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "createdAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "updatedAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "status": {
+      "enum": [
+        "discovered",
+        "extracted",
+        "normalized",
+        "validation-failed",
+        "review-ready",
+        "changes-requested",
+        "approved",
+        "generated",
+        "release-approved",
+        "published",
+        "superseded"
+      ]
+    },
+    "sourceSet": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+      "uniqueItems": true
+    },
+    "claims": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+      "uniqueItems": true
+    },
+    "conflicts": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+      "uniqueItems": true
+    },
+    "requiredOwners": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "directPublication": { "const": false },
+    "generatedPreview": { "type": "string", "minLength": 1 },
+    "privacyReview": { "enum": ["pending", "clear", "blocked", "quarantined"] },
+    "notes": { "type": "string", "maxLength": 4000 },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

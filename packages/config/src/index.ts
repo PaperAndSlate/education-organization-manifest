@@ -15,9 +15,28 @@ export interface EomPublisherConfig {
   readonly organizationName?: string | Record<string, unknown>;
 }
 
+export interface EomSourceImportConfig {
+  readonly module: string;
+  readonly patterns: readonly string[];
+}
+
+export interface EomSourceOverlayConfig {
+  readonly name: string;
+  readonly owner: string;
+  readonly priority: number;
+  readonly modules: Readonly<Record<string, readonly string[]>>;
+  readonly allowedPointers: readonly string[];
+}
+
 export interface EomSourceConfig {
   readonly root: string;
   readonly modules: Readonly<Record<string, readonly string[]>>;
+  /** Explicit additional source files, always resolved below source.root. */
+  readonly imports?: readonly EomSourceImportConfig[];
+  /** Compatibility alias for imports; it follows the same restricted policy. */
+  readonly includes?: readonly EomSourceImportConfig[];
+  /** Ordered, field-allowlisted overlays applied to existing stable IDs. */
+  readonly overlays?: readonly EomSourceOverlayConfig[];
   readonly ownershipByDirectory?: boolean;
 }
 
@@ -32,6 +51,8 @@ export interface EomOutputConfig {
 export interface EomValidationConfig {
   readonly profiles?: readonly string[];
   readonly privacyLint?: boolean;
+  /** Module names whose public-data review was explicitly acknowledged by an owner. */
+  readonly privacyAcknowledgements?: readonly string[];
   readonly failOn?: readonly ('error' | 'warning' | 'info')[];
   readonly warnOnMissingFreshness?: boolean;
 }
@@ -44,8 +65,9 @@ export interface EomPublicationConfig {
 }
 
 export interface EomSigningConfig {
-  readonly enabled: false;
+  readonly enabled: boolean;
   readonly keyFile?: string;
+  readonly keyId?: string;
 }
 
 export interface EomConfig {

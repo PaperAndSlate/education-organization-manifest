@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import {
+  DEFAULT_FETCH_MAX_REDIRECTS,
+  EomFetchError,
   fetchEom,
   fetchManifest,
   isJsonObject,
@@ -9,8 +11,17 @@ import {
   type FetchOptions,
   type JsonObject,
 } from '@paperandslate/eom-core';
+import { evaluateAuthority } from '@paperandslate/eom-authority';
 import { lintPublication } from '@paperandslate/eom-linter';
-import { hasErrors, validateDocument, type Finding } from '@paperandslate/eom-validator';
+import {
+  finding,
+  hasErrors,
+  publicationSetFindings,
+  validateDocument,
+  validatePublicationUrl,
+  type Finding,
+  type ValidationResult,
+} from '@paperandslate/eom-validator';
 import { verifyDetached } from '@paperandslate/eom-signatures';
 export * from './publisher.js';
 
@@ -130,9 +141,13 @@ export interface ConformanceOptions {
   readonly expected?: {
     readonly status?: ConformanceStatus;
     readonly checks?: Readonly<Record<string, ConformanceCheckStatus>>;
+    readonly findingCodes?: readonly string[];
   };
   readonly consumerAdapter?: ConsumerAdapter;
   readonly fetch?: FetchOptions;
+  readonly maxFiles?: number;
+  readonly maxTotalBytes?: number;
+  readonly maxDepth?: number;
 }
 
 export interface ConsumerObservation {
@@ -179,8 +194,16 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
   }
   const profileName = (PROFILE_ALIASES[profile] ?? profile) as ConformanceProfileName;
 
-  const files = await readPublicationFiles(directory);
+  const capture = await readPublicationFiles(
+    directory,
+    positiveLimit(options.maxFiles, 256),
+    positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024),
+    nonNegativeLimit(options.maxDepth, 32),
+  );
+  const files = capture.files;
   const checks: ConformanceCheck[] = [];
+  const observedFindingCodes = new Set<string>();
+  const validationByPath = new Map<string, ValidationResult>();
   const evidenceFor = (file?: PublicationFile): readonly string[] =>
     file ? [evidenceUri(file.relativePath)] : [];
   const addCheck = (
@@ -200,6 +223,15 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
   if (files.length === 0) {
     addCheck('publication-files', 'fail', 'No JSON publication files were found in the capture.');
   }
+  if (capture.fileLimitExceeded) {
+    addCheck('capture-file-limit', 'fail', 'The capture exceeded the configured file limit.');
+  }
+  if (capture.totalBytesExceeded) {
+    addCheck('capture-byte-limit', 'fail', 'The capture exceeded the configured byte limit.');
+  }
+  if (capture.depthLimitExceeded) {
+    addCheck('capture-depth-limit', 'fail', 'The capture exceeded the configured depth limit.');
+  }
 
   const parseable = files.filter((file) => {
     if (file.parseError) {
@@ -211,13 +243,22 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
   });
 
   for (const file of parseable) {
-    const result = validateDocument(file.document);
+    const result = validateDocument(
+      file.document,
+      options.now === undefined ? {} : { now: options.now },
+    );
+    validationByPath.set(file.relativePath, result);
     if (result.valid) {
       addCheck('validation', 'pass', 'Structural and semantic validation passed.', file);
     } else {
       addCheck('validation', 'fail', describeFindings(result.findings), file);
     }
-    const lintFindings = lintPublication(file.document);
+    for (const item of result.findings) observedFindingCodes.add(item.code);
+    const lintFindings = lintPublication(
+      file.document,
+      options.now === undefined ? {} : { now: options.now },
+    );
+    for (const item of lintFindings) observedFindingCodes.add(item.code);
     if (hasErrors(lintFindings)) {
       addCheck('privacy-policy', 'fail', describeFindings(lintFindings), file);
     } else if (lintFindings.some((finding) => finding.severity === 'warning')) {
@@ -226,6 +267,27 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
       addCheck('privacy-policy', 'pass', 'Privacy and publication policy lint passed.', file);
     }
   }
+
+  const captureDocuments: Record<string, unknown> = {};
+  for (const file of parseable) {
+    if (file.document) captureDocuments[file.relativePath] = file.document;
+  }
+  const publicationFindings = publicationSetFindings(
+    captureDocuments,
+    options.now === undefined ? {} : { now: options.now },
+  );
+  for (const item of publicationFindings) observedFindingCodes.add(item.code);
+  addCheck(
+    'publication-set',
+    hasErrors(publicationFindings)
+      ? 'fail'
+      : publicationFindings.some((item) => item.severity === 'warning')
+        ? 'warn'
+        : 'pass',
+    publicationFindings.length === 0
+      ? 'Cross-document references, identifiers, and publication-set semantics passed.'
+      : describeFindings(publicationFindings),
+  );
 
   const manifests = parseable.filter((file) => file.document?.type === 'manifest');
   const distinctManifests = distinctByBytes(manifests);
@@ -348,6 +410,16 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
         `${moduleResources.length} independently typed resource(s) are present.`,
       );
     }
+    const moduleSchemaValid =
+      moduleResources.length > 0 &&
+      moduleResources.every((file) => validationByPath.get(file.relativePath)?.valid === true);
+    addCheck(
+      'module-schema',
+      moduleSchemaValid ? 'pass' : 'fail',
+      moduleSchemaValid
+        ? 'Every captured module resource passed its registered schema and semantic checks.'
+        : 'Every captured module resource must pass its registered schema and semantic checks.',
+    );
   } else if (profileName === 'validator') {
     addCheck(
       'validator-engine',
@@ -370,7 +442,9 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
       const delegations = file.document?.delegations;
       return (
         Array.isArray(delegations) &&
-        delegations.some((item) => isJsonObject(item) && item.status === 'active')
+        delegations.some(
+          (item) => isJsonObject(item) && item.status === 'active' && item.transitive === false,
+        )
       );
     });
     addCheck(
@@ -379,6 +453,30 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
       delegated
         ? 'An active, non-transitive delegation record is present for review.'
         : 'The delegated profile requires an active delegation record.',
+    );
+    const authorityFindings: Finding[] = [];
+    let authorityChecks = 0;
+    for (const manifestFile of distinctManifests) {
+      const manifest = manifestFile.document;
+      if (!manifest || !Array.isArray(manifest.resources)) continue;
+      for (const resource of manifest.resources) {
+        if (!isJsonObject(resource) || typeof resource.href !== 'string') continue;
+        authorityChecks += 1;
+        const authority = evaluateAuthority(manifest, resource, resource.href, {
+          now: options.now ?? new Date(),
+        });
+        authorityFindings.push(...authority.findings);
+      }
+    }
+    for (const item of authorityFindings) observedFindingCodes.add(item.code);
+    addCheck(
+      'delegation-authority',
+      authorityChecks > 0 && !hasErrors(authorityFindings) ? 'pass' : 'fail',
+      authorityChecks === 0
+        ? 'The delegated profile did not find a manifest resource to evaluate.'
+        : authorityFindings.length === 0
+          ? 'Every manifest resource is covered by root or explicitly delegated authority.'
+          : describeFindings(authorityFindings),
     );
   } else if (profileName === 'signed') {
     const signatureFile = parseable.find((file) => file.document?.type === 'signature');
@@ -392,36 +490,60 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
         ? 'Signature metadata is present for the signed profile.'
         : 'The signed profile requires signature metadata.',
     );
-    if (signatureFile?.document && keySetFile?.document) {
-      const subjectId =
-        typeof signatureFile.document.subject === 'string'
-          ? signatureFile.document.subject
-          : undefined;
-      const subjectFile = subjectId
-        ? parseable.find((file) => file.document?.id === subjectId)
+    const subjectId =
+      typeof signatureFile?.document?.subject === 'string'
+        ? signatureFile.document.subject
         : undefined;
-      if (subjectFile?.document) {
-        const verification = verifyDetached(
-          subjectFile.document,
-          signatureFile.document,
-          keySetFile.document,
-          { now: options.now ?? new Date() },
-        );
-        addCheck(
-          'signature-cryptographic',
-          verification.overall ? 'pass' : 'fail',
-          verification.overall
-            ? 'The detached Ed25519 signature verifies against the captured resource and key set.'
-            : describeFindings(verification.findings),
-          signatureFile,
-        );
-      } else {
-        addCheck(
-          'signature-subject',
-          'fail',
-          'The signed profile could not resolve the signature subject.',
-        );
-      }
+    const subjectFile = subjectId
+      ? parseable.find((file) => file.document?.id === subjectId)
+      : undefined;
+    addCheck(
+      'signature-subject',
+      subjectFile?.document ? 'pass' : 'fail',
+      subjectFile?.document
+        ? 'The detached signature subject resolves to a captured resource.'
+        : 'The signed profile could not resolve the signature subject.',
+      signatureFile,
+    );
+    if (signatureFile?.document && keySetFile?.document && subjectFile?.document) {
+      const manifest = distinctManifests[0]?.document;
+      const signedResourceUrl =
+        manifest && Array.isArray(manifest.resources)
+          ? manifest.resources.find(
+              (resource): resource is JsonObject =>
+                isJsonObject(resource) &&
+                subjectId !== undefined &&
+                Array.isArray(resource.subjects) &&
+                resource.subjects.includes(subjectId),
+            )
+          : undefined;
+      const verification = verifyDetached(
+        subjectFile.document,
+        signatureFile.document,
+        keySetFile.document,
+        {
+          now: options.now ?? new Date(),
+          ...(manifest && signedResourceUrl && typeof signedResourceUrl.href === 'string'
+            ? { manifest, resource: subjectFile.document, finalUrl: signedResourceUrl.href }
+            : {}),
+        },
+      );
+      for (const item of verification.findings) observedFindingCodes.add(item.code);
+      addCheck(
+        'signature-cryptographic',
+        verification.overall ? 'pass' : 'fail',
+        verification.overall
+          ? 'The detached Ed25519 signature verifies against the captured resource, key set, and authority context.'
+          : describeFindings(verification.findings),
+        signatureFile,
+      );
+    } else {
+      addCheck(
+        'signature-cryptographic',
+        'fail',
+        'The signed profile requires a captured signature, key set, and signature subject resource.',
+        signatureFile,
+      );
     }
   }
 
@@ -434,7 +556,11 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
     for (const note of observation.notes ?? []) addCheck('consumer-note', 'warn', note);
   }
   if (options.origin || options.mode === 'publisher') {
-    await appendPublisherChecks(options.origin, options.fetch, addCheck);
+    await appendPublisherChecks(options.origin, options.fetch, options.now, addCheck, {
+      maxResources: positiveLimit(options.maxFiles, 64),
+      maxTotalBytes: positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024),
+      maxDepth: nonNegativeLimit(options.maxDepth, 32),
+    });
   }
   if (options.expected) {
     const actualStatus = statusFor(checks);
@@ -453,6 +579,15 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
         `expected-check-${id}`,
         actual === expectedStatus ? 'pass' : 'fail',
         `Expected check ${id} to be ${expectedStatus}; observed ${actual ?? 'missing'}.`,
+      );
+    }
+    for (const code of options.expected.findingCodes ?? []) {
+      addCheck(
+        `expected-finding-${code}`,
+        observedFindingCodes.has(code) ? 'pass' : 'fail',
+        observedFindingCodes.has(code)
+          ? `Expected finding code ${code} was observed.`
+          : `Expected finding code ${code} was not observed.`,
       );
     }
   }
@@ -482,19 +617,25 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
 async function appendPublisherChecks(
   origin: string | undefined,
   fetchOptions: FetchOptions | undefined,
+  now: Date | undefined,
   addCheck: (
     kind: string,
     status: ConformanceCheckStatus,
     message: string,
     file?: PublicationFile,
   ) => void,
+  graphLimits: FixtureGraphLimits,
 ): Promise<void> {
   if (!origin) {
     addCheck('publisher-origin', 'fail', 'Publisher mode requires an origin.');
     return;
   }
   try {
-    const response = await fetchManifest(origin, fetchOptions);
+    const response = await fetchManifest(origin, { ...fetchOptions, method: 'GET' });
+    const maxRedirects =
+      fetchOptions?.maxRedirects === undefined
+        ? DEFAULT_FETCH_MAX_REDIRECTS
+        : Math.max(0, Math.floor(fetchOptions.maxRedirects));
     addCheck(
       'publisher-discovery',
       response.status === 200 ? 'pass' : 'fail',
@@ -507,7 +648,7 @@ async function appendPublisherChecks(
         ? `Discovery content type is ${response.contentType}.`
         : 'Discovery did not return a content type.',
     );
-    const validation = validateDocument(response.document);
+    const validation = validateDocument(response.document, now === undefined ? {} : { now });
     addCheck(
       'publisher-manifest',
       validation.valid ? 'pass' : 'fail',
@@ -517,7 +658,7 @@ async function appendPublisherChecks(
     );
     addCheck(
       'publisher-redirects',
-      response.redirects.length <= 5 ? 'pass' : 'fail',
+      response.redirects.length <= maxRedirects ? 'pass' : 'fail',
       `Discovery recorded ${response.redirects.length} redirect hop(s).`,
     );
     const head = await fetchEom(response.finalUrl, { ...fetchOptions, method: 'HEAD' });
@@ -527,6 +668,29 @@ async function appendPublisherChecks(
         ? 'pass'
         : 'fail',
       `HEAD returned HTTP ${head.status} with ${head.contentType ?? 'no content type'}.`,
+    );
+    const graph = isLoopbackPublisherOrigin(origin)
+      ? await validateFixturePublisherGraph(
+          origin,
+          response.document,
+          fetchOptions,
+          now,
+          graphLimits,
+        )
+      : await validatePublicationUrl(origin, {
+          fetchGraph: true,
+          maxResources: graphLimits.maxResources,
+          maxTotalBytes: graphLimits.maxTotalBytes,
+          maxDepth: graphLimits.maxDepth,
+          ...(now === undefined ? {} : { now }),
+          ...(fetchOptions ? { fetch: { ...fetchOptions, method: 'GET' } } : {}),
+        });
+    addCheck(
+      'publisher-graph',
+      graph.valid ? 'pass' : 'fail',
+      graph.valid
+        ? `The publisher resource graph validated with ${graph.files.length} fetched document(s).`
+        : describeFindings(graph.findings),
     );
   } catch (error) {
     addCheck('publisher-discovery', 'fail', error instanceof Error ? error.message : String(error));
@@ -549,46 +713,109 @@ export function conformanceReportSummary(report: ConformanceReport): Record<stri
   };
 }
 
-async function readPublicationFiles(directory: string): Promise<readonly PublicationFile[]> {
-  const information = await stat(directory);
-  if (!information.isDirectory()) throw new Error(`${directory} is not a directory.`);
-  const paths = await walkFiles(directory);
-  const result: PublicationFile[] = [];
-  for (const absolutePath of paths) {
-    const relativePath = relative(directory, absolutePath).replaceAll('\\', '/');
-    if (!isPublicationFile(relativePath)) continue;
-    const bytes = await readFile(absolutePath);
-    try {
-      const parsed = parseStrictJson(bytes.toString('utf8'), relativePath);
-      result.push({
-        absolutePath,
-        relativePath,
-        bytes,
-        ...(isJsonObject(parsed)
-          ? { document: parsed }
-          : { parseError: 'The publication document must be a JSON object.' }),
-      });
-    } catch (error) {
-      result.push({
-        absolutePath,
-        relativePath,
-        bytes,
-        parseError: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
-  return result.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+interface PublicationFileRead {
+  readonly files: readonly PublicationFile[];
+  readonly fileLimitExceeded: boolean;
+  readonly totalBytesExceeded: boolean;
+  readonly depthLimitExceeded: boolean;
 }
 
-async function walkFiles(directory: string): Promise<string[]> {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const result: string[] = [];
-  for (const entry of entries) {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) result.push(...(await walkFiles(path)));
-    else if (entry.isFile()) result.push(path);
+async function readPublicationFiles(
+  directory: string,
+  maxFiles: number,
+  maxTotalBytes: number,
+  maxDepth: number,
+): Promise<PublicationFileRead> {
+  const information = await stat(directory);
+  if (!information.isDirectory()) throw new Error(`${directory} is not a directory.`);
+  const result: PublicationFile[] = [];
+  let fileLimitExceeded = false;
+  let totalBytesExceeded = false;
+  let depthLimitExceeded = false;
+  let totalBytes = 0;
+  async function visit(current: string, depth: number): Promise<void> {
+    if (fileLimitExceeded || totalBytesExceeded) return;
+    if (depth > maxDepth) {
+      depthLimitExceeded = true;
+      return;
+    }
+    const entries = (await readdir(current, { withFileTypes: true })).sort((left, right) =>
+      compareStrings(left.name, right.name),
+    );
+    for (const entry of entries) {
+      if (fileLimitExceeded || totalBytesExceeded) return;
+      const absolutePath = join(current, entry.name);
+      if (entry.isDirectory()) {
+        if (depth >= maxDepth) {
+          depthLimitExceeded = true;
+          continue;
+        }
+        await visit(absolutePath, depth + 1);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      const relativePath = relative(directory, absolutePath).replaceAll('\\', '/');
+      if (!isPublicationFile(relativePath)) continue;
+      if (result.length >= maxFiles) {
+        fileLimitExceeded = true;
+        return;
+      }
+      const fileInformation = await stat(absolutePath);
+      if (totalBytes + fileInformation.size > maxTotalBytes) {
+        totalBytesExceeded = true;
+        return;
+      }
+      const bytes = await readFile(absolutePath);
+      totalBytes += bytes.byteLength;
+      try {
+        const parsed = parseStrictJson(decodeUtf8(bytes, relativePath), relativePath);
+        result.push({
+          absolutePath,
+          relativePath,
+          bytes,
+          ...(isJsonObject(parsed)
+            ? { document: parsed }
+            : { parseError: 'The publication document must be a JSON object.' }),
+        });
+      } catch (error) {
+        result.push({
+          absolutePath,
+          relativePath,
+          bytes,
+          parseError: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
   }
-  return result.sort();
+  await visit(directory, 0);
+  return {
+    files: result.sort((left, right) => compareStrings(left.relativePath, right.relativePath)),
+    fileLimitExceeded,
+    totalBytesExceeded,
+    depthLimitExceeded,
+  };
+}
+
+function compareStrings(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+function decodeUtf8(bytes: Uint8Array, source: string): string {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch (error) {
+    throw new Error(
+      `Invalid UTF-8 in ${source}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
+function positiveLimit(value: number | undefined, fallback: number): number {
+  return value !== undefined && Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+}
+
+function nonNegativeLimit(value: number | undefined, fallback: number): number {
+  return value !== undefined && Number.isFinite(value) && value >= 0 ? Math.floor(value) : fallback;
 }
 
 function isPublicationFile(path: string): boolean {
@@ -707,4 +934,195 @@ function describeFindings(findings: readonly Finding[]): string {
         `${finding.code}${finding.pointer ? ` at ${finding.pointer}` : ''}: ${finding.message}`,
     )
     .join(' ');
+}
+
+interface FixtureGraphResult {
+  readonly valid: boolean;
+  readonly files: readonly string[];
+  readonly findings: readonly Finding[];
+}
+
+interface FixtureGraphLimits {
+  readonly maxResources: number;
+  readonly maxTotalBytes: number;
+  readonly maxDepth: number;
+}
+
+/**
+ * A local fixture publisher cannot bind the fictional HTTPS origins embedded in its
+ * documents. It therefore maps only URL paths onto the explicitly supplied loopback
+ * server while still exercising the complete HTTP retrieval, redirect, media-type, and
+ * publication-set validation path. Real publisher origins use validatePublicationUrl above.
+ */
+async function validateFixturePublisherGraph(
+  publisherOrigin: string,
+  root: unknown,
+  fetchOptions: FetchOptions | undefined,
+  now: Date | undefined,
+  limits: FixtureGraphLimits,
+): Promise<FixtureGraphResult> {
+  const findings: Finding[] = [];
+  const documents: Record<string, unknown> = {};
+  const queue: Array<{ readonly href: string; readonly depth: number }> = [];
+  const queued = new Set<string>();
+  const files: string[] = [];
+  let totalBytes = 0;
+  if (isJsonObject(root)) {
+    const rootUrl = `${publisherOrigin}/.well-known/educational-organization-manifest`;
+    documents[rootUrl] = root;
+    files.push(rootUrl);
+    totalBytes = Buffer.byteLength(JSON.stringify(root), 'utf8');
+  }
+  let fetched = 0;
+  let resourceLimit = false;
+  let depthLimit = false;
+  let totalBytesLimit = totalBytes > limits.maxTotalBytes;
+  const rootEnqueue = isJsonObject(root)
+    ? enqueueFixtureResources(root, 1, queue, queued, limits.maxDepth, limits.maxResources)
+    : { resourceLimitExceeded: false, depthLimitExceeded: false };
+  resourceLimit ||= rootEnqueue.resourceLimitExceeded;
+  depthLimit ||= rootEnqueue.depthLimitExceeded;
+  if (totalBytesLimit) {
+    findings.push(
+      finding(
+        'EOM_GRAPH_TOTAL_BYTES',
+        'transport',
+        `The fixture publisher graph exceeds the ${limits.maxTotalBytes}-byte limit.`,
+        { resource: publisherOrigin, severity: 'error' },
+      ),
+    );
+  }
+  while (queue.length > 0 && fetched < limits.maxResources && !totalBytesLimit) {
+    const next = queue.shift();
+    if (!next) break;
+    fetched += 1;
+    try {
+      const localUrl = mapFixtureUrl(publisherOrigin, next.href);
+      const response = await fetchEom(localUrl, { ...fetchOptions, method: 'GET' });
+      const responseBytes = Buffer.byteLength(response.body, 'utf8');
+      if (totalBytes + responseBytes > limits.maxTotalBytes) {
+        findings.push(
+          finding(
+            'EOM_GRAPH_TOTAL_BYTES',
+            'transport',
+            `The fixture publisher graph exceeds the ${limits.maxTotalBytes}-byte limit.`,
+            { resource: next.href, severity: 'error' },
+          ),
+        );
+        totalBytesLimit = true;
+        continue;
+      }
+      totalBytes += responseBytes;
+      const document = parseStrictJson(response.body, response.finalUrl);
+      documents[response.finalUrl] = document;
+      files.push(response.finalUrl);
+      const validation = validateDocument(document, now === undefined ? {} : { now });
+      findings.push(
+        ...validation.findings.map((item) => ({
+          ...item,
+          resource: item.resource ?? next.href,
+        })),
+      );
+      if (isJsonObject(document)) {
+        const enqueueResult = enqueueFixtureResources(
+          document,
+          next.depth + 1,
+          queue,
+          queued,
+          limits.maxDepth,
+          limits.maxResources,
+        );
+        resourceLimit ||= enqueueResult.resourceLimitExceeded;
+        depthLimit ||= enqueueResult.depthLimitExceeded;
+      }
+    } catch (error) {
+      findings.push(
+        finding(
+          error instanceof EomFetchError ? error.code : 'EOM_FETCH_NETWORK',
+          'transport',
+          error instanceof Error ? error.message : 'The fixture publisher graph request failed.',
+          { resource: next.href },
+        ),
+      );
+    }
+  }
+  if (depthLimit) {
+    findings.push(
+      finding(
+        'EOM_GRAPH_DEPTH_LIMIT',
+        'transport',
+        `The fixture publisher graph exceeded the ${limits.maxDepth}-level depth limit.`,
+        { resource: publisherOrigin, severity: 'error' },
+      ),
+    );
+  }
+  if ((queue.length > 0 || resourceLimit) && !totalBytesLimit) {
+    findings.push(
+      finding(
+        'EOM_GRAPH_RESOURCE_LIMIT',
+        'transport',
+        `The fixture publisher graph exceeded the ${limits.maxResources}-resource limit.`,
+        { resource: publisherOrigin, severity: 'error' },
+      ),
+    );
+  }
+  findings.push(
+    ...publicationSetFindings(documents, now === undefined ? {} : { now }).map((item) => ({
+      ...item,
+      resource: item.resource ?? 'publication-set',
+    })),
+  );
+  return { valid: !hasErrors(findings), files, findings };
+}
+
+function enqueueFixtureResources(
+  document: JsonObject,
+  depth: number,
+  queue: Array<{ readonly href: string; readonly depth: number }>,
+  queued: Set<string>,
+  maxDepth: number,
+  maxResources: number,
+): { resourceLimitExceeded: boolean; depthLimitExceeded: boolean } {
+  if (depth > maxDepth) return { resourceLimitExceeded: false, depthLimitExceeded: true };
+  const resources = Array.isArray(document.resources) ? document.resources : [];
+  let resourceLimitExceeded = false;
+  for (const resource of resources) {
+    if (!isJsonObject(resource) || typeof resource.href !== 'string') continue;
+    let key: string;
+    try {
+      const url = new URL(resource.href);
+      url.hash = '';
+      key = url.toString();
+    } catch {
+      continue;
+    }
+    if (queued.has(key)) continue;
+    if (queue.length >= maxResources) {
+      resourceLimitExceeded = true;
+      continue;
+    }
+    queued.add(key);
+    queue.push({ href: resource.href, depth });
+  }
+  return { resourceLimitExceeded, depthLimitExceeded: false };
+}
+
+function mapFixtureUrl(publisherOrigin: string, href: string): string {
+  const source = new URL(href);
+  const target = new URL(publisherOrigin);
+  target.pathname = source.pathname;
+  target.search = source.search;
+  target.hash = '';
+  return target.toString();
+}
+
+function isLoopbackPublisherOrigin(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return (
+      parsed.protocol === 'http:' && (parsed.hostname === '127.0.0.1' || parsed.hostname === '::1')
+    );
+  } catch {
+    return false;
+  }
 }

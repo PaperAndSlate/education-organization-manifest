@@ -1,0 +1,7 @@
+{
+  "case": "caching",
+  "etag": "\"eom-fixture-v1\"",
+  "cacheControl": "public, max-age=60",
+  "revalidateWithIfNoneMatch": true,
+  "expected": "bounded-cache"
+}

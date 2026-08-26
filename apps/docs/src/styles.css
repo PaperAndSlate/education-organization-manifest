@@ -30,7 +30,8 @@ a:hover {
 }
 a:focus-visible,
 button:focus-visible,
-summary:focus-visible {
+summary:focus-visible,
+input:focus-visible {
   outline: 3px solid var(--warning);
   outline-offset: 3px;
 }
@@ -74,6 +75,49 @@ nav ul {
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+.site-search {
+  margin: 1rem 0 0;
+  max-width: 30rem;
+}
+
+.site-search label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.site-search input {
+  background: var(--panel);
+  border: 1px solid var(--muted);
+  border-radius: 0.35rem;
+  color: var(--ink);
+  font: inherit;
+  padding: 0.55rem 0.7rem;
+  width: 100%;
+}
+
+.site-search ul {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0;
+}
+
+.site-search li {
+  border-top: 1px solid var(--line);
+  padding: 0.5rem 0;
+}
+
+.site-search li a,
+.site-search li span {
+  display: block;
+}
+
+.site-search li span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin-top: 0.15rem;
 }
 nav a {
   text-decoration-thickness: 0.1em;

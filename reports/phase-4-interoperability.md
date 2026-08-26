@@ -1,5 +1,9 @@
 # Phase 4: interoperability mappings
 
+> Historical phase report. Its local-slice evidence is retained, but completion claims are
+> superseded for current release acceptance by [`reports/remediation-audit.md`](remediation-audit.md)
+> and the rebuilt traceability matrix.
+
 Status: implemented locally as versioned preview adapters. This report records repository behavior and does not claim external certification or conformance.
 
 ## Delivered

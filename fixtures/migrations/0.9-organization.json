@@ -1,0 +1,7 @@
+{
+  "kind": "organization-profile",
+  "uri": "https://school.example/id/school",
+  "canonicalUrl": "https://school.example/eom/organization.json",
+  "title": "Example School",
+  "language": "en-US"
+}

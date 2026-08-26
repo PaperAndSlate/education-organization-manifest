@@ -11,6 +11,8 @@ const browserGlobals = {
   FileReader: 'readonly',
   FormData: 'readonly',
   HTMLElement: 'readonly',
+  HTMLFormElement: 'readonly',
+  HTMLInputElement: 'readonly',
   Node: 'readonly',
   URL: 'readonly',
   URLSearchParams: 'readonly',
@@ -74,6 +76,11 @@ export default tseslint.config(
   },
   {
     files: ['apps/playground/src/**/*.js'],
+    languageOptions: { globals: browserGlobals },
+    rules: { 'no-undef': 'error' },
+  },
+  {
+    files: ['apps/docs/src/**/*.js'],
     languageOptions: { globals: browserGlobals },
     rules: { 'no-undef': 'error' },
   },
