@@ -19,6 +19,8 @@ import {
   publicationSetFindings,
   validateDocument,
   validatePublicationUrl,
+  type PublicationFetchRecord,
+  type PublicationTransport,
   type Finding,
   type ValidationResult,
 } from '@paperandslate/eom-validator';
@@ -145,6 +147,7 @@ export interface ConformanceOptions {
   };
   readonly consumerAdapter?: ConsumerAdapter;
   readonly fetch?: FetchOptions;
+  readonly transport?: PublicationTransport;
   readonly maxFiles?: number;
   readonly maxTotalBytes?: number;
   readonly maxDepth?: number;
@@ -175,7 +178,7 @@ interface PublicationFile {
 const REPORT_SCHEMA =
   'https://paperandslate.org/schemas/eom/1.0/conformance-report.schema.json' as const;
 const DEFAULT_IMPLEMENTATION_NAME = '@paperandslate/eom-testkit';
-const DEFAULT_IMPLEMENTATION_VERSION = '1.0.0-rc.2';
+const DEFAULT_IMPLEMENTATION_VERSION = '1.0.0-rc.3';
 
 /**
  * Runs a deterministic, offline conformance check over a captured publication directory.
@@ -288,6 +291,22 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
       ? 'Cross-document references, identifiers, and publication-set semantics passed.'
       : describeFindings(publicationFindings),
   );
+
+  const publisherGraph =
+    options.origin || options.mode === 'publisher'
+      ? await appendPublisherChecks(
+          options.origin,
+          options.fetch,
+          options.transport,
+          options.now,
+          addCheck,
+          {
+            maxResources: positiveLimit(options.maxFiles, 64),
+            maxTotalBytes: positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024),
+            maxDepth: nonNegativeLimit(options.maxDepth, 32),
+          },
+        )
+      : undefined;
 
   const manifests = parseable.filter((file) => file.document?.type === 'manifest');
   const distinctManifests = distinctByBytes(manifests);
@@ -462,10 +481,35 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
       for (const resource of manifest.resources) {
         if (!isJsonObject(resource) || typeof resource.href !== 'string') continue;
         authorityChecks += 1;
-        const authority = evaluateAuthority(manifest, resource, resource.href, {
-          now: options.now ?? new Date(),
-        });
-        authorityFindings.push(...authority.findings);
+        const observed = observedFetchFor(resource.href, publisherGraph);
+        const authorityUrls = observed
+          ? uniqueUrls([
+              resource.href,
+              observed.finalUrl,
+              ...observed.redirects.flatMap((redirect) => [redirect.from, redirect.to]),
+            ])
+          : [resource.href];
+        if (publisherGraph !== undefined && observed === undefined) {
+          authorityFindings.push(
+            finding(
+              'EOM_CONFORMANCE_FINAL_URL_UNOBSERVED',
+              'security',
+              'A publisher-mode resource must have an observed final URL before authority is evaluated.',
+              { severity: 'error', resource: resource.href },
+            ),
+          );
+        }
+        for (const authorityUrl of authorityUrls) {
+          const authority = evaluateAuthority(
+            authorityManifestForObservedUrl(manifest, options.origin, resource.href, authorityUrl),
+            resource,
+            authorityUrl,
+            {
+              now: options.now ?? new Date(),
+            },
+          );
+          authorityFindings.push(...authority.findings);
+        }
       }
     }
     for (const item of authorityFindings) observedFindingCodes.add(item.code);
@@ -524,15 +568,43 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
         {
           now: options.now ?? new Date(),
           ...(manifest && signedResourceUrl && typeof signedResourceUrl.href === 'string'
-            ? { manifest, resource: subjectFile.document, finalUrl: signedResourceUrl.href }
+            ? {
+                manifest: authorityManifestForObservedUrl(
+                  manifest,
+                  options.origin,
+                  signedResourceUrl.href,
+                  observedFetchFor(signedResourceUrl.href, publisherGraph)?.finalUrl ??
+                    signedResourceUrl.href,
+                ),
+                resource: subjectFile.document,
+                finalUrl:
+                  observedFetchFor(signedResourceUrl.href, publisherGraph)?.finalUrl ??
+                  signedResourceUrl.href,
+              }
             : {}),
         },
       );
       for (const item of verification.findings) observedFindingCodes.add(item.code);
+      const signedObserved =
+        signedResourceUrl === undefined || typeof signedResourceUrl.href !== 'string'
+          ? undefined
+          : observedFetchFor(signedResourceUrl.href, publisherGraph);
+      if (publisherGraph !== undefined) {
+        addCheck(
+          'signature-observed-final-url',
+          signedObserved ? 'pass' : 'fail',
+          signedObserved
+            ? `The signed resource final URL was observed as ${signedObserved.finalUrl}.`
+            : 'Publisher-mode signature verification requires an observed final URL.',
+          signatureFile,
+        );
+      }
       addCheck(
         'signature-cryptographic',
-        verification.overall ? 'pass' : 'fail',
-        verification.overall
+        verification.overall && (publisherGraph === undefined || signedObserved !== undefined)
+          ? 'pass'
+          : 'fail',
+        verification.overall && (publisherGraph === undefined || signedObserved !== undefined)
           ? 'The detached Ed25519 signature verifies against the captured resource, key set, and authority context.'
           : describeFindings(verification.findings),
         signatureFile,
@@ -554,13 +626,6 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
     });
     checks.push(...observation.checks);
     for (const note of observation.notes ?? []) addCheck('consumer-note', 'warn', note);
-  }
-  if (options.origin || options.mode === 'publisher') {
-    await appendPublisherChecks(options.origin, options.fetch, options.now, addCheck, {
-      maxResources: positiveLimit(options.maxFiles, 64),
-      maxTotalBytes: positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024),
-      maxDepth: nonNegativeLimit(options.maxDepth, 32),
-    });
   }
   if (options.expected) {
     const actualStatus = statusFor(checks);
@@ -617,6 +682,7 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
 async function appendPublisherChecks(
   origin: string | undefined,
   fetchOptions: FetchOptions | undefined,
+  transport: PublicationTransport | undefined,
   now: Date | undefined,
   addCheck: (
     kind: string,
@@ -625,13 +691,16 @@ async function appendPublisherChecks(
     file?: PublicationFile,
   ) => void,
   graphLimits: FixtureGraphLimits,
-): Promise<void> {
+): Promise<FixtureGraphResult | undefined> {
   if (!origin) {
     addCheck('publisher-origin', 'fail', 'Publisher mode requires an origin.');
-    return;
+    return undefined;
   }
   try {
-    const response = await fetchManifest(origin, { ...fetchOptions, method: 'GET' });
+    const response = await (transport?.fetchManifest ?? fetchManifest)(origin, {
+      ...fetchOptions,
+      method: 'GET',
+    });
     const maxRedirects =
       fetchOptions?.maxRedirects === undefined
         ? DEFAULT_FETCH_MAX_REDIRECTS
@@ -661,7 +730,21 @@ async function appendPublisherChecks(
       response.redirects.length <= maxRedirects ? 'pass' : 'fail',
       `Discovery recorded ${response.redirects.length} redirect hop(s).`,
     );
-    const head = await fetchEom(response.finalUrl, { ...fetchOptions, method: 'HEAD' });
+    const rootRedirectSafe =
+      urlOrigin(response.requestedUrl) !== undefined &&
+      urlOrigin(response.requestedUrl) === urlOrigin(response.finalUrl) &&
+      response.redirects.every((redirect) => !redirect.crossOrigin);
+    addCheck(
+      'publisher-root-redirect-authority',
+      rootRedirectSafe ? 'pass' : 'fail',
+      rootRedirectSafe
+        ? 'Root discovery remained on the requested origin while resolving the manifest.'
+        : 'Root discovery must not cross origins before a trusted manifest authorizes the destination.',
+    );
+    const head = await (transport?.fetchEom ?? fetchEom)(response.finalUrl, {
+      ...fetchOptions,
+      method: 'HEAD',
+    });
     addCheck(
       'publisher-head',
       head.status === 200 && head.contentType?.toLowerCase().startsWith('application/json') === true
@@ -674,6 +757,7 @@ async function appendPublisherChecks(
           origin,
           response.document,
           fetchOptions,
+          transport,
           now,
           graphLimits,
         )
@@ -684,6 +768,7 @@ async function appendPublisherChecks(
           maxDepth: graphLimits.maxDepth,
           ...(now === undefined ? {} : { now }),
           ...(fetchOptions ? { fetch: { ...fetchOptions, method: 'GET' } } : {}),
+          ...(transport ? { transport } : {}),
         });
     addCheck(
       'publisher-graph',
@@ -692,8 +777,10 @@ async function appendPublisherChecks(
         ? `The publisher resource graph validated with ${graph.files.length} fetched document(s).`
         : describeFindings(graph.findings),
     );
+    return graph;
   } catch (error) {
     addCheck('publisher-discovery', 'fail', error instanceof Error ? error.message : String(error));
+    return undefined;
   }
 }
 
@@ -940,6 +1027,7 @@ interface FixtureGraphResult {
   readonly valid: boolean;
   readonly files: readonly string[];
   readonly findings: readonly Finding[];
+  readonly fetches: readonly PublicationFetchRecord[];
 }
 
 interface FixtureGraphLimits {
@@ -958,14 +1046,20 @@ async function validateFixturePublisherGraph(
   publisherOrigin: string,
   root: unknown,
   fetchOptions: FetchOptions | undefined,
+  transport: PublicationTransport | undefined,
   now: Date | undefined,
   limits: FixtureGraphLimits,
 ): Promise<FixtureGraphResult> {
   const findings: Finding[] = [];
   const documents: Record<string, unknown> = {};
-  const queue: Array<{ readonly href: string; readonly depth: number }> = [];
+  const queue: Array<{
+    readonly href: string;
+    readonly depth: number;
+    readonly resource: JsonObject;
+  }> = [];
   const queued = new Set<string>();
   const files: string[] = [];
+  const fetches: PublicationFetchRecord[] = [];
   let totalBytes = 0;
   if (isJsonObject(root)) {
     const rootUrl = `${publisherOrigin}/.well-known/educational-organization-manifest`;
@@ -998,7 +1092,17 @@ async function validateFixturePublisherGraph(
     fetched += 1;
     try {
       const localUrl = mapFixtureUrl(publisherOrigin, next.href);
-      const response = await fetchEom(localUrl, { ...fetchOptions, method: 'GET' });
+      const response = await (transport?.fetchEom ?? fetchEom)(localUrl, {
+        ...fetchOptions,
+        method: 'GET',
+      });
+      fetches.push({
+        declaredUrl: next.href,
+        requestedUrl: localUrl,
+        finalUrl: response.finalUrl,
+        redirects: response.redirects,
+        cached: false,
+      });
       const responseBytes = Buffer.byteLength(response.body, 'utf8');
       if (totalBytes + responseBytes > limits.maxTotalBytes) {
         findings.push(
@@ -1016,6 +1120,30 @@ async function validateFixturePublisherGraph(
       const document = parseStrictJson(response.body, response.finalUrl);
       documents[response.finalUrl] = document;
       files.push(response.finalUrl);
+      const authorityUrls = uniqueUrls([
+        next.href,
+        response.finalUrl,
+        ...response.redirects.flatMap((redirect) => [redirect.from, redirect.to]),
+      ]);
+      for (const authorityUrl of authorityUrls) {
+        const authority = evaluateAuthority(
+          authorityManifestForObservedUrl(root, publisherOrigin, next.href, authorityUrl),
+          next.resource,
+          authorityUrl,
+          now === undefined ? {} : { now },
+        );
+        if (!authority.accepted) {
+          findings.push(
+            ...authority.findings.map((item) => ({
+              ...item,
+              resource: item.resource ?? authorityUrl,
+              related: [...(item.related ?? []), next.href, response.finalUrl].filter(
+                (value, index, values) => values.indexOf(value) === index,
+              ),
+            })),
+          );
+        }
+      }
       const validation = validateDocument(document, now === undefined ? {} : { now });
       findings.push(
         ...validation.findings.map((item) => ({
@@ -1036,6 +1164,16 @@ async function validateFixturePublisherGraph(
         depthLimit ||= enqueueResult.depthLimitExceeded;
       }
     } catch (error) {
+      if (error instanceof EomFetchError) {
+        const requestedUrl = mapFixtureUrl(publisherOrigin, next.href);
+        fetches.push({
+          declaredUrl: next.href,
+          requestedUrl,
+          finalUrl: error.url ?? requestedUrl,
+          redirects: error.redirects,
+          cached: false,
+        });
+      }
       findings.push(
         finding(
           error instanceof EomFetchError ? error.code : 'EOM_FETCH_NETWORK',
@@ -1072,13 +1210,17 @@ async function validateFixturePublisherGraph(
       resource: item.resource ?? 'publication-set',
     })),
   );
-  return { valid: !hasErrors(findings), files, findings };
+  return { valid: !hasErrors(findings), files, findings, fetches };
 }
 
 function enqueueFixtureResources(
   document: JsonObject,
   depth: number,
-  queue: Array<{ readonly href: string; readonly depth: number }>,
+  queue: Array<{
+    readonly href: string;
+    readonly depth: number;
+    readonly resource: JsonObject;
+  }>,
   queued: Set<string>,
   maxDepth: number,
   maxResources: number,
@@ -1102,7 +1244,7 @@ function enqueueFixtureResources(
       continue;
     }
     queued.add(key);
-    queue.push({ href: resource.href, depth });
+    queue.push({ href: resource.href, depth, resource });
   }
   return { resourceLimitExceeded, depthLimitExceeded: false };
 }
@@ -1114,6 +1256,87 @@ function mapFixtureUrl(publisherOrigin: string, href: string): string {
   target.search = source.search;
   target.hash = '';
   return target.toString();
+}
+
+function observedFetchFor(
+  declaredUrl: string,
+  graph: FixtureGraphResult | undefined,
+): PublicationFetchRecord | undefined {
+  return graph?.fetches.find(
+    (fetch) => fetch.declaredUrl === declaredUrl || fetch.requestedUrl === declaredUrl,
+  );
+}
+
+function uniqueUrls(values: readonly string[]): readonly string[] {
+  return values.filter((value, index) => values.indexOf(value) === index);
+}
+
+function authorityManifestForObservedUrl(
+  manifest: unknown,
+  publisherOrigin: string | undefined,
+  declaredUrl: string,
+  observedUrl: string,
+): unknown {
+  if (!publisherOrigin || !isLoopbackPublisherOrigin(publisherOrigin) || !isJsonObject(manifest)) {
+    return manifest;
+  }
+  const declaredOrigin = urlOrigin(declaredUrl);
+  const observedOrigin = urlOrigin(observedUrl);
+  const scope = isJsonObject(manifest.scope) ? manifest.scope : {};
+  const rootOrigin = typeof scope.origin === 'string' ? urlOrigin(scope.origin) : undefined;
+  const fixtureOrigin = urlOrigin(publisherOrigin);
+  if (observedOrigin === fixtureOrigin && declaredOrigin === rootOrigin) {
+    return {
+      ...manifest,
+      scope: { ...scope, origin: publisherOrigin },
+    };
+  }
+  if (observedOrigin !== fixtureOrigin || declaredOrigin === undefined) return manifest;
+  const delegations = Array.isArray(manifest.delegations) ? manifest.delegations : [];
+  let changed = false;
+  const mappedDelegations = delegations.map((value) => {
+    if (!isJsonObject(value) || !isJsonObject(value.scope)) return value;
+    const allowedOrigins = Array.isArray(value.scope.allowedOrigins)
+      ? value.scope.allowedOrigins.filter((item): item is string => typeof item === 'string')
+      : [];
+    const delegate = value.delegate;
+    const delegateOrigin =
+      typeof delegate === 'string'
+        ? urlOrigin(delegate)
+        : isJsonObject(delegate)
+          ? urlOrigin(
+              typeof delegate.website === 'string'
+                ? delegate.website
+                : typeof delegate.id === 'string'
+                  ? delegate.id
+                  : '',
+            )
+          : undefined;
+    if (
+      !allowedOrigins.some((origin) => urlOrigin(origin) === declaredOrigin) &&
+      delegateOrigin !== declaredOrigin
+    ) {
+      return value;
+    }
+    if (allowedOrigins.some((origin) => urlOrigin(origin) === fixtureOrigin)) return value;
+    changed = true;
+    return {
+      ...value,
+      scope: {
+        ...value.scope,
+        allowedOrigins: [...allowedOrigins, publisherOrigin],
+      },
+    };
+  });
+  return changed ? { ...manifest, delegations: mappedDelegations } : manifest;
+}
+
+function urlOrigin(value: string): string | undefined {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return undefined;
+  }
 }
 
 function isLoopbackPublisherOrigin(value: string): boolean {

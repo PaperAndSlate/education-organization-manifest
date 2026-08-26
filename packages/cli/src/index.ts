@@ -10,6 +10,7 @@ import {
   buildPublication,
   GeneratorInputError,
   loadAuthoringConfig,
+  type BuildMode,
   type BuildReport,
 } from '@paperandslate/eom-generator';
 import { lintPublication } from '@paperandslate/eom-linter';
@@ -45,6 +46,7 @@ import {
   renderValidationReport,
   validatePublicationDirectory,
   validatePublicationUrl,
+  type PublicationFetchRecord,
   type PublicationValidationResult,
   type ValidationReportFormat,
   type Finding,
@@ -87,7 +89,7 @@ export function createCli(): Command {
   program
     .name('eom')
     .description('Validate, lint, and inspect Educational Organization Manifest publications.')
-    .version('1.0.0-rc.2 (EOM schema catalog 1.0; protocol 1.0)', '-V, --version')
+    .version('1.0.0-rc.3 (EOM schema catalog 1.0; protocol 1.0)', '-V, --version')
     .option('--json', 'emit machine-readable JSON')
     .option('--quiet', 'suppress non-error terminal output')
     .option('--verbose', 'include diagnostic details')
@@ -137,8 +139,15 @@ export function createCli(): Command {
     .option('--config <file>', 'authoring configuration file')
     .option('--output <directory>', 'generated public output directory')
     .option('--dry-run', 'validate and report without writing output')
+    .option('--mode <mode>', 'full, module, organization, or changed-files build mode')
     .option('--module <module>', 'build one registered module plus organization')
     .option('--organization <uri>', 'select an organization identifier')
+    .option(
+      '--changed <source-path>',
+      'repeatable source path for a changed-files build (relative to the config directory)',
+      collectOption,
+      [],
+    )
     .option('--allow-external-output', 'allow an explicitly selected output outside the project')
     .option('--sign', 'enable configured detached signing for this build')
     .option('--deterministic', 'use a fixed clock when no clock is injected')
@@ -152,8 +161,10 @@ export function createCli(): Command {
           config?: string;
           output?: string;
           dryRun?: boolean;
+          mode?: string;
           module?: string;
           organization?: string;
+          changed?: string[];
           allowExternalOutput?: boolean;
           sign?: boolean;
           deterministic?: boolean;
@@ -169,8 +180,12 @@ export function createCli(): Command {
           configFile,
           ...(options.output ? { outputRoot: options.output } : {}),
           dryRun: options.dryRun === true,
+          ...(options.mode ? { mode: parseBuildMode(options.mode) } : {}),
           ...(options.module ? { module: options.module } : {}),
           ...(options.organization ? { organization: options.organization } : {}),
+          ...(options.changed && options.changed.length > 0
+            ? { changedFiles: options.changed }
+            : {}),
           ...(options.allowExternalOutput ? { allowExternalOutput: true } : {}),
           ...(options.sign ? { sign: true } : {}),
           ...(globalOptions.cacheDir ? { cacheDirectory: globalOptions.cacheDir } : {}),
@@ -301,18 +316,26 @@ export function createCli(): Command {
     .argument('<file>', 'local JSON resource to sign')
     .requiredOption('--key <file>', 'private Ed25519 key file')
     .requiredOption('--key-id <uri>', 'public key id URI')
+    .option('--expires <date-time>', 'optional signature expiry date-time')
     .option('--output <file>', 'detached signature output file')
     .option('--json', 'emit machine-readable JSON')
     .action(
       async (
         file: string,
-        options: { key: string; keyId: string; output?: string; json?: boolean },
+        options: {
+          key: string;
+          keyId: string;
+          expires?: string;
+          output?: string;
+          json?: boolean;
+        },
       ) => {
         const document = await readPublication(file);
         const privateKey = await readTextInput(options.key);
         const signature = signDetached(document, {
           privateKey,
           keyId: options.keyId,
+          ...(options.expires ? { expires: options.expires } : {}),
         });
         if (options.output) {
           await writeFile(
@@ -437,7 +460,7 @@ export function createCli(): Command {
         },
       ) => {
         if (!isConformanceProfileName(options.profile)) {
-          throw new Error(`Unknown conformance profile ${options.profile}.`);
+          throw new CliUsageError(`Unknown conformance profile ${options.profile}.`);
         }
         const globalOptions = program.opts<GlobalOptions>();
         if (
@@ -510,7 +533,7 @@ export function createCli(): Command {
         },
       ) => {
         const selectedTarget = options.origin ?? target;
-        if (!selectedTarget) throw new Error('Provide a target or --origin.');
+        if (!selectedTarget) throw new CliUsageError('Provide a target or --origin.');
         const format = options.format ? parseReportFormat(options.format) : undefined;
         if (isAuthoringConfigPath(selectedTarget)) {
           const result = await validateAuthoringProject(
@@ -625,7 +648,7 @@ export function createCli(): Command {
         },
       ) => {
         const selectedTarget = options.origin ?? target;
-        if (!selectedTarget) throw new Error('Provide a target or --origin.');
+        if (!selectedTarget) throw new CliUsageError('Provide a target or --origin.');
         const format = options.format ? parseReportFormat(options.format) : undefined;
         if (isAuthoringConfigPath(selectedTarget)) {
           const result = await validateAuthoringProject(
@@ -1050,7 +1073,7 @@ export function createCli(): Command {
     .option('--json', 'emit machine-readable JSON')
     .action(async (target: string | undefined, options: { json?: boolean }) => {
       const summary: Record<string, unknown> = {
-        cliVersion: '1.0.0-rc.2',
+        cliVersion: '1.0.0-rc.3',
         node: process.version,
         schemas: availableSchemaFiles().length,
         network: 'not used',
@@ -1139,6 +1162,7 @@ interface DeploymentAudit {
   readonly finalUrl?: string;
   readonly status?: number;
   readonly redirects?: readonly unknown[];
+  readonly fetches?: readonly PublicationFetchRecord[];
   readonly checks: readonly {
     readonly code: string;
     readonly status: 'pass' | 'warn' | 'fail';
@@ -1153,6 +1177,7 @@ async function auditDeployment(
   const checks: DeploymentAudit['checks'][number][] = [];
   const fetchOptions = deploymentFetchOptions(globalOptions);
   let response: Awaited<ReturnType<typeof fetchManifest>> | undefined;
+  let graphFetches: readonly PublicationFetchRecord[] | undefined;
   try {
     response = await fetchManifest(target, fetchOptions);
     checks.push({
@@ -1197,6 +1222,35 @@ async function auditDeployment(
         message: `${response.redirects.length} redirect(s) occurred; verify the canonical origin and cache behavior.`,
       });
     }
+    try {
+      const publication = await validatePublicationUrl(target, {
+        fetchGraph: true,
+        fetch: fetchOptions,
+      });
+      checks.push({
+        code: 'EOM_DOCTOR_AUTHORITY_GRAPH',
+        status: publication.valid ? 'pass' : 'fail',
+        message: publication.valid
+          ? `The complete publication graph passed validation across ${publication.fetches.length} observed fetch(es).`
+          : `The complete publication graph failed validation: ${
+              publication.findings
+                .filter((finding) => finding.severity === 'error')
+                .slice(0, 3)
+                .map((finding) => finding.code)
+                .join(', ') || 'see graph findings'
+            }.`,
+      });
+      graphFetches = publication.fetches;
+    } catch (error) {
+      checks.push({
+        code: 'EOM_DOCTOR_AUTHORITY_GRAPH',
+        status: 'fail',
+        message:
+          error instanceof Error
+            ? `Complete publication graph validation failed: ${error.message}`
+            : 'Complete publication graph validation failed.',
+      });
+    }
   } catch (error) {
     checks.push({
       code: error instanceof EomFetchError ? error.code : 'EOM_DOCTOR_GET_FAILED',
@@ -1231,6 +1285,7 @@ async function auditDeployment(
           redirects: response.redirects,
         }
       : {}),
+    ...(graphFetches ? { fetches: graphFetches } : {}),
     checks,
   };
 }
@@ -1257,7 +1312,15 @@ function parseReportFormat(value: string): ValidationReportFormat {
   if (supported.includes(value as ValidationReportFormat)) {
     return value as ValidationReportFormat;
   }
-  throw new Error(`Unknown report format ${value}. Supported formats: ${supported.join(', ')}`);
+  throw new CliUsageError(
+    `Unknown report format ${value}. Supported formats: ${supported.join(', ')}`,
+  );
+}
+
+function parseBuildMode(value: string): BuildMode {
+  const supported: readonly BuildMode[] = ['full', 'module', 'organization', 'changed-files'];
+  if (supported.includes(value as BuildMode)) return value as BuildMode;
+  throw new CliUsageError(`Unknown build mode ${value}. Supported modes: ${supported.join(', ')}`);
 }
 
 function parseConformanceMode(value: string): 'fixture' | 'publisher' | 'consumer' | 'generator' {
@@ -1265,7 +1328,9 @@ function parseConformanceMode(value: string): 'fixture' | 'publisher' | 'consume
   if (supported.includes(value as (typeof supported)[number])) {
     return value as (typeof supported)[number];
   }
-  throw new Error(`Unknown conformance mode ${value}. Supported modes: ${supported.join(', ')}`);
+  throw new CliUsageError(
+    `Unknown conformance mode ${value}. Supported modes: ${supported.join(', ')}`,
+  );
 }
 
 async function emitPublicationReport(
@@ -1288,6 +1353,7 @@ async function emitPublicationReport(
         structuralValid: publication.structuralValid,
         semanticValid: publication.semanticValid,
         files: publication.files,
+        fetches: publication.fetches,
         findings: publication.findings,
         ...(publication.rootUrl ? { rootUrl: publication.rootUrl } : {}),
       },
@@ -1531,7 +1597,7 @@ function completionScript(shell: string): string {
     case 'pwsh':
       return `$eomCommands = '${commands.join(' ')}'.Split(' ')\nRegister-ArgumentCompleter -Native -CommandName eom -ScriptBlock {\n  param($wordToComplete, $commandAst, $cursorPosition)\n  $eomCommands | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {\n    [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)\n  }\n}\n`;
     default:
-      throw new Error(
+      throw new CliUsageError(
         `Unsupported completion shell ${shell}. Supported shells: bash, zsh, fish, powershell.`,
       );
   }
@@ -1541,7 +1607,7 @@ function parseAdapterFormat(value: string): AdapterFormat {
   if ((supportedAdapterFormats() as readonly string[]).includes(value)) {
     return value as AdapterFormat;
   }
-  throw new Error(
+  throw new CliUsageError(
     `Unknown adapter format ${value}. Supported formats: ${supportedAdapterFormats().join(', ')}`,
   );
 }
@@ -1637,12 +1703,12 @@ async function initProject(
 ): Promise<Record<string, unknown>> {
   const templates = new Set(['minimal-school', 'district', 'rich-school']);
   if (!templates.has(options.template)) {
-    throw new Error(
+    throw new CliUsageError(
       `Unknown init template ${options.template}. Choose minimal-school, district, or rich-school.`,
     );
   }
   if (!/^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/u.test(options.language)) {
-    throw new Error(`Invalid BCP 47 language ${options.language}.`);
+    throw new CliUsageError(`Invalid BCP 47 language ${options.language}.`);
   }
   const origin = validateInitOrigin(options.origin);
   const target = resolve(directory);
@@ -1659,7 +1725,7 @@ async function initProject(
   const normalizedRequestedModules = requestedModules.map((value) => {
     const key = initModuleKey(value);
     if (!key) {
-      throw new Error(
+      throw new CliUsageError(
         `Unknown init module ${value}. Supported modules: ${INIT_MODULE_KEYS.join(', ')}.`,
       );
     }
@@ -1779,7 +1845,7 @@ function validateInitOrigin(value: string): string {
   try {
     parsed = new URL(value);
   } catch {
-    throw new Error('The init origin must be a valid HTTPS URL.');
+    throw new CliUsageError('The init origin must be a valid HTTPS URL.');
   }
   if (
     parsed.protocol !== 'https:' ||
@@ -1789,7 +1855,7 @@ function validateInitOrigin(value: string): string {
     parsed.search ||
     parsed.hash
   ) {
-    throw new Error(
+    throw new CliUsageError(
       'The init origin must be an HTTPS origin without credentials, path, query, or fragment.',
     );
   }
@@ -1836,13 +1902,21 @@ async function resolveLocalPublication(target: string): Promise<string> {
       // Try the next conventional publication path.
     }
   }
-  throw new Error('No EOM well-known manifest was found in the target directory.');
+  throw new CliInputError('No EOM well-known manifest was found in the target directory.');
 }
 
 function parseNumberOption(value: string): number {
   const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed < 0) throw new Error(`Invalid numeric option: ${value}`);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new CliUsageError(`Invalid numeric option: ${value}`);
+  }
   return parsed;
+}
+
+function collectOption(value: string, previous: readonly string[] = []): string[] {
+  const normalized = value.trim();
+  if (!normalized) throw new CliUsageError('Repeatable path options must not be empty.');
+  return [...previous, normalized];
 }
 
 function applyUserOptions(program: Command): void {
@@ -2068,6 +2142,13 @@ class CliInputError extends Error {
   }
 }
 
+class CliUsageError extends Error {
+  public constructor(message: string) {
+    super(message);
+    this.name = 'CliUsageError';
+  }
+}
+
 function compareStrings(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }
@@ -2171,6 +2252,7 @@ if (invokedPath === modulePath) {
 
 function cliExitCode(error: unknown): number {
   if (error instanceof CommanderError) return 2;
+  if (error instanceof CliUsageError) return 2;
   if (error instanceof EomFetchError) return 3;
   if (
     error instanceof StrictJsonError ||

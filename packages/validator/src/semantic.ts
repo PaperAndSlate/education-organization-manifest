@@ -1,11 +1,6 @@
-import {
-  isAbsoluteUri,
-  isHttpsUri,
-  isSameOrigin,
-  normalizeOrigin,
-  originOf,
-} from '@paperandslate/eom-core/ids';
+import { isAbsoluteUri, isHttpsUri, isSameOrigin } from '@paperandslate/eom-core/ids';
 import { stringifyCanonical } from '@paperandslate/eom-core/json';
+import { evaluateAuthority } from '@paperandslate/eom-authority';
 import type { Finding } from './findings.js';
 import { finding } from './findings.js';
 
@@ -803,24 +798,23 @@ function inspectManifest(document: UnknownRecord, findings: Finding[], now: Date
       resources.set(resource.id, resource);
       inspectResource(resource, findings, now);
       const href = stringValue(resource.href);
-      if (
-        href &&
-        scopeOrigin &&
-        !isSameOrigin(href, scopeOrigin) &&
-        !hasDelegationFor(resource, document, now)
-      ) {
-        findings.push(
-          finding(
-            'EOM_RESOURCE_CROSS_ORIGIN_UNAUTHORIZED',
-            'semantic',
-            'A cross-origin resource must be explicitly delegated by the root.',
-            {
-              pointer: `/resources/${arrayValue(document.resources).indexOf(resource)}/href`,
-              related: [scopeOrigin, href],
-              help: 'Add an active delegation that covers the resource origin and type/id.',
-            },
-          ),
-        );
+      if (href) {
+        const authority = evaluateAuthority(document, resource, href, { now });
+        if (!authority.accepted) findings.push(...authority.findings);
+        if (scopeOrigin && !isSameOrigin(href, scopeOrigin) && !authority.accepted) {
+          findings.push(
+            finding(
+              'EOM_RESOURCE_CROSS_ORIGIN_UNAUTHORIZED',
+              'semantic',
+              'A cross-origin resource must be explicitly delegated by the root.',
+              {
+                pointer: `/resources/${arrayValue(document.resources).indexOf(resource)}/href`,
+                related: [scopeOrigin, href],
+                help: 'Add an active delegation that covers the resource origin and type/id.',
+              },
+            ),
+          );
+        }
       }
       const subjects = arrayValue(resource.subjects)
         .map(stringValue)
@@ -1084,69 +1078,6 @@ function inspectFreshness(
         },
       ),
     );
-  }
-}
-
-function hasDelegationFor(resource: UnknownRecord, manifest: UnknownRecord, now: Date): boolean {
-  const href = stringValue(resource.href);
-  const hrefOrigin = href ? originOf(href) : undefined;
-  const type = stringValue(resource.type);
-  const id = stringValue(resource.id);
-  return arrayValue(manifest.delegations).some((item) => {
-    if (!isRecord(item) || item.status !== 'active' || item.transitive !== false) return false;
-    const validFrom = parseDate(item.validFrom);
-    const validUntil = parseDate(item.validUntil);
-    const revokedAt = parseDate(item.revokedAt);
-    if (validFrom && validFrom > now) return false;
-    if (validUntil && validUntil < now) return false;
-    if (revokedAt && revokedAt <= now) return false;
-    const delegate =
-      typeof item.delegate === 'string'
-        ? originOf(item.delegate)
-        : isRecord(item.delegate)
-          ? originOf(stringValue(item.delegate.website) ?? stringValue(item.delegate.id) ?? '')
-          : undefined;
-    if (!delegate || !hrefOrigin || normalizeOrigin(delegate) !== normalizeOrigin(hrefOrigin)) {
-      return false;
-    }
-    const scope = isRecord(item.scope) ? item.scope : undefined;
-    const types = scope
-      ? arrayValue(scope.resourceTypes)
-          .map(stringValue)
-          .filter((value): value is string => value !== undefined)
-      : [];
-    const ids = scope
-      ? arrayValue(scope.resourceIds)
-          .map(stringValue)
-          .filter((value): value is string => value !== undefined)
-      : [];
-    const origins = scope
-      ? arrayValue(scope.allowedOrigins)
-          .map(stringValue)
-          .filter((value): value is string => value !== undefined)
-      : [];
-    return (
-      (!types.length || (type !== undefined && types.includes(type))) &&
-      (!ids.length || (id !== undefined && ids.includes(id))) &&
-      (!origins.length ||
-        (hrefOrigin !== undefined &&
-          origins.some((origin) => normalizeOrigin(origin) === normalizeOrigin(hrefOrigin)))) &&
-      (!scope || isPathWithinDelegation(href, arrayValue(scope.allowedPathPrefixes)))
-    );
-  });
-}
-
-function isPathWithinDelegation(href: string | undefined, prefixes: readonly unknown[]): boolean {
-  if (!href || prefixes.length === 0) return true;
-  try {
-    const pathname = new URL(href).pathname;
-    return prefixes.some((value) => {
-      if (typeof value !== 'string' || !value.startsWith('/')) return false;
-      const prefix = value.endsWith('/') ? value : `${value}/`;
-      return pathname === value || pathname.startsWith(prefix);
-    });
-  } catch {
-    return false;
   }
 }
 

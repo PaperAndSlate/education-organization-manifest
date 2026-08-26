@@ -8,7 +8,7 @@ import {
   type ConformanceProfileName,
 } from '@paperandslate/eom-testkit';
 
-const VERSION = '1.0.0-rc.2';
+const VERSION = '1.0.0-rc.3';
 
 export async function runConformanceCli(
   args: readonly string[] = process.argv.slice(2),

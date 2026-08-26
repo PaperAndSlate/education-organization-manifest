@@ -1,5 +1,6 @@
 import { parseDocument } from 'yaml';
 import { parseStrictJson } from '@paperandslate/eom-core/json';
+import { evaluateAuthority } from '@paperandslate/eom-authority';
 import { semanticFindings } from '../../../packages/validator/src/semantic.ts';
 import schemas from './generated-schemas.js';
 import { validatorsById } from './generated-validators.js';
@@ -183,7 +184,7 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
   if (typeof signature.createdAt !== 'string' || !validDate(signature.createdAt))
     findings.push('The signature creation time is invalid.');
   if (
-    signature.expires !== undefined &&
+    typeof signature.expires !== 'undefined' &&
     (typeof signature.expires !== 'string' || !validDate(signature.expires))
   )
     findings.push('The signature expiry time is invalid.');
@@ -193,7 +194,7 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
     Date.parse(signature.expires) < now.getTime()
   )
     findings.push('The detached signature has expired.');
-  if (signature.contentType !== undefined && signature.contentType !== 'application/json')
+  if (signature.contentType !== 'application/json')
     findings.push('The signature content type must be application/json.');
   if (typeof signature.subject === 'string' && signature.subject !== value?.id)
     findings.push('The signature subject does not match the resource id.');
@@ -277,7 +278,9 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
       if (
         decoded.alg !== 'EdDSA' ||
         decoded.b64 !== false ||
-        decoded.eom !== 'RFC8785-JCS' ||
+        !isPlainObject(decoded.eom) ||
+        decoded.eom.version !== '1.0' ||
+        decoded.eom.canonicalization !== 'RFC8785-JCS' ||
         decoded.cty !== 'application/json'
       )
         findings.push('The protected header does not declare the EOM detached profile.');
@@ -290,6 +293,30 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
         findings.push('The protected header critical parameters are invalid.');
       if (decoded.kid !== signature.keyId)
         findings.push('The protected header key id does not match the signature record.');
+      const metadata = isPlainObject(decoded.eom) ? decoded.eom : undefined;
+      const metadataExpiresPresent = metadata !== undefined && 'expires' in metadata;
+      const sidecarExpiresPresent = 'expires' in signature;
+      if (
+        metadata === undefined ||
+        typeof metadata.createdAt !== 'string' ||
+        metadata.createdAt !== signature.createdAt ||
+        metadataExpiresPresent !== sidecarExpiresPresent ||
+        (metadataExpiresPresent && metadata.expires !== signature.expires)
+      )
+        findings.push('Protected signature lifetime metadata must match the sidecar record.');
+      if (
+        signature.expires !== undefined &&
+        typeof signature.createdAt === 'string' &&
+        validDate(signature.createdAt) &&
+        validDate(signature.expires) &&
+        Date.parse(signature.createdAt) >= Date.parse(signature.expires)
+      )
+        findings.push('The signature expiry time must be later than its creation time.');
+      if (
+        Array.isArray(decoded.crit) &&
+        decoded.crit.some((item) => item !== 'b64' && item !== 'eom')
+      )
+        findings.push('The protected header contains an unknown critical parameter.');
     } catch (error) {
       findings.push(error instanceof Error ? error.message : 'The protected header is invalid.');
     }
@@ -324,6 +351,19 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
       findings.push(
         error instanceof Error ? error.message : 'The browser could not verify this signature.',
       );
+    }
+  }
+  if (options.manifest !== undefined && options.finalUrl !== undefined) {
+    const authority = evaluateAuthority(
+      options.manifest,
+      options.resource ?? value,
+      options.finalUrl,
+      cryptographic && typeof signature.keyId === 'string'
+        ? { now, verifiedKeyId: signature.keyId }
+        : { now },
+    );
+    if (!authority.accepted) {
+      findings.push(...authority.findings.map((item) => `${item.code}: ${item.message}`));
     }
   }
   return { overall: findings.length === 0 && cryptographic, findings };

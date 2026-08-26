@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-playground",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "private": true,
   "description": "No-account, local-first browser tools for EOM documents.",
   "license": "Apache-2.0",

@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-validator",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "Structural and semantic validator for EOM publications.",
   "license": "Apache-2.0",
   "type": "module",
@@ -12,6 +12,7 @@
     }
   },
   "dependencies": {
+    "@paperandslate/eom-authority": "workspace:*",
     "@paperandslate/eom-core": "workspace:*",
     "@paperandslate/eom-schema": "workspace:*",
     "ajv": "^8.17.1",

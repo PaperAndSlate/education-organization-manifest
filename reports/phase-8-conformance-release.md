@@ -1,9 +1,9 @@
 # Phase 8 — conformance and release evidence
 
-> Historical RC1-era phase report. Its local-slice evidence is retained, but completion claims are
-> superseded for current release acceptance by [`reports/remediation-audit.md`](remediation-audit.md)
-> and the rebuilt traceability matrix. The current candidate is RC2 and must be accepted only from
-> its clean, source-revision-bound evidence.
+> Historical phase report. Its local-slice evidence is retained, but completion claims and RC2
+> evidence are superseded for current release acceptance by
+> [`reports/remediation-audit.md`](remediation-audit.md) and the rebuilt traceability matrix. RC3
+> must be accepted only from clean, source-revision-bound evidence.
 
 ## Completed locally
 
@@ -33,4 +33,4 @@ pnpm release:check
 pnpm verify
 ```
 
-The final T013 receipt records the command results from the completion run.
+Any earlier T013 receipt records historical command results only; it is not RC3 acceptance evidence.

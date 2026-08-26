@@ -27,7 +27,7 @@ function toSarif(input: ValidationReportInput): Record<string, unknown> {
     $schema: 'https://json.schemastore.org/sarif-2.1.0.json',
     runs: [
       {
-        tool: { driver: { name: 'eom-validator', version: '1.0.0-rc.2', rules } },
+        tool: { driver: { name: 'eom-validator', version: '1.0.0-rc.3', rules } },
         results: findings.map((item) => ({
           ruleId: item.code,
           level:

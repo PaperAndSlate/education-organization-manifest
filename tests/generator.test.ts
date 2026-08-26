@@ -109,6 +109,16 @@ describe('EOM deterministic authoring generator', () => {
         'courses/intro.yaml',
       );
 
+      const omittedPartialOutput = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        module: 'courses',
+        now: new Date('2027-01-02T00:00:00Z'),
+      });
+      expect(omittedPartialOutput.valid).toBe(false);
+      expect(
+        omittedPartialOutput.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE'),
+      ).toBe(true);
+
       const secondOutput = join(root, 'generated-second', 'public');
       const second = await buildPublication({
         configFile: join(root, 'eom.config.yaml'),
@@ -291,6 +301,95 @@ describe('EOM deterministic authoring generator', () => {
     }
   });
 
+  it('filters organization builds across module items, references, contacts, and manifest entries', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-generator-organization-filter-'));
+    try {
+      const organizationA = 'https://network.example/id/school-a';
+      const organizationB = 'https://network.example/id/school-b';
+      await writeFile(
+        join(root, 'eom.config.yaml'),
+        [
+          'project: { name: Network, protocolVersion: "1.0", defaultLanguage: en-US }',
+          'publisher: { origin: https://network.example, manifestPath: /.well-known/educational-organization-manifest }',
+          'source:',
+          '  root: source',
+          '  modules:',
+          '    organization: [organizations.yaml]',
+          '    contacts: [contacts.yaml]',
+          '    courses: [courses.yaml]',
+          'output: { root: generated/public }',
+          'signing: { enabled: false }',
+          '',
+        ].join('\n'),
+      );
+      await mkdir(join(root, 'source'), { recursive: true });
+      await writeFile(
+        join(root, 'source', 'organizations.yaml'),
+        [
+          'items:',
+          `  - id: ${organizationA}`,
+          '    type: school',
+          '    name: School A',
+          `  - id: ${organizationB}`,
+          '    type: school',
+          '    name: School B',
+          '',
+        ].join('\n'),
+      );
+      await writeFile(
+        join(root, 'source', 'contacts.yaml'),
+        [
+          'items:',
+          '  - id: https://network.example/id/contact/a',
+          '    role: Admissions A',
+          `    organization: ${organizationA}`,
+          '  - id: https://network.example/id/contact/b',
+          '    role: Admissions B',
+          `    organization: ${organizationB}`,
+          '',
+        ].join('\n'),
+      );
+      await writeFile(
+        join(root, 'source', 'courses.yaml'),
+        [
+          'items:',
+          '  - id: https://network.example/id/course/a',
+          '    type: course',
+          '    name: Course A',
+          `    provider: ${organizationA}`,
+          '  - id: https://network.example/id/course/b',
+          '    type: course',
+          '    name: Course B',
+          `    provider: ${organizationB}`,
+          '',
+        ].join('\n'),
+      );
+      const report = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: join(root, 'generated', 'selected', 'public'),
+        mode: 'organization',
+        organization: organizationB,
+      });
+      expect(report.valid, JSON.stringify(report.findings)).toBe(true);
+      const selectedOutput = join(root, 'generated', 'selected', 'public', 'eom');
+      const organization = parseStrictJson(
+        await readFile(join(selectedOutput, 'organization.json'), 'utf8'),
+      );
+      const contacts = parseStrictJson(
+        await readFile(join(selectedOutput, 'contacts.json'), 'utf8'),
+      );
+      const courses = parseStrictJson(await readFile(join(selectedOutput, 'courses.json'), 'utf8'));
+      expect(JSON.stringify(organization)).toContain(organizationB);
+      expect(JSON.stringify(organization)).not.toContain(organizationA);
+      expect(JSON.stringify(contacts)).toContain('contact/b');
+      expect(JSON.stringify(contacts)).not.toContain('contact/a');
+      expect(JSON.stringify(courses)).toContain('course/b');
+      expect(JSON.stringify(courses)).not.toContain('course/a');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it('applies restricted imports and overlays and can sign the generated publication', async () => {
     const root = await mkdtemp(join(tmpdir(), 'eom-generator-overlay-signing-'));
     try {
@@ -413,6 +512,82 @@ describe('EOM deterministic authoring generator', () => {
       expect(culinary?.fees).toBeTruthy();
       expect(courses.items.some((item) => isJsonObject(item) && item.code === 'CSE-301')).toBe(
         false,
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('does not replace a complete publication with an unsafe in-place module build', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-generator-partial-safety-'));
+    try {
+      const output = join(root, 'public');
+      const full = await buildPublication({
+        configFile: join(process.cwd(), 'examples/ecme-high/source/eom.config.yaml'),
+        outputRoot: output,
+        allowExternalOutput: true,
+        now: new Date('2027-01-01T00:00:00Z'),
+      });
+      expect(full.valid, JSON.stringify(full.findings)).toBe(true);
+      const before = await readFile(join(output, 'eom', 'courses.json'), 'utf8');
+      const partial = await buildPublication({
+        configFile: join(process.cwd(), 'examples/ecme-high/source/eom.config.yaml'),
+        outputRoot: output,
+        allowExternalOutput: true,
+        module: 'news',
+        now: new Date('2027-01-01T00:00:00Z'),
+      });
+      expect(partial.valid).toBe(false);
+      expect(partial.written).toBe(false);
+      expect(await readFile(join(output, 'eom', 'courses.json'), 'utf8')).toBe(before);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('does not replace a partial bundle selected for a different module', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-generator-selector-safety-'));
+    try {
+      const configFile = join(root, 'eom.config.yaml');
+      await writeFile(
+        configFile,
+        [
+          'project: { name: Selector Safety, protocolVersion: "1.0", defaultLanguage: en-US }',
+          'publisher: { origin: https://selector-safety.example, manifestPath: /.well-known/educational-organization-manifest }',
+          'source: { root: source, modules: { organization: [organization.yaml], courses: [courses.yaml] } }',
+          'output: { root: generated/public }',
+          'signing: { enabled: false }',
+          '',
+        ].join('\n'),
+      );
+      await mkdir(join(root, 'source'), { recursive: true });
+      await writeFile(
+        join(root, 'source', 'organization.yaml'),
+        'id: https://selector-safety.example/id/school\ntype: school\nname: Selector Safety\n',
+      );
+      await writeFile(
+        join(root, 'source', 'courses.yaml'),
+        'id: https://selector-safety.example/id/course/one\ntype: course\nname: One\nprovider: https://selector-safety.example/id/school\n',
+      );
+      const output = join(root, 'partial', 'public');
+      const first = await buildPublication({
+        configFile,
+        outputRoot: output,
+        mode: 'module',
+        module: 'courses',
+        allowExternalOutput: true,
+      });
+      expect(first.valid, JSON.stringify(first.findings)).toBe(true);
+      const second = await buildPublication({
+        configFile,
+        outputRoot: output,
+        mode: 'module',
+        module: 'organization',
+        allowExternalOutput: true,
+      });
+      expect(second.valid).toBe(false);
+      expect(second.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE')).toBe(
+        true,
       );
     } finally {
       await rm(root, { recursive: true, force: true });

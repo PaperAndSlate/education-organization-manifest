@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-signatures",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "Optional EOM JCS, digest, detached JWS, and Ed25519 verification primitives.",
   "license": "Apache-2.0",
   "type": "module",
@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "@paperandslate/eom-authority": "workspace:*",
-    "@paperandslate/eom-core": "workspace:*",
-    "@paperandslate/eom-validator": "workspace:*"
+    "@paperandslate/eom-core": "workspace:*"
   },
   "files": [
     "dist"

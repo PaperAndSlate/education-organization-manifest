@@ -223,7 +223,7 @@ export type Delegation = Readonly<{
   readonly "transitive": false;
   readonly "type"?: "delegation";
   readonly "validFrom": CommonDateTime;
-  readonly "validUntil"?: CommonDateTime;
+  readonly "validUntil": CommonDateTime;
 }>;
 
 export type Provenance = Readonly<{
@@ -390,7 +390,7 @@ export type Signature = Readonly<{
   readonly "canonical": CommonHttpsUri;
   readonly "canonicalization": "RFC8785-JCS";
   readonly "compact": string;
-  readonly "contentType"?: "application/json";
+  readonly "contentType": "application/json";
   readonly "createdAt": CommonDateTime;
   readonly "detached": true;
   readonly "expires"?: CommonDateTime;
@@ -702,12 +702,12 @@ export type KeySet = Readonly<{
   readonly "extensions"?: CommonExtensions;
   readonly "id": CommonAbsoluteUri;
   readonly "keys": ReadonlyArray<Readonly<{
-  readonly "alg"?: "EdDSA";
+  readonly "alg": "EdDSA";
   readonly "kid": CommonAbsoluteUri;
   readonly "kty": string;
   readonly "owner"?: CommonAbsoluteUri;
   readonly "provenance"?: ReadonlyArray<Provenance>;
-  readonly "publicKeyJwk"?: Readonly<{
+  readonly "publicKeyJwk": Readonly<{
   readonly "crv": "Ed25519";
   readonly "kty": "OKP";
   readonly "x": string;

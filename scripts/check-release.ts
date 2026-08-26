@@ -6,7 +6,7 @@ import { isJsonObject, parseStrictJson } from '@paperandslate/eom-core';
 
 const root = resolve(process.cwd());
 const releaseRoot = join(root, 'release');
-const expectedRelease = '1.0.0-rc.2';
+const expectedRelease = '1.0.0-rc.3';
 const manifest = parseStrictJson(await readFile(join(releaseRoot, 'manifest.json'), 'utf8'));
 const failures: string[] = [];
 
@@ -35,12 +35,21 @@ if (!isRecord(manifest) || !Array.isArray(manifest.artifacts)) {
     if (manifest.externalGates.productionDeployment !== 'not-authorized')
       failures.push('release manifest must keep production deployment not-authorized');
   }
-  if (
-    !isRecord(manifest.historicalSuperseded) ||
-    manifest.historicalSuperseded.release !== '1.0.0-rc.1' ||
-    manifest.historicalSuperseded.status !== 'preserved-immutable-superseded'
-  ) {
-    failures.push('release manifest must identify preserved RC1 evidence as superseded.');
+  const historical: unknown[] = [
+    ...(isRecord(manifest.historicalSuperseded) ? [manifest.historicalSuperseded] : []),
+    ...(Array.isArray(manifest.historicalSupersededReleases)
+      ? manifest.historicalSupersededReleases.filter(isRecord)
+      : []),
+  ];
+  const historicalRecords = historical.filter(isRecord);
+  for (const release of ['1.0.0-rc.1', '1.0.0-rc.2']) {
+    if (
+      !historicalRecords.some(
+        (entry) => entry.release === release && entry.status === 'preserved-immutable-superseded',
+      )
+    ) {
+      failures.push(`release manifest must identify preserved ${release} evidence as superseded.`);
+    }
   }
 
   const artifactPaths = new Set<string>();
@@ -80,6 +89,7 @@ if (!isRecord(manifest) || !Array.isArray(manifest.artifacts)) {
     `eom-documentation-${expectedRelease}.tar.gz`,
     'sbom.cdx.json',
     'build-provenance.json',
+    'package-pack-manifest.json',
     `v${expectedRelease}/STATUS.md`,
   ];
   for (const path of requiredArtifacts) {
@@ -96,6 +106,16 @@ try {
     failures.push('historical RC1 artifact does not contain its original status marker');
 } catch {
   failures.push('historical RC1 candidate must remain present and immutable.');
+}
+
+const historicalRc2Root = join(releaseRoot, 'v1.0.0-rc.2');
+try {
+  await access(join(historicalRc2Root, 'STATUS.md'));
+  const historicalStatus = await readFile(join(historicalRc2Root, 'STATUS.md'), 'utf8');
+  if (!historicalStatus.includes('# EOM 1.0.0-rc.2'))
+    failures.push('historical RC2 artifact does not contain its original status marker');
+} catch {
+  failures.push('historical RC2 candidate must remain present and immutable.');
 }
 
 const checksums = await readText('checksums.sha256');
@@ -150,7 +170,10 @@ const provenance = parseStrictJson(
 if (
   !isRecord(provenance) ||
   provenance.provenanceStatus !== 'local metadata; not a signed external attestation' ||
-  !isCommit(provenance.sourceCommit)
+  !isCommit(provenance.sourceCommit) ||
+  !isRecord(manifest) ||
+  provenance.sourceCommit !== manifest.sourceCommit ||
+  provenance.sourceTree !== manifest.sourceTree
 ) {
   failures.push('build provenance must bind a source commit and state that it is local metadata.');
 }
@@ -160,12 +183,86 @@ if (!isRecord(sbom) || sbom.bomFormat !== 'CycloneDX' || sbom.specVersion !== '1
 if (isRecord(sbom) && !Array.isArray(sbom.components))
   failures.push('SBOM must contain components.');
 
+const packagePackManifest = parseStrictJson(
+  await readText('package-pack-manifest.json'),
+  'release/package-pack-manifest.json',
+);
+if (
+  !isRecord(packagePackManifest) ||
+  packagePackManifest.version !== 1 ||
+  packagePackManifest.release !== expectedRelease ||
+  !isCommit(packagePackManifest.sourceCommit) ||
+  !isCommit(packagePackManifest.sourceTree) ||
+  packagePackManifest.sourceCommit !== (isRecord(manifest) ? manifest.sourceCommit : undefined) ||
+  packagePackManifest.sourceTree !== (isRecord(manifest) ? manifest.sourceTree : undefined) ||
+  packagePackManifest.packageManager !== 'pnpm@10.6.0' ||
+  !Array.isArray(packagePackManifest.packages) ||
+  packagePackManifest.packages.length === 0
+) {
+  failures.push(
+    'package-pack-manifest.json must bind all clean package packs to RC3, the release source, and pnpm@10.6.0.',
+  );
+} else {
+  const packageNames = new Set<string>();
+  for (const packageEntry of packagePackManifest.packages) {
+    if (!isRecord(packageEntry)) {
+      failures.push('package-pack-manifest.json contains a malformed package entry.');
+      continue;
+    }
+    const name = packageEntry.name;
+    const version = packageEntry.version;
+    const tarball = packageEntry.tarball;
+    const bytes = packageEntry.bytes;
+    const digest = packageEntry.sha256;
+    const files = packageEntry.files;
+    if (
+      typeof name !== 'string' ||
+      typeof version !== 'string' ||
+      typeof tarball !== 'string' ||
+      typeof bytes !== 'number' ||
+      typeof digest !== 'string' ||
+      !Array.isArray(files) ||
+      !files.every((file) => typeof file === 'string')
+    ) {
+      failures.push('package-pack-manifest.json contains an invalid package record.');
+      continue;
+    }
+    if (packageNames.has(name)) failures.push(`duplicate packed package: ${name}`);
+    packageNames.add(name);
+    if (version !== expectedRelease)
+      failures.push(`${name}: package version is not ${expectedRelease}.`);
+    if (!tarball.startsWith('packages/') || !isWithin(releaseRoot, join(releaseRoot, tarball)))
+      failures.push(`${name}: package tarball path escapes the release root.`);
+    if (!files.includes('dist/index.js') || !files.includes('dist/index.d.ts'))
+      failures.push(`${name}: package pack is missing compiled entrypoints.`);
+    if (files.some((file) => file.startsWith('src/')))
+      failures.push(`${name}: package pack contains repository source files.`);
+    const artifact =
+      isRecord(manifest) && Array.isArray(manifest.artifacts)
+        ? manifest.artifacts.find((entry) => isRecord(entry) && entry.path === tarball)
+        : undefined;
+    if (!artifact) failures.push(`${name}: package tarball is absent from the release manifest.`);
+    try {
+      const packedBytes = await readFile(join(releaseRoot, tarball));
+      if (packedBytes.length !== bytes) failures.push(`${name}: packed byte length changed.`);
+      if (sha256(packedBytes) !== digest) failures.push(`${name}: packed SHA-256 changed.`);
+      if (
+        isRecord(artifact) &&
+        (artifact.bytes !== packedBytes.length || artifact.sha256 !== digest)
+      )
+        failures.push(`${name}: release manifest does not match package pack metadata.`);
+    } catch {
+      failures.push(`${name}: package tarball is missing.`);
+    }
+  }
+}
+
 if (failures.length > 0) {
   console.error(failures.join('\n'));
   process.exitCode = 1;
 } else {
   console.log(
-    `release check passed: ${isRecord(manifest) && Array.isArray(manifest.artifacts) ? manifest.artifacts.length : 0} RC2 artifacts and preserved RC1 evidence verified`,
+    `release check passed: ${isRecord(manifest) && Array.isArray(manifest.artifacts) ? manifest.artifacts.length : 0} RC3 artifacts and preserved RC1/RC2 evidence verified`,
   );
 }
 

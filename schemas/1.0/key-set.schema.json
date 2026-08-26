@@ -15,7 +15,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["kid", "kty", "use", "status"],
+        "required": ["kid", "kty", "use", "alg", "status", "publicKeyJwk"],
         "properties": {
           "kid": { "$ref": "common.schema.json#/$defs/absoluteUri" },
           "kty": { "type": "string", "minLength": 1 },

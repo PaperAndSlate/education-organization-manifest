@@ -124,6 +124,95 @@ describe('EOM delegated authority', () => {
         .accepted,
     ).toBe(false);
   });
+
+  it('rejects a delegated signature whose key is absent from the delegation allowlist', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = delegatedResource(
+      'meal-menu-catalog',
+      'https://ecme-high.example/eom/resource/meals',
+    );
+    const keyId = 'https://ecme-high.example/eom/keys#unexpected-key';
+    const signature = signDetached(resource, { privateKey, keyId });
+    const keySet = { keys: [publicKeyRecord(publicKey, { keyId })] };
+    const delegation = {
+      id: 'https://ecme-high.example/id/delegation/meals',
+      delegate: 'https://menus.vendor.example/id/organization',
+      scope: {
+        resourceTypes: ['meal-menu-catalog'],
+        resourceIds: ['https://ecme-high.example/eom/resource/meals'],
+        allowedOrigins: ['https://menus.vendor.example'],
+      },
+      keys: ['https://ecme-high.example/eom/keys#approved-key'],
+      validFrom: '2027-01-01T00:00:00Z',
+      validUntil: '2028-01-01T00:00:00Z',
+      transitive: false,
+      status: 'active',
+      subject: 'https://ecme-high.example/id/school',
+    };
+    const result = verifyDetached(resource, signature, keySet, {
+      now: new Date('2027-08-01T00:00:00Z'),
+      manifest: rootManifest(delegation),
+      resource,
+      finalUrl: 'https://menus.vendor.example/customers/ecme-high/meals.json',
+    });
+    expect(result.overall).toBe(false);
+    expect(result.delegationScopeValid).toBe(false);
+  });
+
+  it('rejects a manifest delegation whose subject does not match the resource subject', () => {
+    const manifest = fixture('fixtures/valid/core/minimal-school-manifest.json') as Record<
+      string,
+      unknown
+    >;
+    manifest.delegations = [
+      {
+        id: 'https://ecme-high.example/id/delegation/meals',
+        delegate: 'https://menus.vendor.example/id/organization',
+        scope: {
+          resourceTypes: ['meal-menu-catalog'],
+          resourceIds: ['https://ecme-high.example/eom/resource/meals'],
+          allowedOrigins: ['https://menus.vendor.example'],
+        },
+        validFrom: '2027-01-01T00:00:00Z',
+        validUntil: '2028-01-01T00:00:00Z',
+        transitive: false,
+        status: 'active',
+        subject: 'https://ecme-high.example/id/other-school',
+      },
+    ];
+    manifest.resources = [
+      ...((manifest.resources as unknown[]) ?? []),
+      {
+        id: 'https://ecme-high.example/eom/resource/meals',
+        type: 'meal-menu-catalog',
+        href: 'https://menus.vendor.example/customers/ecme-high/meals.json',
+        mediaType: 'application/json',
+        version: '1.0',
+        subjects: ['https://ecme-high.example/id/school'],
+        languages: ['en-US'],
+      },
+    ];
+    const result = validateDocument(manifest, { now: new Date('2027-08-01T00:00:00Z') });
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_DELEGATION_SUBJECT_MISMATCH' }),
+      ]),
+    );
+  });
+
+  it('requires a finite delegation validity interval', () => {
+    const delegation = fixture('fixtures/delegation/vendor-meals.json') as Record<string, unknown>;
+    delete delegation.validUntil;
+    const result = validateDocument(delegation, {
+      schemaFile: 'delegation.schema.json',
+      now: new Date('2127-08-01T00:00:00Z'),
+    });
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_SCHEMA_REQUIRED' })]),
+    );
+  });
 });
 
 describe('EOM optional JCS and detached Ed25519 signatures', () => {
@@ -287,6 +376,53 @@ describe('EOM optional JCS and detached Ed25519 signatures', () => {
       expect.arrayContaining([
         expect.objectContaining({ code: 'EOM_SIGNATURE_PROTECTED_INVALID' }),
       ]),
+    );
+  });
+
+  it('does not allow signature expiry to be removed from an otherwise identical record', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    const keyId = 'https://ecme-high.example/eom/keys#signing-2027';
+    const signature = signDetached(resource, {
+      privateKey,
+      keyId,
+      expires: '2028-01-01T00:00:00Z',
+    });
+    const keySet = { keys: [publicKeyRecord(publicKey, { keyId })] };
+    const signed = signature as typeof signature & { readonly expires?: string };
+    expect(signed.expires).toBe('2028-01-01T00:00:00.000Z');
+    const expired = { ...signature, expires: '2020-01-01T00:00:00Z' };
+    expect(
+      verifyDetached(resource, expired, keySet, {
+        now: new Date('2027-08-01T00:00:00Z'),
+      }).overall,
+    ).toBe(false);
+    const missing = { ...signature } as Record<string, unknown>;
+    delete missing.expires;
+    expect(
+      verifyDetached(resource, missing, keySet, {
+        now: new Date('2027-08-01T00:00:00Z'),
+      }).overall,
+    ).toBe(false);
+  });
+
+  it('fails closed for ambiguous or malformed verification key sets', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    const keyId = 'https://ecme-high.example/eom/keys#duplicate';
+    const signature = signDetached(resource, { privateKey, keyId });
+    const key = publicKeyRecord(publicKey, { keyId });
+    const duplicate = verifyDetached(resource, signature, { keys: [key, key] });
+    expect(duplicate.overall).toBe(false);
+    expect(duplicate.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_SIGNATURE_KEY_DUPLICATE_ID' })]),
+    );
+    const malformed = verifyDetached(resource, signature, {
+      keys: [{ ...key, status: 'unknown', revokedAt: 'not-a-date' }],
+    });
+    expect(malformed.overall).toBe(false);
+    expect(malformed.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_SIGNATURE_KEY_SET_INVALID' })]),
     );
   });
 });

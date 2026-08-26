@@ -13,7 +13,7 @@ import {
   type JsonValue,
 } from '@paperandslate/eom-core';
 import { evaluateAuthority, type AuthorityResult } from '@paperandslate/eom-authority';
-import { finding, type Finding } from '@paperandslate/eom-validator';
+import { finding, type Finding } from '@paperandslate/eom-core';
 
 export interface SignOptions {
   readonly privateKey: KeyObject | string | Uint8Array;
@@ -22,6 +22,7 @@ export interface SignOptions {
   readonly signatureId?: string;
   readonly canonical?: string;
   readonly createdAt?: Date | string;
+  readonly expires?: Date | string;
 }
 
 export interface DetachedSignatureRecord {
@@ -41,6 +42,7 @@ export interface DetachedSignatureRecord {
   readonly compact: string;
   readonly detached: true;
   readonly createdAt: string;
+  readonly expires?: string;
   readonly contentType: 'application/json';
 }
 
@@ -68,6 +70,7 @@ export interface SignatureVerificationResult {
   readonly signatureValid: boolean;
   readonly keyTemporalValid: boolean;
   readonly keyRevoked: boolean;
+  readonly keySetExpiryValid: boolean;
   readonly delegationScopeValid: boolean | 'not-evaluated';
   readonly rootAuthorityStatus: 'accepted' | 'rejected' | 'not-evaluated';
   readonly resourceExpiryValid: boolean;
@@ -96,6 +99,7 @@ export interface UnsignedVerificationResult {
 
 const SPECIFICATION = 'https://paperandslate.org/spec/eom/1.0';
 const SIGNATURE_SCHEMA = 'https://paperandslate.org/schemas/eom/1.0/signature.schema.json';
+const KEY_SET_SCHEMA = 'https://paperandslate.org/schemas/eom/1.0/key-set.schema.json';
 const MAX_SIGNATURE_JSON_DEPTH = 128;
 
 /** Canonicalize JSON using the EOM RFC 8785 JCS profile. */
@@ -131,12 +135,25 @@ export function signDetached(value: unknown, options: SignOptions): DetachedSign
     );
   }
   const payload = canonicalizeJson(value);
+  const createdAt = toIso(options.createdAt ?? new Date());
+  const expires = options.expires === undefined ? undefined : toIso(options.expires);
+  if (expires !== undefined && Date.parse(createdAt) >= Date.parse(expires)) {
+    throw new SignaturePolicyError(
+      'EOM_SIGNATURE_TIME_INVALID',
+      'Signature expires must be later than its creation time.',
+    );
+  }
   const protectedHeader = {
     alg: 'EdDSA',
     b64: false,
     crit: ['b64', 'eom'],
     cty: 'application/json',
-    eom: 'RFC8785-JCS',
+    eom: {
+      version: '1.0',
+      canonicalization: 'RFC8785-JCS',
+      createdAt,
+      ...(expires === undefined ? {} : { expires }),
+    },
     kid: options.keyId,
   } as const;
   const protectedValue = encodeBase64Url(Buffer.from(JSON.stringify(protectedHeader), 'utf8'));
@@ -147,7 +164,6 @@ export function signDetached(value: unknown, options: SignOptions): DetachedSign
   const signatureBytes = sign(null, signingInput, normalizePrivateKey(options.privateKey));
   const signature = encodeBase64Url(signatureBytes);
   const digest = digestBytes(Buffer.from(payload, 'utf8'));
-  const createdAt = toIso(options.createdAt ?? new Date());
   const signatureId = options.signatureId ?? `${subject}#signature-${digest.slice(-16)}`;
   const canonical = options.canonical ?? `${subject}#signature`;
   return {
@@ -167,6 +183,7 @@ export function signDetached(value: unknown, options: SignOptions): DetachedSign
     compact: `${protectedValue}..${signature}`,
     detached: true,
     createdAt,
+    ...(expires === undefined ? {} : { expires }),
     contentType: 'application/json',
   };
 }
@@ -252,8 +269,23 @@ export function verifyDetached(
     findings,
   );
   const headerValid =
-    recordProfileValid && header !== undefined && validateProtectedHeader(header, keyId, findings);
+    recordProfileValid &&
+    header !== undefined &&
+    validateProtectedHeader(header, keyId, signature, findings);
   const keyRecord = keyId ? findKey(keySet, keyId) : undefined;
+  const keySetValid = validateKeySet(keySet, findings);
+  const keyRecordValid = keyRecord === undefined || validateKeyRecord(keyRecord, findings);
+  const keySetExpiryValid = isResourceCurrent(keySet, now);
+  if (!keySetExpiryValid) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SET_EXPIRED',
+        'freshness',
+        'The verification key set is past its declared expiry.',
+        { severity: 'error', pointer: '/expires' },
+      ),
+    );
+  }
   if (!keyRecord) {
     findings.push(
       finding(
@@ -299,7 +331,15 @@ export function verifyDetached(
       ),
     );
   let signatureValid = false;
-  if (canonicalPayload && protectedValue && signatureValue && headerValid && keyRecord) {
+  if (
+    canonicalPayload &&
+    protectedValue &&
+    signatureValue &&
+    headerValid &&
+    keySetValid &&
+    keyRecordValid &&
+    keyRecord
+  ) {
     try {
       const publicKey = publicKeyFromRecord(keyRecord);
       const signingInput = Buffer.concat([
@@ -350,7 +390,10 @@ export function verifyDetached(
     options.resource !== undefined &&
     options.finalUrl !== undefined;
   if (hasAuthorityInputs) {
-    authority = evaluateAuthority(options.manifest, options.resource, options.finalUrl, { now });
+    authority = evaluateAuthority(options.manifest, options.resource, options.finalUrl, {
+      now,
+      ...(signatureValid && keyId ? { verifiedKeyId: keyId } : {}),
+    });
     findings.push(...authority.findings);
   }
   const delegationScopeValid = authority?.accepted ?? 'not-evaluated';
@@ -364,25 +407,28 @@ export function verifyDetached(
     digestMatch &&
     headerValid &&
     keyTemporalValid &&
+    keySetExpiryValid &&
     !keyRevoked &&
     signatureValid &&
     subjectMatch &&
     resourceExpiryValid &&
     signatureExpiryValid &&
     (authority === undefined || authority.accepted);
+  const verifiedOverall = overall && keySetValid && keyRecordValid;
   return {
     canonicalizationValid,
     digestMatch,
     signatureValid,
     keyTemporalValid,
     keyRevoked,
+    keySetExpiryValid,
     delegationScopeValid,
     rootAuthorityStatus,
     resourceExpiryValid,
     signatureExpiryValid,
     subjectMatch,
     unsigned: false,
-    overall,
+    overall: verifiedOverall,
     findings: uniqueFindings(findings),
     ...(authority ? { authority } : {}),
   };
@@ -482,6 +528,7 @@ function decodeProtectedHeader(
 function validateProtectedHeader(
   header: Record<string, unknown>,
   keyId: string | undefined,
+  signature: unknown,
   findings: Finding[],
 ): boolean {
   let valid = true;
@@ -499,8 +546,13 @@ function validateProtectedHeader(
   if (
     header.b64 !== false ||
     !Array.isArray(header.crit) ||
+    new Set(header.crit).size !== header.crit.length ||
+    header.crit.length !== 2 ||
     !header.crit.includes('b64') ||
-    header.eom !== 'RFC8785-JCS'
+    !header.crit.includes('eom') ||
+    !isJsonObject(header.eom) ||
+    header.eom.version !== '1.0' ||
+    header.eom.canonicalization !== 'RFC8785-JCS'
   ) {
     findings.push(
       finding(
@@ -508,6 +560,81 @@ function validateProtectedHeader(
         'integrity',
         'The protected header does not declare the EOM detached RFC 8785 profile.',
         { severity: 'error' },
+      ),
+    );
+    valid = false;
+  }
+  const metadata = isJsonObject(header.eom) ? header.eom : undefined;
+  if (
+    metadata &&
+    Object.keys(metadata).some(
+      (key) => !['version', 'canonicalization', 'createdAt', 'expires'].includes(key),
+    )
+  ) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_PROFILE_INVALID',
+        'integrity',
+        'The protected EOM lifetime object contains an unknown property.',
+        { severity: 'error', pointer: '/protected/eom' },
+      ),
+    );
+    valid = false;
+  }
+  const sidecarCreatedAt = stringAt(signature, ['createdAt']);
+  const sidecarExpires = stringAt(signature, ['expires']);
+  const metadataExpiresPresent = metadata !== undefined && 'expires' in metadata;
+  const sidecarExpiresPresent = isJsonObject(signature) && 'expires' in signature;
+  if (
+    metadata === undefined ||
+    metadata.createdAt === undefined ||
+    metadata.createdAt !== sidecarCreatedAt ||
+    metadataExpiresPresent !== sidecarExpiresPresent ||
+    (metadataExpiresPresent && metadata.expires !== sidecarExpires)
+  ) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_LIFETIME_BINDING',
+        'integrity',
+        'Protected signature lifetime metadata must exactly match the sidecar record.',
+        { severity: 'error', pointer: '/createdAt' },
+      ),
+    );
+    valid = false;
+  }
+  const contentType = stringAt(signature, ['contentType']);
+  const sidecarAlgorithm = stringAt(signature, ['algorithm']);
+  const sidecarCanonicalization = stringAt(signature, ['canonicalization']);
+  const sidecarKeyId = stringAt(signature, ['keyId']);
+  if (header.cty !== contentType) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_CONTENT_TYPE_BINDING',
+        'integrity',
+        'The protected content type must exactly match the sidecar record.',
+        { severity: 'error', pointer: '/contentType' },
+      ),
+    );
+    valid = false;
+  }
+  if (header.alg !== sidecarAlgorithm) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_ALGORITHM_BINDING',
+        'integrity',
+        'The protected algorithm must exactly match the sidecar record.',
+        { severity: 'error', pointer: '/algorithm' },
+      ),
+    );
+    valid = false;
+  }
+  if (metadata && metadata.canonicalization !== sidecarCanonicalization) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_CANONICALIZATION_BINDING',
+        'integrity',
+        'The protected canonicalization must exactly match the sidecar record.',
+        { severity: 'error', pointer: '/canonicalization' },
       ),
     );
     valid = false;
@@ -527,7 +654,7 @@ function validateProtectedHeader(
       }
     }
   }
-  if (typeof header.kid !== 'string' || header.kid !== keyId) {
+  if (typeof header.kid !== 'string' || header.kid !== keyId || header.kid !== sidecarKeyId) {
     findings.push(
       finding(
         'EOM_SIGNATURE_KEY_BINDING',
@@ -548,6 +675,42 @@ function validateSignatureRecord(
   findings: Finding[],
 ): boolean {
   let valid = true;
+  if (isJsonObject(signature)) {
+    const allowedFields = new Set([
+      '$schema',
+      'specification',
+      'version',
+      'id',
+      'type',
+      'canonical',
+      'subject',
+      'keyId',
+      'algorithm',
+      'canonicalization',
+      'payloadDigest',
+      'protected',
+      'signature',
+      'compact',
+      'detached',
+      'createdAt',
+      'expires',
+      'contentType',
+      'provenance',
+      'extensions',
+    ]);
+    for (const field of Object.keys(signature)) {
+      if (allowedFields.has(field)) continue;
+      findings.push(
+        finding(
+          'EOM_SIGNATURE_PROFILE_INVALID',
+          'integrity',
+          `The signature contains unsupported property ${field}.`,
+          { severity: 'error', pointer: `/${escapeJsonPointer(field)}` },
+        ),
+      );
+      valid = false;
+    }
+  }
   const requiredStrings: readonly [string, string][] = [
     ['$schema', SIGNATURE_SCHEMA],
     ['specification', SPECIFICATION],
@@ -555,6 +718,7 @@ function validateSignatureRecord(
     ['type', 'signature'],
     ['algorithm', 'EdDSA'],
     ['canonicalization', 'RFC8785-JCS'],
+    ['contentType', 'application/json'],
   ];
   for (const [field, expected] of requiredStrings) {
     if (stringAt(signature, [field]) !== expected) {
@@ -607,7 +771,7 @@ function validateSignatureRecord(
     valid = false;
   }
   const createdAt = stringAt(signature, ['createdAt']);
-  if (!createdAt || Number.isNaN(Date.parse(createdAt))) {
+  if (!createdAt || !isDateTime(createdAt)) {
     findings.push(
       finding(
         'EOM_SIGNATURE_PROFILE_INVALID',
@@ -619,12 +783,29 @@ function validateSignatureRecord(
     valid = false;
   }
   const expires = stringAt(signature, ['expires']);
-  if (expires !== undefined && Number.isNaN(Date.parse(expires))) {
+  if (expires !== undefined && !isDateTime(expires)) {
     findings.push(
       finding(
         'EOM_SIGNATURE_PROFILE_INVALID',
         'integrity',
         'The signature expiry time must be a valid date-time.',
+        { severity: 'error', pointer: '/expires' },
+      ),
+    );
+    valid = false;
+  }
+  if (
+    createdAt !== undefined &&
+    expires !== undefined &&
+    isDateTime(createdAt) &&
+    isDateTime(expires) &&
+    Date.parse(createdAt) >= Date.parse(expires)
+  ) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_TIME_INVALID',
+        'freshness',
+        'The signature expiry time must be later than its creation time.',
         { severity: 'error', pointer: '/expires' },
       ),
     );
@@ -678,6 +859,284 @@ function findKey(keySet: unknown, keyId: string): unknown {
   return keys.find((key) => stringAt(key, ['kid']) === keyId);
 }
 
+function validateKeySet(keySet: unknown, findings: Finding[]): boolean {
+  let valid = true;
+  if (!isJsonObject(keySet)) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SET_INVALID',
+        'integrity',
+        'The verification key set must be a JSON object.',
+        { severity: 'error' },
+      ),
+    );
+    return false;
+  }
+  // The public API historically accepted a `{ keys: [...] }` verification
+  // fragment. Preserve that input shape while enforcing the complete schema
+  // whenever a caller supplies any key-set identity metadata.
+  const hasProfileMetadata = Object.keys(keySet).some((field) => field !== 'keys');
+  if (hasProfileMetadata) {
+    const requiredStrings: readonly [string, string][] = [
+      ['$schema', KEY_SET_SCHEMA],
+      ['specification', SPECIFICATION],
+      ['version', '1.0'],
+      ['type', 'key-set'],
+    ];
+    for (const [field, expected] of requiredStrings) {
+      if (stringAt(keySet, [field]) === expected) continue;
+      findings.push(
+        finding(
+          'EOM_SIGNATURE_KEY_SET_INVALID',
+          'integrity',
+          `The verification key set field ${field} must equal ${expected}.`,
+          { severity: 'error', pointer: `/${escapeJsonPointer(field)}` },
+        ),
+      );
+      valid = false;
+    }
+    for (const field of ['id', 'canonical'] as const) {
+      const value = stringAt(keySet, [field]);
+      const accepted =
+        field === 'canonical'
+          ? value !== undefined && isHttpsUri(value)
+          : value !== undefined && isAbsoluteHttpsOrUri(value);
+      if (accepted) continue;
+      findings.push(
+        finding(
+          'EOM_SIGNATURE_KEY_SET_INVALID',
+          'integrity',
+          `The verification key set ${field} must be an absolute ${field === 'canonical' ? 'HTTPS ' : ''}URI.`,
+          { severity: 'error', pointer: `/${field}` },
+        ),
+      );
+      valid = false;
+    }
+    const allowedFields = new Set([
+      '$schema',
+      'specification',
+      'version',
+      'id',
+      'type',
+      'canonical',
+      'keys',
+      'modified',
+      'expires',
+      'provenance',
+      'extensions',
+    ]);
+    for (const field of Object.keys(keySet)) {
+      if (allowedFields.has(field)) continue;
+      findings.push(
+        finding(
+          'EOM_SIGNATURE_KEY_SET_INVALID',
+          'integrity',
+          `The verification key set contains unsupported property ${field}.`,
+          { severity: 'error', pointer: `/${escapeJsonPointer(field)}` },
+        ),
+      );
+      valid = false;
+    }
+    for (const field of ['modified', 'expires'] as const) {
+      const rawValue = valueAt(keySet, [field]);
+      const value = stringAt(keySet, [field]);
+      if (rawValue === undefined || (value !== undefined && isDateTime(value))) continue;
+      findings.push(
+        finding(
+          'EOM_SIGNATURE_KEY_SET_INVALID',
+          'integrity',
+          `The verification key set ${field} value is not a valid date-time.`,
+          { severity: 'error', pointer: `/${field}` },
+        ),
+      );
+      valid = false;
+    }
+  }
+  const rawKeys = valueAt(keySet, ['keys']);
+  if (!Array.isArray(rawKeys)) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SET_INVALID',
+        'integrity',
+        'The verification key set must contain a keys array.',
+        { severity: 'error', pointer: '/keys' },
+      ),
+    );
+    return false;
+  }
+  const seen = new Set<string>();
+  for (const [index, key] of rawKeys.entries()) {
+    const keyId = stringAt(key, ['kid']);
+    if (!keyId) {
+      findings.push(
+        finding(
+          'EOM_SIGNATURE_KEY_SET_INVALID',
+          'integrity',
+          'Every verification key must have a key identifier.',
+          { severity: 'error', pointer: `/keys/${index}/kid` },
+        ),
+      );
+      valid = false;
+      continue;
+    }
+    if (seen.has(keyId)) {
+      findings.push(
+        finding(
+          'EOM_SIGNATURE_KEY_DUPLICATE_ID',
+          'integrity',
+          'A verification key set must not contain duplicate key identifiers.',
+          { severity: 'error', pointer: `/keys/${index}/kid`, related: [keyId] },
+        ),
+      );
+      valid = false;
+    }
+    seen.add(keyId);
+    if (!validateKeyRecord(key, findings)) valid = false;
+  }
+  return valid;
+}
+
+function validateKeyRecord(record: unknown, findings: Finding[]): boolean {
+  let valid = true;
+  if (!isJsonObject(record)) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SET_INVALID',
+        'integrity',
+        'A verification key must be a JSON object.',
+        { severity: 'error' },
+      ),
+    );
+    return false;
+  }
+  const allowedFields = new Set([
+    'kid',
+    'kty',
+    'use',
+    'alg',
+    'purpose',
+    'owner',
+    'scope',
+    'status',
+    'publicKeyJwk',
+    'validFrom',
+    'validUntil',
+    'revokedAt',
+    'successor',
+    'provenance',
+  ]);
+  for (const field of Object.keys(record)) {
+    if (allowedFields.has(field)) continue;
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SET_INVALID',
+        'integrity',
+        `A verification key contains unsupported property ${field}.`,
+        { severity: 'error', pointer: `/keys/${escapeJsonPointer(field)}` },
+      ),
+    );
+    valid = false;
+  }
+  const requiredValues: readonly [string, unknown][] = [
+    ['kty', 'OKP'],
+    ['use', 'sig'],
+    ['alg', 'EdDSA'],
+  ];
+  for (const [field, expected] of requiredValues) {
+    if (valueAt(record, [field]) === expected) continue;
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SET_INVALID',
+        'integrity',
+        `A verification key field ${field} must equal ${String(expected)}.`,
+        { severity: 'error', pointer: `/keys/${field}` },
+      ),
+    );
+    valid = false;
+  }
+  const keyId = stringAt(record, ['kid']);
+  if (!keyId || !isAbsoluteHttpsOrUri(keyId)) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SET_INVALID',
+        'integrity',
+        'A verification key kid must be an absolute URI.',
+        { severity: 'error', pointer: '/keys/kid' },
+      ),
+    );
+    valid = false;
+  }
+  const publicJwk = valueAt(record, ['publicKeyJwk']);
+  if (
+    !isJsonObject(publicJwk) ||
+    publicJwk.kty !== 'OKP' ||
+    publicJwk.crv !== 'Ed25519' ||
+    typeof publicJwk.x !== 'string' ||
+    !/^[A-Za-z0-9_-]+$/u.test(publicJwk.x) ||
+    Object.keys(publicJwk).some((field) => !['kty', 'crv', 'x'].includes(field))
+  ) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SET_INVALID',
+        'integrity',
+        'A verification key must contain only a public Ed25519 JWK.',
+        { severity: 'error', pointer: '/keys/publicKeyJwk' },
+      ),
+    );
+    valid = false;
+  }
+  const status = stringAt(record, ['status']);
+  if (status !== 'active' && status !== 'revoked' && status !== 'expired') {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SET_INVALID',
+        'integrity',
+        'A verification key must declare a recognized lifecycle status.',
+        { severity: 'error', pointer: '/keys/status' },
+      ),
+    );
+    valid = false;
+  }
+  const validFrom = stringAt(record, ['validFrom']);
+  const validUntil = stringAt(record, ['validUntil']);
+  const revokedAt = stringAt(record, ['revokedAt']);
+  for (const [field, value] of [
+    ['validFrom', validFrom],
+    ['validUntil', validUntil],
+    ['revokedAt', revokedAt],
+  ] as const) {
+    if (valueAt(record, [field]) !== undefined && (value === undefined || !isDateTime(value))) {
+      findings.push(
+        finding(
+          'EOM_SIGNATURE_KEY_SET_INVALID',
+          'integrity',
+          `The verification key ${field} value is not a valid date-time.`,
+          { severity: 'error', pointer: `/keys/${field}` },
+        ),
+      );
+      valid = false;
+    }
+  }
+  if (
+    validFrom !== undefined &&
+    validUntil !== undefined &&
+    isDateTime(validFrom) &&
+    isDateTime(validUntil) &&
+    Date.parse(validFrom) >= Date.parse(validUntil)
+  ) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SET_INVALID',
+        'integrity',
+        'A verification key validFrom must be earlier than validUntil.',
+        { severity: 'error', pointer: '/keys/validUntil' },
+      ),
+    );
+    valid = false;
+  }
+  return valid;
+}
+
 function publicKeyFromRecord(record: unknown): KeyObject {
   const jwk = valueAt(record, ['publicKeyJwk']);
   if (
@@ -712,11 +1171,28 @@ function normalizePrivateKey(value: KeyObject | string | Uint8Array): KeyObject 
 function isWithinKeyPeriod(record: unknown, now: Date): boolean {
   const validFrom = stringAt(record, ['validFrom']);
   const validUntil = stringAt(record, ['validUntil']);
-  const from = validFrom === undefined ? undefined : Date.parse(validFrom);
-  const until = validUntil === undefined ? undefined : Date.parse(validUntil);
+  const from =
+    validFrom === undefined
+      ? undefined
+      : isDateTime(validFrom)
+        ? Date.parse(validFrom)
+        : Number.NaN;
+  const until =
+    validUntil === undefined
+      ? undefined
+      : isDateTime(validUntil)
+        ? Date.parse(validUntil)
+        : Number.NaN;
   return (
     (from === undefined || (!Number.isNaN(from) && from <= now.getTime())) &&
     (until === undefined || (!Number.isNaN(until) && until >= now.getTime()))
+  );
+}
+
+function isDateTime(value: string): boolean {
+  return (
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/u.test(value) &&
+    !Number.isNaN(Date.parse(value))
   );
 }
 

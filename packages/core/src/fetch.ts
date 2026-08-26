@@ -104,6 +104,9 @@ export function discoveryUrl(originOrUrl: string): string {
   if (!['http:', 'https:'].includes(parsed.protocol)) {
     throw new EomFetchError('EOM_FETCH_SCHEME', 'Discovery requires an HTTP(S) URL.', originOrUrl);
   }
+  // Discovery is always upgraded before the first request.  An HTTP origin is
+  // only an input spelling; it is never allowed to become an HTTP transport.
+  parsed.protocol = 'https:';
   if (parsed.username || parsed.password) {
     throw new EomFetchError(
       'EOM_FETCH_USERINFO',
@@ -259,7 +262,14 @@ export async function fetchManifest(
   originOrUrl: string,
   options: FetchOptions = {},
 ): Promise<ManifestFetchResponse> {
-  const response = await fetchEom(discoveryUrl(originOrUrl), options);
+  const discoveredUrl = discoveryUrl(originOrUrl);
+  // Local HTTP fixtures are an explicit test-only exception.  Normal callers
+  // always receive the HTTPS-normalized discovery URL above.
+  const requestUrl =
+    options.allowHttp === true && /^http:\/\//iu.test(originOrUrl)
+      ? discoveredUrl.replace(/^https:/iu, 'http:')
+      : discoveredUrl;
+  const response = await fetchEom(requestUrl, options);
   let document: JsonValue;
   try {
     document = parseStrictJson(response.body, response.finalUrl);
@@ -396,7 +406,7 @@ async function request(
           headers: {
             accept: 'application/json',
             'accept-encoding': 'identity',
-            'user-agent': options.userAgent ?? 'paperandslate-eom/1.0.0-rc.2',
+            'user-agent': options.userAgent ?? 'paperandslate-eom/1.0.0-rc.3',
             host: parsed.host,
           },
           ...(parsed.protocol === 'https:'

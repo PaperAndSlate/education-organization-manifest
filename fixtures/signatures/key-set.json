@@ -14,9 +14,11 @@
       "status": "active",
       "publicKeyJwk": {
         "crv": "Ed25519",
-        "x": "cmOcQCapn-bjuIyeLBfXYI6D3Bmudw0-hl1TzwBBx1M",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
         "kty": "OKP"
-      }
+      },
+      "purpose": "EOM publication integrity",
+      "owner": "https://ecme-high.example/id/school"
     }
   ],
   "expires": "2030-01-01T00:00:00Z"

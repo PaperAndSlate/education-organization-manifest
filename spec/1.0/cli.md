@@ -29,6 +29,12 @@ destination as appropriate. Reports can be emitted as JSON, SARIF, JUnit XML, HT
 versioned conformance shape. URL and origin inputs are validated before transport; redirects are
 bounded and revalidated.
 
+`build --mode` accepts `full`, `module`, `organization`, or `changed-files`. `--changed` may be
+repeated only with `changed-files` mode; Git state is never inferred. A partial build must name a
+distinct output and its report identifies selected inputs, dependency closure, omitted resources,
+destination kind, and whether the result is a complete publication. `--dry-run` and validation-only
+commands are report-only and never replace publication content.
+
 Operational environment defaults are supported for automation: `EOM_TIMEOUT`, `EOM_MAX_BYTES`,
 `EOM_MAX_REDIRECTS`, `EOM_CACHE_DIR`, `EOM_OFFLINE`, `EOM_DETERMINISTIC`, `EOM_JSON`, `EOM_QUIET`,
 `EOM_VERBOSE`, and `EOM_CONFIG`. `EOM_NO_COLOR` and the conventional `NO_COLOR` disable color.

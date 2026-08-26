@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-types",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "Generated TypeScript declarations for EOM schemas.",
   "license": "Apache-2.0",
   "type": "module",

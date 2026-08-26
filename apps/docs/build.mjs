@@ -36,7 +36,7 @@ for (const file of required) {
 }
 await writeFile(
   join(output, 'build-metadata.json'),
-  `${JSON.stringify({ name: 'eom-docs', version: '1.0.0-rc.2', generatedBy: 'apps/docs/build.mjs' }, null, 2)}\n`,
+  `${JSON.stringify({ name: 'eom-docs', version: '1.0.0-rc.3', generatedBy: 'apps/docs/build.mjs' }, null, 2)}\n`,
   'utf8',
 );
 process.stdout.write(`built static EOM docs at ${output}\n`);

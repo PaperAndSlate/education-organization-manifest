@@ -316,7 +316,13 @@ import {
       exploreOutput.append(message);
       return;
     }
-    const result = await verifyDetachedBrowser(value.resource, value.signature, value.keySet);
+    const result = await verifyDetachedBrowser(value.resource, value.signature, value.keySet, {
+      ...(typeof value.manifest === 'object' && value.manifest !== null
+        ? { manifest: value.manifest }
+        : {}),
+      ...(typeof value.finalUrl === 'string' ? { finalUrl: value.finalUrl } : {}),
+      ...(typeof value.now === 'string' ? { now: value.now } : {}),
+    });
     const message = document.createElement('p');
     message.textContent = result.overall
       ? 'The canonical digest and detached Ed25519 signature verify in this browser.'

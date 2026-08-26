@@ -1,5 +1,12 @@
-import { isSameOrigin, isPathWithin, normalizeOrigin, originOf } from '@paperandslate/eom-core';
-import { finding, type Finding } from '@paperandslate/eom-validator';
+import { finding, type Finding } from '@paperandslate/eom-core/findings';
+import {
+  isAbsoluteUri,
+  isHttpsUri,
+  isSameOrigin,
+  isPathWithin,
+  normalizeOrigin,
+  originOf,
+} from '@paperandslate/eom-core/ids';
 
 export type AuthorityTrustLabel =
   | 'root-linked'
@@ -11,6 +18,8 @@ export type AuthorityTrustLabel =
 
 export interface AuthorityOptions {
   readonly now?: Date;
+  /** The already cryptographically verified signing key, when evaluating a signed resource. */
+  readonly verifiedKeyId?: string;
 }
 
 export interface AuthorityResult {
@@ -21,6 +30,8 @@ export interface AuthorityResult {
   readonly resourceIdInScope: boolean;
   readonly originInScope: boolean;
   readonly pathInScope: boolean;
+  readonly subjectValid: boolean;
+  readonly keyScopeValid: boolean | 'not-evaluated';
   readonly temporalValid: boolean;
   readonly active: boolean;
   readonly transitiveAllowed: false;
@@ -43,8 +54,33 @@ export function evaluateAuthority(
     rootOrigin !== undefined && finalOrigin !== undefined && isSameOrigin(finalUrl, rootOrigin);
   const findings: Finding[] = [];
   const paths = arrayAt(manifest, ['scope', 'paths']).filter(isString);
+  const excludedPaths = arrayAt(manifest, ['scope', 'excludedPaths']).filter(isString);
+  const rawPaths = valueAt(manifest, ['scope', 'paths']);
+  const rawExcludedPaths = valueAt(manifest, ['scope', 'excludedPaths']);
+  const rootScopeValid =
+    (rawPaths === undefined ||
+      (Array.isArray(rawPaths) &&
+        rawPaths.every((path) => isString(path) && path.startsWith('/')) &&
+        new Set(paths).size === paths.length)) &&
+    (rawExcludedPaths === undefined ||
+      (Array.isArray(rawExcludedPaths) &&
+        excludedPaths.every((path) => path.startsWith('/')) &&
+        new Set(excludedPaths).size === excludedPaths.length));
   const rootPathInScope =
-    rootOrigin === undefined || paths.length === 0 || isPathWithin(finalUrl, rootOrigin, paths);
+    rootOrigin !== undefined &&
+    rootScopeValid &&
+    (paths.length === 0 || isPathWithin(finalUrl, rootOrigin, paths)) &&
+    !excludedPaths.some((path) => isPathWithin(finalUrl, rootOrigin, [path]));
+  if (!rootScopeValid) {
+    findings.push(
+      finding(
+        'EOM_AUTHORITY_ROOT_SCOPE_INVALID',
+        'security',
+        'The root manifest scope contains malformed or duplicate path constraints.',
+        { severity: 'error', pointer: '/scope' },
+      ),
+    );
+  }
   if (rootAuthority && !rootPathInScope) {
     findings.push(
       finding(
@@ -66,6 +102,8 @@ export function evaluateAuthority(
       resourceIdInScope: true,
       originInScope: true,
       pathInScope: true,
+      subjectValid: true,
+      keyScopeValid: 'not-evaluated',
       temporalValid: true,
       active: true,
       transitiveAllowed: false,
@@ -76,9 +114,10 @@ export function evaluateAuthority(
   }
 
   let best: DelegationMatch | undefined;
+  const delegationFindings: Finding[] = [];
   for (const delegation of delegations) {
-    const match = evaluateDelegation(delegation, resource, finalUrl, now);
-    findings.push(...match.findings);
+    const match = evaluateDelegation(delegation, resource, finalUrl, now, options.verifiedKeyId);
+    delegationFindings.push(...match.findings);
     if (match.accepted && best === undefined) best = match;
   }
   if (best) {
@@ -90,15 +129,18 @@ export function evaluateAuthority(
       resourceIdInScope: best.resourceIdInScope,
       originInScope: best.originInScope,
       pathInScope: best.pathInScope,
+      subjectValid: best.subjectValid,
+      keyScopeValid: best.keyScopeValid,
       temporalValid: best.temporalValid,
       active: best.active,
       transitiveAllowed: false,
       trustLabel: 'delegated',
       finalUrl,
-      findings,
+      findings: [...findings, ...best.findings],
     };
   }
   if (!rootAuthority) {
+    findings.push(...delegationFindings);
     findings.push(
       finding(
         'EOM_AUTHORITY_UNVERIFIED_EXTERNAL',
@@ -120,6 +162,8 @@ export function evaluateAuthority(
     resourceIdInScope: false,
     originInScope: false,
     pathInScope: false,
+    subjectValid: false,
+    keyScopeValid: options.verifiedKeyId === undefined ? 'not-evaluated' : false,
     temporalValid: false,
     active: false,
     transitiveAllowed: false,
@@ -135,6 +179,8 @@ interface DelegationMatch {
   readonly resourceIdInScope: boolean;
   readonly originInScope: boolean;
   readonly pathInScope: boolean;
+  readonly subjectValid: boolean;
+  readonly keyScopeValid: boolean | 'not-evaluated';
   readonly temporalValid: boolean;
   readonly active: boolean;
   readonly findings: readonly Finding[];
@@ -145,6 +191,7 @@ function evaluateDelegation(
   resource: unknown,
   finalUrl: string,
   now: Date,
+  verifiedKeyId: string | undefined,
 ): DelegationMatch {
   const findings: Finding[] = [];
   const finalOrigin = originOf(finalUrl);
@@ -176,9 +223,57 @@ function evaluateDelegation(
   const validFrom = dateAt(delegation, ['validFrom']);
   const validUntil = dateAt(delegation, ['validUntil']);
   const revokedAt = dateAt(delegation, ['revokedAt']);
+  const validFromValue = stringAt(delegation, ['validFrom']);
+  const validUntilValue = stringAt(delegation, ['validUntil']);
+  const revokedAtValue = stringAt(delegation, ['revokedAt']);
+  const validityInterval =
+    validFrom !== undefined && validUntil !== undefined && validFrom < validUntil;
+  if (validFromValue === undefined || validUntilValue === undefined) {
+    findings.push(
+      finding(
+        'EOM_DELEGATION_VALIDITY_REQUIRED',
+        'security',
+        'A delegation must declare both validFrom and validUntil.',
+        { severity: 'error', pointer: `${basePointer}/validUntil` },
+      ),
+    );
+  } else if (validFrom === undefined || validUntil === undefined) {
+    findings.push(
+      finding(
+        'EOM_DELEGATION_DATE_INVALID',
+        'security',
+        'Delegation validity timestamps must be valid date-time values.',
+        { severity: 'error', pointer: `${basePointer}/validUntil` },
+      ),
+    );
+  } else if (!validityInterval) {
+    findings.push(
+      finding(
+        'EOM_DELEGATION_INTERVAL_INVALID',
+        'security',
+        'validFrom must be earlier than validUntil.',
+        { severity: 'error', pointer: `${basePointer}/validUntil` },
+      ),
+    );
+  }
+  if (revokedAtValue !== undefined && revokedAt === undefined) {
+    findings.push(
+      finding(
+        'EOM_DELEGATION_DATE_INVALID',
+        'security',
+        'Delegation revocation timestamps must be valid date-time values.',
+        { severity: 'error', pointer: `${basePointer}/revokedAt` },
+      ),
+    );
+  }
+  const revocationValid = revokedAtValue === undefined || revokedAt !== undefined;
   const temporalValid =
-    (validFrom === undefined || validFrom <= now.getTime()) &&
-    (validUntil === undefined || validUntil >= now.getTime()) &&
+    validFrom !== undefined &&
+    validUntil !== undefined &&
+    validityInterval &&
+    validFrom <= now.getTime() &&
+    validUntil >= now.getTime() &&
+    revocationValid &&
     (revokedAt === undefined || revokedAt > now.getTime());
   if (!temporalValid) {
     findings.push(
@@ -194,8 +289,56 @@ function evaluateDelegation(
   }
   const resourceType = stringAt(resource, ['type']);
   const resourceId = stringAt(resource, ['id']);
-  const typeScope = arrayAt(delegation, ['scope', 'resourceTypes']).filter(isString);
-  const idScope = arrayAt(delegation, ['scope', 'resourceIds']).filter(isString);
+  const scope = valueAt(delegation, ['scope']);
+  const scopeRecord = isRecord(scope);
+  const scopeKeys = scopeRecord ? Object.keys(scope) : [];
+  const rawTypeScope = scopeRecord ? scope.resourceTypes : undefined;
+  const rawIdScope = scopeRecord ? scope.resourceIds : undefined;
+  const rawOriginScope = scopeRecord ? scope.allowedOrigins : undefined;
+  const rawPathScope = scopeRecord ? scope.allowedPathPrefixes : undefined;
+  const typeScope = Array.isArray(rawTypeScope) ? rawTypeScope.filter(isString) : [];
+  const idScope = Array.isArray(rawIdScope) ? rawIdScope.filter(isString) : [];
+  const allowedOrigins = Array.isArray(rawOriginScope) ? rawOriginScope.filter(isString) : [];
+  const prefixes = Array.isArray(rawPathScope) ? rawPathScope.filter(isString) : [];
+  const scopeValid =
+    scopeRecord &&
+    scopeKeys.some((key) =>
+      ['resourceTypes', 'resourceIds', 'allowedOrigins', 'allowedPathPrefixes'].includes(key),
+    ) &&
+    scopeKeys.every((key) =>
+      ['resourceTypes', 'resourceIds', 'allowedOrigins', 'allowedPathPrefixes'].includes(key),
+    ) &&
+    (rawTypeScope === undefined ||
+      (Array.isArray(rawTypeScope) &&
+        typeScope.length > 0 &&
+        typeScope.every((value) => value.length > 0) &&
+        new Set(typeScope).size === typeScope.length)) &&
+    (rawIdScope === undefined ||
+      (Array.isArray(rawIdScope) &&
+        idScope.length > 0 &&
+        idScope.every((value) => isAbsoluteUri(value)) &&
+        new Set(idScope).size === idScope.length)) &&
+    (rawOriginScope === undefined ||
+      (Array.isArray(rawOriginScope) &&
+        allowedOrigins.length > 0 &&
+        allowedOrigins.every((value) => isHttpsUri(value)) &&
+        new Set(allowedOrigins.map((value) => normalizeOrigin(value))).size ===
+          allowedOrigins.length)) &&
+    (rawPathScope === undefined ||
+      (Array.isArray(rawPathScope) &&
+        prefixes.length > 0 &&
+        prefixes.every((value) => value.startsWith('/')) &&
+        new Set(prefixes).size === prefixes.length));
+  if (!scopeValid) {
+    findings.push(
+      finding(
+        'EOM_DELEGATION_SCOPE_INVALID',
+        'security',
+        'A delegation must declare a valid non-empty scope without malformed or unknown dimensions.',
+        { severity: 'error', pointer: `${basePointer}/scope` },
+      ),
+    );
+  }
   const resourceTypeInScope =
     typeScope.length === 0 || (resourceType !== undefined && typeScope.includes(resourceType));
   const resourceIdInScope =
@@ -231,7 +374,6 @@ function evaluateDelegation(
     typeof delegate === 'string'
       ? originOf(delegate)
       : (originAt(delegate, ['website']) ?? originAt(delegate, ['id']));
-  const allowedOrigins = arrayAt(delegation, ['scope', 'allowedOrigins']).filter(isString);
   const originInScope =
     finalOrigin !== undefined &&
     (allowedOrigins.length > 0
@@ -251,7 +393,6 @@ function evaluateDelegation(
       ),
     );
   }
-  const prefixes = arrayAt(delegation, ['scope', 'allowedPathPrefixes']).filter(isString);
   const pathInScope =
     prefixes.length === 0 ||
     (finalOrigin !== undefined && isPathWithin(finalUrl, finalOrigin, prefixes));
@@ -269,8 +410,22 @@ function evaluateDelegation(
     );
   }
   const subject = stringAt(delegation, ['subject']);
-  const subjects = arrayAt(resource, ['subjects']).filter(isString);
-  const subjectValid = subject === undefined || subjects.includes(subject);
+  const subjectValidValue = subject === undefined || isAbsoluteUri(subject);
+  const subjects = [
+    ...arrayAt(resource, ['subjects']).filter(isString),
+    ...(stringAt(resource, ['subject']) ? [stringAt(resource, ['subject'])!] : []),
+  ];
+  const subjectValid = subjectValidValue && (subject === undefined || subjects.includes(subject));
+  if (!subjectValidValue) {
+    findings.push(
+      finding(
+        'EOM_DELEGATION_SUBJECT_INVALID',
+        'security',
+        'A declared delegation subject must be an absolute URI.',
+        { severity: 'error', pointer: `${basePointer}/subject` },
+      ),
+    );
+  }
   if (!subjectValid) {
     findings.push(
       finding(
@@ -284,21 +439,64 @@ function evaluateDelegation(
       ),
     );
   }
+  const rawKeys = valueAt(delegation, ['keys']);
+  const hasKeyAllowlist = rawKeys !== undefined;
+  const keys = arrayAt(delegation, ['keys']).filter(isString);
+  const keyAllowlistValid =
+    !hasKeyAllowlist ||
+    (Array.isArray(rawKeys) &&
+      rawKeys.length > 0 &&
+      keys.length === rawKeys.length &&
+      keys.every((key) => isAbsoluteUri(key)) &&
+      new Set(keys).size === keys.length);
+  if (!keyAllowlistValid) {
+    findings.push(
+      finding(
+        'EOM_DELEGATION_KEYS_INVALID',
+        'security',
+        'A declared delegation key allowlist must contain one or more key identifiers.',
+        { severity: 'error', pointer: `${basePointer}/keys` },
+      ),
+    );
+  }
+  const keyScopeValid: boolean | 'not-evaluated' =
+    verifiedKeyId === undefined
+      ? 'not-evaluated'
+      : keyAllowlistValid && (!hasKeyAllowlist || keys.includes(verifiedKeyId));
+  if (keyScopeValid === false) {
+    findings.push(
+      finding(
+        'EOM_DELEGATION_KEY_OUT_OF_SCOPE',
+        'security',
+        'The verified signing key is not included in the delegation key allowlist.',
+        {
+          severity: 'error',
+          pointer: `${basePointer}/keys`,
+          related: verifiedKeyId === undefined ? [] : [verifiedKeyId],
+        },
+      ),
+    );
+  }
   const accepted =
     active &&
     transitive === false &&
+    scopeValid &&
     temporalValid &&
     resourceTypeInScope &&
     resourceIdInScope &&
     originInScope &&
     pathInScope &&
-    subjectValid;
+    subjectValid &&
+    keyAllowlistValid &&
+    (keyScopeValid === 'not-evaluated' || keyScopeValid);
   return {
     accepted,
     resourceTypeInScope,
     resourceIdInScope,
     originInScope,
     pathInScope,
+    subjectValid,
+    keyScopeValid,
     temporalValid,
     active,
     findings,
@@ -312,9 +510,16 @@ function originAt(value: unknown, path: readonly string[]): string | undefined {
 
 function dateAt(value: unknown, path: readonly string[]): number | undefined {
   const candidate = stringAt(value, path);
-  if (!candidate) return undefined;
+  if (!candidate || !isDateTime(candidate)) return undefined;
   const parsed = Date.parse(candidate);
   return Number.isNaN(parsed) ? undefined : parsed;
+}
+
+function isDateTime(value: string): boolean {
+  return (
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/u.test(value) &&
+    !Number.isNaN(Date.parse(value))
+  );
 }
 
 function valueAt(value: unknown, path: readonly string[]): unknown {

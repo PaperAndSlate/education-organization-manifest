@@ -1,8 +1,16 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseStrictJson } from '@paperandslate/eom-core';
-import { publicationSetFindings, validateDocument } from '@paperandslate/eom-validator';
+import {
+  parseStrictJson,
+  type FetchResponse,
+  type ManifestFetchResponse,
+} from '@paperandslate/eom-core';
+import {
+  publicationSetFindings,
+  validateDocument,
+  validatePublicationUrl,
+} from '@paperandslate/eom-validator';
 
 const root = resolve(process.cwd());
 
@@ -88,6 +96,137 @@ describe('EOM structural and semantic validation', () => {
     ];
     const result = validateDocument(manifest, { now: new Date('2026-01-01T00:00:00Z') });
     expect(result.valid, JSON.stringify(result.findings)).toBe(true);
+  });
+
+  it('binds fetched resources to their observed final URL and records redirect provenance', async () => {
+    const manifest = fixture('fixtures/valid/core/minimal-school-manifest.json') as Record<
+      string,
+      unknown
+    >;
+    manifest.capabilities = [];
+    manifest.resources = [
+      {
+        id: 'https://ecme-high.example/eom/resource/organization',
+        type: 'organization-profile',
+        href: 'https://ecme-high.example/eom/organization.json',
+        mediaType: 'application/json',
+        version: '1.0',
+        subjects: ['https://ecme-high.example/id/school'],
+      },
+    ];
+    const resourceDocument = fixture('fixtures/valid/core/minimal-school-organization.json');
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    const transport = {
+      fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+      fetchEom: (url: string): Promise<FetchResponse> =>
+        Promise.resolve({
+          requestedUrl: url,
+          finalUrl: 'https://evil.example/eom/organization.json',
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+          contentType: 'application/json',
+          body: JSON.stringify(resourceDocument),
+          redirects: [
+            {
+              from: url,
+              to: 'https://evil.example/eom/organization.json',
+              status: 302,
+              crossOrigin: true,
+            },
+          ],
+          observedAt: '2027-08-01T00:00:00.000Z',
+        }),
+    };
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      transport,
+      now: new Date('2027-08-01T00:00:00Z'),
+    });
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_UNVERIFIED_EXTERNAL' }),
+      ]),
+    );
+    expect(result.fetches[1]).toMatchObject({
+      declaredUrl: 'https://ecme-high.example/eom/organization.json',
+      finalUrl: 'https://evil.example/eom/organization.json',
+    });
+  });
+
+  it('rejects a cross-origin redirect while discovering the root manifest', async () => {
+    const manifest = fixture('fixtures/valid/core/minimal-school-manifest.json');
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://evil.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [
+        {
+          from: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+          to: 'https://evil.example/.well-known/educational-organization-manifest',
+          status: 302,
+          crossOrigin: true,
+        },
+      ],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      fetchGraph: false,
+      transport: {
+        fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+        fetchEom: (): Promise<FetchResponse> =>
+          Promise.reject(new Error('root redirect test must not fetch resources')),
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_ROOT_REDIRECT_ORIGIN' }),
+      ]),
+    );
+  });
+
+  it('reports malformed resource URLs without throwing during graph discovery', async () => {
+    const manifest = structuredClone(
+      fixture('fixtures/valid/core/minimal-school-manifest.json'),
+    ) as Record<string, unknown>;
+    const resources = manifest.resources as Array<Record<string, unknown>>;
+    resources[0] = { ...resources[0], href: 'not a URL' };
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      transport: {
+        fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+        fetchEom: (): Promise<FetchResponse> =>
+          Promise.reject(new Error('must not fetch malformed href')),
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_RESOURCE_URL_INVALID' })]),
+    );
   });
 
   it('rejects a delegated resource outside the allowed path prefix', () => {

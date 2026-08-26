@@ -1,22 +1,26 @@
 # EOM Release Checklist
 
-This checklist is the release-candidate evidence surface. The earlier completion claim has been
-superseded by `reports/remediation-audit.md`. Local entries below reflect the bounded remediation
-run on 2026-08-26; hosted CI and external protocol/governance gates remain separate.
+Status: RC3 preparation in progress. RC1 and RC2 evidence remains preserved and superseded; no
+stable publication or deployment is authorized.
 
 ## Local gates
 
-- [pass] clean frozen install;
-- [pass] formatting, real lint, typecheck, unit/integration tests;
-- [pass] schema meta-validation and complete semantic fixtures;
-- [pass] generated types/docs/browser bundles drift-free;
-- [pass] deterministic builds and release archive regeneration;
-- [pass] all role-specific conformance profiles and Ecme High;
-- [pass] SSRF/DNS-rebinding/parser/privacy/signature tests;
-- [pass] docs links and automated Chromium accessibility/security checks;
-- [pass] license, dependency, secret, SBOM, and local provenance checks;
-- [pass] immutable candidate artifacts, package dry runs, and migration notes.
-- [pass] final formal Standard security workbench scan for committed RC2 revision `36c63a8` (zero findings).
+- [ ] clean frozen install from the release source revision;
+- [ ] formatting, real lint, typecheck, unit/integration tests, and coverage;
+- [ ] schema, vocabulary, module, ownership, fixture, and generated-drift checks;
+- [ ] all conformance profiles, publisher/consumer/generator/validator behavior, and Ecme High;
+- [ ] DNS-rebinding, redirect authority, parser, privacy, delegation, and signature regression tests;
+- [ ] browser build, Playwright, accessibility, CSP, upload, and XSS checks;
+- [ ] clean packed-package installation and runtime/type import smoke tests;
+- [ ] exact lockfile-derived SBOM, license/dependency/security checks, and action-pin checks;
+- [ ] deterministic dual-directory builds and reproducible release archives;
+- [ ] traceability check covering all 194 planning files and atomic requirements;
+- [ ] post-remediation formal Standard security scan with no unresolved findings;
+- [ ] RC3 release manifest, checksums, provenance, migration notes, and pack manifests bound to the
+      exact clean source commit.
+
+The executable `pnpm verify` gate is authoritative. Report prose cannot mark an unchecked item as
+passed.
 
 ## External gates
 
@@ -25,6 +29,8 @@ run on 2026-08-26; hosted CI and external protocol/governance gates remain separ
 - [blocked-external] independent publisher/consumer interoperability evidence;
 - [pending-external] legal/licensing review;
 - [pending-external] public review and governance approval;
-- [blocked-external] pilot/adoption evidence.
+- [blocked-external] pilot/adoption evidence;
+- [not-authorized] production deployment or stable publication.
 
-Until evidence exists, public copy must say working draft/proposed and the release report must include the owner, required evidence, and blocker.
+Until external evidence exists, public copy must say working draft/proposed and the release report
+must retain the owner, required evidence, and blocker in `reports/external-gates.md`.

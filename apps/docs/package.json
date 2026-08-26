@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-docs",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "private": true,
   "description": "Static documentation site for the Educational Organization Manifest.",
   "license": "Apache-2.0",

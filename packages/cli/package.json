@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-cli",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "The eom command-line interface.",
   "license": "Apache-2.0",
   "type": "module",

@@ -52,6 +52,16 @@ describe('EOM CLI command surface', () => {
     }
   });
 
+  it('returns a stable usage exit code for invalid build modes', async () => {
+    const tsx = resolve('node_modules/tsx/dist/cli.mjs');
+    const entry = resolve('packages/cli/src/index.ts');
+    await expect(
+      execFileAsync(process.execPath, [tsx, entry, 'build', '--mode', 'unsafe'], {
+        cwd: resolve('.'),
+      }),
+    ).rejects.toMatchObject({ code: 2 });
+  });
+
   it('initializes a bounded district project and runs diff/migrate workflows', async () => {
     const root = await mkdtemp(join(tmpdir(), 'eom-cli-integration-'));
     try {

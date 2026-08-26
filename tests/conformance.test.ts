@@ -161,6 +161,7 @@ describe('EOM offline conformance testkit', () => {
         privateKey,
         keyId,
         createdAt: '2027-08-01T00:00:00Z',
+        expires: '2030-08-01T00:00:00Z',
       });
       const keySet = {
         $schema: 'https://paperandslate.org/schemas/eom/1.0/key-set.schema.json',
@@ -181,7 +182,7 @@ describe('EOM offline conformance testkit', () => {
       await writeFile(join(directory, 'resource.json'), stringifyCanonical(resource), 'utf8');
       await writeFile(
         join(directory, 'signature.json'),
-        stringifyCanonical({ ...signature, expires: '2030-01-01T00:00:00Z' }),
+        stringifyCanonical(signature as never),
         'utf8',
       );
       await writeFile(join(directory, 'keys.json'), stringifyCanonical(keySet), 'utf8');

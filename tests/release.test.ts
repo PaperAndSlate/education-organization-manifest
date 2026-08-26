@@ -12,7 +12,7 @@ describe('EOM release evidence', () => {
     const manifest = parseStrictJson(readFileSync(join(releaseRoot, 'manifest.json'), 'utf8'));
     expect(isRecord(manifest)).toBe(true);
     if (!isRecord(manifest) || !Array.isArray(manifest.artifacts)) return;
-    expect(manifest.release).toBe('1.0.0-rc.2');
+    expect(manifest.release).toBe('1.0.0-rc.3');
     expect(manifest.channel).toBe('release-candidate');
     expect(manifest.protocolStatus).toBe('working-draft');
     expect(isRecord(manifest.externalGates)).toBe(true);
@@ -27,6 +27,17 @@ describe('EOM release evidence', () => {
       expect(manifest.historicalSuperseded.release).toBe('1.0.0-rc.1');
       expect(manifest.historicalSuperseded.status).toBe('preserved-immutable-superseded');
     }
+    expect(Array.isArray(manifest.historicalSupersededReleases)).toBe(true);
+    if (Array.isArray(manifest.historicalSupersededReleases)) {
+      expect(manifest.historicalSupersededReleases).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            release: '1.0.0-rc.2',
+            status: 'preserved-immutable-superseded',
+          }),
+        ]),
+      );
+    }
     for (const artifact of manifest.artifacts) {
       expect(isRecord(artifact)).toBe(true);
       if (!isRecord(artifact) || typeof artifact.path !== 'string') continue;
@@ -37,11 +48,12 @@ describe('EOM release evidence', () => {
       expect(artifact.sha256).toBe(sha256(bytes));
     }
     for (const required of [
-      'eom-specification-1.0.0-rc.2.tar.gz',
-      'eom-schemas-1.0.0-rc.2.tar.gz',
-      'eom-vocabularies-1.0.0-rc.2.tar.gz',
-      'eom-conformance-1.0.0-rc.2.tar.gz',
-      'eom-documentation-1.0.0-rc.2.tar.gz',
+      'eom-specification-1.0.0-rc.3.tar.gz',
+      'eom-schemas-1.0.0-rc.3.tar.gz',
+      'eom-vocabularies-1.0.0-rc.3.tar.gz',
+      'eom-conformance-1.0.0-rc.3.tar.gz',
+      'eom-documentation-1.0.0-rc.3.tar.gz',
+      'package-pack-manifest.json',
     ]) {
       expect(
         manifest.artifacts.some((artifact) => isRecord(artifact) && artifact.path === required),

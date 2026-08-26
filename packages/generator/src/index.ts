@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { createPrivateKey, createPublicKey } from 'node:crypto';
 import {
+  lstat,
   mkdir,
   mkdtemp,
   readFile,
@@ -12,7 +13,17 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
-import { dirname, extname, isAbsolute, join, parse, relative, resolve, sep } from 'node:path';
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  parse,
+  relative,
+  resolve,
+  sep,
+} from 'node:path';
 import { parseDocument } from 'yaml';
 import { assertApprovedSourcePath, CandidatePolicyError } from '@paperandslate/eom-agentic';
 import type { EomConfig, EomSourceOverlayConfig } from '@paperandslate/eom-config';
@@ -41,6 +52,24 @@ const MANIFEST_SCHEMA = 'https://paperandslate.org/schemas/eom/1.0/manifest.sche
 const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
 const DEFAULT_OUTPUT_MAX_BYTES = 256 * 1024;
 const GENERATED_MARKER = '.eom-generated.json';
+const GENERATED_OWNERSHIP_VERSION = 1;
+
+export type BuildMode = 'full' | 'module' | 'organization' | 'changed-files';
+
+export interface PartialBuildReport {
+  readonly mode: BuildMode;
+  readonly module?: string;
+  readonly organization?: string;
+  readonly changedFiles?: readonly string[];
+  readonly selectedInputs: readonly string[];
+  readonly selectedModules: readonly string[];
+  readonly dependencyClosure: readonly string[];
+  readonly omittedModules: readonly string[];
+  readonly omittedResources: readonly string[];
+  readonly destinationKind: 'full-publication' | 'partial-output' | 'report-only';
+  readonly outputKind: 'complete-publication' | 'partial-bundle' | 'report-only';
+  readonly completePublication: boolean;
+}
 
 export interface BuildOptions {
   readonly configFile: string;
@@ -61,6 +90,10 @@ export interface BuildOptions {
   readonly allowExternalOutput?: boolean;
   /** Optional bounded cache for parsed source values. */
   readonly cacheDirectory?: string;
+  /** Explicit build mode. Selector fields remain supported for compatibility. */
+  readonly mode?: BuildMode;
+  /** Source paths to use for a changed-files build; paths are relative to the config directory. */
+  readonly changedFiles?: readonly string[];
 }
 
 export interface BuildInput {
@@ -87,6 +120,7 @@ export interface BuildReport {
   readonly written: boolean;
   readonly dryRun: boolean;
   readonly outputRoot: string;
+  readonly mode: BuildMode;
   readonly inputs: readonly BuildInput[];
   readonly resources: readonly BuildResource[];
   readonly findings: readonly Finding[];
@@ -110,10 +144,8 @@ export interface BuildReport {
     readonly valid: boolean;
     readonly differences: readonly string[];
   };
-  readonly partial?: {
-    readonly module?: string;
-    readonly organization?: string;
-  };
+  /** Required mode report; partial is retained as the public compatibility field name. */
+  readonly partial: PartialBuildReport;
 }
 
 export class GeneratorInputError extends Error {
@@ -314,6 +346,30 @@ const MODULES: readonly ModuleDefinition[] = [
   },
 ];
 
+const MODULE_DEPENDENCIES: Readonly<Record<string, readonly string[]>> = {
+  campuses: [],
+  departments: [],
+  staff: ['departments'],
+  courses: ['departments', 'programs'],
+  offerings: ['courses', 'calendar'],
+  programs: ['courses', 'departments'],
+  calendar: [],
+  events: ['calendar'],
+  facilities: ['campuses'],
+  services: ['departments'],
+  policies: [],
+  admissions: ['programs'],
+  sports: [],
+  transportation: [],
+  meals: [],
+  clubs: [],
+  jobs: ['departments'],
+  news: [],
+  statistics: [],
+  apis: [],
+  contacts: [],
+};
+
 export function moduleDefinition(key: string): ModuleDefinition | undefined {
   const normalized = normalizeKey(key);
   return MODULES.find(
@@ -433,6 +489,8 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
   const configDirectory = dirname(configFile);
   const outputRoot = resolve(options.outputRoot ?? resolve(configDirectory, config.output.root));
   const sourceRoot = resolve(configDirectory, config.source.root);
+  const mode = inferBuildMode(options);
+  const configuredFullOutput = resolve(configDirectory, config.output.root);
   const maxBytes = config.maxBytes ?? DEFAULT_OUTPUT_MAX_BYTES;
   const effectiveNow =
     options.now ??
@@ -443,8 +501,19 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
   let inputs: readonly BuildInput[] = [];
   try {
     try {
+      assertBuildSelectors(mode, options);
       assertApprovedSourcePath(sourceRoot);
-      await assertSafeOutputRoot(outputRoot, configDirectory, sourceRoot, options);
+      await assertSafeOutputRoot(outputRoot, configDirectory, sourceRoot, config, options, mode);
+      if (mode !== 'full') {
+        await assertPartialOutputTarget(
+          outputRoot,
+          configuredFullOutput,
+          config,
+          configDigest,
+          mode,
+          options,
+        );
+      }
     } catch (error) {
       if (error instanceof CandidatePolicyError) {
         throw new GeneratorInputError(error.message, [
@@ -465,14 +534,25 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
       options.cacheDirectory,
       configDigest,
     );
-    const selectedSources = selectBuildSources(parsedSources, options.module);
+    const selectedSources = selectBuildSources(
+      parsedSources,
+      mode,
+      options.module,
+      options.changedFiles,
+      configDirectory,
+    );
     inputs = selectedSources.map((source) => ({
       path: source.file,
       relativePath: source.relativePath,
       module: source.module.key,
       sha256: source.digest,
     }));
-    const moduleBuild = buildModules(config, selectedSources, options.organization);
+    const moduleBuild = buildModules(
+      config,
+      selectedSources,
+      options.organization,
+      mode === 'organization' || options.organization !== undefined,
+    );
     let moduleDocuments: Record<string, JsonObject> = { ...moduleBuild.documents };
     let root = buildManifest(config, moduleDocuments, moduleBuild.organizationId);
     let signature:
@@ -537,8 +617,9 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
         .sort(([left], [right]) => compareStrings(left, right))
         .map(([key, values]) => [key, [...values].sort()]),
     );
+    const partial = createModeReport(mode, options, selectedSources, valid);
     const baseReport: BuildReport = {
-      toolVersion: '1.0.0-rc.2',
+      toolVersion: '1.0.0-rc.3',
       specification: SPECIFICATION,
       configDigest,
       valid,
@@ -552,15 +633,9 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
       overlays: moduleBuild.overlays,
       privacy: privacyReport(config, findings),
       conflicts: conflictIds(findings),
+      mode,
       ...(signature ? { signature } : {}),
-      ...(options.module || options.organization
-        ? {
-            partial: {
-              ...(options.module ? { module: options.module } : {}),
-              ...(options.organization ? { organization: options.organization } : {}),
-            },
-          }
-        : {}),
+      partial,
     };
     if (!valid || options.dryRun === true) {
       return baseReport;
@@ -570,14 +645,26 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
         ? await verifyDeterministicBuild(configFile, options, effectiveNow)
         : undefined;
     if (deterministic && !deterministic.valid) {
-      return { ...baseReport, valid: false, deterministic };
+      return {
+        ...baseReport,
+        valid: false,
+        deterministic,
+        partial: {
+          ...baseReport.partial,
+          destinationKind: 'report-only',
+          outputKind: 'report-only',
+          completePublication: false,
+        },
+      };
     }
     const fingerprint = await writePublication(
       outputRoot,
       root,
       moduleDocuments,
+      config,
       baseReport,
       config.output.prettyPrint !== false,
+      mode,
     );
     return {
       ...baseReport,
@@ -588,7 +675,7 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
   } catch (error) {
     if (!(error instanceof GeneratorInputError)) throw error;
     return {
-      toolVersion: '1.0.0-rc.2',
+      toolVersion: '1.0.0-rc.3',
       specification: SPECIFICATION,
       configDigest,
       valid: false,
@@ -605,14 +692,25 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
       overlays: [],
       privacy: privacyReport(config, error.findings),
       conflicts: conflictIds(error.findings),
-      ...(options.module || options.organization
-        ? {
-            partial: {
-              ...(options.module ? { module: options.module } : {}),
-              ...(options.organization ? { organization: options.organization } : {}),
-            },
-          }
-        : {}),
+      mode,
+      partial: {
+        mode,
+        ...(options.module ? { module: options.module } : {}),
+        ...(options.organization ? { organization: options.organization } : {}),
+        ...(options.changedFiles ? { changedFiles: options.changedFiles } : {}),
+        selectedModules: [],
+        selectedInputs: [],
+        dependencyClosure: [],
+        omittedModules: MODULES.filter((item) => item.key !== 'organization').map(
+          (item) => item.key,
+        ),
+        omittedResources: MODULES.filter((item) => item.key !== 'organization').map(
+          (item) => item.resourceType,
+        ),
+        destinationKind: 'report-only',
+        outputKind: 'report-only',
+        completePublication: false,
+      },
     };
   }
 }
@@ -636,6 +734,8 @@ async function verifyDeterministicBuild(
       ...(options.sign ? { sign: true } : {}),
       ...(options.module ? { module: options.module } : {}),
       ...(options.organization ? { organization: options.organization } : {}),
+      ...(options.mode ? { mode: options.mode } : {}),
+      ...(options.changedFiles ? { changedFiles: options.changedFiles } : {}),
     });
     const [first, second] = await Promise.all([
       buildPublication(buildOptions(firstOutput)),
@@ -670,34 +770,176 @@ async function filesWithBytes(directory: string): Promise<Map<string, Buffer>> {
   return result;
 }
 
-function selectBuildSources(
-  sources: readonly ParsedSource[],
-  selectedModule: string | undefined,
-): readonly ParsedSource[] {
-  if (!selectedModule) return sources;
-  const module = moduleDefinition(selectedModule);
-  if (!module) {
-    throw new GeneratorInputError('Unknown build module ' + selectedModule + '.', [
+function createModeReport(
+  mode: BuildMode,
+  options: BuildOptions,
+  selectedSources: readonly ParsedSource[],
+  valid: boolean,
+): PartialBuildReport {
+  const selectedModules = [...new Set(selectedSources.map((source) => source.module.key))].sort(
+    compareStrings,
+  );
+  const omittedModules = MODULES.filter((module) => !selectedModules.includes(module.key)).map(
+    (module) => module.key,
+  );
+  const changedFiles = options.changedFiles?.slice().sort(compareStrings);
+  const selectedInputs = selectedSources.map((source) => source.relativePath).sort(compareStrings);
+  const omittedResources = MODULES.filter((module) => !selectedModules.includes(module.key)).map(
+    (module) => module.resourceType,
+  );
+  return {
+    mode,
+    ...(options.module ? { module: options.module } : {}),
+    ...(options.organization ? { organization: options.organization } : {}),
+    ...(changedFiles ? { changedFiles } : {}),
+    selectedInputs,
+    selectedModules,
+    dependencyClosure: selectedModules,
+    omittedModules,
+    omittedResources,
+    destinationKind:
+      !valid || options.dryRun === true
+        ? 'report-only'
+        : mode === 'full'
+          ? 'full-publication'
+          : 'partial-output',
+    outputKind:
+      !valid || options.dryRun === true
+        ? 'report-only'
+        : mode === 'full' || mode === 'organization'
+          ? 'complete-publication'
+          : 'partial-bundle',
+    completePublication:
+      valid && options.dryRun !== true && (mode === 'full' || mode === 'organization'),
+  };
+}
+
+function inferBuildMode(options: BuildOptions): BuildMode {
+  if (options.mode !== undefined) return options.mode;
+  if (options.changedFiles !== undefined && options.changedFiles.length > 0) {
+    return 'changed-files';
+  }
+  if (options.module !== undefined) return 'module';
+  if (options.organization !== undefined) return 'organization';
+  return 'full';
+}
+
+function assertBuildSelectors(mode: BuildMode, options: BuildOptions): void {
+  if (mode === 'full' && (options.module || options.organization || options.changedFiles?.length)) {
+    throw new GeneratorInputError('The full build mode cannot include partial-build selectors.', [
       generatorFinding(
-        'EOM_GENERATOR_UNKNOWN_MODULE',
-        'The selected build module is not registered.',
-        selectedModule,
+        'EOM_GENERATOR_BUILD_MODE_CONFLICT',
+        'Choose full mode or an explicit module, organization, or changed-files selector.',
       ),
     ]);
   }
+  if (mode === 'module' && !options.module) {
+    throw new GeneratorInputError('Module build mode requires a module selector.', [
+      generatorFinding('EOM_GENERATOR_MODULE_REQUIRED', 'Pass --module with module build mode.'),
+    ]);
+  }
+  if (mode === 'organization' && (!options.organization || options.changedFiles?.length)) {
+    throw new GeneratorInputError(
+      'Organization build mode requires only an organization selector.',
+      [
+        generatorFinding(
+          'EOM_GENERATOR_ORGANIZATION_REQUIRED',
+          'Pass --organization with organization build mode.',
+        ),
+      ],
+    );
+  }
+  if (mode === 'changed-files' && !options.changedFiles?.length) {
+    throw new GeneratorInputError('Changed-files build mode requires at least one source path.', [
+      generatorFinding(
+        'EOM_GENERATOR_CHANGED_FILES_REQUIRED',
+        'Pass one or more --changed source paths.',
+      ),
+    ]);
+  }
+  if (mode !== 'module' && options.module) {
+    throw new GeneratorInputError('A module selector requires module build mode.', [
+      generatorFinding('EOM_GENERATOR_BUILD_MODE_CONFLICT', 'Use mode module for --module.'),
+    ]);
+  }
+  if (mode !== 'organization' && mode !== 'module' && options.organization) {
+    throw new GeneratorInputError(
+      'An organization selector requires organization or module mode.',
+      [
+        generatorFinding(
+          'EOM_GENERATOR_BUILD_MODE_CONFLICT',
+          'Use organization mode or combine --organization with module mode.',
+        ),
+      ],
+    );
+  }
+  if (mode !== 'changed-files' && options.changedFiles?.length) {
+    throw new GeneratorInputError('Changed source paths require changed-files build mode.', [
+      generatorFinding(
+        'EOM_GENERATOR_BUILD_MODE_CONFLICT',
+        'Use mode changed-files for --changed.',
+      ),
+    ]);
+  }
+}
+
+function selectBuildSources(
+  sources: readonly ParsedSource[],
+  mode: BuildMode,
+  selectedModule: string | undefined,
+  changedFiles: readonly string[] | undefined,
+  configDirectory: string,
+): readonly ParsedSource[] {
+  if (mode === 'full' || mode === 'organization') return sources;
+  const selectedKeys = new Set<string>();
+  if (mode === 'module') {
+    const module = selectedModule === undefined ? undefined : moduleDefinition(selectedModule);
+    if (!module) {
+      throw new GeneratorInputError('Unknown build module ' + (selectedModule ?? '') + '.', [
+        generatorFinding(
+          'EOM_GENERATOR_UNKNOWN_MODULE',
+          'The selected build module is not registered.',
+          selectedModule,
+        ),
+      ]);
+    }
+    addModuleDependencies(module.key, selectedKeys);
+  } else {
+    const requested = new Set(
+      (changedFiles ?? []).map((file) => resolve(configDirectory, file).toLowerCase()),
+    );
+    const changedSources = sources.filter((source) => requested.has(source.file.toLowerCase()));
+    if (changedSources.length === 0) {
+      throw new GeneratorInputError('No changed source paths were discovered.', [
+        generatorFinding(
+          'EOM_GENERATOR_CHANGED_FILE_NOT_FOUND',
+          'Each changed-files selector must identify a configured source, import, include, or overlay file.',
+          changedFiles?.join(', '),
+        ),
+      ]);
+    }
+    for (const source of changedSources) addModuleDependencies(source.module.key, selectedKeys);
+  }
   const filtered = sources.filter(
-    (source) => source.module.key === 'organization' || source.module.key === module.key,
+    (source) => source.module.key === 'organization' || selectedKeys.has(source.module.key),
   );
-  if (!filtered.some((source) => source.module.key === module.key)) {
-    throw new GeneratorInputError('The selected build module has no discovered source files.', [
+  if (!filtered.some((source) => selectedKeys.has(source.module.key))) {
+    throw new GeneratorInputError('The selected build has no discovered module source files.', [
       generatorFinding(
         'EOM_GENERATOR_MODULE_NOT_FOUND',
-        'Add a source file for the selected module or choose another module.',
-        module.key,
+        'Add a source file for the selected module or choose another selector.',
       ),
     ]);
   }
   return filtered;
+}
+
+function addModuleDependencies(moduleKey: string, selected: Set<string>): void {
+  if (selected.has(moduleKey)) return;
+  selected.add(moduleKey);
+  for (const dependency of MODULE_DEPENDENCIES[moduleKey] ?? []) {
+    addModuleDependencies(dependency, selected);
+  }
 }
 
 async function discoverSources(
@@ -817,7 +1059,7 @@ async function readCachedAuthoringValue(
 ): Promise<unknown> {
   if (!cacheDirectory) return readAuthoringValue(file, maxBytes);
   const cacheKey = createHash('sha256')
-    .update(`1.0.0-rc.2\0${SPECIFICATION}\0${configDigest}\0${sourceDigest}`)
+    .update(`1.0.0-rc.3\0${SPECIFICATION}\0${configDigest}\0${sourceDigest}`)
     .digest('hex');
   const directory = resolve(cacheDirectory);
   const cachePath = join(directory, `.eom-source-${cacheKey}.json`);
@@ -878,8 +1120,11 @@ async function assertSafeOutputRoot(
   outputRoot: string,
   configDirectory: string,
   sourceRoot: string,
+  config: EomConfig,
   options: BuildOptions,
+  mode: BuildMode,
 ): Promise<void> {
+  await assertNoSymlinkEscape(outputRoot);
   const configRealDirectory = await realpath(configDirectory);
   const resolvedSourceRoot = await realpath(sourceRoot);
   const projectRoot = await realpath(
@@ -888,7 +1133,8 @@ async function assertSafeOutputRoot(
   const outputParent = await existingRealPath(dirname(outputRoot));
   const outputCandidate = join(outputParent, relative(dirname(outputRoot), outputRoot));
   const outputRealPath = await existingRealPath(outputCandidate);
-  const buildCandidate = join(dirname(outputCandidate), 'build');
+  const buildCandidate = buildDirectoryForOutput(outputCandidate, mode);
+  await assertNoSymlinkEscape(buildCandidate);
   const buildRealPath = await existingRealPath(buildCandidate);
   const home = await existingRealPath(homedir());
   const cwd = await existingRealPath(process.cwd());
@@ -945,11 +1191,122 @@ async function assertSafeOutputRoot(
     );
   }
 
-  await assertReplaceableDirectory(outputCandidate, outputRoot);
-  await assertReplaceableDirectory(buildCandidate, buildCandidate);
+  const expectedMarker = {
+    buildMode: mode,
+    projectIdentity: projectIdentity(config),
+    selector: selectorFor(mode, options),
+  };
+  await assertReplaceableDirectory(outputCandidate, outputRoot, expectedMarker);
+  await assertReplaceableDirectory(buildCandidate, buildCandidate, expectedMarker);
 }
 
-async function assertReplaceableDirectory(directory: string, displayPath: string): Promise<void> {
+async function assertPartialOutputTarget(
+  outputRoot: string,
+  configuredFullOutput: string,
+  config: EomConfig,
+  configDigest: string,
+  mode: Exclude<BuildMode, 'full'>,
+  options: BuildOptions,
+): Promise<void> {
+  if ((await existingRealPath(outputRoot)) === (await existingRealPath(configuredFullOutput))) {
+    throw unsafeOutputError(
+      outputRoot,
+      'Partial builds require an explicit output distinct from the configured full publication root.',
+    );
+  }
+  let information;
+  try {
+    information = await stat(outputRoot);
+  } catch (error) {
+    if (isNotFound(error)) return;
+    throw error;
+  }
+  if (!information.isDirectory()) {
+    throw unsafeOutputError(outputRoot, 'The partial-build output target must be a directory.');
+  }
+  let marker: JsonValue;
+  try {
+    marker = parseStrictJson(
+      await readFile(join(outputRoot, GENERATED_MARKER), 'utf8'),
+      outputRoot,
+    );
+  } catch {
+    throw unsafeOutputError(
+      outputRoot,
+      'A partial build may replace only an existing compatible generator-owned partial bundle.',
+    );
+  }
+  if (
+    !isJsonObject(marker) ||
+    marker.generator !== 'eom' ||
+    marker.specification !== SPECIFICATION ||
+    marker.ownershipVersion !== GENERATED_OWNERSHIP_VERSION ||
+    marker.buildMode !== mode ||
+    marker.configDigest !== configDigest ||
+    marker.publisherOrigin !== config.publisher.origin ||
+    marker.projectIdentity !== projectIdentity(config) ||
+    !isJsonObject(marker.selector) ||
+    stringifyCanonical(marker.selector) !== stringifyCanonical(selectorFor(mode, options))
+  ) {
+    throw unsafeOutputError(
+      outputRoot,
+      'A partial build cannot replace a full publication or a partial bundle from another project or mode.',
+    );
+  }
+}
+
+function buildDirectoryForOutput(outputRoot: string, mode: BuildMode): string {
+  return mode === 'full'
+    ? join(dirname(outputRoot), 'build')
+    : join(dirname(outputRoot), `.eom-build-${basename(outputRoot)}`);
+}
+
+function projectIdentity(config: EomConfig): string {
+  return `${config.publisher.origin}|${config.project.name}|${config.project.protocolVersion}`;
+}
+
+function generatedMarker(
+  config: EomConfig,
+  report: BuildReport,
+  mode: BuildMode,
+  publisherOrigin: string | undefined,
+  root: JsonObject,
+): JsonObject {
+  const organizations = Array.isArray(root.organizations) ? root.organizations : [];
+  const firstOrganization = organizations.find(isJsonObject);
+  const organization =
+    report.partial?.organization ??
+    stringValue(firstOrganization?.id) ??
+    config.publisher.organizationId;
+  const selector = selectorForReport(report, mode);
+  return asJsonObject(
+    {
+      generator: 'eom',
+      ownershipVersion: GENERATED_OWNERSHIP_VERSION,
+      specification: report.specification,
+      toolVersion: report.toolVersion,
+      buildMode: mode,
+      projectIdentity: projectIdentity(config),
+      configDigest: report.configDigest,
+      ...(publisherOrigin ? { publisherOrigin } : {}),
+      ...(organization ? { organization } : {}),
+      selector,
+    },
+    'generated ownership marker',
+  );
+}
+
+interface ReplacementMarkerExpectation {
+  readonly buildMode: BuildMode;
+  readonly projectIdentity: string;
+  readonly selector: JsonObject;
+}
+
+async function assertReplaceableDirectory(
+  directory: string,
+  displayPath: string,
+  expected?: ReplacementMarkerExpectation,
+): Promise<void> {
   let information;
   try {
     information = await stat(directory);
@@ -984,13 +1341,43 @@ async function assertReplaceableDirectory(directory: string, displayPath: string
     !isJsonObject(marker) ||
     marker.generator !== 'eom' ||
     marker.specification !== SPECIFICATION ||
-    typeof marker.toolVersion !== 'string'
+    typeof marker.toolVersion !== 'string' ||
+    marker.ownershipVersion !== GENERATED_OWNERSHIP_VERSION ||
+    typeof marker.projectIdentity !== 'string' ||
+    (expected !== undefined &&
+      (marker.projectIdentity !== expected.projectIdentity ||
+        marker.buildMode !== expected.buildMode ||
+        !isJsonObject(marker.selector) ||
+        stringifyCanonical(marker.selector) !== stringifyCanonical(expected.selector)))
   ) {
     throw unsafeOutputError(
       displayPath,
       `The ${GENERATED_MARKER} file is not a valid EOM generator-owned marker.`,
     );
   }
+}
+
+function selectorFor(mode: BuildMode, options: BuildOptions): JsonObject {
+  if (mode === 'full') return {};
+  const selector: Record<string, unknown> = {};
+  if (options.module !== undefined) selector.module = options.module;
+  if (options.organization !== undefined) selector.organization = options.organization;
+  if (options.changedFiles !== undefined) {
+    selector.changedFiles = [...options.changedFiles].sort(compareStrings);
+  }
+  return asJsonObject(selector, 'build selector');
+}
+
+function selectorForReport(report: BuildReport, mode: BuildMode): JsonObject {
+  if (mode === 'full' || report.partial === undefined) return {};
+  const selector: Record<string, unknown> = {};
+  if (report.partial.module !== undefined) selector.module = report.partial.module;
+  if (report.partial.organization !== undefined)
+    selector.organization = report.partial.organization;
+  if (report.partial.changedFiles !== undefined) {
+    selector.changedFiles = [...report.partial.changedFiles].sort(compareStrings);
+  }
+  return asJsonObject(selector, 'build selector');
 }
 
 async function existingRealPath(path: string): Promise<string> {
@@ -1013,6 +1400,32 @@ function unsafeOutputError(path: string, message: string): GeneratorInputError {
   return new GeneratorInputError(message, [
     generatorFinding('EOM_GENERATOR_OUTPUT_UNSAFE', message, path),
   ]);
+}
+
+async function assertNoSymlinkEscape(path: string): Promise<void> {
+  const lexicalPath = resolve(path);
+  const realPath = await existingRealPath(lexicalPath);
+  if (normalizeFsPath(realPath) !== normalizeFsPath(lexicalPath)) {
+    throw unsafeOutputError(
+      path,
+      'Generator output paths must not traverse symbolic links or junctions.',
+    );
+  }
+  try {
+    const information = await lstat(lexicalPath);
+    if (information.isSymbolicLink()) {
+      throw unsafeOutputError(
+        path,
+        'Generator output paths must not be symbolic links or junctions.',
+      );
+    }
+  } catch (error) {
+    if (error instanceof GeneratorInputError || !isNotFound(error)) throw error;
+  }
+}
+
+function normalizeFsPath(value: string): string {
+  return resolve(value).replaceAll('/', '\\').toLowerCase();
 }
 
 async function matchingFiles(root: string, pattern: string): Promise<readonly string[]> {
@@ -1067,6 +1480,7 @@ function buildModules(
   config: EomConfig,
   sources: readonly ParsedSource[],
   requestedOrganization?: string,
+  filterOrganization = false,
 ): ModuleBuild {
   const groups = new Map<string, ParsedSource[]>();
   for (const source of sources) {
@@ -1130,11 +1544,15 @@ function buildModules(
       generatorFinding('EOM_GENERATOR_ORGANIZATION_REQUIRED', 'Add source.modules.organization.'),
     ]);
   }
+  const selectedOrganizationId = stringValue(organizationValue.id);
   let organization = normalizeOrganization(organizationValue, config);
   for (const source of sortedOverlaySources(groups.get('organization') ?? [])) {
     if (source.kind !== 'overlay' || !source.overlay) continue;
     const items = extractItems(source.value, MODULES[0]!);
     for (const item of items) {
+      if (selectedOrganizationId !== undefined && stringValue(item.id) !== selectedOrganizationId) {
+        continue;
+      }
       organization = normalizeOrganization(
         applyOverlayFields(organization, item, source.overlay, source.file, 'organization'),
         config,
@@ -1176,9 +1594,14 @@ function buildModules(
   }
   if (contacts.length > 0) {
     let contactDocument = buildContactDocument(contacts, organizationId, config);
-    const contactItems = Array.isArray(contactDocument.contacts)
+    let contactItems = Array.isArray(contactDocument.contacts)
       ? contactDocument.contacts.filter(isJsonObject)
       : [];
+    if (filterOrganization) {
+      contactItems = contactItems
+        .filter((item) => itemBelongsToOrganization(item, organizationId))
+        .map((item) => filterOrganizationReferences(item, organizationId));
+    }
     for (const source of contactOverlaySources) {
       if (!source.overlay) continue;
       for (const item of extractItems(source.value, {
@@ -1187,16 +1610,20 @@ function buildModules(
         resourceType: 'contact-directory',
         fileName: 'contacts.json',
       })) {
+        if (filterOrganization && !itemBelongsToOrganization(item, organizationId)) continue;
         const id = stringValue(item.id);
         const index = id ? contactItems.findIndex((candidate) => candidate.id === id) : -1;
         if (index < 0) {
           throw overlayTargetError(source.file, 'contacts', id);
         }
-        contactItems[index] = normalizeContact(
+        const overlaidContact = normalizeContact(
           applyOverlayFields(contactItems[index]!, item, source.overlay, source.file, 'contacts'),
           config.publisher.origin,
           organizationId,
         );
+        contactItems[index] = filterOrganization
+          ? filterOrganizationReferences(overlaidContact, organizationId)
+          : overlaidContact;
         overlays.push({
           name: source.overlay.name,
           owner: source.overlay.owner,
@@ -1238,6 +1665,10 @@ function buildModules(
       }
       for (const item of extractItems(value, module)) {
         const normalized = normalizeModuleItem(module, item, config.publisher.origin);
+        if (filterOrganization && !itemBelongsToOrganization(normalized, organizationId)) continue;
+        const organizationScoped = filterOrganization
+          ? filterOrganizationReferences(normalized, organizationId)
+          : normalized;
         const id = stringValue(normalized.id);
         if (!id) {
           throw new GeneratorInputError('Every module item needs a stable id.', [
@@ -1259,7 +1690,7 @@ function buildModules(
           ]);
         }
         itemIds.add(id);
-        items.push(normalized);
+        items.push(organizationScoped);
         sourceFiles.add(source.relativePath);
       }
     }
@@ -1268,12 +1699,16 @@ function buildModules(
       for (const item of extractItems(source.value, module)) {
         const id = stringValue(item.id);
         const index = id ? items.findIndex((candidate) => candidate.id === id) : -1;
+        if (filterOrganization && !itemBelongsToOrganization(item, organizationId)) continue;
         if (index < 0) throw overlayTargetError(source.file, module.key, id);
-        items[index] = normalizeModuleItem(
+        const overlaidItem = normalizeModuleItem(
           module,
           applyOverlayFields(items[index]!, item, source.overlay, source.file, module.key),
           config.publisher.origin,
         );
+        items[index] = filterOrganization
+          ? filterOrganizationReferences(overlaidItem, organizationId)
+          : overlaidItem;
         sourceFiles.add(source.relativePath);
         overlays.push({
           name: source.overlay.name,
@@ -1290,6 +1725,76 @@ function buildModules(
     sourceMap[module.resourceType] = [...sourceFiles].sort();
   }
   return { documents, sourceMap, organizationId, overlays };
+}
+
+function itemBelongsToOrganization(item: JsonObject, organizationId: string): boolean {
+  const singularFields = [
+    'organization',
+    'organizationId',
+    'organizationRef',
+    'owner',
+    'provider',
+  ] as const;
+  const collectionFields = ['organizations', 'organizationsServed'] as const;
+  let declaredReference = false;
+  let matchedReference = false;
+  for (const field of singularFields) {
+    const value = item[field];
+    const references = Array.isArray(value) ? value : [value];
+    for (const reference of references) {
+      const id = organizationReferenceId(reference);
+      if (id === undefined) continue;
+      declaredReference = true;
+      // A singular organization/provider binding cannot point at another
+      // organization in a filtered publication, even when a separate
+      // multi-valued relationship happens to include the selected one.
+      if (id !== organizationId) return false;
+      matchedReference = true;
+    }
+  }
+  for (const field of collectionFields) {
+    const value = item[field];
+    if (!Array.isArray(value)) continue;
+    const references = value
+      .map(organizationReferenceId)
+      .filter((id): id is string => id !== undefined);
+    if (references.length === 0) continue;
+    declaredReference = true;
+    if (!references.includes(organizationId)) return false;
+    matchedReference = true;
+  }
+  return !declaredReference || matchedReference;
+}
+
+function organizationReferenceId(value: unknown): string | undefined {
+  return typeof value === 'string'
+    ? value
+    : isJsonObject(value)
+      ? stringValue(value.id)
+      : undefined;
+}
+
+/**
+ * Remove cross-organization references from a selected organization publication.
+ * The item-selection check happens separately so a shared item can remain in the
+ * selected publication while its multi-valued organization references are scoped
+ * to the selected organization only.
+ */
+function filterOrganizationReferences(item: JsonObject, organizationId: string): JsonObject {
+  const filtered: Record<string, unknown> = { ...item };
+  for (const field of [
+    'organizations',
+    'organizationsServed',
+    'partnerOrganizations',
+    'dualCreditPartners',
+  ] as const) {
+    const value = filtered[field];
+    if (!Array.isArray(value)) continue;
+    filtered[field] = value.filter(
+      (reference) => organizationReferenceId(reference) === organizationId,
+    );
+  }
+  return asJsonObject(filtered, 'organization-scoped module item');
 }
 
 function applyOverlayFields(
@@ -1924,12 +2429,15 @@ async function writePublication(
   outputRoot: string,
   root: JsonObject,
   documents: Readonly<Record<string, JsonObject>>,
+  config: EomConfig,
   report: BuildReport,
   prettyPrint: boolean,
+  mode: BuildMode,
 ): Promise<string> {
   const parent = dirname(outputRoot);
   await mkdir(parent, { recursive: true });
   const temporary = await mkdtemp(join(parent, '.eom-public-'));
+  const publisherOrigin = isJsonObject(root.scope) ? stringValue(root.scope.origin) : undefined;
   try {
     const wellKnown = join(temporary, '.well-known');
     const eom = join(temporary, 'eom');
@@ -1937,11 +2445,7 @@ async function writePublication(
     await mkdir(eom, { recursive: true });
     await writeJson(
       join(temporary, GENERATED_MARKER),
-      {
-        generator: 'eom',
-        specification: report.specification,
-        toolVersion: report.toolVersion,
-      },
+      generatedMarker(config, report, mode, publisherOrigin, root),
       true,
     );
     await writeJson(join(wellKnown, 'educational-organization-manifest'), root, prettyPrint);
@@ -1961,7 +2465,7 @@ async function writePublication(
       compareStrings(textValue(left.path), textValue(right.path)),
     );
     const fingerprint = sha256Text(jsonText(outputEntries, true));
-    const buildDirectory = join(parent, 'build');
+    const buildDirectory = buildDirectoryForOutput(outputRoot, mode);
     const buildTemporary = await mkdtemp(join(parent, '.eom-build-'));
     try {
       await writeJson(
@@ -1980,11 +2484,7 @@ async function writePublication(
       );
       await writeJson(
         join(buildTemporary, GENERATED_MARKER),
-        {
-          generator: 'eom',
-          specification: report.specification,
-          toolVersion: report.toolVersion,
-        },
+        generatedMarker(config, report, mode, publisherOrigin, root),
         true,
       );
       await writeJson(
@@ -2046,6 +2546,8 @@ async function writePublication(
           specification: report.specification,
           configDigest: report.configDigest,
           valid: report.valid,
+          mode: report.mode,
+          ...(report.partial ? { partial: report.partial } : {}),
           inputs: report.inputs.map((input) => ({
             path: input.relativePath,
             module: input.module,
@@ -2060,12 +2562,15 @@ async function writePublication(
         },
         true,
       );
-      await replaceDirectory(buildTemporary, buildDirectory, true);
+      await replacePublicationPair(temporary, outputRoot, buildTemporary, buildDirectory, {
+        buildMode: mode,
+        projectIdentity: projectIdentity(config),
+        selector: selectorForReport(report, mode),
+      });
     } catch (error) {
       await rm(buildTemporary, { recursive: true, force: true });
       throw error;
     }
-    await replaceDirectory(temporary, outputRoot, true);
     return fingerprint;
   } catch (error) {
     await rm(temporary, { recursive: true, force: true });
@@ -2073,33 +2578,63 @@ async function writePublication(
   }
 }
 
-async function replaceDirectory(
-  temporary: string,
-  target: string,
-  requireGeneratedMarker = false,
+async function replacePublicationPair(
+  publicationTemporary: string,
+  publicationTarget: string,
+  buildTemporary: string,
+  buildTarget: string,
+  expected: ReplacementMarkerExpectation,
 ): Promise<void> {
-  const parent = dirname(target);
-  await mkdir(parent, { recursive: true });
-  const backup = target + '.previous-' + process.pid;
-  let movedExisting = false;
+  const parent = dirname(publicationTarget);
+  if (dirname(buildTarget) !== parent) {
+    throw unsafeOutputError(
+      buildTarget,
+      'Publication and build-report directories must share a protected parent for atomic replacement.',
+    );
+  }
+  // Validate both targets immediately before moving either one.  This keeps a
+  // build report and its publication as one ownership-checked transaction.
+  await assertReplaceableDirectory(publicationTarget, publicationTarget, expected);
+  await assertReplaceableDirectory(buildTarget, buildTarget, expected);
+  const transaction = await mkdtemp(join(parent, '.eom-replace-'));
+  const publicationBackup = join(transaction, 'publication.previous');
+  const buildBackup = join(transaction, 'build.previous');
+  let movedPublication = false;
+  let movedBuild = false;
+  let installedPublication = false;
+  let installedBuild = false;
   try {
-    if (requireGeneratedMarker) await assertReplaceableDirectory(target, target);
     try {
-      await rename(target, backup);
-      movedExisting = true;
+      await rename(publicationTarget, publicationBackup);
+      movedPublication = true;
     } catch (error) {
       if (!isNotFound(error)) throw error;
     }
-    await rename(temporary, target);
-    if (movedExisting) await rm(backup, { recursive: true, force: true });
-  } catch (error) {
-    if (movedExisting) {
-      try {
-        await rename(backup, target);
-      } catch {
-        // Preserve the original error; the caller reports the failed build.
-      }
+    try {
+      await rename(buildTarget, buildBackup);
+      movedBuild = true;
+    } catch (error) {
+      if (!isNotFound(error)) throw error;
     }
+    await rename(buildTemporary, buildTarget);
+    installedBuild = true;
+    await rename(publicationTemporary, publicationTarget);
+    installedPublication = true;
+    await rm(transaction, { recursive: true, force: true });
+  } catch (error) {
+    if (installedPublication) {
+      await rm(publicationTarget, { recursive: true, force: true }).catch(() => undefined);
+    }
+    if (installedBuild) {
+      await rm(buildTarget, { recursive: true, force: true }).catch(() => undefined);
+    }
+    if (movedBuild) {
+      await rename(buildBackup, buildTarget).catch(() => undefined);
+    }
+    if (movedPublication) {
+      await rename(publicationBackup, publicationTarget).catch(() => undefined);
+    }
+    await rm(transaction, { recursive: true, force: true }).catch(() => undefined);
     throw error;
   }
 }

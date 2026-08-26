@@ -1,29 +1,26 @@
 # Security scan evidence
 
-The repository security gate is offline and deterministic. It checks for private-key material,
-credential-shaped tokens, committed environment files, unsafe remote installers, broad workflow
-permissions, and the browser playground’s network/XSS boundary. Intentional invalid privacy fixtures
-remain test inputs and are not treated as release data.
+Status: post-remediation formal scan pending. This file is intentionally not a zero-finding or
+release-clearance claim.
 
-Run:
+The deterministic repository security gate can be run with:
 
 ```powershell
 pnpm verify:security
-pnpm test -- --runInBand
 ```
 
-## Final formal Standard result
+It checks private-key material, credential-shaped tokens, committed environment files, unsafe remote
+installers, workflow permissions, and the browser network/XSS boundary. Intentional invalid privacy
+fixtures remain test inputs and are not release data.
 
-The final source-backed Standard workbench scan completed against committed revision `36c63a8`:
+## Current post-remediation status
 
-- scan: `8e9bca1f-06a0-45d4-b915-cff64614cbcf`;
-- coverage: complete across the repository source surfaces;
-- reportable findings: zero critical, high, medium, or low findings;
-- local aggregate evidence: `pnpm verify` passed, including parser, HTTP, generator, privacy,
-  package, browser, conformance, and release checks.
+Formal post-remediation status: pending
 
-The earlier baseline scan `5866a611-8be4-444f-bac0-da13abf62d27` is preserved as historical evidence
-with four findings and is superseded by the remediation commits. Neither scan claims an external
-penetration test, CodeQL-hosted result, production deployment review, IANA registration, legal
-approval, independent interoperability, or adoption. No private key, credential, student record, or
-sensitive source snapshot belongs in a release artifact.
+The post-remediation Standard scan must run against the final clean RC3 source commit after all
+local tests pass. The result must identify the exact commit, coverage, scan ID, every finding and
+its disposition, and must contain no unresolved critical, high, medium, low, or plan-conformance
+security defect before RC3 is considered locally ready.
+
+This local report does not claim an external penetration test, hosted CodeQL result, production
+deployment review, IANA registration, legal approval, independent interoperability, or adoption.

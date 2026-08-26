@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-core",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "Offline-safe EOM parsing, URI, localization, and publication primitives.",
   "license": "Apache-2.0",
   "type": "module",
@@ -19,6 +19,11 @@
       "types": "./dist/json.d.ts",
       "import": "./dist/json.js",
       "default": "./dist/json.js"
+    },
+    "./findings": {
+      "types": "./dist/findings.d.ts",
+      "import": "./dist/findings.js",
+      "default": "./dist/findings.js"
     }
   },
   "files": [

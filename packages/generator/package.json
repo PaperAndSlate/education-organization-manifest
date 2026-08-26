@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-generator",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "Offline-safe deterministic YAML-to-EOM publication generator.",
   "license": "Apache-2.0",
   "type": "module",

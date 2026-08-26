@@ -73,7 +73,7 @@ for (const file of required) {
 }
 await writeFile(
   join(output, 'build-metadata.json'),
-  `${JSON.stringify({ name: 'eom-playground', version: '1.0.0-rc.2', generatedBy: 'apps/playground/build.mjs' }, null, 2)}\n`,
+  `${JSON.stringify({ name: 'eom-playground', version: '1.0.0-rc.3', generatedBy: 'apps/playground/build.mjs' }, null, 2)}\n`,
   'utf8',
 );
 process.stdout.write(`built local EOM playground at ${output}\n`);

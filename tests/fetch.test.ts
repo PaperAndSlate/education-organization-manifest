@@ -77,6 +77,9 @@ describe('EOM hardened HTTP retrieval', () => {
     expect(discoveryUrl('https://school.example/')).toBe(
       'https://school.example/.well-known/educational-organization-manifest',
     );
+    expect(discoveryUrl('http://school.example/')).toBe(
+      'https://school.example/.well-known/educational-organization-manifest',
+    );
   });
 
   it('rejects private hosts before any request by default', async () => {

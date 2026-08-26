@@ -10,7 +10,9 @@
 6. Roll back tooling with a new patch/deprecation release. Do not unpublish or rewrite prior
    immutable artifacts.
 
-`v1.0.0-rc.1` is retained as historical evidence and is superseded by `v1.0.0-rc.2`; neither is a
-stable-to-stable migration promise. RC2 adds package/export, registry, vocabulary, conformance, and
-tooling evidence while preserving the EOM 1.0 wire contract. It is a working draft and all external
+`v1.0.0-rc.1` and `v1.0.0-rc.2` are retained as immutable historical evidence and are superseded by
+`v1.0.0-rc.3`; none is a stable-to-stable migration promise. RC3 adds protected partial-build
+ownership, final-URL authority and key-scope checks, finite delegation lifetimes, and structured
+signature lifetime metadata. RC2 signatures must be re-signed for RC3, and RC2 delegation records
+without `validUntil` must be amended before validation. RC3 is a working draft and all external
 review, registration, and deployment decisions remain open.

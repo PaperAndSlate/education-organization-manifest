@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-schema",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "Bundled EOM 1.0 JSON Schema 2020-12 catalog.",
   "license": "Apache-2.0",
   "type": "module",

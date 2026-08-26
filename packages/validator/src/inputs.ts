@@ -5,10 +5,13 @@ import {
   fetchEom,
   fetchManifest,
   isJsonObject,
+  originOf,
   parseStrictJson,
   type JsonObject,
   type FetchOptions,
+  type FetchResponse,
 } from '@paperandslate/eom-core';
+import { evaluateAuthority } from '@paperandslate/eom-authority';
 import { finding, hasErrors, type Finding } from './findings.js';
 import { publicationSetFindings } from './semantic.js';
 import { validateDocument, type ValidationOptions } from './engine.js';
@@ -21,6 +24,12 @@ export interface PublicationValidationOptions extends ValidationOptions {
   readonly maxTotalBytes?: number;
   readonly fetchGraph?: boolean;
   readonly fetch?: FetchOptions;
+  readonly transport?: PublicationTransport;
+}
+
+export interface PublicationTransport {
+  readonly fetchManifest: typeof fetchManifest;
+  readonly fetchEom: typeof fetchEom;
 }
 
 export interface PublicationValidationResult {
@@ -30,7 +39,16 @@ export interface PublicationValidationResult {
   readonly findings: readonly Finding[];
   readonly documents: Readonly<Record<string, unknown>>;
   readonly files: readonly string[];
+  readonly fetches: readonly PublicationFetchRecord[];
   readonly rootUrl?: string;
+}
+
+export interface PublicationFetchRecord {
+  readonly declaredUrl: string;
+  readonly requestedUrl: string;
+  readonly finalUrl: string;
+  readonly redirects: FetchResponse['redirects'];
+  readonly cached: boolean;
 }
 
 /** Validate every JSON document in a local publication tree as one graph. */
@@ -135,6 +153,8 @@ export async function validatePublicationUrl(
   const findings: Finding[] = [];
   let rootUrl: string | undefined;
   const files: string[] = [];
+  const fetches: PublicationFetchRecord[] = [];
+  const transport = options.transport;
   const fetchOptions: FetchOptions = {
     ...options.fetch,
     ...(options.maxBytes !== undefined && options.fetch?.maxBytes === undefined
@@ -142,10 +162,47 @@ export async function validatePublicationUrl(
       : {}),
   };
   try {
-    const rootResponse = await fetchManifest(originOrUrl, fetchOptions);
+    const rootResponse = await (transport?.fetchManifest ?? fetchManifest)(
+      originOrUrl,
+      fetchOptions,
+    );
     rootUrl = rootResponse.finalUrl;
     documents[rootResponse.finalUrl] = rootResponse.document;
     files.push(rootResponse.finalUrl);
+    fetches.push({
+      declaredUrl: rootResponse.requestedUrl,
+      requestedUrl: rootResponse.requestedUrl,
+      finalUrl: rootResponse.finalUrl,
+      redirects: rootResponse.redirects,
+      cached: false,
+    });
+    const requestedOrigin = originOf(rootResponse.requestedUrl);
+    const finalOrigin = originOf(rootResponse.finalUrl);
+    const rootRedirectSafe =
+      requestedOrigin !== undefined &&
+      finalOrigin !== undefined &&
+      requestedOrigin === finalOrigin &&
+      rootResponse.redirects.every((redirect) => {
+        const fromOrigin = originOf(redirect.from);
+        const toOrigin = originOf(redirect.to);
+        return (
+          fromOrigin !== undefined && fromOrigin === toOrigin && redirect.crossOrigin === false
+        );
+      });
+    if (!rootRedirectSafe) {
+      findings.push(
+        finding(
+          'EOM_AUTHORITY_ROOT_REDIRECT_ORIGIN',
+          'security',
+          'The discovered root manifest must not cross origins during redirect resolution.',
+          {
+            severity: 'error',
+            resource: rootResponse.finalUrl,
+            related: [rootResponse.requestedUrl, rootResponse.finalUrl],
+          },
+        ),
+      );
+    }
     const rootResult = validateDocument(rootResponse.document, options);
     findings.push(
       ...rootResult.findings.map((item) => ({
@@ -158,14 +215,23 @@ export async function validatePublicationUrl(
       const maxDepth = nonNegativeLimit(options.maxDepth, 1);
       const maxTotalBytes = positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024);
       let totalBytes = Buffer.byteLength(rootResponse.body, 'utf8');
-      const queue: Array<{ readonly href: string; readonly depth: number }> = [];
+      const queue: Array<{
+        readonly href: string;
+        readonly depth: number;
+        readonly resource: JsonObject;
+      }> = [];
       const queued = new Set<string>([
         canonicalUrl(rootResponse.requestedUrl),
         canonicalUrl(rootResponse.finalUrl),
       ]);
       const cache = new Map<
         string,
-        { readonly finalUrl: string; readonly document: unknown; readonly bytes: number }
+        {
+          readonly finalUrl: string;
+          readonly document: unknown;
+          readonly bytes: number;
+          readonly redirects: FetchResponse['redirects'];
+        }
       >();
       let resourceLimitReported = false;
       let totalBytesLimitReached = totalBytes > maxTotalBytes;
@@ -173,11 +239,13 @@ export async function validatePublicationUrl(
         finalUrl: rootResponse.finalUrl,
         document: rootResponse.document,
         bytes: totalBytes,
+        redirects: rootResponse.redirects,
       });
       cache.set(canonicalUrl(rootResponse.finalUrl), {
         finalUrl: rootResponse.finalUrl,
         document: rootResponse.document,
         bytes: totalBytes,
+        redirects: rootResponse.redirects,
       });
       if (totalBytesLimitReached) {
         findings.push(
@@ -188,8 +256,12 @@ export async function validatePublicationUrl(
             { resource: rootResponse.finalUrl, severity: 'error' },
           ),
         );
+      } else if (!rootRedirectSafe) {
+        // A cross-origin discovery redirect cannot be authorized yet: the
+        // redirected document is not trusted until a root manifest from the
+        // requested origin has been obtained. Do not follow its declarations.
       } else {
-        enqueueResources(rootResponse.document, 1, queue, queued, maxDepth);
+        enqueueResources(rootResponse.document, 1, queue, queued, maxDepth, findings);
       }
       if (queue.length > maxResources) {
         resourceLimitReported = true;
@@ -216,17 +288,32 @@ export async function validatePublicationUrl(
           let finalUrl: string;
           let document: unknown;
           let responseBytes: number;
+          let redirects: FetchResponse['redirects'];
+          let cachedResponse = false;
           if (cached) {
             finalUrl = cached.finalUrl;
             document = cached.document;
             responseBytes = cached.bytes;
+            redirects = cached.redirects;
+            cachedResponse = true;
           } else {
-            const response = await fetchEom(next.href, fetchOptions);
+            const response = await (transport?.fetchEom ?? fetchEom)(next.href, fetchOptions);
             responseBytes = Buffer.byteLength(response.body, 'utf8');
             finalUrl = response.finalUrl;
+            redirects = response.redirects;
             document = parseStrictJson(response.body, response.finalUrl);
-            cache.set(requestKey, { finalUrl, document, bytes: responseBytes });
-            cache.set(canonicalUrl(finalUrl), { finalUrl, document, bytes: responseBytes });
+            cache.set(requestKey, {
+              finalUrl,
+              document,
+              bytes: responseBytes,
+              redirects,
+            });
+            cache.set(canonicalUrl(finalUrl), {
+              finalUrl,
+              document,
+              bytes: responseBytes,
+              redirects,
+            });
           }
           if (totalBytes + responseBytes > maxTotalBytes) {
             findings.push(
@@ -243,6 +330,37 @@ export async function validatePublicationUrl(
           totalBytes += responseBytes;
           documents[finalUrl] = document;
           if (!files.includes(finalUrl)) files.push(finalUrl);
+          fetches.push({
+            declaredUrl: next.href,
+            requestedUrl: next.href,
+            finalUrl,
+            redirects,
+            cached: cachedResponse,
+          });
+          const authorityUrls = [
+            next.href,
+            finalUrl,
+            ...redirects.flatMap((redirect) => [redirect.from, redirect.to]),
+          ].filter((url, index, values) => values.indexOf(url) === index);
+          for (const authorityUrl of authorityUrls) {
+            const authority = evaluateAuthority(
+              rootResponse.document,
+              next.resource,
+              authorityUrl,
+              options.now === undefined ? {} : { now: options.now },
+            );
+            if (!authority.accepted) {
+              findings.push(
+                ...authority.findings.map((item) => ({
+                  ...item,
+                  resource: item.resource ?? authorityUrl,
+                  related: [...(item.related ?? []), next.href, finalUrl].filter(
+                    (value, index, values) => values.indexOf(value) === index,
+                  ),
+                })),
+              );
+            }
+          }
           const result = validateDocument(document, options);
           findings.push(
             ...result.findings.map((item) => ({
@@ -251,9 +369,19 @@ export async function validatePublicationUrl(
             })),
           );
           if (isJsonObject(document)) {
-            enqueueResources(document, next.depth + 1, queue, queued, maxDepth);
+            enqueueResources(document, next.depth + 1, queue, queued, maxDepth, findings);
           }
         } catch (error) {
+          if (error instanceof EomFetchError) {
+            const finalUrl = error.url ?? next.href;
+            fetches.push({
+              declaredUrl: next.href,
+              requestedUrl: next.href,
+              finalUrl,
+              redirects: error.redirects,
+              cached: false,
+            });
+          }
           findings.push(fetchFinding(error, next.href));
         }
       }
@@ -269,6 +397,15 @@ export async function validatePublicationUrl(
       }
     }
   } catch (error) {
+    if (error instanceof EomFetchError) {
+      fetches.push({
+        declaredUrl: originOrUrl,
+        requestedUrl: originOrUrl,
+        finalUrl: error.url ?? originOrUrl,
+        redirects: error.redirects,
+        cached: false,
+      });
+    }
     findings.push(fetchFinding(error, originOrUrl));
   }
   findings.push(
@@ -278,7 +415,7 @@ export async function validatePublicationUrl(
     })),
   );
   return {
-    ...publicationResult(documents, files, findings),
+    ...publicationResult(documents, files, findings, fetches),
     ...(rootUrl ? { rootUrl } : {}),
   };
 }
@@ -359,6 +496,7 @@ function publicationResult(
   documents: Readonly<Record<string, unknown>>,
   files: readonly string[],
   findings: readonly Finding[],
+  fetches: readonly PublicationFetchRecord[] = [],
 ): PublicationValidationResult {
   const structuralValid = !findings.some(
     (item) =>
@@ -374,6 +512,7 @@ function publicationResult(
     findings,
     documents,
     files,
+    fetches,
   };
 }
 
@@ -407,18 +546,39 @@ function nonNegativeLimit(value: number | undefined, fallback: number): number {
 function enqueueResources(
   document: JsonObject,
   depth: number,
-  queue: Array<{ readonly href: string; readonly depth: number }>,
+  queue: Array<{
+    readonly href: string;
+    readonly depth: number;
+    readonly resource: JsonObject;
+  }>,
   queued: Set<string>,
   maxDepth: number,
+  findings: Finding[],
 ): void {
   const resources = Array.isArray(document.resources) ? document.resources : [];
   if (resources.length === 0 || depth > maxDepth) return;
   for (const resource of resources) {
     if (!isJsonObject(resource) || typeof resource.href !== 'string') continue;
-    const key = canonicalUrl(resource.href);
+    const resourceId = typeof resource.id === 'string' ? resource.id : '';
+    const resourceType = typeof resource.type === 'string' ? resource.type : '';
+    let canonical: string;
+    try {
+      canonical = canonicalUrl(resource.href);
+    } catch {
+      findings.push(
+        finding(
+          'EOM_RESOURCE_URL_INVALID',
+          'structural',
+          'A publication resource href must be an absolute URL.',
+          { severity: 'error', resource: resource.href },
+        ),
+      );
+      continue;
+    }
+    const key = `${canonical}|${resourceId}|${resourceType}`;
     if (queued.has(key)) continue;
     queued.add(key);
-    queue.push({ href: resource.href, depth });
+    queue.push({ href: resource.href, depth, resource });
   }
 }
 

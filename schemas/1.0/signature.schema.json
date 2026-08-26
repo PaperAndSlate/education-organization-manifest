@@ -19,7 +19,8 @@
     "signature",
     "compact",
     "detached",
-    "createdAt"
+    "createdAt",
+    "contentType"
   ],
   "properties": {
     "$schema": { "const": "https://paperandslate.org/schemas/eom/1.0/signature.schema.json" },

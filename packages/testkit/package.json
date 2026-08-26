@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-testkit",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "Offline EOM conformance profiles and black-box publication runner.",
   "license": "Apache-2.0",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-authority",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "Offline EOM origin and delegated publication-authority evaluation.",
   "license": "Apache-2.0",
   "type": "module",
@@ -12,8 +12,7 @@
     }
   },
   "dependencies": {
-    "@paperandslate/eom-core": "workspace:*",
-    "@paperandslate/eom-validator": "workspace:*"
+    "@paperandslate/eom-core": "workspace:*"
   },
   "files": [
     "dist"

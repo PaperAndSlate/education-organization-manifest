@@ -64,6 +64,51 @@ test('verifies a real detached Ed25519 signature in the browser engine', async (
   expect(result).toEqual({ overall: true, findings: [] });
 });
 
+test('rejects detached signature lifetime removal in the browser engine', async ({ page }) => {
+  const resource = {
+    $schema: 'https://paperandslate.org/schemas/eom/1.0/organization-profile.schema.json',
+    specification: 'https://paperandslate.org/spec/eom/1.0',
+    version: '1.0',
+    id: 'https://browser-signature-expiry.example/id/organization',
+    type: 'organization-profile',
+    canonical: 'https://browser-signature-expiry.example/eom/organization.json',
+    name: 'Browser Expiry School',
+    organizationType: 'secondary-school',
+  };
+  const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+  const keyId = 'https://browser-signature-expiry.example/eom/keys#test-2027';
+  const signature = signDetached(resource, {
+    privateKey,
+    keyId,
+    createdAt: '2027-01-01T00:00:00Z',
+    expires: '2030-01-01T00:00:00Z',
+  });
+  const keySet = { keys: [publicKeyRecord(publicKey, { keyId })] };
+  const browserPayload = JSON.parse(JSON.stringify({ resource, signature, keySet })) as {
+    resource: Record<string, unknown>;
+    signature: Record<string, unknown>;
+    keySet: Record<string, unknown>;
+  };
+  const result = await page.evaluate(async ({ resource, signature, keySet }) => {
+    const playground = (window as unknown as { __EOM_PLAYGROUND__: unknown })
+      .__EOM_PLAYGROUND__ as {
+      verifyDetachedSignature: (
+        value: unknown,
+        detachedSignature: unknown,
+        detachedKeySet: unknown,
+        options?: { now?: string },
+      ) => Promise<{ overall: boolean; findings: readonly string[] }>;
+    };
+    const missingExpiry = { ...signature } as Record<string, unknown>;
+    delete missingExpiry.expires;
+    return playground.verifyDetachedSignature(resource, missingExpiry, keySet, {
+      now: '2027-01-02T00:00:00Z',
+    });
+  }, browserPayload);
+  expect(result.overall).toBe(false);
+  expect(result.findings.join(' ')).toContain('lifetime');
+});
+
 test('keeps starter and uploaded content as text and rejects cross-origin service paths', async ({
   page,
 }) => {

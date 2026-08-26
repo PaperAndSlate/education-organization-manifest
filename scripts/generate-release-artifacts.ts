@@ -1,15 +1,25 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { gzipSync } from 'node:zlib';
-import { cp, mkdir, readFile, readdir, realpath, rm, stat, writeFile } from 'node:fs/promises';
+import { gunzipSync, gzipSync } from 'node:zlib';
+import {
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  realpath,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
 import { basename, extname, dirname, join, parse, relative, resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { isJsonObject, parseStrictJson, stringifyCanonical } from '@paperandslate/eom-core';
 
 const root = resolve(process.cwd());
-export const RELEASE_VERSION = process.env.EOM_RELEASE_VERSION ?? '1.0.0-rc.2';
+export const RELEASE_VERSION = process.env.EOM_RELEASE_VERSION ?? '1.0.0-rc.3';
 const outputRoot = resolve(process.env.EOM_RELEASE_OUTPUT ?? join(root, 'release'));
 const sourceDateEpoch = Number(process.env.SOURCE_DATE_EPOCH ?? '0');
 const RELEASE_MARKER = '.eom-release-generated.json';
@@ -66,6 +76,7 @@ export async function prepareReleaseArtifacts(
   }
 
   await assertSafeReleaseOutputRoot(targetRoot);
+  buildWorkspacePackages();
   const generatedAt = new Date(sourceDateEpoch * 1000).toISOString();
   const candidateDirectory = join(targetRoot, `v${RELEASE_VERSION}`);
   await rm(candidateDirectory, { recursive: true, force: true });
@@ -121,6 +132,7 @@ export async function prepareReleaseArtifacts(
   }
 
   const packageManifests = await readWorkspacePackageManifests();
+  const packagePacks = await createPackagePackArtifacts(targetRoot, sourceCommit, sourceTree);
   const lockBytes = await readFile(join(root, 'pnpm-lock.yaml'));
   const sbom = {
     bomFormat: 'CycloneDX',
@@ -154,6 +166,10 @@ export async function prepareReleaseArtifacts(
         digest: { sha256: sha256(artifact.bytes) },
       })),
       { name: 'sbom.cdx.json', digest: { sha256: sha256(sbomBytes) } },
+      ...packagePacks.artifacts.map((artifact) => ({
+        name: artifact.path,
+        digest: { sha256: sha256(artifact.bytes) },
+      })),
     ],
     predicateType: 'https://slsa.dev/provenance/v1',
     predicate: {
@@ -188,6 +204,8 @@ export async function prepareReleaseArtifacts(
       bytes: file.bytes,
     })),
     ...archives,
+    ...packagePacks.artifacts,
+    { path: 'package-pack-manifest.json', bytes: packagePacks.manifestBytes },
     { path: 'sbom.cdx.json', bytes: sbomBytes },
     { path: 'build-provenance.json', bytes: provenanceBytes },
   ];
@@ -214,6 +232,13 @@ export async function prepareReleaseArtifacts(
       path: 'v1.0.0-rc.1',
       status: 'preserved-immutable-superseded',
     },
+    historicalSupersededReleases: [
+      {
+        release: '1.0.0-rc.2',
+        path: 'v1.0.0-rc.2',
+        status: 'preserved-immutable-superseded',
+      },
+    ],
     artifacts: releaseArtifacts
       .concat({ path: 'checksums.sha256', bytes: checksumsBytes })
       .map((artifact) => ({
@@ -251,6 +276,128 @@ interface ReleaseArtifact {
   readonly bytes: Buffer;
 }
 
+interface PackagePackResult {
+  readonly manifestBytes: Buffer;
+  readonly artifacts: readonly ReleaseArtifact[];
+}
+
+interface PackedPackageRecord {
+  readonly name: string;
+  readonly version: string;
+  readonly tarball: string;
+  readonly bytes: number;
+  readonly sha256: string;
+  readonly files: readonly string[];
+}
+
+function buildWorkspacePackages(): void {
+  runPnpm(['build'], { cwd: root, encoding: 'utf8', stdio: 'inherit' });
+}
+
+async function createPackagePackArtifacts(
+  targetRoot: string,
+  sourceCommit: string,
+  sourceTree: string,
+): Promise<PackagePackResult> {
+  const temporaryDirectory = await mkdtemp(join(tmpdir(), 'eom-release-pack-'));
+  const artifacts: ReleaseArtifact[] = [];
+  const packages: PackedPackageRecord[] = [];
+  try {
+    for (const directory of await workspacePackageDirectories()) {
+      const packageJson = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8')) as {
+        name?: string;
+        version?: string;
+        private?: boolean;
+      };
+      if (!packageJson.name || !packageJson.version || packageJson.private === true) continue;
+      const output = runPnpm(['pack', '--pack-destination', temporaryDirectory, '--json'], {
+        cwd: directory,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      const parsed = JSON.parse(output.toString()) as unknown;
+      const packed = (Array.isArray(parsed) ? parsed[0] : parsed) as
+        | {
+            filename?: string;
+            files?: readonly { path?: string }[];
+          }
+        | undefined;
+      if (!packed?.filename)
+        throw new Error(`${packageJson.name}: pnpm pack returned no filename.`);
+      const tarballPath = resolve(packed.filename);
+      if (!isWithin(temporaryDirectory, tarballPath)) {
+        throw new Error(`${packageJson.name}: pnpm pack returned a tarball outside its temp root.`);
+      }
+      const bytes = await readFile(tarballPath);
+      const tarEntries = readTarEntries(bytes);
+      const files =
+        packed.files
+          ?.map((entry) => entry.path)
+          .filter((path): path is string => typeof path === 'string')
+          .sort(compareStrings) ?? tarEntries;
+      if (files.some((file) => file.startsWith('src/'))) {
+        throw new Error(`${packageJson.name}: source files cannot enter a release package.`);
+      }
+      if (!files.includes('dist/index.js') || !files.includes('dist/index.d.ts')) {
+        throw new Error(`${packageJson.name}: compiled package entrypoints are missing.`);
+      }
+      const fileName = basename(tarballPath);
+      const artifactPath = `packages/${fileName}`;
+      const artifactBytes = Buffer.from(bytes);
+      await mkdir(join(targetRoot, 'packages'), { recursive: true });
+      await writeFile(join(targetRoot, artifactPath), artifactBytes);
+      artifacts.push({ path: artifactPath, bytes: artifactBytes });
+      packages.push({
+        name: packageJson.name,
+        version: packageJson.version,
+        tarball: artifactPath,
+        bytes: artifactBytes.length,
+        sha256: sha256(artifactBytes),
+        files,
+      });
+    }
+  } finally {
+    await rm(temporaryDirectory, { recursive: true, force: true });
+  }
+  packages.sort((left, right) => compareStrings(left.name, right.name));
+  const manifest = {
+    version: 1,
+    release: RELEASE_VERSION,
+    sourceCommit,
+    sourceTree,
+    packageManager: 'pnpm@10.6.0',
+    packages,
+  };
+  return {
+    manifestBytes: Buffer.from(stringifyCanonical(manifest as never), 'utf8'),
+    artifacts,
+  };
+}
+
+function readTarEntries(bytes: Buffer): string[] {
+  const tar = gunzipSync(bytes);
+  const entries: string[] = [];
+  for (let offset = 0; offset + 512 <= tar.length;) {
+    const header = tar.subarray(offset, offset + 512);
+    if (header.every((byte) => byte === 0)) break;
+    const name = header.subarray(0, 100).toString('utf8').replace(/\0.*$/u, '');
+    const prefix = header.subarray(345, 500).toString('utf8').replace(/\0.*$/u, '');
+    const sizeText = header.subarray(124, 136).toString('ascii').replace(/\0.*$/u, '').trim();
+    const size = sizeText ? Number.parseInt(sizeText, 8) : 0;
+    if (!Number.isSafeInteger(size) || size < 0) throw new Error('Invalid package tar entry size.');
+    entries.push(prefix ? `${prefix}/${name}` : name);
+    offset += 512 + Math.ceil(size / 512) * 512;
+  }
+  return entries.sort(compareStrings);
+}
+
+async function workspacePackageDirectories(): Promise<string[]> {
+  const paths = [...(await walk(join(root, 'packages'))), ...(await walk(join(root, 'apps')))]
+    .filter((path) => path.endsWith('package.json'))
+    .map((path) => dirname(path));
+  return [...new Set(paths)].sort(compareStrings);
+}
+
 interface ReleaseFile {
   readonly relativePath: string;
   readonly bytes: Buffer;
@@ -268,6 +415,9 @@ async function copyCandidateArtifacts(
     ['vocabularies/1.0', 'vocabularies/1.0'],
     ['fixtures/conformance', 'fixtures/conformance'],
     ['fixtures/modules', 'fixtures/modules'],
+    ['requirements', 'requirements'],
+    ['reports', 'reports'],
+    ['docs/migration-policy.md', 'docs/migration-policy.md'],
   ];
   for (const [source, target] of sources) {
     const sourcePath = join(root, source);
@@ -308,6 +458,7 @@ async function sourceArchiveEntries(): Promise<ArchiveEntry[]> {
     'plans',
     'prompts',
     'requirements',
+    'reports',
     'schemas',
     'vocabularies',
     'scripts',
@@ -529,6 +680,14 @@ function git(...args: string[]): string {
   // Preserve porcelain status columns: trimming the whole output turns the
   // first " M path" row into "M path" and drops its first path character.
   return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).replace(/(?:\r?\n)+$/u, '');
+}
+
+function runPnpm(
+  args: readonly string[],
+  options: Parameters<typeof execFileSync>[2],
+): Buffer | string {
+  const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+  return execFileSync(command, [...args], options);
 }
 
 function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
