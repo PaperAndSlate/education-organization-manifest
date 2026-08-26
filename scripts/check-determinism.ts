@@ -6,13 +6,17 @@ import { buildPublication } from '@paperandslate/eom-generator';
 const sourceDirectory = resolve(process.argv[2] ?? 'examples/ecme-high/source');
 let temporaryRoot = '';
 const sourceConfigName = basename(join(sourceDirectory, 'eom.config.yaml'));
-const firstOutput = join(temporaryRoot, 'first', 'public');
-const secondOutput = join(temporaryRoot, 'second', 'public');
-const firstSource = join(temporaryRoot, 'first', 'source');
-const secondSource = join(temporaryRoot, 'second', 'source');
+let firstOutput = '';
+let secondOutput = '';
+let firstSource = '';
+let secondSource = '';
 
 try {
   temporaryRoot = await mkdtemp(join(tmpdir(), 'eom-determinism-'));
+  firstOutput = join(temporaryRoot, 'first', 'public');
+  secondOutput = join(temporaryRoot, 'second', 'public');
+  firstSource = join(temporaryRoot, 'first', 'source');
+  secondSource = join(temporaryRoot, 'second', 'source');
   await copySourceTree(sourceDirectory, firstSource, false);
   await copySourceTree(sourceDirectory, secondSource, true);
   const firstConfigFile = join(firstSource, sourceConfigName);
