@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "title": "EOM vocabulary snapshot",
+  "type": "object",
+  "required": ["$schema", "specification", "version", "id", "canonical", "type", "category", "openness", "terms", "source", "retrievedAt", "license", "contentDigest"],
+  "properties": {
+    "$schema": { "const": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json" },
+    "specification": { "const": "https://paperandslate.org/spec/eom/1.0" },
+    "version": { "const": "1.0" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "canonical": { "$ref": "common.schema.json#/$defs/httpsUri" },
+    "type": { "const": "vocabulary" },
+    "category": { "type": "string", "minLength": 1 },
+    "openness": { "enum": ["open", "closed", "extensible"] },
+    "terms": { "type": "array", "items": { "$ref": "#/$defs/term" }, "uniqueItems": true },
+    "source": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "sourceVersion": { "type": "string", "minLength": 1 },
+    "retrievedAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "license": { "type": "string", "minLength": 1 },
+    "transformation": { "$ref": "common.schema.json#/$defs/localized" },
+    "updateMechanism": { "type": "string", "minLength": 1 },
+    "contentDigest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "compatibleProtocolVersions": { "type": "array", "items": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" }, "uniqueItems": true },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "term": {
+      "type": "object",
+      "required": ["uri", "code", "preferredLabel", "definition", "status"],
+      "properties": {
+        "uri": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+        "code": { "type": "string", "minLength": 1 },
+        "preferredLabel": { "$ref": "common.schema.json#/$defs/localized" },
+        "definition": { "$ref": "common.schema.json#/$defs/localized" },
+        "broader": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/absoluteUri" }, "uniqueItems": true },
+        "narrower": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/absoluteUri" }, "uniqueItems": true },
+        "related": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/absoluteUri" }, "uniqueItems": true },
+        "jurisdiction": { "type": "string", "minLength": 1 },
+        "source": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+        "license": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["active", "deprecated", "proposed"] },
+        "effective": { "$ref": "common.schema.json#/$defs/period" },
+        "mappings": { "type": "array", "items": { "$ref": "#/$defs/mapping" }, "uniqueItems": true },
+        "changeNote": { "$ref": "common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "mapping": {
+      "type": "object",
+      "required": ["relation", "target"],
+      "properties": {
+        "relation": { "enum": ["exactMatch", "closeMatch", "broaderMatch", "narrowerMatch", "relatedMatch", "supersedes", "approximateEquivalent"] },
+        "target": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+        "evidence": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  }
+}
