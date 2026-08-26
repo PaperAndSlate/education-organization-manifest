@@ -3,17 +3,17 @@
     {
       "bytes": 2623,
       "path": "build-provenance.json",
-      "sha256": "b80d883595ab1652b87dfd193f0b3542b0bf969cab7c86b8cb7e0c8b50b4b061"
+      "sha256": "034cd4f9f398e6a7ea63fccccacbc3a164444eccde259347e92e6ba2bce5c780"
     },
     {
       "bytes": 25603,
       "path": "checksums.sha256",
-      "sha256": "3c6b61db50f258846d0df17c3cde3ec8582637b83abebe4128850bdf8d7c99b1"
+      "sha256": "c82d329a8f33f03bf41568321c73881fa4bb9a2f459a2c66bcb5ca6b94850385"
     },
     {
-      "bytes": 689864,
+      "bytes": 689898,
       "path": "educational-organization-manifest-1.0.0-rc.2.tar.gz",
-      "sha256": "e1b4461340658cbf3356552d495fef0cc65ade14fd163d13cc3fbd35e5f83442"
+      "sha256": "14fde1cf72846bfc15d80670f58962c9fead13a03c8d07c133d37254aa05bcce"
     },
     {
       "bytes": 48171,
@@ -43,12 +43,12 @@
     {
       "bytes": 94236,
       "path": "sbom.cdx.json",
-      "sha256": "856e7233daa75477d7055e84c9cfe14fd1f268c66192fb0704005dba0e592ed4"
+      "sha256": "93a9b05732c4adaaa558941ce16ea28daf1066d9f3ed3c63d905b18312edaa37"
     },
     {
       "bytes": 381,
       "path": "v1.0.0-rc.2/STATUS.md",
-      "sha256": "bd652baf3f9a08674d40f8f5d591a9a4784325fb7520ef3b5f3cb08072c36a8e"
+      "sha256": "5f24d98e6f6b976f2cc1942e3593ba333165af1ac14abfc09b49a9e0f1abb9d9"
     },
     {
       "bytes": 756,
@@ -1103,8 +1103,8 @@
   "protocolStatus": "working-draft",
   "release": "1.0.0-rc.2",
   "schemaBase": "https://paperandslate.org/schemas/eom/1.0/",
-  "sourceCommit": "6f33e79d04b3f280e662171ec79d15cd7cf7b5a6",
+  "sourceCommit": "82bb2571ad926304b8da6b42bb2b9f242046e5d2",
   "sourceDateEpoch": 0,
-  "sourceTree": "5f52078209b992038872e9947c19096fe128c1af",
+  "sourceTree": "3180209da82505787963d57e0fd5825850156335",
   "specification": "https://paperandslate.org/spec/eom/1.0"
 }

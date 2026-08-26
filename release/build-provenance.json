@@ -14,9 +14,9 @@
       "resolvedDependencies": [
         {
           "digest": {
-            "sha1": "6f33e79d04b3f280e662171ec79d15cd7cf7b5a6"
+            "sha1": "82bb2571ad926304b8da6b42bb2b9f242046e5d2"
           },
-          "uri": "git:6f33e79d04b3f280e662171ec79d15cd7cf7b5a6"
+          "uri": "git:82bb2571ad926304b8da6b42bb2b9f242046e5d2"
         },
         {
           "digest": {
@@ -39,12 +39,12 @@
   },
   "predicateType": "https://slsa.dev/provenance/v1",
   "provenanceStatus": "local metadata; not a signed external attestation",
-  "sourceCommit": "6f33e79d04b3f280e662171ec79d15cd7cf7b5a6",
-  "sourceTree": "5f52078209b992038872e9947c19096fe128c1af",
+  "sourceCommit": "82bb2571ad926304b8da6b42bb2b9f242046e5d2",
+  "sourceTree": "3180209da82505787963d57e0fd5825850156335",
   "subject": [
     {
       "digest": {
-        "sha256": "e1b4461340658cbf3356552d495fef0cc65ade14fd163d13cc3fbd35e5f83442"
+        "sha256": "14fde1cf72846bfc15d80670f58962c9fead13a03c8d07c133d37254aa05bcce"
       },
       "name": "educational-organization-manifest-1.0.0-rc.2.tar.gz"
     },
@@ -80,7 +80,7 @@
     },
     {
       "digest": {
-        "sha256": "856e7233daa75477d7055e84c9cfe14fd1f268c66192fb0704005dba0e592ed4"
+        "sha256": "93a9b05732c4adaaa558941ce16ea28daf1066d9f3ed3c63d905b18312edaa37"
       },
       "name": "sbom.cdx.json"
     }
