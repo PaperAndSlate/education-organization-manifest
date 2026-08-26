@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/meal-types/1.0",
   "category": "meal-types",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:db149acfe88ef2b135356ecb22d6181c4dab19dfc9984ca0deb361b5a9e60f2b",
   "id": "https://paperandslate.org/vocabularies/eom/meal-types/1.0",
   "license": "CC0-1.0",

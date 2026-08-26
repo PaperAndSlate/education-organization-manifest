@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/identifier-schemes/1.0",
   "category": "identifier-schemes",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:df6fe49fab6dd5cb042ad804018aa7664a174729777c569e9d5da8de56fa7a90",
   "id": "https://paperandslate.org/vocabularies/eom/identifier-schemes/1.0",
   "license": "CC0-1.0",

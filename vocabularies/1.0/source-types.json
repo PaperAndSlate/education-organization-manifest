@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/source-types/1.0",
   "category": "source-types",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:601ec8cfa3eae444091fd43da81b22470d577b4bbde08228fea7b49833ba0050",
   "id": "https://paperandslate.org/vocabularies/eom/source-types/1.0",
   "license": "CC0-1.0",

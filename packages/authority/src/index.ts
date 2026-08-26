@@ -38,8 +38,6 @@ export function evaluateAuthority(
 ): AuthorityResult {
   const now = options.now ?? new Date();
   const rootOrigin = originAt(manifest, ['scope', 'origin']) ?? originAt(manifest, ['canonical']);
-  const resourceType = stringAt(resource, ['type']);
-  const resourceId = stringAt(resource, ['id']);
   const finalOrigin = originOf(finalUrl);
   const rootAuthority =
     rootOrigin !== undefined && finalOrigin !== undefined && isSameOrigin(finalUrl, rootOrigin);

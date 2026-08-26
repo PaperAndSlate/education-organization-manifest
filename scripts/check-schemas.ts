@@ -43,7 +43,8 @@ for (const file of schemaFiles) {
   try {
     const value = parseStrictJson(await readFile(path, 'utf8'), path);
     if (!isJsonObject(value) || typeof value.$id !== 'string') continue;
-    ajv.getSchema(value.$id) ?? ajv.compile(value);
+    const existing = ajv.getSchema(value.$id);
+    if (!existing) ajv.compile(value);
   } catch (error) {
     failures += 1;
     process.stderr.write(

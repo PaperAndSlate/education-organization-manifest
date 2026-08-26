@@ -338,9 +338,7 @@ export function verifyDetached(
     options.resource !== undefined &&
     options.finalUrl !== undefined;
   if (hasAuthorityInputs) {
-    authority = evaluateAuthority(options.manifest, options.resource, options.finalUrl as string, {
-      now,
-    });
+    authority = evaluateAuthority(options.manifest, options.resource, options.finalUrl, { now });
     findings.push(...authority.findings);
   }
   const delegationScopeValid = authority?.accepted ?? 'not-evaluated';

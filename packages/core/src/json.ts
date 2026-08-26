@@ -60,7 +60,7 @@ class DuplicateKeyScanner {
     while (this.index < this.text.length) {
       this.skipWhitespace();
       const start = this.index;
-      const raw = this.string();
+      this.string();
       const key = JSON.parse(this.text.slice(start, this.index)) as string;
       if (keys.has(key)) {
         throw new StrictJsonError(`Duplicate JSON object key ${JSON.stringify(key)}.`, this.source);

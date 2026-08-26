@@ -1,0 +1,43 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/academic-calendar.schema.json",
+  "canonical": "https://ecme-high.example/eom/calendar.json",
+  "expires": "2028-05-01T14:00:00Z",
+  "extensions": {
+    "https://fixture.example/eom/extensions/module-test": {
+      "value": "preserved"
+    }
+  },
+  "id": "https://ecme-high.example/eom/resource/calendar",
+  "items": [
+    {
+      "academicYear": "2027–2028",
+      "id": "https://ecme-high.example/id/calendar/2027",
+      "name": "2027–2028 Academic Calendar",
+      "periods": [
+        {
+          "end": "2027-12-17",
+          "id": "https://ecme-high.example/id/academic-period/2027-fall",
+          "name": "Fall 2027",
+          "order": 1,
+          "start": "2027-08-23",
+          "type": "academic-period"
+        },
+        {
+          "end": "2028-06-02",
+          "id": "https://ecme-high.example/id/academic-period/2028-spring",
+          "name": "Spring 2028",
+          "order": 2,
+          "start": "2028-01-10",
+          "type": "academic-period"
+        }
+      ],
+      "timeZone": "America/Los_Angeles",
+      "type": "academic-calendar"
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "subjects": ["https://ecme-high.example/id/school"],
+  "type": "academic-calendar",
+  "version": "1.0"
+}

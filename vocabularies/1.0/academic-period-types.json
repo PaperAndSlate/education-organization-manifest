@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/academic-period-types/1.0",
   "category": "academic-period-types",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:bffaf8ea0883098fd6b5850fdca6194a3684b476dbeef727b414da522d89c33f",
   "id": "https://paperandslate.org/vocabularies/eom/academic-period-types/1.0",
   "license": "CC0-1.0",

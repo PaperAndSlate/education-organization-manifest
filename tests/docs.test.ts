@@ -34,13 +34,17 @@ describe('static EOM documentation and browser tools', () => {
   it('keeps playground validation local and prevents accidental raw HTML injection', () => {
     const html = readFileSync(join(playgroundSource, 'index.html'), 'utf8');
     const app = readFileSync(join(playgroundSource, 'app.js'), 'utf8');
-    expect(html).toMatch(/connect-src\s+'none'/iu);
+    const engine = readFileSync(join(playgroundSource, 'browser-engine.js'), 'utf8');
+    expect(html).toMatch(/connect-src\s+'self'/iu);
     expect(html).toMatch(/type="file"/u);
     expect(html).toMatch(/does not\s+retain your input/iu);
-    expect(app).not.toMatch(/\bfetch\s*\(/u);
+    expect(app).toMatch(/async function validateWithSameOriginService/iu);
+    expect(app).toMatch(/service\.origin\s*!==\s*window\.location\.origin/u);
+    expect(app).toMatch(/credentials:\s*['"]omit['"]/u);
+    expect(app).toMatch(/redirect:\s*['"]error['"]/u);
     expect(app).not.toMatch(/XMLHttpRequest|sendBeacon|innerHTML/iu);
-    expect(app).toContain('parseSimpleYaml');
-    expect(app).toContain('EOM_PRIVACY_PROHIBITED_FIELD');
+    expect(app).toContain('parseBrowserSource');
+    expect(engine).toContain('EOM_PRIVACY_PROHIBITED_FIELD');
     expect(app).toContain('URL.createObjectURL');
   });
 });

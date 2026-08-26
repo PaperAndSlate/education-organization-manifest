@@ -1,0 +1,22 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/service-catalog.schema.json",
+  "canonical": "https://ecme-high.example/eom/services.json",
+  "expires": "2028-05-01T14:00:00Z",
+  "id": "https://ecme-high.example/eom/resource/services",
+  "items": [
+    {
+      "audience": ["current-students"],
+      "id": "https://ecme-high.example/id/service/counseling",
+      "name": "Counseling Services",
+      "provider": {
+        "id": "https://ecme-high.example/id/school"
+      },
+      "type": "service"
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "subjects": ["https://ecme-high.example/id/school"],
+  "type": "service-catalog",
+  "version": "1.0"
+}

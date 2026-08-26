@@ -8,4 +8,5 @@ examples/**/generated/**
 examples/**/public/**
 examples/**/build/**
 packages/types/src/generated.ts
+apps/playground/src/generated-*.js
 docs/reference/schema-catalog.md

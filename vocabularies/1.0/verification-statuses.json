@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/verification-statuses/1.0",
   "category": "verification-statuses",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:bf04ef96816f8c56468ecbb4c5d5c30fa6e34dd19049222a3ebf6be0deded257",
   "id": "https://paperandslate.org/vocabularies/eom/verification-statuses/1.0",
   "license": "CC0-1.0",

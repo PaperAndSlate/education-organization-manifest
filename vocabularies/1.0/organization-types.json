@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/organization-types/1.0",
   "category": "organization-types",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:e05e2eb9663ed911152105c5af12b6b961f887a250d8f00fc33576bc13990a20",
   "id": "https://paperandslate.org/vocabularies/eom/organization-types/1.0",
   "license": "CC0-1.0",

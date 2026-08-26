@@ -1,5 +1,5 @@
 import { access, readdir, readFile } from 'node:fs/promises';
-import { extname, join, relative, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 
 const root = resolve(process.cwd());
 const docsSource = join(root, 'apps', 'docs', 'src');
@@ -50,23 +50,36 @@ for (const file of htmlFiles) {
   }
 }
 const playground = await readFile(join(playgroundSource, 'app.js'), 'utf8');
+const remoteValidationStart = playground.indexOf('async function validateWithSameOriginService()');
+const remoteValidationEnd = playground.indexOf(
+  '\n  function schemaOrgProjection',
+  remoteValidationStart,
+);
+const remoteValidationFunction =
+  remoteValidationStart >= 0 && remoteValidationEnd > remoteValidationStart
+    ? playground.slice(remoteValidationStart, remoteValidationEnd)
+    : '';
 if (
-  /\bfetch\s*\(/u.test(playground) ||
+  !remoteValidationFunction ||
+  !/service\.origin\s*!==\s*window\.location\.origin/u.test(remoteValidationFunction) ||
+  !/credentials:\s*['"]omit['"]/u.test(remoteValidationFunction) ||
+  !/redirect:\s*['"]error['"]/u.test(remoteValidationFunction) ||
+  !/\bfetch\s*\(/u.test(remoteValidationFunction) ||
   /https?:\/\/[^'"`]*\/(?:api|upload|validate)/iu.test(playground)
 ) {
   failures += 1;
   process.stderr.write(
-    'apps/playground/src/app.js: browser playground must not make network validation calls\n',
+    'apps/playground/src/app.js: remote validation must be an explicit same-origin, credential-free, no-redirect request\n',
   );
 }
 const playgroundHtml = await readFile(join(playgroundSource, 'index.html'), 'utf8');
 if (
-  !/connect-src\s+'none'/iu.test(playgroundHtml) ||
+  !/connect-src\s+'self'/iu.test(playgroundHtml) ||
   /<script\b[^>]+src=["']https?:/iu.test(playgroundHtml)
 ) {
   failures += 1;
   process.stderr.write(
-    'apps/playground/src/index.html: local playground must be network-isolated\n',
+    'apps/playground/src/index.html: playground connections must be same-origin and scripts must be local\n',
   );
 }
 if (failures > 0) {

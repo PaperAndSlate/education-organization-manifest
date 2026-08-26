@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/course-subjects/1.0",
   "category": "course-subjects",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:65cf45d99925bbd324e763920fbbcbfc24c6b1c0b2e7e6d4b03b9868d3dfb725",
   "id": "https://paperandslate.org/vocabularies/eom/course-subjects/1.0",
   "license": "CC0-1.0",

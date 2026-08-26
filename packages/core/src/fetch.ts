@@ -1,7 +1,10 @@
+import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
+import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from 'node:fs/promises';
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
+import { join, resolve } from 'node:path';
 import { isPrivateOrLocalHostname } from './ids.js';
 import { parseStrictJson, type JsonValue } from './json.js';
 
@@ -9,6 +12,8 @@ export const EOM_DISCOVERY_PATH = '/.well-known/educational-organization-manifes
 export const DEFAULT_FETCH_MAX_BYTES = 10 * 1024 * 1024;
 export const DEFAULT_FETCH_MAX_REDIRECTS = 5;
 export const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
+export const DEFAULT_FETCH_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
+export const DEFAULT_FETCH_CACHE_MAX_ENTRIES = 128;
 
 export type EomFetchErrorCode =
   | 'EOM_FETCH_SCHEME'
@@ -21,6 +26,7 @@ export type EomFetchErrorCode =
   | 'EOM_FETCH_REDIRECT_SCHEME'
   | 'EOM_FETCH_REDIRECT_LOCATION'
   | 'EOM_FETCH_CONTENT_TYPE'
+  | 'EOM_FETCH_CONTENT_ENCODING'
   | 'EOM_FETCH_TOO_LARGE'
   | 'EOM_FETCH_TIMEOUT'
   | 'EOM_FETCH_STATUS'
@@ -34,6 +40,10 @@ export interface FetchOptions {
   readonly timeoutMs?: number;
   readonly userAgent?: string;
   readonly signal?: AbortSignal;
+  /** Optional bounded disk cache. Cache entries contain only public response bytes and headers. */
+  readonly cacheDirectory?: string;
+  readonly cacheMaxAgeMs?: number;
+  readonly cacheMaxEntries?: number;
   /** Test-only escape hatch for deterministic local HTTP fixtures. */
   readonly allowHttp?: boolean;
   /** Test-only escape hatch for deterministic local HTTP fixtures. */
@@ -44,9 +54,7 @@ export interface FetchOptions {
   readonly dnsLookup?: FetchDnsLookup;
 }
 
-export type FetchDnsLookup = (
-  hostname: string,
-) => Promise<readonly { readonly address: string }[]>;
+export type FetchDnsLookup = (hostname: string) => Promise<readonly { readonly address: string }[]>;
 
 export interface RedirectHop {
   readonly from: string;
@@ -114,6 +122,13 @@ export function discoveryUrl(originOrUrl: string): string {
 }
 
 export async function fetchEom(url: string, options: FetchOptions = {}): Promise<FetchResponse> {
+  if (options.signal?.aborted) {
+    throw new EomFetchError(
+      'EOM_FETCH_TIMEOUT',
+      'The EOM request was cancelled before it started.',
+      url,
+    );
+  }
   const requestedUrl = normalizeRequestUrl(url);
   const maxBytes = boundedPositive(
     options.maxBytes ?? DEFAULT_FETCH_MAX_BYTES,
@@ -127,12 +142,22 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
     options.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS,
     DEFAULT_FETCH_TIMEOUT_MS,
   );
+  const cacheKey = cacheKeyFor(requestedUrl, options.method ?? 'GET');
   const redirects: RedirectHop[] = [];
   const visited = new Set<string>([canonicalUrl(requestedUrl)]);
   let current = requestedUrl;
 
   for (;;) {
     const address = await assertSafeTarget(current, options, redirects);
+    if (current === requestedUrl) {
+      const cached = await readCachedResponse(cacheKey, options, maxBytes);
+      if (cached) {
+        // Cached responses must still revalidate the current and final DNS answers so the
+        // cache cannot bypass the SSRF/rebinding policy.
+        await assertSafeTarget(cached.finalUrl, options, redirects);
+        return { ...cached, requestedUrl, observedAt: new Date().toISOString() };
+      }
+    }
     const response = await request(current, address, options, timeoutMs, maxBytes, redirects);
     const location = response.headers.get('location');
     if (isRedirectStatus(response.status)) {
@@ -198,11 +223,20 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
         redirects,
       );
     }
+    const contentEncoding = response.headers.get('content-encoding');
+    if (contentEncoding && contentEncoding.toLowerCase() !== 'identity') {
+      throw new EomFetchError(
+        'EOM_FETCH_CONTENT_ENCODING',
+        'Compressed response bodies are not accepted; use identity content encoding or a bounded decompression transport.',
+        current,
+        redirects,
+      );
+    }
     const body =
       options.method === 'HEAD'
         ? ''
         : await readBoundedBody(response, maxBytes, current, redirects);
-    return {
+    const result: FetchResponse = {
       requestedUrl,
       finalUrl: current,
       status: response.status,
@@ -212,6 +246,8 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
       redirects,
       observedAt: new Date().toISOString(),
     };
+    await writeCachedResponse(cacheKey, result, options);
+    return result;
   }
 }
 
@@ -323,6 +359,9 @@ async function assertSafeTarget(
   if (!address) {
     throw new EomFetchError('EOM_FETCH_DNS', 'DNS returned no addresses.', value, redirects);
   }
+  if (isIP(address) === 0) {
+    throw new EomFetchError('EOM_FETCH_DNS', 'DNS returned an invalid address.', value, redirects);
+  }
   return address;
 }
 
@@ -352,7 +391,7 @@ async function request(
           headers: {
             accept: 'application/json',
             'accept-encoding': 'identity',
-            'user-agent': options.userAgent ?? 'paperandslate-eom/0.1.0',
+            'user-agent': options.userAgent ?? 'paperandslate-eom/1.0.0-rc.2',
             host: parsed.host,
           },
           ...(parsed.protocol === 'https:'
@@ -397,6 +436,11 @@ async function request(
             if (settled) return;
             settled = true;
             reject(error);
+          });
+          response.on('aborted', () => {
+            if (settled) return;
+            settled = true;
+            reject(new Error('The response was aborted before completion.'));
           });
         },
       );
@@ -563,6 +607,78 @@ function boundedPositive(value: number, fallback: number): number {
 
 function boundedNonNegative(value: number, fallback: number): number {
   return Number.isFinite(value) && value >= 0 ? Math.floor(value) : fallback;
+}
+
+async function readCachedResponse(
+  key: string,
+  options: FetchOptions,
+  maxBytes: number,
+): Promise<FetchResponse | undefined> {
+  if (!options.cacheDirectory) return undefined;
+  const path = join(resolve(options.cacheDirectory), `${key}.json`);
+  try {
+    const information = await stat(path);
+    const maxAge = boundedNonNegative(
+      options.cacheMaxAgeMs ?? DEFAULT_FETCH_CACHE_MAX_AGE_MS,
+      DEFAULT_FETCH_CACHE_MAX_AGE_MS,
+    );
+    if (Date.now() - information.mtimeMs > maxAge) return undefined;
+    const value = JSON.parse(await readFile(path, 'utf8')) as Partial<FetchResponse>;
+    if (
+      typeof value.requestedUrl !== 'string' ||
+      typeof value.finalUrl !== 'string' ||
+      typeof value.status !== 'number' ||
+      typeof value.body !== 'string' ||
+      Buffer.byteLength(value.body, 'utf8') > maxBytes ||
+      !value.headers ||
+      typeof value.headers !== 'object' ||
+      !Array.isArray(value.redirects) ||
+      typeof value.observedAt !== 'string'
+    ) {
+      return undefined;
+    }
+    return value as FetchResponse;
+  } catch {
+    return undefined;
+  }
+}
+
+async function writeCachedResponse(
+  key: string,
+  response: FetchResponse,
+  options: FetchOptions,
+): Promise<void> {
+  if (!options.cacheDirectory) return;
+  try {
+    const directory = resolve(options.cacheDirectory);
+    await mkdir(directory, { recursive: true });
+    const maxEntries = boundedPositive(
+      options.cacheMaxEntries ?? DEFAULT_FETCH_CACHE_MAX_ENTRIES,
+      DEFAULT_FETCH_CACHE_MAX_ENTRIES,
+    );
+    const entries = (await readdir(directory, { withFileTypes: true }))
+      .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+      .map((entry) => join(directory, entry.name));
+    if (entries.length >= maxEntries) {
+      const dated = await Promise.all(
+        entries.map(async (entry) => ({ entry, modified: (await stat(entry)).mtimeMs })),
+      );
+      dated.sort((left, right) => left.modified - right.modified);
+      for (const item of dated.slice(0, Math.max(1, entries.length - maxEntries + 1))) {
+        await unlink(item.entry).catch(() => undefined);
+      }
+    }
+    const path = join(directory, `${key}.json`);
+    const temporary = `${path}.${process.pid}.tmp`;
+    await writeFile(temporary, JSON.stringify(response), 'utf8');
+    await rename(temporary, path);
+  } catch {
+    // A cache is an optimization. Network retrieval remains authoritative when it cannot be written.
+  }
+}
+
+function cacheKeyFor(url: string, method: string): string {
+  return createHash('sha256').update(`${method}\0${url}`).digest('hex');
 }
 
 function isBlockedIp(value: string): boolean {

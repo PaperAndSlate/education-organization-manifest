@@ -1,6 +1,6 @@
 {
   "name": "@paperandslate/eom-testkit",
-  "version": "0.1.0",
+  "version": "1.0.0-rc.2",
   "description": "Offline EOM conformance profiles and black-box publication runner.",
   "license": "Apache-2.0",
   "type": "module",
@@ -14,6 +14,7 @@
   "dependencies": {
     "@paperandslate/eom-core": "workspace:*",
     "@paperandslate/eom-linter": "workspace:*",
+    "@paperandslate/eom-signatures": "workspace:^",
     "@paperandslate/eom-validator": "workspace:*"
   },
   "files": [
@@ -22,6 +23,6 @@
   "scripts": {
     "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
     "typecheck": "tsc --noEmit",
-    "lint": "true"
+    "lint": "eslint src --max-warnings=0"
   }
 }

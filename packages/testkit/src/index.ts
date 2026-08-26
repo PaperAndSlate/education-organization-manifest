@@ -1,46 +1,92 @@
 import { createHash } from 'node:crypto';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
-import { isJsonObject, parseStrictJson, type JsonObject } from '@paperandslate/eom-core';
+import {
+  fetchEom,
+  fetchManifest,
+  isJsonObject,
+  parseStrictJson,
+  type FetchOptions,
+  type JsonObject,
+} from '@paperandslate/eom-core';
 import { lintPublication } from '@paperandslate/eom-linter';
 import { hasErrors, validateDocument, type Finding } from '@paperandslate/eom-validator';
+import { verifyDetached } from '@paperandslate/eom-signatures';
+export * from './publisher.js';
 
 export const CONFORMANCE_SPECIFICATION = 'https://paperandslate.org/spec/eom/1.0';
 export const CONFORMANCE_BASE_URI = `${CONFORMANCE_SPECIFICATION}/conformance`;
 
+const CORE_PROFILE = {
+  uri: `${CONFORMANCE_SPECIFICATION}/profiles/core-publisher`,
+  role: 'publisher',
+  description: 'Core publisher publication and resource graph checks.',
+} as const;
+const SIGNATURE_OPTIONAL_PROFILE = {
+  uri: `${CONFORMANCE_SPECIFICATION}/profiles/signature-optional`,
+  role: 'signature',
+  description:
+    'Optional signature metadata is checked when present; unsigned resources remain valid.',
+} as const;
+
 export const CONFORMANCE_PROFILES = {
-  'publisher-core': {
-    uri: `${CONFORMANCE_SPECIFICATION}/profiles/publisher-core`,
+  core: CORE_PROFILE,
+  school: {
+    uri: `${CONFORMANCE_SPECIFICATION}/profiles/school-publisher`,
     role: 'publisher',
-    description: 'Core publisher publication and resource graph checks.',
+    description: 'School publisher profile with identity, privacy, and public resource checks.',
   },
-  'consumer-core': {
-    uri: `${CONFORMANCE_SPECIFICATION}/profiles/consumer-core`,
-    role: 'consumer',
-    description: 'Core consumer discovery-shape and linked-resource checks over a local capture.',
-  },
-  generator: {
-    uri: `${CONFORMANCE_SPECIFICATION}/profiles/generator`,
-    role: 'generator',
-    description: 'Deterministic generated-publication checks.',
-  },
-  validator: {
-    uri: `${CONFORMANCE_SPECIFICATION}/profiles/validator`,
-    role: 'validator',
-    description: 'Structural, semantic, and privacy finding checks.',
+  district: {
+    uri: `${CONFORMANCE_SPECIFICATION}/profiles/district-publisher`,
+    role: 'publisher',
+    description: 'District publisher profile with multiple organization relationships.',
   },
   module: {
     uri: `${CONFORMANCE_SPECIFICATION}/profiles/module`,
     role: 'module',
     description: 'Independently validatable module resource checks.',
   },
-  'signature-optional': {
-    uri: `${CONFORMANCE_SPECIFICATION}/profiles/signature-optional`,
-    role: 'signature',
-    description:
-      'Optional signature metadata is checked when present; unsigned resources remain valid.',
+  delegated: {
+    uri: `${CONFORMANCE_SPECIFICATION}/profiles/delegated-publisher`,
+    role: 'publisher',
+    description: 'Scoped cross-origin delegation checks.',
   },
+  signed: {
+    uri: `${CONFORMANCE_SPECIFICATION}/profiles/signed-publisher`,
+    role: 'publisher',
+    description: 'Detached signature and public key publication checks.',
+  },
+  consumer: {
+    uri: `${CONFORMANCE_SPECIFICATION}/profiles/consumer`,
+    role: 'consumer',
+    description: 'Consumer discovery, graph, and safe-capture checks.',
+  },
+  generator: {
+    uri: `${CONFORMANCE_SPECIFICATION}/profiles/generator`,
+    role: 'generator',
+    description: 'Generated-publication marker and reproducibility checks.',
+  },
+  validator: {
+    uri: `${CONFORMANCE_SPECIFICATION}/profiles/validator`,
+    role: 'validator',
+    description: 'Structural, semantic, privacy, and expected-finding checks.',
+  },
+  'publisher-core': CORE_PROFILE,
+  'consumer-core': {
+    ...({
+      uri: `${CONFORMANCE_SPECIFICATION}/profiles/consumer`,
+      role: 'consumer',
+      description: 'Consumer discovery, graph, and safe-capture checks.',
+    } as const),
+  },
+  'signature-optional': SIGNATURE_OPTIONAL_PROFILE,
 } as const;
+
+const PROFILE_ALIASES: Readonly<Record<string, string>> = {
+  'publisher-core': 'core',
+  'consumer-core': 'consumer',
+  'signature-optional': 'signature-optional',
+};
 
 export type ConformanceProfileName = keyof typeof CONFORMANCE_PROFILES;
 export type ConformanceCheckStatus = 'pass' | 'fail' | 'skip' | 'warn';
@@ -74,11 +120,33 @@ export interface ConformanceReport {
 
 export interface ConformanceOptions {
   readonly directory: string;
+  readonly origin?: string;
   readonly profile?: ConformanceProfileName;
   readonly implementationName?: string;
   readonly implementationVersion?: string;
   readonly implementationSource?: string;
   readonly now?: Date;
+  readonly mode?: 'fixture' | 'publisher' | 'consumer' | 'generator';
+  readonly expected?: {
+    readonly status?: ConformanceStatus;
+    readonly checks?: Readonly<Record<string, ConformanceCheckStatus>>;
+  };
+  readonly consumerAdapter?: ConsumerAdapter;
+  readonly fetch?: FetchOptions;
+}
+
+export interface ConsumerObservation {
+  readonly checks: readonly ConformanceCheck[];
+  readonly notes?: readonly string[];
+}
+
+export interface ConsumerAdapter {
+  readonly name: string;
+  readonly version: string;
+  run(
+    directory: string,
+    context: { readonly now: Date; readonly profile: ConformanceProfileName },
+  ): Promise<ConsumerObservation>;
 }
 
 interface PublicationFile {
@@ -92,7 +160,7 @@ interface PublicationFile {
 const REPORT_SCHEMA =
   'https://paperandslate.org/schemas/eom/1.0/conformance-report.schema.json' as const;
 const DEFAULT_IMPLEMENTATION_NAME = '@paperandslate/eom-testkit';
-const DEFAULT_IMPLEMENTATION_VERSION = '0.1.0';
+const DEFAULT_IMPLEMENTATION_VERSION = '1.0.0-rc.2';
 
 /**
  * Runs a deterministic, offline conformance check over a captured publication directory.
@@ -109,6 +177,7 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
       `Unknown conformance profile ${String(profile)}. Supported profiles: ${Object.keys(CONFORMANCE_PROFILES).join(', ')}`,
     );
   }
+  const profileName = (PROFILE_ALIASES[profile] ?? profile) as ConformanceProfileName;
 
   const files = await readPublicationFiles(directory);
   const checks: ConformanceCheck[] = [];
@@ -163,7 +232,7 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
   const moduleResources = parseable.filter(
     (file) => file.document?.type !== 'manifest' && file.document?.type !== undefined,
   );
-  if (profile === 'publisher-core' || profile === 'consumer-core' || profile === 'generator') {
+  if (['core', 'school', 'district', 'consumer', 'generator'].includes(profileName)) {
     if (distinctManifests.length === 0) {
       addCheck(
         'profile-manifest',
@@ -210,8 +279,62 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
           distinctManifests[0],
         );
       }
+      if (profileName === 'school') {
+        const school = moduleResources.some((file) => {
+          const organization = file.document;
+          return (
+            organization?.type === 'organization-profile' &&
+            (organization.organizationType === 'secondary-school' ||
+              organization.organizationType === 'school')
+          );
+        });
+        addCheck(
+          'school-identity',
+          school ? 'pass' : 'fail',
+          school
+            ? 'A school organization profile is present.'
+            : 'The school profile requires a school organization profile.',
+        );
+      }
+      if (profileName === 'district') {
+        const district = manifests.some(
+          (file) =>
+            Array.isArray(file.document?.organizations) && file.document.organizations.length >= 2,
+        );
+        addCheck(
+          'district-organizations',
+          district ? 'pass' : 'fail',
+          district
+            ? 'The root exposes at least two organizations for district publication.'
+            : 'The district profile requires at least two organizations in the root manifest.',
+        );
+      }
+      if (profileName === 'consumer') {
+        addCheck(
+          'consumer-capture',
+          files.every((file) => file.parseError === undefined) ? 'pass' : 'fail',
+          'The consumer profile processed a strict local capture without following untrusted links.',
+        );
+      }
+      if (profileName === 'generator') {
+        const generated = await generatedMetadata(directory);
+        addCheck(
+          'generator-marker',
+          generated.marker ? 'pass' : 'fail',
+          generated.marker
+            ? 'The publication is marked as generator-owned.'
+            : 'Generated publications must contain .eom-generated.json.',
+        );
+        addCheck(
+          'generator-reproducibility',
+          generated.reproducibility ? 'pass' : 'fail',
+          generated.reproducibility
+            ? 'A reproducibility report is present.'
+            : 'Generated publications must include a reproducibility report.',
+        );
+      }
     }
-  } else if (profile === 'module') {
+  } else if (profileName === 'module') {
     if (moduleResources.length === 0) {
       addCheck(
         'module-resource',
@@ -225,13 +348,13 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
         `${moduleResources.length} independently typed resource(s) are present.`,
       );
     }
-  } else if (profile === 'validator') {
+  } else if (profileName === 'validator') {
     addCheck(
       'validator-engine',
       parseable.length === files.length && files.length > 0 ? 'pass' : 'fail',
       'The bundled validator processed every parseable capture file.',
     );
-  } else if (profile === 'signature-optional') {
+  } else if (profileName === 'signature-optional') {
     const signingFiles = parseable.filter(
       (file) => file.document?.type === 'key-set' || file.document?.signing,
     );
@@ -242,6 +365,96 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
         ? 'No signature metadata is present; signatures are optional in EOM 1.0.'
         : `${signingFiles.length} signature/key-set document(s) were structurally checked.`,
     );
+  } else if (profileName === 'delegated') {
+    const delegated = manifests.some((file) => {
+      const delegations = file.document?.delegations;
+      return (
+        Array.isArray(delegations) &&
+        delegations.some((item) => isJsonObject(item) && item.status === 'active')
+      );
+    });
+    addCheck(
+      'delegation-record',
+      delegated ? 'pass' : 'fail',
+      delegated
+        ? 'An active, non-transitive delegation record is present for review.'
+        : 'The delegated profile requires an active delegation record.',
+    );
+  } else if (profileName === 'signed') {
+    const signatureFile = parseable.find((file) => file.document?.type === 'signature');
+    const keySetFile = parseable.find((file) => file.document?.type === 'key-set');
+    const signed =
+      signatureFile !== undefined || parseable.some((file) => isJsonObject(file.document?.signing));
+    addCheck(
+      'signature-record',
+      signed ? 'pass' : 'fail',
+      signed
+        ? 'Signature metadata is present for the signed profile.'
+        : 'The signed profile requires signature metadata.',
+    );
+    if (signatureFile?.document && keySetFile?.document) {
+      const subjectId =
+        typeof signatureFile.document.subject === 'string'
+          ? signatureFile.document.subject
+          : undefined;
+      const subjectFile = subjectId
+        ? parseable.find((file) => file.document?.id === subjectId)
+        : undefined;
+      if (subjectFile?.document) {
+        const verification = verifyDetached(
+          subjectFile.document,
+          signatureFile.document,
+          keySetFile.document,
+          { now: options.now ?? new Date() },
+        );
+        addCheck(
+          'signature-cryptographic',
+          verification.overall ? 'pass' : 'fail',
+          verification.overall
+            ? 'The detached Ed25519 signature verifies against the captured resource and key set.'
+            : describeFindings(verification.findings),
+          signatureFile,
+        );
+      } else {
+        addCheck(
+          'signature-subject',
+          'fail',
+          'The signed profile could not resolve the signature subject.',
+        );
+      }
+    }
+  }
+
+  if (options.consumerAdapter && (profileName === 'consumer' || options.mode === 'consumer')) {
+    const observation = await options.consumerAdapter.run(directory, {
+      now: options.now ?? new Date(),
+      profile,
+    });
+    checks.push(...observation.checks);
+    for (const note of observation.notes ?? []) addCheck('consumer-note', 'warn', note);
+  }
+  if (options.origin || options.mode === 'publisher') {
+    await appendPublisherChecks(options.origin, options.fetch, addCheck);
+  }
+  if (options.expected) {
+    const actualStatus = statusFor(checks);
+    if (options.expected.status) {
+      addCheck(
+        'expected-status',
+        actualStatus === options.expected.status ? 'pass' : 'fail',
+        `Expected ${options.expected.status}; observed ${actualStatus}.`,
+      );
+    }
+    for (const [id, expectedStatus] of Object.entries(options.expected.checks ?? {})) {
+      const actual = checks.find(
+        (check) => check.id.endsWith(`/checks/${id}`) || check.id === id,
+      )?.status;
+      addCheck(
+        `expected-check-${id}`,
+        actual === expectedStatus ? 'pass' : 'fail',
+        `Expected check ${id} to be ${expectedStatus}; observed ${actual ?? 'missing'}.`,
+      );
+    }
   }
 
   const fingerprint = fingerprintFor(files);
@@ -264,6 +477,60 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
     ...(generatedAt ? { generatedAt, modified: generatedAt } : {}),
   };
   return report;
+}
+
+async function appendPublisherChecks(
+  origin: string | undefined,
+  fetchOptions: FetchOptions | undefined,
+  addCheck: (
+    kind: string,
+    status: ConformanceCheckStatus,
+    message: string,
+    file?: PublicationFile,
+  ) => void,
+): Promise<void> {
+  if (!origin) {
+    addCheck('publisher-origin', 'fail', 'Publisher mode requires an origin.');
+    return;
+  }
+  try {
+    const response = await fetchManifest(origin, fetchOptions);
+    addCheck(
+      'publisher-discovery',
+      response.status === 200 ? 'pass' : 'fail',
+      `Discovery returned HTTP ${response.status}.`,
+    );
+    addCheck(
+      'publisher-content-type',
+      response.contentType?.toLowerCase().startsWith('application/json') === true ? 'pass' : 'fail',
+      response.contentType
+        ? `Discovery content type is ${response.contentType}.`
+        : 'Discovery did not return a content type.',
+    );
+    const validation = validateDocument(response.document);
+    addCheck(
+      'publisher-manifest',
+      validation.valid ? 'pass' : 'fail',
+      validation.valid
+        ? 'The publisher returned a valid root manifest.'
+        : describeFindings(validation.findings),
+    );
+    addCheck(
+      'publisher-redirects',
+      response.redirects.length <= 5 ? 'pass' : 'fail',
+      `Discovery recorded ${response.redirects.length} redirect hop(s).`,
+    );
+    const head = await fetchEom(response.finalUrl, { ...fetchOptions, method: 'HEAD' });
+    addCheck(
+      'publisher-head',
+      head.status === 200 && head.contentType?.toLowerCase().startsWith('application/json') === true
+        ? 'pass'
+        : 'fail',
+      `HEAD returned HTTP ${head.status} with ${head.contentType ?? 'no content type'}.`,
+    );
+  } catch (error) {
+    addCheck('publisher-discovery', 'fail', error instanceof Error ? error.message : String(error));
+  }
 }
 
 export function isConformanceProfileName(value: string): value is ConformanceProfileName {
@@ -289,8 +556,8 @@ async function readPublicationFiles(directory: string): Promise<readonly Publica
   const result: PublicationFile[] = [];
   for (const absolutePath of paths) {
     const relativePath = relative(directory, absolutePath).replaceAll('\\', '/');
-    const bytes = await readFile(absolutePath);
     if (!isPublicationFile(relativePath)) continue;
+    const bytes = await readFile(absolutePath);
     try {
       const parsed = parseStrictJson(bytes.toString('utf8'), relativePath);
       result.push({
@@ -326,7 +593,42 @@ async function walkFiles(directory: string): Promise<string[]> {
 
 function isPublicationFile(path: string): boolean {
   const name = path.split('/').at(-1) ?? path;
+  if (
+    new Set([
+      '.eom-generated.json',
+      'input-manifest.json',
+      'output-manifest.json',
+      'validation.json',
+      'lint.json',
+      'source-map.json',
+      'reproducibility.json',
+      'build-report.json',
+    ]).has(name)
+  ) {
+    return false;
+  }
   return name === 'educational-organization-manifest' || name.endsWith('.json');
+}
+
+async function generatedMetadata(
+  directory: string,
+): Promise<{ marker: boolean; reproducibility: boolean }> {
+  const candidates = [directory, join(directory, '..'), join(directory, '..', 'build')];
+  const has = async (name: string): Promise<boolean> => {
+    for (const candidate of candidates) {
+      try {
+        const information = await stat(join(candidate, name));
+        if (information.isFile()) return true;
+      } catch {
+        // Continue through the supported generated-output layouts.
+      }
+    }
+    return false;
+  };
+  return {
+    marker: await has('.eom-generated.json'),
+    reproducibility: await has('reproducibility.json'),
+  };
 }
 
 function checkLocalLinks(

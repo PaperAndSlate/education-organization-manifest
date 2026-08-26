@@ -3,9 +3,22 @@
   "$id": "https://paperandslate.org/schemas/eom/1.0/vocabulary-registry.schema.json",
   "title": "EOM vocabulary registry",
   "type": "object",
-  "required": ["$schema", "specification", "version", "id", "canonical", "type", "status", "changeController", "lastReviewed", "vocabularies"],
+  "required": [
+    "$schema",
+    "specification",
+    "version",
+    "id",
+    "canonical",
+    "type",
+    "status",
+    "changeController",
+    "lastReviewed",
+    "vocabularies"
+  ],
   "properties": {
-    "$schema": { "const": "https://paperandslate.org/schemas/eom/1.0/vocabulary-registry.schema.json" },
+    "$schema": {
+      "const": "https://paperandslate.org/schemas/eom/1.0/vocabulary-registry.schema.json"
+    },
     "specification": { "const": "https://paperandslate.org/spec/eom/1.0" },
     "version": { "const": "1.0" },
     "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
@@ -25,20 +38,43 @@
   "$defs": {
     "vocabulary": {
       "type": "object",
-      "required": ["vocabularyUri", "category", "title", "description", "currentVersion", "compatibleProtocolVersions", "status", "openness", "controller", "schema", "snapshot", "mappings", "lastReviewed"],
+      "required": [
+        "vocabularyUri",
+        "category",
+        "title",
+        "description",
+        "currentVersion",
+        "compatibleProtocolVersions",
+        "status",
+        "openness",
+        "controller",
+        "schema",
+        "snapshot",
+        "mappings",
+        "lastReviewed"
+      ],
       "properties": {
         "vocabularyUri": { "$ref": "common.schema.json#/$defs/absoluteUri" },
         "category": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
         "title": { "$ref": "common.schema.json#/$defs/localized" },
         "description": { "$ref": "common.schema.json#/$defs/localized" },
         "currentVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
-        "compatibleProtocolVersions": { "type": "array", "items": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" }, "minItems": 1, "uniqueItems": true },
+        "compatibleProtocolVersions": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "status": { "enum": ["working-draft", "stable", "experimental", "deprecated"] },
         "openness": { "enum": ["open", "closed", "extensible"] },
         "controller": { "$ref": "common.schema.json#/$defs/absoluteUri" },
         "schema": { "$ref": "common.schema.json#/$defs/httpsUri" },
         "snapshot": { "$ref": "common.schema.json#/$defs/httpsUri" },
-        "mappings": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "mappings": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
         "lastReviewed": { "$ref": "common.schema.json#/$defs/date" }
       },
       "additionalProperties": false

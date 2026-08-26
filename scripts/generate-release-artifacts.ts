@@ -1,159 +1,224 @@
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
-import { dirname, extname, join, relative, resolve } from 'node:path';
-import { parseStrictJson, stringifyCanonical } from '@paperandslate/eom-core';
+import { extname, dirname, join, relative, resolve } from 'node:path';
+import { parse as parseYaml } from 'yaml';
+import { stringifyCanonical } from '@paperandslate/eom-core';
 
 const root = resolve(process.cwd());
-const releaseVersion = '1.0.0-rc.1';
-const candidateDirectory = join(root, 'release', `v${releaseVersion}`);
+export const RELEASE_VERSION = process.env.EOM_RELEASE_VERSION ?? '1.0.0-rc.2';
+const outputRoot = resolve(process.env.EOM_RELEASE_OUTPUT ?? join(root, 'release'));
 const sourceDateEpoch = Number(process.env.SOURCE_DATE_EPOCH ?? '0');
+
+if (!/^1\.0\.0-rc\.\d+$/u.test(RELEASE_VERSION)) {
+  throw new Error(`EOM_RELEASE_VERSION must be a release candidate, received ${RELEASE_VERSION}.`);
+}
 if (!Number.isInteger(sourceDateEpoch) || sourceDateEpoch < 0) {
   throw new Error('SOURCE_DATE_EPOCH must be a non-negative integer.');
 }
-const generatedAt = new Date(sourceDateEpoch * 1000).toISOString();
 
-await rm(candidateDirectory, { recursive: true, force: true });
-await mkdir(candidateDirectory, { recursive: true });
-await cp(join(root, 'spec', '1.0'), join(candidateDirectory, 'spec', '1.0'), { recursive: true });
-await cp(join(root, 'schemas', '1.0'), join(candidateDirectory, 'schemas', '1.0'), {
-  recursive: true,
-});
-await cp(
-  join(root, 'mappings', 'registry.json'),
-  join(candidateDirectory, 'mappings', 'registry.json'),
-  {
-    recursive: true,
-  },
-);
-await writeFile(
-  join(candidateDirectory, 'STATUS.md'),
-  [
-    `# EOM ${releaseVersion}`,
-    '',
-    'This is a reproducible release-candidate artifact for the EOM 1.0 working draft.',
-    'The proposed well-known URI suffix is not claimed as IANA-registered.',
-    'Independent pilots, legal review, external certification, and production deployment remain external gates.',
-    '',
-    `Source date epoch: ${sourceDateEpoch} (${generatedAt})`,
-    '',
-  ].join('\n'),
-  'utf8',
-);
+export interface ReleasePreparation {
+  readonly releaseVersion: string;
+  readonly outputRoot: string;
+  readonly sourceCommit: string;
+  readonly sourceTree: string;
+}
 
-const archiveEntries = await sourceArchiveEntries();
-const archiveBytes = createTarGz(archiveEntries);
-const archivePath = join(
-  root,
-  'release',
-  `educational-organization-manifest-${releaseVersion}.tar.gz`,
-);
-await writeFile(archivePath, archiveBytes);
+export async function prepareReleaseArtifacts(
+  targetRoot = outputRoot,
+): Promise<ReleasePreparation> {
+  const sourceCommit = git('rev-parse', 'HEAD');
+  const sourceTree = git('rev-parse', `${sourceCommit}^{tree}`);
+  const status = git('status', '--porcelain=v1', '--untracked-files=all');
+  if (status.length > 0) {
+    throw new Error(
+      'Release preparation requires a clean committed source revision. Commit source changes before generating artifacts.',
+    );
+  }
 
-const packageManifests = await readPackageManifests();
-const lockBytes = await readFile(join(root, 'pnpm-lock.yaml'));
-const sbom = {
-  bomFormat: 'CycloneDX',
-  specVersion: '1.5',
-  serialNumber: 'urn:uuid:00000000-0000-4000-8000-000000000001',
-  version: 1,
-  metadata: {
-    timestamp: generatedAt,
-    tools: [{ vendor: 'paper&slate', name: 'eom-release-tooling', version: '0.1.0' }],
-    properties: [
-      { name: 'eom.release', value: releaseVersion },
-      { name: 'eom.sourceDateEpoch', value: String(sourceDateEpoch) },
-      { name: 'eom.pnpmLockSha256', value: sha256(lockBytes) },
-    ],
-  },
-  components: packageManifests,
-};
-const sbomPath = join(root, 'release', 'sbom.cdx.json');
-await writeFile(sbomPath, stringifyCanonical(sbom as never), 'utf8');
+  const generatedAt = new Date(sourceDateEpoch * 1000).toISOString();
+  const candidateDirectory = join(targetRoot, `v${RELEASE_VERSION}`);
+  await rm(candidateDirectory, { recursive: true, force: true });
+  await mkdir(targetRoot, { recursive: true });
+  await copyCandidateArtifacts(candidateDirectory);
 
-const provenance = {
-  _type: 'https://in-toto.io/Statement/v1',
-  subject: [
+  const archiveDefinitions: readonly ArchiveDefinition[] = [
     {
-      name: `educational-organization-manifest-${releaseVersion}.tar.gz`,
-      digest: { sha256: sha256(archiveBytes) },
+      fileName: `educational-organization-manifest-${RELEASE_VERSION}.tar.gz`,
+      entries: await sourceArchiveEntries(),
     },
-  ],
-  predicateType: 'https://slsa.dev/provenance/v1',
-  predicate: {
-    buildDefinition: {
-      buildType: 'https://paperandslate.org/eom/build/reproducible-source-archive/v1',
-      externalParameters: { releaseVersion, sourceDateEpoch },
-      internalParameters: {
-        specification: 'https://paperandslate.org/spec/eom/1.0',
-        packageManager: 'pnpm@10.6.0',
+    {
+      fileName: `eom-specification-${RELEASE_VERSION}.tar.gz`,
+      entries: await directoryArchiveEntries('spec/1.0', `eom-specification-${RELEASE_VERSION}`),
+    },
+    {
+      fileName: `eom-schemas-${RELEASE_VERSION}.tar.gz`,
+      entries: await directoryArchiveEntries('schemas/1.0', `eom-schemas-${RELEASE_VERSION}`),
+    },
+    {
+      fileName: `eom-vocabularies-${RELEASE_VERSION}.tar.gz`,
+      entries: await directoryArchiveEntries(
+        'vocabularies/1.0',
+        `eom-vocabularies-${RELEASE_VERSION}`,
+        'vocabularies/registry.json',
+      ),
+    },
+    {
+      fileName: `eom-conformance-${RELEASE_VERSION}.tar.gz`,
+      entries: await directoryArchiveEntries(
+        [
+          'fixtures/conformance',
+          'fixtures/modules',
+          'packages/testkit/src',
+          'apps/conformance-runner/src',
+        ],
+        `eom-conformance-${RELEASE_VERSION}`,
+      ),
+    },
+    {
+      fileName: `eom-documentation-${RELEASE_VERSION}.tar.gz`,
+      entries: await directoryArchiveEntries(
+        ['docs', 'apps/docs/src', 'apps/playground/src'],
+        `eom-documentation-${RELEASE_VERSION}`,
+      ),
+    },
+  ];
+  const archives: ReleaseArtifact[] = [];
+  for (const definition of archiveDefinitions) {
+    const bytes = createTarGz(definition.entries);
+    await writeFile(join(targetRoot, definition.fileName), bytes);
+    archives.push({ path: definition.fileName, bytes });
+  }
+
+  const packageManifests = await readWorkspacePackageManifests();
+  const lockBytes = await readFile(join(root, 'pnpm-lock.yaml'));
+  const sbom = {
+    bomFormat: 'CycloneDX',
+    specVersion: '1.5',
+    serialNumber: 'urn:uuid:00000000-0000-4000-8000-000000000002',
+    version: 1,
+    metadata: {
+      timestamp: generatedAt,
+      tools: [{ vendor: 'paper&slate', name: 'eom-release-tooling', version: RELEASE_VERSION }],
+      properties: [
+        { name: 'eom.release', value: RELEASE_VERSION },
+        { name: 'eom.sourceCommit', value: sourceCommit },
+        { name: 'eom.sourceTree', value: sourceTree },
+        { name: 'eom.sourceDateEpoch', value: String(sourceDateEpoch) },
+        { name: 'eom.pnpmLockSha256', value: sha256(lockBytes) },
+      ],
+    },
+    components: [...packageManifests, ...(await readLockedExternalComponents(lockBytes))],
+  };
+  const sbomBytes = Buffer.from(stringifyCanonical(sbom as never), 'utf8');
+  const sbomPath = join(targetRoot, 'sbom.cdx.json');
+  await writeFile(sbomPath, sbomBytes);
+
+  const sourceArchive = archives[0];
+  if (!sourceArchive) throw new Error('The source archive was not generated.');
+  const provenance = {
+    _type: 'https://in-toto.io/Statement/v1',
+    subject: [
+      ...archives.map((artifact) => ({
+        name: artifact.path,
+        digest: { sha256: sha256(artifact.bytes) },
+      })),
+      { name: 'sbom.cdx.json', digest: { sha256: sha256(sbomBytes) } },
+    ],
+    predicateType: 'https://slsa.dev/provenance/v1',
+    predicate: {
+      buildDefinition: {
+        buildType: 'https://paperandslate.org/eom/build/reproducible-source-archive/v2',
+        externalParameters: { releaseVersion: RELEASE_VERSION, sourceDateEpoch },
+        internalParameters: {
+          specification: 'https://paperandslate.org/spec/eom/1.0',
+          packageManager: 'pnpm@10.6.0',
+        },
+        resolvedDependencies: [
+          { uri: `git:${sourceCommit}`, digest: { sha1: sourceCommit } },
+          { uri: 'file:pnpm-lock.yaml', digest: { sha256: sha256(lockBytes) } },
+        ],
       },
-      resolvedDependencies: [{ uri: 'file:pnpm-lock.yaml', digest: { sha256: sha256(lockBytes) } }],
+      runDetails: {
+        builder: { id: 'https://paperandslate.org/eom/local-release-tooling' },
+        metadata: { startedOn: generatedAt, finishedOn: generatedAt, reproducible: true },
+      },
     },
-    runDetails: {
-      builder: { id: 'https://paperandslate.org/eom/local-release-tooling' },
-      metadata: { startedOn: generatedAt, finishedOn: generatedAt, reproducible: true },
+    sourceCommit,
+    sourceTree,
+    provenanceStatus: 'local metadata; not a signed external attestation',
+  };
+  const provenanceBytes = Buffer.from(stringifyCanonical(provenance), 'utf8');
+  await writeFile(join(targetRoot, 'build-provenance.json'), provenanceBytes);
+
+  const candidateFiles = await filesWithBytes(candidateDirectory);
+  const releaseArtifacts: ReleaseArtifact[] = [
+    ...candidateFiles.map((file) => ({
+      path: `v${RELEASE_VERSION}/${file.relativePath}`,
+      bytes: file.bytes,
+    })),
+    ...archives,
+    { path: 'sbom.cdx.json', bytes: sbomBytes },
+    { path: 'build-provenance.json', bytes: provenanceBytes },
+  ];
+  const checksums =
+    releaseArtifacts
+      .map((artifact) => `${sha256(artifact.bytes)}  ${artifact.path}`)
+      .sort()
+      .join('\n') + '\n';
+  const checksumsBytes = Buffer.from(checksums, 'utf8');
+  await writeFile(join(targetRoot, 'checksums.sha256'), checksumsBytes);
+
+  const manifest = {
+    release: RELEASE_VERSION,
+    channel: 'release-candidate',
+    protocolStatus: 'working-draft',
+    generatedAt,
+    sourceDateEpoch,
+    sourceCommit,
+    sourceTree,
+    specification: 'https://paperandslate.org/spec/eom/1.0',
+    schemaBase: 'https://paperandslate.org/schemas/eom/1.0/',
+    historicalSuperseded: {
+      release: '1.0.0-rc.1',
+      path: 'v1.0.0-rc.1',
+      status: 'preserved-immutable-superseded',
     },
-  },
-  provenanceStatus: 'local metadata; not a signed external attestation',
-};
-const provenancePath = join(root, 'release', 'build-provenance.json');
-await writeFile(provenancePath, stringifyCanonical(provenance as never), 'utf8');
+    artifacts: releaseArtifacts
+      .concat({ path: 'checksums.sha256', bytes: checksumsBytes })
+      .map((artifact) => ({
+        path: artifact.path,
+        bytes: artifact.bytes.length,
+        sha256: sha256(artifact.bytes),
+      }))
+      .sort((left, right) => left.path.localeCompare(right.path)),
+    externalGates: {
+      ianaRegistration: 'blocked-external',
+      independentPublisherConsumerPilot: 'blocked-external',
+      legalLicenseReview: 'pending-external',
+      productionDeployment: 'not-authorized',
+    },
+    claimsPolicy:
+      'No registration, certification, adoption, legal approval, factual verification, or deployment is claimed by these artifacts.',
+  };
+  await writeFile(join(targetRoot, 'manifest.json'), stringifyCanonical(manifest), 'utf8');
 
-const candidateFiles = await filesWithBytes(candidateDirectory);
-const releaseArtifacts = [
-  ...candidateFiles.map((file) => ({
-    path: `v${releaseVersion}/${file.relativePath}`,
-    bytes: file.bytes,
-  })),
-  { path: `educational-organization-manifest-${releaseVersion}.tar.gz`, bytes: archiveBytes },
-  { path: 'sbom.cdx.json', bytes: await readFile(sbomPath) },
-  { path: 'build-provenance.json', bytes: await readFile(provenancePath) },
-];
-const checksums =
-  releaseArtifacts
-    .map((artifact) => `${sha256(artifact.bytes)}  ${artifact.path}`)
-    .sort()
-    .join('\n') + '\n';
-const checksumsPath = join(root, 'release', 'checksums.sha256');
-await writeFile(checksumsPath, checksums, 'utf8');
+  return { releaseVersion: RELEASE_VERSION, outputRoot: targetRoot, sourceCommit, sourceTree };
+}
 
-const manifest = {
-  release: releaseVersion,
-  channel: 'release-candidate',
-  protocolStatus: 'working-draft',
-  generatedAt,
-  sourceDateEpoch,
-  specification: 'https://paperandslate.org/spec/eom/1.0',
-  schemaBase: 'https://paperandslate.org/schemas/eom/1.0/',
-  artifacts: releaseArtifacts
-    .concat({ path: 'checksums.sha256', bytes: Buffer.from(checksums, 'utf8') })
-    .map((artifact) => ({
-      path: artifact.path,
-      bytes: artifact.bytes.length,
-      sha256: sha256(artifact.bytes),
-    }))
-    .sort((left, right) => left.path.localeCompare(right.path)),
-  externalGates: {
-    ianaRegistration: 'blocked-external',
-    independentPublisherConsumerPilot: 'blocked-external',
-    legalLicenseReview: 'pending-external',
-    productionDeployment: 'not-authorized',
-  },
-  claimsPolicy:
-    'No registration, certification, adoption, legal approval, factual verification, or deployment is claimed by these artifacts.',
-};
-await writeFile(
-  join(root, 'release', 'manifest.json'),
-  stringifyCanonical(manifest as never),
-  'utf8',
-);
-
-console.log(
-  `prepared ${releaseVersion}: ${releaseArtifacts.length + 1} checksummed artifacts, ${archiveBytes.length} archive bytes, source date epoch ${sourceDateEpoch}`,
-);
+interface ArchiveDefinition {
+  readonly fileName: string;
+  readonly entries: readonly ArchiveEntry[];
+}
 
 interface ArchiveEntry {
+  readonly path: string;
+  readonly bytes: Buffer;
+}
+
+interface ReleaseArtifact {
   readonly path: string;
   readonly bytes: Buffer;
 }
@@ -163,8 +228,43 @@ interface ReleaseFile {
   readonly bytes: Buffer;
 }
 
+async function copyCandidateArtifacts(candidateDirectory: string): Promise<void> {
+  const sources: readonly [string, string][] = [
+    ['spec/1.0', 'spec/1.0'],
+    ['schemas/1.0', 'schemas/1.0'],
+    ['mappings/registry.json', 'mappings/registry.json'],
+    ['vocabularies/registry.json', 'vocabularies/registry.json'],
+    ['vocabularies/1.0', 'vocabularies/1.0'],
+    ['fixtures/conformance', 'fixtures/conformance'],
+    ['fixtures/modules', 'fixtures/modules'],
+  ];
+  for (const [source, target] of sources) {
+    const sourcePath = join(root, source);
+    if (!(await exists(sourcePath))) continue;
+    const targetPath = join(candidateDirectory, target);
+    await mkdir(dirname(targetPath), { recursive: true });
+    await cp(sourcePath, targetPath, { recursive: true });
+  }
+  await writeFile(
+    join(candidateDirectory, 'STATUS.md'),
+    [
+      `# EOM ${RELEASE_VERSION}`,
+      '',
+      'This is a reproducible release-candidate artifact for the EOM 1.0 working draft.',
+      'The proposed well-known URI suffix is not claimed as IANA-registered.',
+      'Independent pilots, legal review, external certification, and production deployment remain external gates.',
+      '',
+      `Source commit: ${git('rev-parse', 'HEAD')}`,
+      `Source date epoch: ${sourceDateEpoch} (${new Date(sourceDateEpoch * 1000).toISOString()})`,
+      '',
+    ].join('\n'),
+    'utf8',
+  );
+}
+
 async function sourceArchiveEntries(): Promise<ArchiveEntry[]> {
   const roots = [
+    '.changeset',
     '.github',
     'apps',
     'candidates',
@@ -219,20 +319,41 @@ async function sourceArchiveEntries(): Promise<ArchiveEntry[]> {
   for (const path of paths) {
     const relativePath = relative(root, path).replaceAll('\\', '/');
     entries.push({
-      path: `educational-organization-manifest-${releaseVersion}/${relativePath}`,
+      path: `educational-organization-manifest-${RELEASE_VERSION}/${relativePath}`,
       bytes: await readFile(path),
     });
   }
   return entries;
 }
 
+async function directoryArchiveEntries(
+  directories: string | readonly string[],
+  prefix: string,
+  additionalFiles?: string,
+): Promise<ArchiveEntry[]> {
+  const roots = typeof directories === 'string' ? [directories] : directories;
+  const paths = [
+    ...(await Promise.all(roots.map((directory) => walk(join(root, directory))))).flat(),
+    ...(additionalFiles ? [join(root, additionalFiles)] : []),
+  ]
+    .filter((path) => isArchivePath(relative(root, path)))
+    .sort((left, right) => relative(root, left).localeCompare(relative(root, right)));
+  const entries: ArchiveEntry[] = [];
+  for (const path of paths) {
+    const relativePath = relative(root, path).replaceAll('\\', '/');
+    entries.push({ path: `${prefix}/${relativePath}`, bytes: await readFile(path) });
+  }
+  return entries;
+}
+
 function isArchivePath(path: string): boolean {
-  const parts = path.replaceAll('\\', '/').split('/');
+  const normalized = path.replaceAll('\\', '/');
+  const parts = normalized.split('/');
   if (parts.some((part) => ['.git', 'dist', 'node_modules', 'generated', 'build'].includes(part)))
     return false;
-  if (path.startsWith('docs/goals/')) return false;
-  if (path.startsWith('release/')) return false;
-  return extname(path) !== '.log';
+  if (normalized.startsWith('docs/goals/')) return false;
+  if (normalized.startsWith('release/')) return false;
+  return extname(normalized) !== '.log';
 }
 
 async function filesWithBytes(directory: string): Promise<ReleaseFile[]> {
@@ -247,7 +368,7 @@ async function filesWithBytes(directory: string): Promise<ReleaseFile[]> {
   return files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
 
-async function readPackageManifests(): Promise<readonly Record<string, unknown>[]> {
+async function readWorkspacePackageManifests(): Promise<readonly Record<string, unknown>[]> {
   const paths = [
     join(root, 'package.json'),
     ...(await walk(join(root, 'packages'))),
@@ -255,44 +376,70 @@ async function readPackageManifests(): Promise<readonly Record<string, unknown>[
   ]
     .filter((path) => path.endsWith('package.json'))
     .sort();
-  const components = new Map<string, Record<string, unknown>>();
+  const components: Record<string, unknown>[] = [];
   for (const path of paths) {
     const value = JSON.parse(await readFile(path, 'utf8')) as {
       name?: string;
       version?: string;
       license?: string;
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
     };
     if (!value.name || !value.version) continue;
-    components.set(value.name, {
+    components.push({
       type: 'library',
       group: value.name.startsWith('@') ? value.name.split('/')[0]?.slice(1) : undefined,
       name: value.name.startsWith('@') ? value.name.split('/')[1] : value.name,
       version: value.version,
-      scope: value.name.startsWith('@') ? 'required' : 'optional',
+      scope: 'required',
+      'bom-ref': `pkg:npm/${value.name}@${value.version}`,
       purl: `pkg:npm/${value.name}@${value.version}`,
       licenses: value.license ? [{ license: { id: value.license } }] : undefined,
     });
-    for (const [dependency, requested] of Object.entries({
-      ...value.dependencies,
-      ...value.devDependencies,
-    })) {
-      if (dependency.startsWith('@paperandslate/')) continue;
-      if (!components.has(dependency)) {
-        components.set(dependency, {
-          type: 'library',
-          name: dependency,
-          version: requested,
-          scope: 'required',
-          purl: `pkg:npm/${dependency}@${requested.replace(/^[~^>=< ]+/u, '')}`,
-        });
-      }
-    }
+  }
+  return components.sort((left, right) => String(left.purl).localeCompare(String(right.purl)));
+}
+
+async function readLockedExternalComponents(
+  lockBytes: Buffer,
+): Promise<readonly Record<string, unknown>[]> {
+  const lock = parseYaml(lockBytes.toString('utf8')) as {
+    packages?: Record<string, unknown>;
+  };
+  const workspaceNames = new Set<string>();
+  for (const path of [
+    join(root, 'package.json'),
+    ...(await walk(join(root, 'packages'))),
+    ...(await walk(join(root, 'apps'))),
+  ].filter((path) => path.endsWith('package.json'))) {
+    const value = JSON.parse(await readFile(path, 'utf8')) as { name?: string };
+    if (value.name) workspaceNames.add(value.name);
+  }
+  const components = new Map<string, Record<string, unknown>>();
+  for (const key of Object.keys(lock.packages ?? {}).sort()) {
+    const parsed = parseLockPackageKey(key);
+    if (!parsed || workspaceNames.has(parsed.name)) continue;
+    const purl = `pkg:npm/${parsed.name}@${parsed.version}`;
+    components.set(purl, {
+      type: 'library',
+      group: parsed.name.startsWith('@') ? parsed.name.split('/')[0]?.slice(1) : undefined,
+      name: parsed.name.startsWith('@') ? parsed.name.split('/')[1] : parsed.name,
+      version: parsed.version,
+      scope: 'required',
+      'bom-ref': purl,
+      purl,
+    });
   }
   return [...components.values()].sort((left, right) =>
     String(left.purl).localeCompare(String(right.purl)),
   );
+}
+
+function parseLockPackageKey(key: string): { name: string; version: string } | undefined {
+  const separator = key.startsWith('@') ? key.indexOf('@', 1) : key.indexOf('@');
+  if (separator <= 0) return undefined;
+  const name = key.slice(0, separator);
+  const version = key.slice(separator + 1).split('(', 1)[0];
+  if (!name || !version || !/^\d+\.\d+\.\d+/u.test(version)) return undefined;
+  return { name, version };
 }
 
 function createTarGz(entries: readonly ArchiveEntry[]): Buffer {
@@ -343,7 +490,21 @@ function sha256(bytes: Buffer): string {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
+function git(...args: string[]): string {
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+}
+
+async function exists(path: string): Promise<boolean> {
+  try {
+    await stat(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function walk(directory: string): Promise<string[]> {
+  if (!(await exists(directory))) return [];
   const information = await stat(directory);
   if (!information.isDirectory()) return [directory];
   const entries = await readdir(directory, { withFileTypes: true });
@@ -354,4 +515,12 @@ async function walk(directory: string): Promise<string[]> {
     else if (entry.isFile()) result.push(path);
   }
   return result;
+}
+
+const invokedFile = process.argv[1] ? resolve(process.argv[1]) : '';
+if (invokedFile === resolve(fileURLToPath(import.meta.url))) {
+  const result = await prepareReleaseArtifacts();
+  console.log(
+    `prepared ${result.releaseVersion} from ${result.sourceCommit}: release artifacts written to ${result.outputRoot}`,
+  );
 }

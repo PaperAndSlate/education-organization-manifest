@@ -34,18 +34,18 @@ independent adoption, certification, or deployment.
 
 ## Atomic remediation requirements
 
-| ID | Requirement | Evidence | Status |
-| --- | --- | --- | --- |
-| EOM-REM-001 | Published packages resolve only compiled files and bundled schema assets. | Pack/install smoke tests. | open |
-| EOM-REM-002 | Generator output replacement is confined to marked safe roots. | Destructive-path regression tests. | open |
-| EOM-REM-003 | Network connections cannot be redirected to a private address after DNS validation. | Rebinding transport tests. | open |
-| EOM-REM-004 | All module registry and vocabulary records are schema-validated and versioned. | Registry/vocabulary validator. | open |
-| EOM-REM-005 | Every v1 module has dedicated valid/invalid/privacy/conformance evidence. | Module fixture matrix. | open |
-| EOM-REM-006 | CLI, migration, diff, graph, and report interfaces match the planning contract. | CLI integration suite. | open |
-| EOM-REM-007 | Conformance roles test behavior, not only local parsing. | Golden and black-box reports. | open |
-| EOM-REM-008 | Browser validation shares the real validator and has automated accessibility coverage. | Browser test suite. | open |
-| EOM-REM-009 | CI runs real lint, CodeQL/dependency/secret checks, drift, packaging, and cross-platform gates. | Workflow runs. | open |
-| EOM-REM-010 | Release artifacts are exact, reproducible, source-revision-bound, and status-honest. | RC2 manifest/provenance. | open |
+| ID          | Requirement                                                                                     | Evidence                           | Status |
+| ----------- | ----------------------------------------------------------------------------------------------- | ---------------------------------- | ------ |
+| EOM-REM-001 | Published packages resolve only compiled files and bundled schema assets.                       | Pack/install smoke tests.          | open   |
+| EOM-REM-002 | Generator output replacement is confined to marked safe roots.                                  | Destructive-path regression tests. | open   |
+| EOM-REM-003 | Network connections cannot be redirected to a private address after DNS validation.             | Rebinding transport tests.         | open   |
+| EOM-REM-004 | All module registry and vocabulary records are schema-validated and versioned.                  | Registry/vocabulary validator.     | open   |
+| EOM-REM-005 | Every v1 module has dedicated valid/invalid/privacy/conformance evidence.                       | Module fixture matrix.             | open   |
+| EOM-REM-006 | CLI, migration, diff, graph, and report interfaces match the planning contract.                 | CLI integration suite.             | open   |
+| EOM-REM-007 | Conformance roles test behavior, not only local parsing.                                        | Golden and black-box reports.      | open   |
+| EOM-REM-008 | Browser validation shares the real validator and has automated accessibility coverage.          | Browser test suite.                | open   |
+| EOM-REM-009 | CI runs real lint, CodeQL/dependency/secret checks, drift, packaging, and cross-platform gates. | Workflow runs.                     | open   |
+| EOM-REM-010 | Release artifacts are exact, reproducible, source-revision-bound, and status-honest.            | RC2 manifest/provenance.           | open   |
 
 ## Review log
 

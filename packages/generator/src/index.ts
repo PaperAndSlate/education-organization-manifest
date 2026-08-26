@@ -25,11 +25,9 @@ import {
 } from '@paperandslate/eom-core';
 import { lintPublication } from '@paperandslate/eom-linter';
 import {
-  hasErrors,
   publicationSetFindings,
   validateDocument,
   type Finding,
-  type ValidationResult,
 } from '@paperandslate/eom-validator';
 
 const SPECIFICATION = 'https://paperandslate.org/spec/eom/1.0';
@@ -43,6 +41,12 @@ export interface BuildOptions {
   readonly outputRoot?: string;
   readonly dryRun?: boolean;
   readonly now?: Date;
+  /** Build only the selected registered module plus its organization dependency. */
+  readonly module?: string;
+  /** Require the selected organization identifier when authoring a multi-organization source. */
+  readonly organization?: string;
+  /** Use the injected/fixed clock and reject ambient-time output behavior. */
+  readonly deterministic?: boolean;
   /** Allow a deliberately selected output outside the project directory. */
   readonly allowExternalOutput?: boolean;
 }
@@ -74,6 +78,10 @@ export interface BuildReport {
   readonly findings: readonly Finding[];
   readonly sourceMap: Readonly<Record<string, readonly string[]>>;
   readonly fingerprint?: string;
+  readonly partial?: {
+    readonly module?: string;
+    readonly organization?: string;
+  };
 }
 
 export class GeneratorInputError extends Error {
@@ -282,7 +290,7 @@ export function parseAuthoringText(text: string, source = '<inline>'): unknown {
   if (extname(source).toLowerCase() === '.json') {
     return parseStrictJson(text, source);
   }
-  if (/(^|[\s:[,\-])(?:&|\*)[A-Za-z0-9_-]+/mu.test(text)) {
+  if (/(^|(?:\s|:|\[|,|-))(?:&|\*)[A-Za-z0-9_-]+/mu.test(text)) {
     throw new GeneratorInputError(
       'YAML anchors and aliases are not allowed in public authoring input.',
       [
@@ -383,16 +391,33 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
       throw error;
     }
     parsedSources = await discoverSources(config, configFile, configDirectory, maxBytes);
-    inputs = parsedSources.map((source) => ({
+    const selectedSources = selectBuildSources(parsedSources, options.module);
+    inputs = selectedSources.map((source) => ({
       path: source.file,
       relativePath: source.relativePath,
       module: source.module.key,
       sha256: source.digest,
     }));
-    const moduleBuild = buildModules(config, parsedSources);
+    const moduleBuild = buildModules(config, selectedSources);
+    if (options.organization && moduleBuild.organizationId !== options.organization) {
+      throw new GeneratorInputError(
+        'The requested organization was not found in the selected source.',
+        [
+          generatorFinding(
+            'EOM_GENERATOR_ORGANIZATION_NOT_FOUND',
+            'The requested organization identifier is not present in the authoring source.',
+            options.organization,
+          ),
+        ],
+      );
+    }
     const root = buildManifest(config, moduleBuild.documents, moduleBuild.organizationId);
     const documents = { manifest: root, ...moduleBuild.documents };
-    const findings = validateAndLint(documents, config, options.now ?? new Date());
+    const findings = validateAndLint(
+      documents,
+      config,
+      options.now ?? (options.deterministic === true ? new Date(0) : new Date()),
+    );
     const valid = isBuildValid(findings, config);
     const resources = Object.entries(moduleBuild.documents)
       .map(([type, document]) => ({
@@ -409,7 +434,7 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
         .map(([key, values]) => [key, [...values].sort()]),
     );
     const baseReport: BuildReport = {
-      toolVersion: '0.1.0',
+      toolVersion: '1.0.0-rc.2',
       specification: SPECIFICATION,
       valid,
       written: false,
@@ -419,6 +444,14 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
       resources,
       findings,
       sourceMap,
+      ...(options.module || options.organization
+        ? {
+            partial: {
+              ...(options.module ? { module: options.module } : {}),
+              ...(options.organization ? { organization: options.organization } : {}),
+            },
+          }
+        : {}),
     };
     if (!valid || options.dryRun === true) {
       return baseReport;
@@ -434,7 +467,7 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
   } catch (error) {
     if (!(error instanceof GeneratorInputError)) throw error;
     return {
-      toolVersion: '0.1.0',
+      toolVersion: '1.0.0-rc.2',
       specification: SPECIFICATION,
       valid: false,
       written: false,
@@ -447,8 +480,46 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
           ? error.findings
           : [generatorFinding('EOM_GENERATOR_INPUT_INVALID', error.message)],
       sourceMap: {},
+      ...(options.module || options.organization
+        ? {
+            partial: {
+              ...(options.module ? { module: options.module } : {}),
+              ...(options.organization ? { organization: options.organization } : {}),
+            },
+          }
+        : {}),
     };
   }
+}
+
+function selectBuildSources(
+  sources: readonly ParsedSource[],
+  selectedModule: string | undefined,
+): readonly ParsedSource[] {
+  if (!selectedModule) return sources;
+  const module = moduleDefinition(selectedModule);
+  if (!module) {
+    throw new GeneratorInputError('Unknown build module ' + selectedModule + '.', [
+      generatorFinding(
+        'EOM_GENERATOR_UNKNOWN_MODULE',
+        'The selected build module is not registered.',
+        selectedModule,
+      ),
+    ]);
+  }
+  const filtered = sources.filter(
+    (source) => source.module.key === 'organization' || source.module.key === module.key,
+  );
+  if (!filtered.some((source) => source.module.key === module.key)) {
+    throw new GeneratorInputError('The selected build module has no discovered source files.', [
+      generatorFinding(
+        'EOM_GENERATOR_MODULE_NOT_FOUND',
+        'Add a source file for the selected module or choose another module.',
+        module.key,
+      ),
+    ]);
+  }
+  return filtered;
 }
 
 async function discoverSources(
@@ -544,7 +615,11 @@ async function assertSafeOutputRoot(
   const home = await existingRealPath(homedir());
   const cwd = await existingRealPath(process.cwd());
 
-  if (parse(outputRealPath).root === outputRealPath || outputRealPath === home || outputRealPath === cwd) {
+  if (
+    parse(outputRealPath).root === outputRealPath ||
+    outputRealPath === home ||
+    outputRealPath === cwd
+  ) {
     throw unsafeOutputError(outputRoot, 'The output directory is a protected filesystem root.');
   }
   if (
@@ -567,7 +642,10 @@ async function assertSafeOutputRoot(
     );
   }
   if (buildRealPath === resolvedSourceRoot || isWithin(resolvedSourceRoot, buildRealPath)) {
-    throw unsafeOutputError(buildCandidate, 'The build-report directory must not sit inside the source root.');
+    throw unsafeOutputError(
+      buildCandidate,
+      'The build-report directory must not sit inside the source root.',
+    );
   }
   if (options.allowExternalOutput !== true && !isWithin(projectRoot, outputRealPath)) {
     throw unsafeOutputError(
@@ -753,7 +831,7 @@ function buildModules(config: EomConfig, sources: readonly ParsedSource[]): Modu
         sourceFiles.add(source.relativePath);
       }
     }
-    items.sort((left, right) => String(left.id).localeCompare(String(right.id)));
+    items.sort((left, right) => textValue(left.id).localeCompare(textValue(right.id)));
     const document = moduleResource(module, items, config, organizationId, sourceEnvelope);
     documents[module.resourceType] = document;
     sourceMap[module.resourceType] = [...sourceFiles].sort();
@@ -805,7 +883,7 @@ function buildContactDocument(
       contacts.push(normalized);
     }
   }
-  contacts.sort((left, right) => String(left.id).localeCompare(String(right.id)));
+  contacts.sort((left, right) => textValue(left.id).localeCompare(textValue(right.id)));
   const document: Record<string, unknown> = {
     $schema: 'https://paperandslate.org/schemas/eom/1.0/contact-directory.schema.json',
     specification: SPECIFICATION,
@@ -1138,7 +1216,7 @@ function buildManifest(
       origin: config.publisher.origin,
       paths: ['/'],
       canonicalOrigins: [config.publisher.origin],
-      scopeStatement: 'Public EOM resources for ' + String(organizationName) + '.',
+      scopeStatement: 'Public EOM resources for ' + textValue(organizationName) + '.',
     },
     organizations: [
       {
@@ -1155,7 +1233,7 @@ function buildManifest(
     resources: resourceEntries,
   };
   if (contactItems.length > 0) {
-    root.contacts = contactItems.filter(isJsonObject).map((item) => ({ id: String(item.id) }));
+    root.contacts = contactItems.filter(isJsonObject).map((item) => ({ id: textValue(item.id) }));
   }
   if (config.publication?.notice) {
     root.notices = [
@@ -1239,7 +1317,7 @@ async function writePublication(
         sha256: await sha256File(file),
       });
     }
-    outputEntries.sort((left, right) => String(left.path).localeCompare(String(right.path)));
+    outputEntries.sort((left, right) => textValue(left.path).localeCompare(textValue(right.path)));
     const fingerprint = sha256Text(jsonText(outputEntries, true));
     const buildDirectory = join(parent, 'build');
     const buildTemporary = await mkdtemp(join(parent, '.eom-build-'));
@@ -1439,6 +1517,15 @@ function slugify(value: unknown): string {
 
 function stringValue(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+function textValue(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return `${value}`;
+  }
+  return JSON.stringify(value) ?? Object.prototype.toString.call(value);
 }
 
 function asJsonObject(value: unknown, label: string): JsonObject {

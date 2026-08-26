@@ -66,8 +66,8 @@ export function validateDocument(
   let valid: boolean;
   let schemaId: string | undefined;
   try {
-    const schema = readAllSchemas().find((candidate) =>
-      candidate.$id?.toString().endsWith(`/${schemaFile}`),
+    const schema = readAllSchemas().find(
+      (candidate) => typeof candidate.$id === 'string' && candidate.$id.endsWith(`/${schemaFile}`),
     );
     schemaId = typeof schema?.$id === 'string' ? schema.$id : undefined;
     const validator = schemaId ? ajv.getSchema(schemaId) : undefined;

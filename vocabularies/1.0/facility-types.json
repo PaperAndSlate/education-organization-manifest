@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/facility-types/1.0",
   "category": "facility-types",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:c566cc4783c2b9a7662d21d00494cda716c709c06f332a5db7a14382da4dface",
   "id": "https://paperandslate.org/vocabularies/eom/facility-types/1.0",
   "license": "CC0-1.0",

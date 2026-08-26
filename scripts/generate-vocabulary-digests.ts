@@ -1,7 +1,12 @@
 import { createHash } from 'node:crypto';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { parseStrictJson, stringifyCanonical, isJsonObject, type JsonObject } from '@paperandslate/eom-core';
+import {
+  parseStrictJson,
+  stringifyCanonical,
+  isJsonObject,
+  type JsonObject,
+} from '@paperandslate/eom-core';
 
 const root = resolve(process.cwd());
 const directory = join(root, 'vocabularies', '1.0');
@@ -29,6 +34,10 @@ for (const file of files) {
 }
 
 if (changed > 0 && check) {
-  throw new Error(`${changed} vocabulary digest(s) are stale. Run pnpm generate:vocabulary-digests.`);
+  throw new Error(
+    `${changed} vocabulary digest(s) are stale. Run pnpm generate:vocabulary-digests.`,
+  );
 }
-process.stdout.write(`${check ? 'checked' : 'updated'} ${files.length - 1} vocabulary snapshot digest(s)\n`);
+process.stdout.write(
+  `${check ? 'checked' : 'updated'} ${files.length - 1} vocabulary snapshot digest(s)\n`,
+);

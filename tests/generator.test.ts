@@ -180,9 +180,9 @@ describe('EOM deterministic authoring generator', () => {
         configFile: join(root, 'eom.config.yaml'),
         outputRoot: root,
       });
-      expect(projectRootReport.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE')).toBe(
-        true,
-      );
+      expect(
+        projectRootReport.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE'),
+      ).toBe(true);
 
       const unmarked = join(root, 'generated', 'public');
       await mkdir(unmarked, { recursive: true });
@@ -191,9 +191,9 @@ describe('EOM deterministic authoring generator', () => {
         configFile: join(root, 'eom.config.yaml'),
         outputRoot: unmarked,
       });
-      expect(unmarkedReport.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE')).toBe(
-        true,
-      );
+      expect(
+        unmarkedReport.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE'),
+      ).toBe(true);
       expect(await readFile(join(unmarked, 'unrelated.txt'), 'utf8')).toBe('must survive');
     } finally {
       await rm(root, { recursive: true, force: true });

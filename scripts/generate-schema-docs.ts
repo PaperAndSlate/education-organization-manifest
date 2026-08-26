@@ -19,9 +19,7 @@ function propertyNames(schema: Record<string, unknown>): readonly string[] {
     Array.isArray(schema.properties)
   )
     return [];
-  return Object.keys(schema.properties as Record<string, unknown>).sort((left, right) =>
-    left.localeCompare(right),
-  );
+  return Object.keys(schema.properties).sort((left, right) => left.localeCompare(right));
 }
 
 const lines = [

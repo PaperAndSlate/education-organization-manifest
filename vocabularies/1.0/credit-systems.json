@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/credit-systems/1.0",
   "category": "credit-systems",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:bf96d130b125bc797676ad8fb7da4a9a75554f9834a372317c3d4d3a7094a07b",
   "id": "https://paperandslate.org/vocabularies/eom/credit-systems/1.0",
   "license": "CC0-1.0",

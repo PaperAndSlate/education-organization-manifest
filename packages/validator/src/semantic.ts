@@ -41,7 +41,7 @@ export function semanticFindings(document: unknown, options: SemanticOptions = {
  */
 export function publicationSetFindings(
   documents: Readonly<Record<string, unknown>>,
-  options: SemanticOptions = {},
+  _options: SemanticOptions = {},
 ): Finding[] {
   const findings: Finding[] = [];
   const known = new Map<string, KnownEntity>();

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { validateDocument } from '@paperandslate/eom-validator';
-import { isJsonObject, parseStrictJson, stringifyCanonical, type JsonObject } from '@paperandslate/eom-core';
+import { isJsonObject, parseStrictJson, stringifyCanonical } from '@paperandslate/eom-core';
 
 const root = resolve(process.cwd());
 const directory = join(root, 'vocabularies', '1.0');
@@ -32,12 +32,14 @@ const expectedCategories = [
 const registryPath = join(root, 'vocabularies', 'registry.json');
 const registry = parseStrictJson(await readFile(registryPath, 'utf8'), registryPath);
 const registryResult = validateDocument(registry, { now: new Date('2026-08-26T00:00:00Z') });
-if (!registryResult.valid) failures.push(`registry.json: ${JSON.stringify(registryResult.findings)}`);
+if (!registryResult.valid)
+  failures.push(`registry.json: ${JSON.stringify(registryResult.findings)}`);
 
 const registryCategories = new Set<string>();
 if (isJsonObject(registry) && Array.isArray(registry.vocabularies)) {
   for (const entry of registry.vocabularies) {
-    if (isJsonObject(entry) && typeof entry.category === 'string') registryCategories.add(entry.category);
+    if (isJsonObject(entry) && typeof entry.category === 'string')
+      registryCategories.add(entry.category);
   }
 }
 for (const category of expectedCategories) {
@@ -64,9 +66,11 @@ for (const file of snapshotFiles) {
     seenCategories.add(category);
     const { contentDigest: _contentDigest, ...withoutDigest } = value;
     const expected = `sha256:${createHash('sha256').update(stringifyCanonical(withoutDigest), 'utf8').digest('hex')}`;
-    if (value.contentDigest !== expected) failures.push(`${file}: contentDigest does not match canonical snapshot content`);
+    if (value.contentDigest !== expected)
+      failures.push(`${file}: contentDigest does not match canonical snapshot content`);
     const expectedFile = `${category}.json`;
-    if (file !== expectedFile) failures.push(`${file}: category must be represented by ${expectedFile}`);
+    if (file !== expectedFile)
+      failures.push(`${file}: category must be represented by ${expectedFile}`);
   } catch (error) {
     failures.push(`${file}: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -79,5 +83,7 @@ if (failures.length > 0) {
   process.stderr.write(`${failures.join('\n')}\n`);
   process.exitCode = 1;
 } else {
-  process.stdout.write(`vocabulary check passed: ${expectedCategories.length} versioned categories and ${snapshotFiles.length - 1} snapshots\n`);
+  process.stdout.write(
+    `vocabulary check passed: ${expectedCategories.length} versioned categories and ${snapshotFiles.length - 1} snapshots\n`,
+  );
 }

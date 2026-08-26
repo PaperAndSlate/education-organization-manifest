@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/statistics-metrics/1.0",
   "category": "statistics-metrics",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:b2db33f93e97c043e307867944f7b16103ebe5bcef9c743369d57f82356e779a",
   "id": "https://paperandslate.org/vocabularies/eom/statistics-metrics/1.0",
   "license": "CC0-1.0",

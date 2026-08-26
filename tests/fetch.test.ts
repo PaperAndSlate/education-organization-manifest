@@ -1,6 +1,7 @@
 import { createServer, type Server } from 'node:http';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { gzipSync } from 'node:zlib';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { discoveryUrl, fetchEom, fetchManifest } from '@paperandslate/eom-core';
 import { validateDocument } from '@paperandslate/eom-validator';
@@ -29,6 +30,15 @@ describe('EOM hardened HTTP retrieval', () => {
       }
       if (request.url === '/large') {
         response.writeHead(200, { 'content-type': 'application/json' }).end('x'.repeat(256));
+        return;
+      }
+      if (request.url === '/compressed') {
+        response
+          .writeHead(200, {
+            'content-type': 'application/json',
+            'content-encoding': 'gzip',
+          })
+          .end(gzipSync(Buffer.from(manifest, 'utf8')));
         return;
       }
       response.writeHead(200, {
@@ -103,5 +113,23 @@ describe('EOM hardened HTTP retrieval', () => {
     await expect(fetchEom(`${baseUrl}/large`, { ...local, maxBytes: 32 })).rejects.toMatchObject({
       code: 'EOM_FETCH_TOO_LARGE',
     });
+    await expect(fetchEom(`${baseUrl}/compressed`, local)).rejects.toMatchObject({
+      code: 'EOM_FETCH_CONTENT_ENCODING',
+    });
+  });
+
+  it('connects to the address returned by the validated resolver', async () => {
+    let lookups = 0;
+    const result = await fetchManifest(`http://rebind-fixture.invalid:${new URL(baseUrl).port}`, {
+      allowHttp: true,
+      allowPrivateHosts: true,
+      allowNonStandardPorts: true,
+      dnsLookup: () => {
+        lookups += 1;
+        return Promise.resolve([{ address: '127.0.0.1' }]);
+      },
+    });
+    expect(result.status).toBe(200);
+    expect(lookups).toBe(1);
   });
 });

@@ -71,11 +71,27 @@ try {
     readFile(playgroundHtml, 'utf8'),
     readFile(playgroundApp, 'utf8'),
   ]);
-  if (!/connect-src\s+'none'/iu.test(html))
-    failures.push('apps/playground/src/index.html: missing network-denying CSP');
-  if (/\bfetch\s*\(|XMLHttpRequest|sendBeacon|innerHTML/iu.test(app)) {
+  const remoteValidationStart = app.indexOf('async function validateWithSameOriginService()');
+  const remoteValidationEnd = app.indexOf(
+    '\n  function schemaOrgProjection',
+    remoteValidationStart,
+  );
+  const remoteValidation =
+    remoteValidationStart >= 0 && remoteValidationEnd > remoteValidationStart
+      ? app.slice(remoteValidationStart, remoteValidationEnd)
+      : '';
+  if (!/connect-src\s+'self'/iu.test(html))
+    failures.push('apps/playground/src/index.html: missing same-origin-only CSP');
+  if (
+    !remoteValidation ||
+    !/service\.origin\s*!==\s*window\.location\.origin/u.test(remoteValidation) ||
+    !/credentials:\s*['"]omit['"]/u.test(remoteValidation) ||
+    !/redirect:\s*['"]error['"]/u.test(remoteValidation) ||
+    !/\bfetch\s*\(/u.test(remoteValidation) ||
+    /XMLHttpRequest|sendBeacon|innerHTML/iu.test(app)
+  ) {
     failures.push(
-      'apps/playground/src/app.js: browser playground must remain local-only and text-safe',
+      'apps/playground/src/app.js: browser network access must be explicit same-origin and text-safe',
     );
   }
 } catch (error) {

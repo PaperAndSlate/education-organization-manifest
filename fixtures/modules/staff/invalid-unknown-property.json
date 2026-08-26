@@ -1,0 +1,25 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/staff-directory.schema.json",
+  "canonical": "https://ecme-high.example/eom/staff.json",
+  "expires": "2028-05-01T14:00:00Z",
+  "id": "https://ecme-high.example/eom/resource/staff",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/staff/teacher-1",
+      "jobTitles": ["Science teacher"],
+      "name": "Alex Example",
+      "publicationReview": {
+        "expires": "2028-04-01T12:00:00Z",
+        "reviewedAt": "2027-04-01T12:00:00Z",
+        "status": "approved"
+      },
+      "type": "staff-member"
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "subjects": ["https://ecme-high.example/id/school"],
+  "type": "staff-directory",
+  "unexpectedProperty": true,
+  "version": "1.0"
+}

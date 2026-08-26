@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/delivery-modes/1.0",
   "category": "delivery-modes",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:d49b4c3404967e63e796063e8fef55e82e454bbcf4f244e17026d6ffa6cb1aeb",
   "id": "https://paperandslate.org/vocabularies/eom/delivery-modes/1.0",
   "license": "CC0-1.0",

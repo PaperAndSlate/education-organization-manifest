@@ -1,9 +1,19 @@
 {
   "name": "@paperandslate/eom-conformance-runner",
-  "version": "0.1.0",
+  "version": "1.0.0-rc.2",
   "description": "Offline command entry point for the EOM conformance testkit.",
   "license": "Apache-2.0",
   "type": "module",
+  "bin": {
+    "eom-conformance": "dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "dependencies": {
     "@paperandslate/eom-core": "workspace:*",
     "@paperandslate/eom-testkit": "workspace:*"
@@ -14,6 +24,6 @@
   "scripts": {
     "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
     "typecheck": "tsc --noEmit",
-    "lint": "true"
+    "lint": "eslint src --max-warnings=0"
   }
 }

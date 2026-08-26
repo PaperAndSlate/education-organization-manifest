@@ -1,4 +1,4 @@
-import { readFile, readdir, rm, stat } from 'node:fs/promises';
+import { readFile, readdir, rm } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { buildPublication } from '@paperandslate/eom-generator';
 

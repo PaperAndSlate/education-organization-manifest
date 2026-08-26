@@ -657,7 +657,13 @@ function workspaceValue(value: unknown, path: readonly string[]): unknown {
 }
 
 function canonicalUnknown(value: unknown): string {
-  return isJsonValue(value) ? stringifyCanonical(stableJsonValue(value)) : String(value);
+  if (isJsonValue(value)) return stringifyCanonical(stableJsonValue(value));
+  if (value === null) return 'null';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return `${value}`;
+  }
+  return JSON.stringify(value) ?? Object.prototype.toString.call(value);
 }
 
 function asJsonValue(value: unknown): JsonValue {

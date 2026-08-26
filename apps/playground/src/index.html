@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'none'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'"
     />
     <title>EOM local playground</title>
     <link rel="stylesheet" href="styles.css" />
@@ -30,8 +30,8 @@
       <h1>Inspect EOM without sending your data anywhere.</h1>
       <p class="lede">
         Paste or choose a local JSON/YAML document. Validation, privacy checks, exploration,
-        previews, and reports run in this browser. This page makes no network requests and does not
-        retain your input.
+        previews, and reports run in this browser. Local validation makes no network request and
+        does not retain your input; the optional service below is a separate same-origin request.
       </p>
       <div class="warning" role="note">
         <strong>Public-data boundary:</strong> do not paste student records, private staff
@@ -68,7 +68,8 @@
         <div class="toolbar">
           <button class="primary" id="validate-button" type="button">Validate locally</button
           ><button id="fixture-button" type="button">Load fictional fixture</button
-          ><button id="clear-button" type="button">Clear</button>
+          ><button id="clear-button" type="button">Clear</button
+          ><button id="download-report-button" type="button" disabled>Download report</button>
         </div>
         <div id="validation-status" class="status" role="status" aria-live="polite">
           No document loaded.
@@ -84,6 +85,34 @@
             <h3 id="raw-report-title">Machine-readable report</h3>
             <pre id="raw-report">{}</pre>
           </section>
+        </div>
+      </section>
+
+      <section id="url-validation" class="panel" aria-labelledby="url-validation-title">
+        <h2 id="url-validation-title">Optional same-origin URL validation</h2>
+        <p class="muted">
+          The local tool never follows URLs. If a site owner provides a same-origin validation
+          service, enter its path and a public HTTPS URL below. The request is explicit, bounded,
+          credential-free, and controlled by the host page's CSP.
+        </p>
+        <div class="form-grid">
+          <label for="validation-service"
+            >Same-origin service path<input
+              id="validation-service"
+              type="text"
+              value="/api/eom/validate" /></label
+          ><label for="public-validation-url"
+            >Public HTTPS URL<input
+              id="public-validation-url"
+              type="url"
+              placeholder="https://school.example"
+          /></label>
+        </div>
+        <div class="toolbar">
+          <button id="url-validation-button" type="button">Run remote validation</button>
+        </div>
+        <div id="url-validation-status" class="status" role="status" aria-live="polite">
+          No remote request made.
         </div>
       </section>
 
@@ -137,6 +166,7 @@
         <h2 id="explore-title">Explore, preview, and inspect</h2>
         <div class="tabs">
           <button id="explore-button" type="button">Manifest explorer</button
+          ><button id="schema-browser-button" type="button">Schema browser</button
           ><button id="schemaorg-button" type="button">Schema.org preview</button
           ><button id="coverage-button" type="button">Module coverage</button
           ><button id="report-button" type="button">Conformance report view</button

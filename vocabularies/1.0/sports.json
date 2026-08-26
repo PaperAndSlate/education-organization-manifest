@@ -2,9 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
   "canonical": "https://paperandslate.org/vocabularies/eom/sports/1.0",
   "category": "sports",
-  "compatibleProtocolVersions": [
-    "1.0"
-  ],
+  "compatibleProtocolVersions": ["1.0"],
   "contentDigest": "sha256:dd0907d97e0eeb5fdc38dd6d82caa4c8ecd106acf98775a2d33873c0c54a029b",
   "id": "https://paperandslate.org/vocabularies/eom/sports/1.0",
   "license": "CC0-1.0",

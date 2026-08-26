@@ -1,0 +1,29 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    [
+      "@paperandslate/eom-adapters",
+      "@paperandslate/eom-agentic",
+      "@paperandslate/eom-authority",
+      "@paperandslate/eom-cli",
+      "@paperandslate/eom-config",
+      "@paperandslate/eom-conformance-runner",
+      "@paperandslate/eom-core",
+      "@paperandslate/eom-generator",
+      "@paperandslate/eom-linter",
+      "@paperandslate/eom-schema",
+      "@paperandslate/eom-schemaorg-adapter",
+      "@paperandslate/eom-signatures",
+      "@paperandslate/eom-testkit",
+      "@paperandslate/eom-types",
+      "@paperandslate/eom-validator"
+    ]
+  ],
+  "linked": [],
+  "access": "restricted",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": ["@paperandslate/eom-docs", "@paperandslate/eom-playground"]
+}

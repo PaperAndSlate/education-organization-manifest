@@ -16,5 +16,6 @@ playground/.vite/
 apps/*/dist/
 packages/*/dist/
 packages/schema/dist/schemas/
+apps/playground/src/generated-*.js
 !packages/*/src/generated/
 !packages/types/src/generated/
