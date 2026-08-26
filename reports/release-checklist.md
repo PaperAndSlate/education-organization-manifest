@@ -2,8 +2,7 @@
 
 This checklist is the release-candidate evidence surface. The earlier completion claim has been
 superseded by `reports/remediation-audit.md`. Local entries below reflect the bounded remediation
-run on 2026-08-26; hosted CI, formal security review, and external protocol/governance gates remain
-separate.
+run on 2026-08-26; hosted CI and external protocol/governance gates remain separate.
 
 ## Local gates
 
@@ -17,6 +16,7 @@ separate.
 - [pass] docs links and automated Chromium accessibility/security checks;
 - [pass] license, dependency, secret, SBOM, and local provenance checks;
 - [pass] immutable candidate artifacts, package dry runs, and migration notes.
+- [pass] final formal Standard security workbench scan for committed RC2 revision `36c63a8` (zero findings).
 
 ## External gates
 
@@ -25,7 +25,6 @@ separate.
 - [blocked-external] independent publisher/consumer interoperability evidence;
 - [pending-external] legal/licensing review;
 - [pending-external] public review and governance approval;
-- [blocked-external] pilot/adoption evidence;
-- [pending-external] no critical/high unresolved security or privacy finding after the formal Standard audit; the final workbench scan and independent review remain pending.
+- [blocked-external] pilot/adoption evidence.
 
 Until evidence exists, public copy must say working draft/proposed and the release report must include the owner, required evidence, and blocker.

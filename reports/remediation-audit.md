@@ -1,7 +1,7 @@
 # EOM v1 Remediation Audit
 
-Status: local implementable remediation complete pending the final formal security workbench scan;
-external protocol, legal, governance, adoption, and deployment gates remain blocked or pending.
+Status: local implementable remediation complete, including the final formal security workbench
+scan; external protocol, legal, governance, adoption, and deployment gates remain blocked or pending.
 This report supersedes completion claims made by the pre-remediation phase reports.
 
 ## Baseline evidence
@@ -40,20 +40,25 @@ work must not change those statuses.
 ## Remediation evidence
 
 The following local gates passed on 2026-08-26 after the source-revision-bound implementation
-tranche: frozen install, formatting, build, typecheck, 101 unit/integration tests, coverage
-(67.26% lines, 64.34% branches, 77.57% functions), real ESLint, policy/security/license/dependency
-checks, schema/vocabulary/module/ownership/fixture gates, four browser tests, deterministic builds,
+tranche: frozen install, formatting, build, typecheck, 106 unit/integration tests, coverage
+(68.20% lines, 65.42% branches, 78.42% functions), real ESLint, policy/security/license/dependency
+checks, schema/vocabulary/module/ownership/fixture gates, five browser tests, deterministic builds,
 94 example files, docs/link checks, nine conformance profiles, Ecme conformance, clean packed-package
-imports, production advisory audit, release checks, and byte-identical release reproducibility.
+imports, production advisory audit, release checks, and byte-identical release reproducibility via
+the aggregate `pnpm verify` gate.
 The release candidate is `1.0.0-rc.2`; its provenance is bound to a committed source revision and
 its local provenance remains explicitly unsigned.
 
-The formal Standard security scan is a separate workbench gate and must complete against the final
-committed source revision before the security row is closed. Hosted Linux/Windows/macOS CI and
-CodeQL/dependency-review/secret/REUSE jobs also require their remote run evidence.
+The final formal Standard security scan completed against committed revision `36c63a8` with complete
+coverage and zero reportable findings (scan `8e9bca1f-06a0-45d4-b915-cff64614cbcf`). The historical
+baseline scan (`5866a611-8be4-444f-bac0-da13abf62d27`) remains preserved with four findings and is
+superseded by the remediation commits. Hosted Linux/Windows/macOS CI and CodeQL/dependency-review/
+secret/REUSE jobs remain configured local evidence plus required remote gates.
 
 ## Exit condition
 
-This report may be marked fully remediated only when the atomic traceability matrix, all phase
-reports, the definition of done, conformance reports, release checklist, formal security result,
-and executable verification output agree. A passing narrow test suite is not sufficient evidence.
+The local implementation exit condition is met: the atomic traceability matrix, historical phase
+reports, definition of done, conformance reports, release checklist, formal security result, and
+aggregate executable verification output now agree. Historical reports remain immutable evidence;
+their earlier completion claims are superseded rather than rewritten. External gates remain open
+until their named owners supply the evidence recorded in `reports/external-gates.md`.

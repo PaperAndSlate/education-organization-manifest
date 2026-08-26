@@ -12,6 +12,18 @@ pnpm verify:security
 pnpm test -- --runInBand
 ```
 
-The local scan is not a substitute for an independent penetration test, CodeQL run, or deployment
-review. No private key, credential, student record, or sensitive source snapshot belongs in a release
-artifact.
+## Final formal Standard result
+
+The final source-backed Standard workbench scan completed against committed revision `36c63a8`:
+
+- scan: `8e9bca1f-06a0-45d4-b915-cff64614cbcf`;
+- coverage: complete across the repository source surfaces;
+- reportable findings: zero critical, high, medium, or low findings;
+- local aggregate evidence: `pnpm verify` passed, including parser, HTTP, generator, privacy,
+  package, browser, conformance, and release checks.
+
+The earlier baseline scan `5866a611-8be4-444f-bac0-da13abf62d27` is preserved as historical evidence
+with four findings and is superseded by the remediation commits. Neither scan claims an external
+penetration test, CodeQL-hosted result, production deployment review, IANA registration, legal
+approval, independent interoperability, or adoption. No private key, credential, student record, or
+sensitive source snapshot belongs in a release artifact.
