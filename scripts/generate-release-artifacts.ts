@@ -522,7 +522,9 @@ function sha256(bytes: Buffer): string {
 }
 
 function git(...args: string[]): string {
-  return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+  // Preserve porcelain status columns: trimming the whole output turns the
+  // first " M path" row into "M path" and drops its first path character.
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).replace(/(?:\r?\n)+$/u, '');
 }
 
 function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
