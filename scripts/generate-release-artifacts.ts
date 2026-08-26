@@ -329,13 +329,26 @@ async function createPackagePackArtifacts(
       if (!isWithin(temporaryDirectory, tarballPath)) {
         throw new Error(`${packageJson.name}: pnpm pack returned a tarball outside its temp root.`);
       }
-      const bytes = await readFile(tarballPath);
-      const tarEntries = readTarEntries(bytes);
+      const packedBytes = await readFile(tarballPath);
+      const tarEntries = readTarFiles(packedBytes);
+      const normalizedEntries = tarEntries.map((entry) =>
+        entry.path === 'package/package.json'
+          ? {
+              ...entry,
+              bytes: Buffer.from(
+                stringifyCanonical(JSON.parse(entry.bytes.toString('utf8')) as never),
+                'utf8',
+              ),
+            }
+          : entry,
+      );
+      const bytes = createTarGz(normalizedEntries);
       const files =
         packed.files
           ?.map((entry) => entry.path)
           .filter((path): path is string => typeof path === 'string')
-          .sort(compareStrings) ?? tarEntries;
+          .map(packageFilePath)
+          .sort(compareStrings) ?? tarEntries.map((entry) => packageFilePath(entry.path));
       if (files.some((file) => file.startsWith('src/'))) {
         throw new Error(`${packageJson.name}: source files cannot enter a release package.`);
       }
@@ -377,9 +390,9 @@ async function createPackagePackArtifacts(
   };
 }
 
-function readTarEntries(bytes: Buffer): string[] {
+function readTarFiles(bytes: Buffer): ArchiveEntry[] {
   const tar = gunzipSync(bytes);
-  const entries: string[] = [];
+  const entries: ArchiveEntry[] = [];
   for (let offset = 0; offset + 512 <= tar.length;) {
     const header = tar.subarray(offset, offset + 512);
     if (header.every((byte) => byte === 0)) break;
@@ -388,10 +401,20 @@ function readTarEntries(bytes: Buffer): string[] {
     const sizeText = header.subarray(124, 136).toString('ascii').replace(/\0.*$/u, '').trim();
     const size = sizeText ? Number.parseInt(sizeText, 8) : 0;
     if (!Number.isSafeInteger(size) || size < 0) throw new Error('Invalid package tar entry size.');
-    entries.push(prefix ? `${prefix}/${name}` : name);
+    const type = header[156] ?? 0;
+    if (type === 0 || type === 48) {
+      entries.push({
+        path: prefix ? `${prefix}/${name}` : name,
+        bytes: Buffer.from(tar.subarray(offset + 512, offset + 512 + size)),
+      });
+    }
     offset += 512 + Math.ceil(size / 512) * 512;
   }
-  return entries.sort(compareStrings);
+  return entries.sort((left, right) => compareStrings(left.path, right.path));
+}
+
+function packageFilePath(path: string): string {
+  return path.startsWith('package/') ? path.slice('package/'.length) : path;
 }
 
 async function workspacePackageDirectories(): Promise<string[]> {
