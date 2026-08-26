@@ -1,7 +1,8 @@
 # EOM v1 Remediation Audit
 
-Status: remediation in progress. This report supersedes completion claims made by the
-pre-remediation phase reports until the requirements below have executable evidence.
+Status: local implementable remediation complete pending the final formal security workbench scan;
+external protocol, legal, governance, adoption, and deployment gates remain blocked or pending.
+This report supersedes completion claims made by the pre-remediation phase reports.
 
 ## Baseline evidence
 
@@ -36,8 +37,23 @@ IANA registration, independent publisher/consumer pilots, legal review, governan
 production deployment remain blocked or pending until evidence is supplied. Local implementation
 work must not change those statuses.
 
+## Remediation evidence
+
+The following local gates passed on 2026-08-26 after the source-revision-bound implementation
+tranche: frozen install, formatting, build, typecheck, 101 unit/integration tests, coverage
+(67.26% lines, 64.34% branches, 77.57% functions), real ESLint, policy/security/license/dependency
+checks, schema/vocabulary/module/ownership/fixture gates, four browser tests, deterministic builds,
+94 example files, docs/link checks, nine conformance profiles, Ecme conformance, clean packed-package
+imports, production advisory audit, release checks, and byte-identical release reproducibility.
+The release candidate is `1.0.0-rc.2`; its provenance is bound to a committed source revision and
+its local provenance remains explicitly unsigned.
+
+The formal Standard security scan is a separate workbench gate and must complete against the final
+committed source revision before the security row is closed. Hosted Linux/Windows/macOS CI and
+CodeQL/dependency-review/secret/REUSE jobs also require their remote run evidence.
+
 ## Exit condition
 
-This report may be marked remediated only when the atomic traceability matrix, all phase reports,
-the definition of done, conformance reports, release checklist, and executable verification output
-agree. A passing narrow test suite is not sufficient evidence.
+This report may be marked fully remediated only when the atomic traceability matrix, all phase
+reports, the definition of done, conformance reports, release checklist, formal security result,
+and executable verification output agree. A passing narrow test suite is not sufficient evidence.
