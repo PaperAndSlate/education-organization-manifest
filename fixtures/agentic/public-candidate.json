@@ -1,0 +1,14 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/organization-profile.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://ecme-high.example/eom/organization",
+  "type": "organization-profile",
+  "canonical": "https://ecme-high.example/eom/organization.json",
+  "subjects": ["https://ecme-high.example/id/school"],
+  "name": "Ecme High School",
+  "organizationType": "secondary-school",
+  "website": "https://ecme-high.example/",
+  "modified": "2026-08-26T08:00:00Z",
+  "expires": "2027-08-26T08:00:00Z"
+}

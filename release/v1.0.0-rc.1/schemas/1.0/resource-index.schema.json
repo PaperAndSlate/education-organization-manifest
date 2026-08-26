@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/resource-index.schema.json",
+  "title": "EOM resource index",
+  "type": "object",
+  "required": [
+    "$schema",
+    "specification",
+    "version",
+    "id",
+    "type",
+    "canonical",
+    "itemType",
+    "chunks"
+  ],
+  "properties": {
+    "$schema": { "const": "https://paperandslate.org/schemas/eom/1.0/resource-index.schema.json" },
+    "specification": { "const": "https://paperandslate.org/spec/eom/1.0" },
+    "version": { "const": "1.0" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "type": { "const": "resource-index" },
+    "canonical": { "$ref": "common.schema.json#/$defs/httpsUri" },
+    "subject": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "itemType": { "type": "string", "minLength": 1 },
+    "chunks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["href"],
+        "properties": {
+          "href": { "$ref": "common.schema.json#/$defs/httpsUri" },
+          "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+          "from": { "type": "string" },
+          "through": { "type": "string" },
+          "count": { "type": "integer", "minimum": 0 },
+          "digest": { "type": "string", "pattern": "^[A-Za-z0-9-]+=:.*:$" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "ordering": { "type": "string", "minLength": 1 },
+    "total": { "type": "integer", "minimum": 0 },
+    "snapshotAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "modified": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "expires": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "provenance": { "type": "array", "items": { "$ref": "provenance.schema.json" } },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

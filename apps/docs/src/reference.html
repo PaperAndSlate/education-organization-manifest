@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'"
+    />
+    <title>EOM Reference</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <a class="brand" href="index.html">EOM 1.0</a>
+        <nav aria-label="Primary">
+          <ul>
+            <li><a href="publish.html">Publish</a></li>
+            <li><a href="consume.html">Consume</a></li>
+            <li><a href="reference.html" aria-current="page">Reference</a></li>
+            <li><a href="integrate.html">Integrate</a></li>
+            <li><a href="explore.html">Explore</a></li>
+            <li><a href="govern.html">Govern</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="shell prose">
+      <p class="eyebrow">Reference</p>
+      <h1>Implement the protocol</h1>
+      <p class="lede">
+        The versioned specification and schemas are the implementation contract. This page is a map;
+        use the immutable files in <code>spec/1.0</code> and <code>schemas/1.0</code> for exact
+        details.
+      </p>
+      <h2>Root and resources</h2>
+      <ul>
+        <li>
+          <a href="spec/1.0/protocol.md">Protocol overview</a> — discovery, scope, resource graph,
+          versioning.
+        </li>
+        <li>
+          <a href="spec/1.0/protocol.md#root">Root manifest</a> — compact identity and capability
+          envelope.
+        </li>
+        <li>
+          <a href="spec/1.0/data-model.md">Resources and capabilities</a> — independently
+          validatable linked modules.
+        </li>
+        <li>
+          <a href="source-docs/reference/schema-catalog.md">Generated schema catalog</a> — required
+          and optional fields for the bundled schemas.
+        </li>
+      </ul>
+      <h2>Behavioral rules</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Identifiers</h3>
+          <p>
+            Use absolute stable URIs, retain external identifiers with their scheme, and do not
+            confuse a delegated host with the educational organization.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Internationalization</h3>
+          <p>
+            Use BCP 47 language tags, localized values, direction metadata, international addresses,
+            periods, timezones, and jurisdiction-aware levels and credits.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Validation</h3>
+          <p>
+            Structural validation comes from JSON Schema 2020-12. Semantic and policy findings are
+            separate, pointer-addressed, and actionable.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Integrity</h3>
+          <p>
+            Detached JCS/Ed25519 signatures are optional. Verify canonical bytes, digest, key
+            lifecycle, subject, authority, and expiry independently.
+          </p>
+        </article>
+      </div>
+      <h2>Module families</h2>
+      <p>
+        Organization profiles, campuses, departments, staff and role contacts, courses, offerings
+        and sections, programs, calendars, events, facilities, services, policies, admissions,
+        sports, transportation, meals, clubs, jobs, news, public statistics, and API/service
+        discovery are all optional and independently omittable.
+      </p>
+      <h2>Stable findings</h2>
+      <pre><code>{
+  "code": "EOM_REFERENCE_DANGLING",
+  "category": "semantic",
+  "severity": "error",
+  "pointer": "/items/0/provider",
+  "message": "A reference does not resolve in the loaded publication set."
+}</code></pre>
+      <p>
+        Run <code>pnpm eom explain EOM_REFERENCE_DANGLING</code> for the bundled remediation text.
+      </p>
+    </main>
+    <footer class="footer">
+      <div class="shell">
+        Schemas are source of truth; generated types and docs are checked for drift.
+      </div>
+    </footer>
+  </body>
+</html>

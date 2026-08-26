@@ -1,0 +1,47 @@
+PROMPT ID: eom/implementation/tooling
+GOAL: Build deterministic authoring, generation, validation, linting, and CLI tooling.
+
+Implement:
+- YAML authoring profile;
+- config schema;
+- modular source loading;
+- includes/imports restricted to repository policy;
+- merge rules with explicit conflict errors;
+- normalization;
+- reference resolution;
+- generated indexes;
+- canonical JSON serialization;
+- source maps/build provenance;
+- build manifest and digests;
+- deterministic output;
+- structural validator;
+- semantic linter;
+- privacy linter;
+- HTTP endpoint auditor with full SSRF defenses;
+- CLI commands `init`, `build`, `check`, `validate`, `lint`, `inspect`, `diff`, `audit-url`, and `explain`;
+- machine-readable and human-readable reports;
+- exit-code contract;
+- package APIs.
+
+Do not hand-edit generated output. Make generated drift fail CI.
+
+Test:
+- unit;
+- property/fuzz where appropriate;
+- fixture;
+- snapshot used carefully;
+- CLI integration;
+- path traversal;
+- YAML alias/resource exhaustion;
+- decompression bombs;
+- malformed Unicode;
+- network/redirect/SSRF cases;
+- deterministic build across clean directories;
+- Windows/macOS/Linux path behavior.
+
+Acceptance:
+- a new publisher can initialize, author, build, validate, and inspect Ecme High;
+- two clean builds are byte-identical;
+- no network fetch occurs during ordinary local build;
+- endpoint audit is safe by default;
+- errors include stable codes, JSON Pointers, and remediation.

@@ -1,0 +1,55 @@
+PROMPT ID: eom/create-course-catalog
+PURPOSE: Build a deep, portable course catalog and optional offering catalog from approved sources.
+
+CONTEXT
+You are operating in the EOM repository. Read the course, offering, program, common-type, provenance, vocabulary, internationalization, privacy, and ownership specifications before editing.
+
+INPUTS
+- Organization and campus: {{ORGANIZATION}}
+- Approved catalog sources: {{SOURCES}}
+- Catalog effective period: {{EFFECTIVE_PERIOD}}
+- Jurisdiction and credit system: {{JURISDICTION}}
+- Existing departments/programs/courses: {{EXISTING_PATHS}}
+- Target owner mapping: {{OWNERSHIP_MAPPING}}
+
+REQUIRED OUTCOME
+Create candidate source files for departments, course definitions, programs/pathways, prerequisite relationships, and—only where supported by evidence—offerings or sections. The canonical catalog must be suitable for websites, printable catalogs, APIs, Schema.org exports, and future school systems.
+
+MODELING RULES
+- One stable course definition describes the durable educational offering.
+- An offering says a course is planned or available in a period/context.
+- A section is a concrete scheduled instance and belongs in the optional live layer.
+- Do not place teacher, room, period, capacity, or live availability on the course definition.
+- Use stable identifiers independent of file paths and display names.
+- Preserve original course codes and effective dates.
+- Model localized title, short title, description, subject, department, education level, credits, duration, prerequisites, corequisites, recommended preparation, outcomes, topics, standards, delivery modes, materials, fees, qualifications, related courses, pathways, restrictions, accessibility notes, and source/provenance when available.
+- Most fields are optional. Absence is better than inference.
+- Preserve prerequisite logic as structured AND/OR groups; do not flatten meaning.
+- Avoid asserting equivalence between jurisdiction systems without an approved crosswalk.
+- Mark marketing statements and accreditation/transfer claims for explicit review.
+- Keep withdrawn/superseded courses as historical versions when policy requires.
+
+METHOD
+1. Inventory sources and editions.
+2. Establish department/program/course identity.
+3. Extract each field as an evidence-led claim.
+4. Resolve duplicate codes using effective period and campus/scope.
+5. Create cross-resource references.
+6. Build a program/pathway graph.
+7. Validate cycles and dangling references.
+8. Generate a human-readable catalog preview.
+9. Produce a coverage report showing which optional fields are populated.
+10. Run structural, semantic, privacy, provenance, and determinism checks.
+11. Open a review-ready change only; do not publish.
+
+REQUIRED REPORTS
+- course count by department;
+- new/changed/retired courses;
+- offerings vs course definitions;
+- unresolved duplicates;
+- prerequisite cycles;
+- missing department/subject mappings;
+- claims requiring licensing or policy review;
+- fields inferred and therefore not published;
+- owners required to approve;
+- validation results.

@@ -1,0 +1,38 @@
+{
+  "result": "done",
+  "changed_files": [
+    "package.json",
+    "pnpm-lock.yaml",
+    ".prettierignore",
+    "schemas/1.0/**",
+    "packages/cli/**",
+    "packages/config/**",
+    "packages/core/**",
+    "packages/linter/**",
+    "packages/schema/**",
+    "packages/types/**",
+    "packages/validator/**",
+    "scripts/check-generated-drift.ts",
+    "scripts/check-schemas.ts",
+    "scripts/generate-schema-docs.ts",
+    "scripts/generate-types.ts",
+    "scripts/run-tests.ts",
+    "fixtures/**",
+    "examples/minimal-school/**",
+    "tests/**",
+    "docs/getting-started.md",
+    "docs/reference/schema-catalog.md",
+    "reports/phase-1-protocol-core.md"
+  ],
+  "commands": [
+    {"cmd": "pnpm format:check", "status": "pass"},
+    {"cmd": "pnpm schema:check", "status": "pass"},
+    {"cmd": "pnpm generate:drift", "status": "pass"},
+    {"cmd": "pnpm typecheck", "status": "pass"},
+    {"cmd": "pnpm test -- --runInBand", "status": "pass", "detail": "3 files, 11 tests"},
+    {"cmd": "pnpm build", "status": "pass", "detail": "7 package builds"},
+    {"cmd": "CLI validate/lint/inspect smoke test", "status": "pass"},
+    {"cmd": "git diff --check", "status": "pass"}
+  ],
+  "summary": "Implemented the EOM 1.0 core vertical slice: JSON Schema 2020-12 root/core resources, generated types and drift enforcement, strict local parsing and URI/localization helpers, structural and semantic validation, privacy/security/freshness linting, validate/lint/inspect CLI commands, canonical fictional-school fixtures, schema documentation, and executable quickstart. Remote fetch/SSRF client behavior, full public module registry, generator, signatures, adapters, conformance runner, docs app, and external gates remain explicitly in later slices; no registration, certification, legal, factual, or production claim was made."
+}

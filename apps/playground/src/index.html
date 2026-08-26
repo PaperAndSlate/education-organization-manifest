@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'none'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'"
+    />
+    <title>EOM local playground</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header>
+      <div class="shell header-inner">
+        <a class="brand" href="https://paperandslate.org">EOM 1.0 playground</a>
+        <nav aria-label="Tools">
+          <ul>
+            <li><a href="#validate">Validate</a></li>
+            <li><a href="#starter">Starter</a></li>
+            <li><a href="#explore">Explore</a></li>
+            <li><a href="#compare">Compare</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="shell">
+      <p class="eyebrow">No account · local-first · working draft</p>
+      <h1>Inspect EOM without sending your data anywhere.</h1>
+      <p class="lede">
+        Paste or choose a local JSON/YAML document. Validation, privacy checks, exploration,
+        previews, and reports run in this browser. This page makes no network requests and does not
+        retain your input.
+      </p>
+      <div class="warning" role="note">
+        <strong>Public-data boundary:</strong> do not paste student records, private staff
+        information, secrets, credentials, internal URLs, or confidential documents. Local
+        processing does not make prohibited data suitable for EOM.
+      </div>
+
+      <section id="validate" class="panel" aria-labelledby="validate-title">
+        <h2 id="validate-title">Validate a document</h2>
+        <div class="form-grid">
+          <label for="input-kind"
+            >Input format<select id="input-kind">
+              <option value="json">JSON</option>
+              <option value="yaml">Restricted authoring YAML</option>
+            </select></label
+          ><label for="file-input"
+            >Local file<input
+              id="file-input"
+              type="file"
+              accept=".json,.jsonld,.yaml,.yml,application/json,text/yaml"
+          /></label>
+        </div>
+        <label for="source">Document</label
+        ><textarea
+          id="source"
+          spellcheck="false"
+          aria-describedby="source-help"
+          placeholder="Paste a public EOM JSON or authoring YAML document here."
+        ></textarea>
+        <p id="source-help" class="muted small">
+          The browser tool accepts a safe YAML subset for common authoring maps/lists. For the full
+          authoring pipeline, use the repository CLI.
+        </p>
+        <div class="toolbar">
+          <button class="primary" id="validate-button" type="button">Validate locally</button
+          ><button id="fixture-button" type="button">Load fictional fixture</button
+          ><button id="clear-button" type="button">Clear</button>
+        </div>
+        <div id="validation-status" class="status" role="status" aria-live="polite">
+          No document loaded.
+        </div>
+        <div class="result-grid">
+          <section aria-labelledby="findings-title">
+            <h3 id="findings-title">Findings</h3>
+            <ul id="finding-list" class="finding-list">
+              <li>Results will appear here.</li>
+            </ul>
+          </section>
+          <section aria-labelledby="raw-report-title">
+            <h3 id="raw-report-title">Machine-readable report</h3>
+            <pre id="raw-report">{}</pre>
+          </section>
+        </div>
+      </section>
+
+      <section id="starter" class="panel" aria-labelledby="starter-title">
+        <h2 id="starter-title">Generate a safe starter</h2>
+        <p class="muted">
+          The wizard uses your supplied origin and never invents an official identifier. It produces
+          a local preview only.
+        </p>
+        <div class="form-grid">
+          <label for="starter-name"
+            >Organization name<input
+              id="starter-name"
+              type="text"
+              autocomplete="organization"
+              placeholder="Example School" /></label
+          ><label for="starter-origin"
+            >HTTPS origin<input
+              id="starter-origin"
+              type="url"
+              placeholder="https://school.example" /></label
+          ><label for="starter-language"
+            >Default language<input
+              id="starter-language"
+              type="text"
+              value="en"
+              inputmode="text" /></label
+          ><label for="starter-type"
+            >Organization type<select id="starter-type">
+              <option value="school">School</option>
+              <option value="district">District</option>
+              <option value="college">College</option>
+              <option value="university">University</option>
+              <option value="training-provider">Training provider</option>
+            </select></label
+          ><label for="starter-contact"
+            >Public role contact label<input
+              id="starter-contact"
+              type="text"
+              placeholder="General office (optional)"
+          /></label>
+        </div>
+        <div class="toolbar">
+          <button class="primary" id="starter-button" type="button">Generate preview</button
+          ><button id="download-button" type="button" disabled>Download JSON</button>
+        </div>
+        <pre id="starter-output" aria-live="polite">{}</pre>
+      </section>
+
+      <section id="explore" class="panel" aria-labelledby="explore-title">
+        <h2 id="explore-title">Explore, preview, and inspect</h2>
+        <div class="tabs">
+          <button id="explore-button" type="button">Manifest explorer</button
+          ><button id="schemaorg-button" type="button">Schema.org preview</button
+          ><button id="coverage-button" type="button">Module coverage</button
+          ><button id="report-button" type="button">Conformance report view</button
+          ><button id="signature-button" type="button">Signature shape check</button>
+        </div>
+        <div id="explore-output" class="card" aria-live="polite">
+          Load a document, then choose a view.
+        </div>
+      </section>
+
+      <section id="compare" class="panel" aria-labelledby="compare-title">
+        <h2 id="compare-title">Compare versions</h2>
+        <p class="muted">
+          This local diff compares parsed JSON values and reports top-level additions, removals, and
+          changes. It does not mutate either document or claim migration equivalence.
+        </p>
+        <label for="compare-source">Second document</label
+        ><textarea
+          id="compare-source"
+          spellcheck="false"
+          placeholder="Paste a second JSON/YAML document here."
+        ></textarea>
+        <div class="toolbar">
+          <button class="primary" id="compare-button" type="button">Compare local documents</button>
+        </div>
+        <pre id="compare-output">{}</pre>
+      </section>
+    </main>
+    <footer>
+      <div class="shell">
+        EOM is a proposed, working-draft protocol. Local reports show format behavior; they do not
+        verify institutional facts, authority, certification, or legal compliance.
+      </div>
+    </footer>
+    <script src="app.js" defer></script>
+  </body>
+</html>

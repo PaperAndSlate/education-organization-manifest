@@ -1,0 +1,349 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/common.schema.json",
+  "title": "Educational Organization Manifest common definitions",
+  "$defs": {
+    "absoluteUri": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]+$"
+    },
+    "httpsUri": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://[^\\s/#?]+(?:[/?#][^\\s]*)?$"
+    },
+    "bcp47": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "localized": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "required": ["default", "values"],
+          "properties": {
+            "default": {
+              "$ref": "#/$defs/bcp47"
+            },
+            "values": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "$ref": "#/$defs/bcp47"
+              },
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "directions": {
+              "type": "object",
+              "propertyNames": {
+                "$ref": "#/$defs/bcp47"
+              },
+              "additionalProperties": {
+                "enum": ["ltr", "rtl", "auto"]
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "entityRef": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/absoluteUri"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "$ref": "#/$defs/localized"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identifier": {
+      "type": "object",
+      "required": ["scheme", "value"],
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority": {
+          "$ref": "#/$defs/absoluteUri"
+        },
+        "verificationStatus": {
+          "enum": ["verified", "unverified", "disputed", "expired"]
+        },
+        "verifiedAt": {
+          "$ref": "#/$defs/dateTime"
+        },
+        "validFrom": {
+          "anyOf": [{ "$ref": "#/$defs/date" }, { "$ref": "#/$defs/dateTime" }]
+        },
+        "validUntil": {
+          "anyOf": [{ "$ref": "#/$defs/date" }, { "$ref": "#/$defs/dateTime" }]
+        },
+        "source": {
+          "$ref": "#/$defs/absoluteUri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "period": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "from": {
+          "anyOf": [{ "$ref": "#/$defs/date" }, { "$ref": "#/$defs/dateTime" }]
+        },
+        "until": {
+          "anyOf": [{ "$ref": "#/$defs/date" }, { "$ref": "#/$defs/dateTime" }]
+        }
+      },
+      "additionalProperties": false
+    },
+    "catalogVersion": {
+      "type": "object",
+      "required": ["id", "label", "status", "effective"],
+      "properties": {
+        "id": { "$ref": "#/$defs/absoluteUri" },
+        "label": { "$ref": "#/$defs/localized" },
+        "status": {
+          "enum": ["draft", "proposed", "active", "historical", "retired"]
+        },
+        "effective": { "$ref": "#/$defs/period" },
+        "publishedAt": { "$ref": "#/$defs/dateTime" },
+        "source": { "$ref": "#/$defs/absoluteUri" },
+        "public": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "publisher": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/absoluteUri"
+        },
+        "name": {
+          "$ref": "#/$defs/localized"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "website": {
+          "$ref": "#/$defs/httpsUri"
+        },
+        "contact": {
+          "$ref": "#/$defs/entityRef"
+        },
+        "identifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          }
+        },
+        "statement": {
+          "$ref": "#/$defs/localized"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "required": ["origin"],
+      "properties": {
+        "origin": {
+          "$ref": "#/$defs/httpsUri"
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "uniqueItems": true
+        },
+        "canonicalOrigins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/httpsUri"
+          },
+          "uniqueItems": true
+        },
+        "excludedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "uniqueItems": true
+        },
+        "jurisdictions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "scopeStatement": {
+          "$ref": "#/$defs/localized"
+        }
+      },
+      "additionalProperties": false
+    },
+    "integrity": {
+      "type": "object",
+      "properties": {
+        "digest": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9-]+=:.*:$"
+        },
+        "signature": {
+          "$ref": "#/$defs/httpsUri"
+        },
+        "keyId": {
+          "$ref": "#/$defs/absoluteUri"
+        },
+        "canonicalization": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "anyOf": [{ "required": ["digest"] }, { "required": ["signature"] }],
+      "additionalProperties": false
+    },
+    "alternate": {
+      "type": "object",
+      "required": ["href", "mediaType"],
+      "properties": {
+        "href": {
+          "$ref": "#/$defs/httpsUri"
+        },
+        "mediaType": {
+          "type": "string",
+          "pattern": "^[^\\s/]+/[^\\s;]+(?:;[^\\s]+)*$"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fidelity": {
+          "enum": ["canonical", "lossless", "projected", "human-readable", "summary"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "geoPoint": {
+      "type": "object",
+      "required": ["latitude", "longitude"],
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "altitude": {
+          "type": "number"
+        },
+        "accuracyMeters": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/localized"
+          }
+        },
+        "locality": {
+          "$ref": "#/$defs/localized"
+        },
+        "dependentLocality": {
+          "$ref": "#/$defs/localized"
+        },
+        "administrativeArea": {
+          "$ref": "#/$defs/localized"
+        },
+        "postalCode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "countryCode": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$"
+        },
+        "formatted": {
+          "$ref": "#/$defs/localized"
+        },
+        "geo": {
+          "$ref": "#/$defs/geoPoint"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "accessibilityNotes": {
+          "$ref": "#/$defs/localized"
+        },
+        "public": {
+          "type": "boolean"
+        },
+        "effective": {
+          "$ref": "#/$defs/period"
+        }
+      },
+      "additionalProperties": false
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^(?:https://[^\\s]+|[a-z][a-z0-9]*(?:[.-][a-z0-9]+)+)$"
+      },
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "provenanceRef": {
+      "type": "string",
+      "pattern": "^#/provenance(?:/|$)"
+    }
+  }
+}

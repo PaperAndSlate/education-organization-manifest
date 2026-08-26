@@ -1,0 +1,33 @@
+PROMPT ID: eom/migrate-schema
+PURPOSE: Migrate EOM authoring sources and generated outputs between specification versions safely.
+
+INPUTS
+- Source version: {{FROM_VERSION}}
+- Target version: {{TO_VERSION}}
+- Source root: {{SOURCE_ROOT}}
+- Approved migration RFC/changelog: {{MIGRATION_REFERENCE}}
+- Output branch/directory: {{OUTPUT}}
+
+RULES
+1. Read both immutable specifications, schemas, migration guide, and approved RFCs.
+2. Create a migration inventory before edits.
+3. Preserve stable entity IDs unless the specification explicitly requires a new identity.
+4. Never silently discard fields.
+5. Place unmapped legacy data in a namespaced migration holding area or issue report when permitted.
+6. Preserve provenance and review decisions.
+7. Identify semantic changes that require human judgment.
+8. Update authoring source, generated output, examples, references, and profile declarations.
+9. Run source- and target-version validators.
+10. Produce a machine-readable migration report and rollback plan.
+11. Do not publish or merge automatically.
+
+REPORT
+- files/entities migrated;
+- automatic mappings;
+- lossy mappings;
+- unresolved fields;
+- ID changes;
+- behavior changes;
+- validation results;
+- owner reviews required;
+- recommended deprecation timeline.

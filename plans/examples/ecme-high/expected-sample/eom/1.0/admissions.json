@@ -1,0 +1,12 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/admissions-profile.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/admissions/profile",
+  "type": "admissions-profile",
+  "organization": "https://ecme-high.example/id/organization",
+  "title": "Public Enrollment Information",
+  "description": "A fictional public summary; no applications or applicant records.",
+  "processUrl": "https://ecme-high.example/enrollment",
+  "contact": "https://ecme-high.example/id/contact/general-office",
+  "notice": "All eligibility statements are synthetic."
+}

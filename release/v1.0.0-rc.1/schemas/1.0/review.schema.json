@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/review.schema.json",
+  "title": "EOM human review decision",
+  "type": "object",
+  "required": ["type", "id", "claimId", "reviewer", "timestamp", "decision", "rationale"],
+  "properties": {
+    "type": { "const": "review-decision" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "claimId": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "reviewer": { "type": "string", "minLength": 1 },
+    "timestamp": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "decision": { "enum": ["approved", "rejected", "modified", "deferred"] },
+    "selectedValue": {},
+    "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "conflictsConsidered": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+      "uniqueItems": true
+    },
+    "followUp": { "type": "string", "maxLength": 2000 },
+    "reviewAgainAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

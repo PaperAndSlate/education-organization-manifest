@@ -1,0 +1,251 @@
+{
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "status": "working-draft",
+  "changeController": "https://paperandslate.org/governance/eom",
+  "lastReviewed": "2026-08-25",
+  "modules": [
+    {
+      "shortName": "organization",
+      "title": "Organization",
+      "resourceType": "organization-profile",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/organization-profile.schema.json",
+      "privacyClass": "public-reviewed",
+      "freshness": "days",
+      "collection": "single",
+      "example": "examples/minimal-school/public/eom/organization.json",
+      "mappings": ["schema.org/Organization"]
+    },
+    {
+      "shortName": "campuses",
+      "title": "Campuses",
+      "resourceType": "campus-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/campus-catalog.schema.json",
+      "privacyClass": "public-reviewed",
+      "freshness": "days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/campuses.json",
+      "mappings": ["schema.org/Place"]
+    },
+    {
+      "shortName": "departments",
+      "title": "Departments",
+      "resourceType": "department-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/department-catalog.schema.json",
+      "privacyClass": "public-reviewed",
+      "freshness": "days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/departments.json",
+      "mappings": ["schema.org/Organization"]
+    },
+    {
+      "shortName": "staff",
+      "title": "Staff",
+      "resourceType": "staff-directory",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/staff-directory.schema.json",
+      "privacyClass": "personal-public",
+      "freshness": "days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/staff.json",
+      "mappings": ["schema.org/Person"]
+    },
+    {
+      "shortName": "contacts",
+      "title": "Contacts",
+      "resourceType": "contact-directory",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/contact-directory.schema.json",
+      "privacyClass": "personal-public",
+      "freshness": "days",
+      "collection": "items",
+      "example": "examples/minimal-school/public/eom/contacts.json",
+      "mappings": ["schema.org/ContactPoint"]
+    },
+    {
+      "shortName": "courses",
+      "title": "Courses",
+      "resourceType": "course-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/course-catalog.schema.json",
+      "privacyClass": "public-reviewed",
+      "freshness": "days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/courses.json",
+      "mappings": ["schema.org/Course"]
+    },
+    {
+      "shortName": "offerings",
+      "title": "Course offerings and sections",
+      "resourceType": "course-offering-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/course-offering-catalog.schema.json",
+      "privacyClass": "public-reviewed",
+      "freshness": "hours/days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/offerings.json",
+      "mappings": ["schema.org/CourseInstance"]
+    },
+    {
+      "shortName": "programs",
+      "title": "Programs and pathways",
+      "resourceType": "program-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/program-catalog.schema.json",
+      "privacyClass": "public-reviewed",
+      "freshness": "days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/programs.json",
+      "mappings": ["schema.org/EducationalOccupationalProgram"]
+    },
+    {
+      "shortName": "calendar",
+      "title": "Academic calendar",
+      "resourceType": "academic-calendar",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/academic-calendar.schema.json",
+      "privacyClass": "public",
+      "freshness": "hours",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/calendar.json",
+      "mappings": ["RFC5545"]
+    },
+    {
+      "shortName": "events",
+      "title": "Events",
+      "resourceType": "event-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/event-catalog.schema.json",
+      "privacyClass": "public",
+      "freshness": "minutes/hours",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/events.json",
+      "mappings": ["schema.org/Event", "RFC5545"]
+    },
+    {
+      "shortName": "facilities",
+      "title": "Facilities",
+      "resourceType": "facility-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/facility-catalog.schema.json",
+      "privacyClass": "public-security-review",
+      "freshness": "days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/facilities.json",
+      "mappings": ["schema.org/Place"]
+    },
+    {
+      "shortName": "services",
+      "title": "Services",
+      "resourceType": "service-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/service-catalog.schema.json",
+      "privacyClass": "public-reviewed",
+      "freshness": "days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/services.json",
+      "mappings": ["schema.org/Service"]
+    },
+    {
+      "shortName": "policies",
+      "title": "Policies and documents",
+      "resourceType": "policy-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/policy-catalog.schema.json",
+      "privacyClass": "public",
+      "freshness": "days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/policies.json",
+      "mappings": ["schema.org/DigitalDocument"]
+    },
+    {
+      "shortName": "admissions",
+      "title": "Admissions",
+      "resourceType": "admissions-profile",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/admissions-profile.schema.json",
+      "privacyClass": "public",
+      "freshness": "hours/days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/admissions.json",
+      "mappings": ["schema.org/Offer"]
+    },
+    {
+      "shortName": "sports",
+      "title": "Sports",
+      "resourceType": "sports-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/sports-catalog.schema.json",
+      "privacyClass": "personal-public",
+      "freshness": "hours",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/sports.json",
+      "mappings": ["schema.org/SportsTeam"]
+    },
+    {
+      "shortName": "transportation",
+      "title": "Transportation",
+      "resourceType": "transportation-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/transportation-catalog.schema.json",
+      "privacyClass": "public-security-review",
+      "freshness": "minutes/hours",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/transportation.json",
+      "mappings": ["GTFS-candidate"]
+    },
+    {
+      "shortName": "meals",
+      "title": "Meals and menus",
+      "resourceType": "meal-menu-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/meal-menu-catalog.schema.json",
+      "privacyClass": "public-safety-reviewed",
+      "freshness": "minutes/hours",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/meals.json",
+      "mappings": ["schema.org/Menu"]
+    },
+    {
+      "shortName": "clubs",
+      "title": "Clubs",
+      "resourceType": "club-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/club-catalog.schema.json",
+      "privacyClass": "personal-public",
+      "freshness": "hours/days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/clubs.json",
+      "mappings": ["schema.org/Organization"]
+    },
+    {
+      "shortName": "jobs",
+      "title": "Jobs and opportunities",
+      "resourceType": "job-catalog",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/job-catalog.schema.json",
+      "privacyClass": "public-personal",
+      "freshness": "minutes/hours",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/jobs.json",
+      "mappings": ["schema.org/JobPosting"]
+    },
+    {
+      "shortName": "news",
+      "title": "News",
+      "resourceType": "news-feed",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/news-feed.schema.json",
+      "privacyClass": "public",
+      "freshness": "minutes",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/news.json",
+      "mappings": ["schema.org/NewsArticle", "RSS/Atom"]
+    },
+    {
+      "shortName": "statistics",
+      "title": "Aggregate statistics",
+      "resourceType": "statistics-profile",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/statistics-profile.schema.json",
+      "privacyClass": "aggregate-sensitive",
+      "freshness": "source-dependent",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/statistics.json",
+      "mappings": ["CEDS-candidate"]
+    },
+    {
+      "shortName": "apis",
+      "title": "API and service discovery",
+      "resourceType": "api-reference",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/api-reference.schema.json",
+      "privacyClass": "public-security-review",
+      "freshness": "days",
+      "collection": "items",
+      "example": "examples/ecme-high/public/eom/apis.json",
+      "mappings": ["RFC9727", "OpenAPI"]
+    }
+  ]
+}

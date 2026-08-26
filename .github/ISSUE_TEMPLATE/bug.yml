@@ -1,0 +1,31 @@
+name: Bug report
+description: Report a reproducible implementation, schema, tooling, or documentation problem.
+title: 'bug: '
+labels: ['type:bug']
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Include the EOM package, schema, or commit version.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include a synthetic fixture, command, and observed versus expected behavior. Do not include private school data.
+    validations:
+      required: true
+  - type: input
+    id: requirements
+    attributes:
+      label: Requirement or finding code
+      description: Link a traceability requirement or stable finding code when known.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: This report contains no secrets, credentials, student data, or private staff information.
+          required: true

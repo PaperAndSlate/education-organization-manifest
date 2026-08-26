@@ -1,0 +1,16 @@
+items:
+  - id: "https://ecme-high.example/id/job/culinary-instructional-assistant-2027"
+    type: "job-posting"
+    hiringOrganization: "https://district.ecme.example/id/organization"
+    workLocation: "https://ecme-high.example/id/campus/main"
+    title: "Fictional Culinary Instructional Assistant"
+    status: "open"
+    postedAt: "2027-05-10"
+    closesAt: "2027-06-15"
+    applicationUrl: "https://district.ecme.example/jobs/example-001"
+    contact:
+      role: "District Human Resources"
+      email: "jobs@district.ecme.example"
+    extensions:
+      "org.paperandslate.example/fixture":
+        fictional: true

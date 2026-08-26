@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/contact-directory.schema.json",
+  "title": "EOM public contact directory",
+  "type": "object",
+  "required": [
+    "$schema",
+    "specification",
+    "version",
+    "id",
+    "type",
+    "canonical",
+    "subject",
+    "contacts"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://paperandslate.org/schemas/eom/1.0/contact-directory.schema.json"
+    },
+    "specification": {
+      "const": "https://paperandslate.org/spec/eom/1.0"
+    },
+    "version": {
+      "const": "1.0"
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "type": {
+      "const": "contact-directory"
+    },
+    "canonical": {
+      "$ref": "common.schema.json#/$defs/httpsUri"
+    },
+    "subject": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "defaultLanguage": {
+      "$ref": "common.schema.json#/$defs/bcp47"
+    },
+    "supportedLanguages": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/bcp47"
+      },
+      "uniqueItems": true
+    },
+    "contacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contactPoint"
+      }
+    },
+    "modified": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "expires": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "$ref": "provenance.schema.json"
+      }
+    },
+    "extensions": {
+      "$ref": "common.schema.json#/$defs/extensions"
+    }
+  },
+  "$defs": {
+    "contactPoint": {
+      "type": "object",
+      "required": ["id", "type", "role"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/absoluteUri"
+        },
+        "type": {
+          "const": "contact-point"
+        },
+        "role": {
+          "$ref": "common.schema.json#/$defs/localized"
+        },
+        "organization": {
+          "$ref": "common.schema.json#/$defs/entityRef"
+        },
+        "department": {
+          "$ref": "common.schema.json#/$defs/entityRef"
+        },
+        "person": {
+          "$ref": "common.schema.json#/$defs/entityRef"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "telephone": {
+          "type": "string",
+          "minLength": 3
+        },
+        "website": {
+          "$ref": "common.schema.json#/$defs/httpsUri"
+        },
+        "address": {
+          "$ref": "common.schema.json#/$defs/address"
+        },
+        "hours": {
+          "$ref": "common.schema.json#/$defs/localized"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/bcp47"
+          },
+          "uniqueItems": true
+        },
+        "accessibility": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/localized"
+          }
+        },
+        "audience": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "publicationReview": {
+          "type": "object",
+          "required": ["reviewedAt", "status"],
+          "properties": {
+            "reviewedAt": {
+              "$ref": "common.schema.json#/$defs/dateTime"
+            },
+            "reviewedBy": {
+              "$ref": "common.schema.json#/$defs/entityRef"
+            },
+            "status": {
+              "enum": ["approved", "pending", "withdrawn", "expired"]
+            },
+            "expires": {
+              "$ref": "common.schema.json#/$defs/dateTime"
+            }
+          },
+          "additionalProperties": false
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "provenance.schema.json"
+          }
+        },
+        "extensions": {
+          "$ref": "common.schema.json#/$defs/extensions"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

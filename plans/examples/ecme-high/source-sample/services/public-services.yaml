@@ -1,0 +1,17 @@
+items:
+  - id: "https://ecme-high.example/id/service/library"
+    type: "service"
+    name: "Library and Research Support"
+    provider: "https://ecme-high.example/id/organization"
+    contact: "https://ecme-high.example/id/contact/general-office"
+    audience:
+      - "current-students"
+      - "staff"
+    publicDescriptionOnly: true
+
+  - id: "https://ecme-high.example/id/service/accessibility-language"
+    type: "service"
+    name: "Accessibility and Language Assistance"
+    provider: "https://ecme-high.example/id/organization"
+    contact: "https://ecme-high.example/id/contact/accessibility-services"
+    publicDescriptionOnly: true

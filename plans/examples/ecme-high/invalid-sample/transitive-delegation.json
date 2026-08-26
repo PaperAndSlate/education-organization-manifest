@@ -1,0 +1,9 @@
+{
+  "_intendedResult": "V1 authority failure unless an explicit experimental profile permits transitivity.",
+  "id": "https://ecme-high.example/id/delegation/invalid-subdelegate",
+  "delegate": {
+    "id": "https://subvendor.example/id/organization"
+  },
+  "transitive": true,
+  "status": "active"
+}

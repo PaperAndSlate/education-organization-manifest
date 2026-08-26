@@ -1,0 +1,23 @@
+id: "https://ecme-high.example/id/program/culinary-hospitality"
+type: "program"
+provider: "https://ecme-high.example/id/organization"
+department: "https://ecme-high.example/id/department/fcs"
+name: "Culinary and Hospitality Pathway"
+description: "A fictional sequence of courses and experiences for demonstrating program relationships."
+status: "active"
+effective:
+  from: "2027-07-01"
+requirements:
+  allOf:
+    - course: "https://ecme-high.example/id/course/fcs-101"
+    - course: "https://ecme-high.example/id/course/cul-101"
+    - course: "https://ecme-high.example/id/course/cul-202"
+  choose:
+    minimum: 1
+    from:
+      - "https://ecme-high.example/id/course/cul-250"
+      - "https://ecme-high.example/id/course/fcs-231"
+outcomes:
+  - "Demonstrate safe food-service operations in a supervised instructional setting."
+  - "Explain common education and career routes in culinary and hospitality fields."
+publicDisclaimer: "This synthetic pathway does not represent a real credential or state graduation requirement."

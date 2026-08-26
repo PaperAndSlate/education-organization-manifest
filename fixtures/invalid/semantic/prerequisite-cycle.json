@@ -1,0 +1,33 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/course-catalog.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://invalid.example/eom/resource/courses",
+  "type": "course-catalog",
+  "canonical": "https://invalid.example/eom/courses.json",
+  "subjects": ["https://invalid.example/id/school"],
+  "items": [
+    {
+      "id": "https://invalid.example/id/course/a",
+      "type": "course",
+      "name": "Cycle A",
+      "provider": { "id": "https://invalid.example/id/school" },
+      "code": "CYC-101",
+      "prerequisites": {
+        "course": { "id": "https://invalid.example/id/course/b" }
+      }
+    },
+    {
+      "id": "https://invalid.example/id/course/b",
+      "type": "course",
+      "name": "Cycle B",
+      "provider": { "id": "https://invalid.example/id/school" },
+      "code": "CYC-102",
+      "prerequisites": {
+        "course": { "id": "https://invalid.example/id/course/a" }
+      }
+    }
+  ],
+  "modified": "2027-01-01T00:00:00Z",
+  "expires": "2028-01-01T00:00:00Z"
+}

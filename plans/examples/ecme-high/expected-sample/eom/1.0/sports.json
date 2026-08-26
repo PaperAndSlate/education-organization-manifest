@@ -1,0 +1,25 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/sports-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/sports",
+  "type": "sports-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/sports-team/falcons-basketball",
+      "type": "sports-team",
+      "name": "Ecme Falcons Basketball",
+      "sport": "basketball",
+      "season": "winter",
+      "rosterPublished": false
+    },
+    {
+      "id": "https://ecme-high.example/id/sports-team/falcons-track",
+      "type": "sports-team",
+      "name": "Ecme Falcons Track and Field",
+      "sport": "track-and-field",
+      "season": "spring",
+      "rosterPublished": false
+    }
+  ]
+}

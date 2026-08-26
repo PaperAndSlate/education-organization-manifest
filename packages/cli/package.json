@@ -1,0 +1,33 @@
+{
+  "name": "@paperandslate/eom-cli",
+  "version": "0.1.0",
+  "description": "The eom command-line interface.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "eom": "dist/index.js"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@paperandslate/eom-agentic": "workspace:*",
+    "@paperandslate/eom-adapters": "workspace:*",
+    "@paperandslate/eom-authority": "workspace:*",
+    "@paperandslate/eom-core": "workspace:*",
+    "@paperandslate/eom-generator": "workspace:*",
+    "@paperandslate/eom-linter": "workspace:*",
+    "@paperandslate/eom-schema": "workspace:*",
+    "@paperandslate/eom-signatures": "workspace:*",
+    "@paperandslate/eom-validator": "workspace:*",
+    "commander": "^14.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
+    "typecheck": "tsc --noEmit",
+    "lint": "true"
+  }
+}

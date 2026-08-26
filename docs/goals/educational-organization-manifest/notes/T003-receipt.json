@@ -1,0 +1,55 @@
+{
+  "result": "done",
+  "changed_files": [
+    ".nvmrc",
+    ".npmrc",
+    ".gitattributes",
+    ".prettierignore",
+    "turbo.json",
+    "prettier.config.mjs",
+    "eslint.config.mjs",
+    "vitest.config.ts",
+    "pnpm-lock.yaml",
+    "REUSE.toml",
+    "CHANGELOG.md",
+    "AGENTS.md",
+    "LICENSES/**",
+    ".github/**",
+    "spec/**",
+    "prompts/**",
+    "docs/**",
+    "reports/**",
+    "requirements/TRACEABILITY_MATRIX.md"
+  ],
+  "commands": [
+    {
+      "cmd": "node --version",
+      "status": "pass"
+    },
+    {
+      "cmd": "pnpm --version",
+      "status": "pass"
+    },
+    {
+      "cmd": "pnpm install --lockfile-only",
+      "status": "pass"
+    },
+    {
+      "cmd": "pnpm install --frozen-lockfile",
+      "status": "pass"
+    },
+    {
+      "cmd": "pnpm format:check",
+      "status": "pass"
+    },
+    {
+      "cmd": "git diff --check",
+      "status": "pass"
+    },
+    {
+      "cmd": "planning-pack SHA-256 traversal",
+      "status": "pass"
+    }
+  ],
+  "summary": "Completed the Phase 0 repository foundation: pinned Node/pnpm and CI metadata, licensing/REUSE, agent instructions, governance/specification/RFC/ADR status records, complete versioned prompt library, issue/release/risk surfaces, and phase report. No external registration, pilot, certification, legal approval, or production-readiness claim was made."
+}

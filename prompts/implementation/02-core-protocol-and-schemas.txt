@@ -1,0 +1,43 @@
+PROMPT ID: eom/implementation/core-protocol
+GOAL: Implement the minimal EOM protocol vertical slice.
+
+Prerequisite: bootstrap phase is green.
+
+Implement:
+- JSON Schema 2020-12 common definitions;
+- root manifest;
+- resource descriptor;
+- capability descriptor;
+- publisher/scope;
+- lightweight organization descriptor;
+- full organization profile;
+- contact role;
+- provenance baseline;
+- immutable versioned schema publication layout;
+- generated TypeScript types;
+- schema documentation generation;
+- valid and invalid fixtures;
+- semantic rule registry for rules JSON Schema cannot express;
+- GET/HEAD/redirect/cache/CORS HTTP conformance fixtures;
+- minimal Ecme High manifest and organization profile.
+
+Requirements:
+- compact root;
+- absolute IDs;
+- internationalized common types;
+- no U.S.-only assumptions;
+- no student data;
+- optional signature fields may be reserved but not required;
+- unknown top-level properties rejected according to the versioning policy;
+- extensions only under valid namespaces.
+
+Build the first validator API and CLI `validate`, `lint`, and `inspect` sufficient for the vertical slice.
+
+Acceptance:
+- all schemas meta-validate;
+- generated types reproduce exactly;
+- minimal valid fixture passes;
+- every invalid fixture fails for the intended reason;
+- semantic errors and structural errors are distinct;
+- two builds are byte-identical;
+- documentation examples are executable tests.

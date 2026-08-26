@@ -1,0 +1,37 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/course-offering-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/offerings",
+  "type": "course-offering-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/offering/cul-202/2027-2028",
+      "type": "course-offering",
+      "course": "https://ecme-high.example/id/course/cul-202",
+      "academicPeriod": "https://ecme-high.example/id/academic-period/2027-2028",
+      "status": "planned",
+      "campus": "https://ecme-high.example/id/campus/main",
+      "notice": "Planned offering; not a guarantee of enrollment."
+    },
+    {
+      "id": "https://ecme-high.example/id/section/cul-202/2027-fall/example",
+      "type": "section",
+      "offering": "https://ecme-high.example/id/offering/cul-202/2027-2028",
+      "publicInstructor": {
+        "id": "https://ecme-high.example/id/person/taylor-example",
+        "name": "Taylor Example"
+      },
+      "location": "https://ecme-high.example/id/facility/culinary-lab",
+      "schedule": {
+        "timezone": "America/Chicago",
+        "display": "Synthetic schedule; no real class exists."
+      },
+      "extensions": {
+        "org.paperandslate.example/fixture": {
+          "fictional": true
+        }
+      }
+    }
+  ]
+}

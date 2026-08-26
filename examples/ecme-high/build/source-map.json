@@ -1,0 +1,68 @@
+{
+  "academic-calendar": [
+    "modules/calendar.yaml"
+  ],
+  "admissions-profile": [
+    "modules/admissions.yaml"
+  ],
+  "api-reference": [
+    "modules/apis.yaml"
+  ],
+  "campus-catalog": [
+    "modules/campuses.yaml"
+  ],
+  "club-catalog": [
+    "modules/clubs.yaml"
+  ],
+  "contact-directory": [
+    "contacts.yaml"
+  ],
+  "course-catalog": [
+    "modules/courses.yaml"
+  ],
+  "course-offering-catalog": [
+    "modules/offerings.yaml"
+  ],
+  "department-catalog": [
+    "modules/departments.yaml"
+  ],
+  "event-catalog": [
+    "modules/events.yaml"
+  ],
+  "facility-catalog": [
+    "modules/facilities.yaml"
+  ],
+  "job-catalog": [
+    "modules/jobs.yaml"
+  ],
+  "meal-menu-catalog": [
+    "modules/meals.yaml"
+  ],
+  "news-feed": [
+    "modules/news.yaml"
+  ],
+  "organization-profile": [
+    "organization.yaml"
+  ],
+  "policy-catalog": [
+    "modules/policies.yaml"
+  ],
+  "program-catalog": [
+    "modules/programs.yaml"
+  ],
+  "service-catalog": [
+    "modules/services.yaml"
+  ],
+  "sports-catalog": [
+    "modules/sports.yaml"
+  ],
+  "staff-directory": [
+    "modules/staff.yaml"
+  ],
+  "statistics-profile": [
+    "modules/statistics.yaml"
+  ],
+  "transportation-catalog": [
+    "modules/transportation.yaml"
+  ]
+}

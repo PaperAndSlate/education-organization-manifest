@@ -1,0 +1,19 @@
+items:
+  - id: "https://ecme-high.example/id/sports-team/falcons-basketball"
+    type: "sports-team"
+    organization: "https://ecme-high.example/id/organization"
+    name: "Ecme Falcons Basketball"
+    sport: "basketball"
+    season: "winter"
+    contact:
+      role: "Athletics Office"
+      email: "athletics@ecme-high.example"
+    rosterPublished: false
+
+  - id: "https://ecme-high.example/id/sports-team/falcons-track"
+    type: "sports-team"
+    organization: "https://ecme-high.example/id/organization"
+    name: "Ecme Falcons Track and Field"
+    sport: "track-and-field"
+    season: "spring"
+    rosterPublished: false

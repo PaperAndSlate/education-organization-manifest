@@ -1,0 +1,50 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/meal-menu-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/meal-menu",
+  "type": "meal-menu-catalog",
+  "canonical": "https://menus.school-services.example/customers/ecme-high/eom/1.0/menus.json",
+  "subject": "https://ecme-high.example/id/organization",
+  "effective": {
+    "from": "2027-08-23",
+    "until": "2027-08-27"
+  },
+  "notice": "Synthetic menu. Ingredient and allergen tags are illustrative and must be verified in real deployments.",
+  "days": [
+    {
+      "date": "2027-08-23",
+      "meals": [
+        {
+          "period": "lunch",
+          "items": [
+            {
+              "name": "Example vegetable pasta",
+              "dietaryTags": [
+                "vegetarian"
+              ]
+            },
+            {
+              "name": "Example fruit cup"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2027-08-24",
+      "meals": [
+        {
+          "period": "lunch",
+          "items": [
+            {
+              "name": "Example chicken sandwich"
+            },
+            {
+              "name": "Example garden salad"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+You are implementing a complete new open-source standards repository for paper&slate.
+
+Repository working name:
+paperandslate/educational-organization-manifest
+
+Foundation:
+paper&slate
+https://paperandslate.org
+
+Protocol working name:
+Educational Organization Manifest (EOM)
+
+Proposed discovery URI:
+https://<education-origin>/.well-known/educational-organization-manifest
+
+Your task is to build the repository described by every planning document in this pack. This is not a superficial scaffold. Continue phase by phase until every implementable v1 deliverable is complete, tested, documented, and internally consistent. Treat the planning documents as the approved product brief. When they conflict, use this priority:
+
+1. 01_CONFIRMED_DECISIONS.md
+2. specification documents
+3. architecture documents
+4. data-model documents
+5. delivery documents
+6. other guidance
+
+Read all files in this pack before changing code. Create a traceability matrix mapping each requirement to implementation files and tests.
+
+Core outcome:
+Create an internationally usable, school-focused first release of a neutral protocol that lets educational organizations publish public, machine-readable institutional information through one well-known manifest. The manifest establishes identity, scope, authority, capabilities, linked resources, delegation, versioning, provenance, and optional integrity/signature metadata.
+
+The root manifest must stay compact. Rich data belongs in optional linked modules.
+
+Required v1 modules:
+organization profiles, campuses, departments, staff directory, contacts, courses, offerings and sections, programs and pathways, calendars, events, facilities, services, policies/documents, admissions/enrollment information, sports, transportation, meals/menus, clubs, jobs, news, public aggregate statistics, and API/service discovery.
+
+Non-negotiable safety boundary:
+Never model or include student-level data, grades, individual attendance, IEP/504/SEN/medical/safeguarding records, discipline, private schedules, private transportation assignments, secrets, credentials, or internal-only endpoints. Staff data is allowed only when deliberately public. Prefer role contacts.
+
+Implementation requirements:
+- active LTS Node.js pinned at implementation time;
+- pnpm workspace and strict TypeScript;
+- JSON Schema 2020-12 as the structural source of truth;
+- generated TypeScript types;
+- canonical published JSON;
+- optional authoring YAML;
+- deterministic source-to-output generator;
+- structural validator and semantic linter;
+- CLI;
+- optional signature and integrity package designed around standards identified in the research plan;
+- conformance test suite;
+- documentation site and browser playground;
+- complete fictitious Ecme High School example using reserved example domains;
+- governance, RFC, ADR, security, privacy, contribution, and release processes;
+- agent prompts and evidence-led generation workflow;
+- adapters and mapping documentation for Schema.org, CEDS, Ed-Fi, and 1EdTech standards where appropriate;
+- versioned immutable specification and schema URLs;
+- CI, release automation, dependency maintenance, security scanning, and generated-drift checks.
+
+Authority and delegation:
+- HTTPS origin is root authority.
+- Source ownership and publication authority are separate.
+- Support CODEOWNERS and modular source ownership.
+- Support explicit cross-origin/vendor resource delegation.
+- No transitive delegation by default.
+- Signatures are optional in v1.
+- A future paper&slate index is a convenience observer, not the authority.
+
+Internationalization:
+- no U.S.-only core assumptions;
+- BCP 47 language tags;
+- multilingual values and text direction;
+- jurisdiction profiles for grades, education levels, credits, governance, and identifiers.
+
+Course modeling:
+- deeply model optional course metadata;
+- distinguish course definitions from offerings and sections;
+- isolate live availability/enrollment information in an optional layer;
+- support prerequisites, credits, outcomes, standards, topics, modes, pathways, fees, materials, qualifications, effective dates, and related courses.
+
+Provenance:
+- resource-, object-, and field-level provenance;
+- source URI, source type, observation time, effective period, license, transformation, verification status, and confidence where applicable;
+- preserve conflicts instead of silently overwriting;
+- implement the approved precedence model.
+
+Agentic generation:
+- agents may extract from public websites, approved documents, catalogs, handbooks, calendars, government records, public exports, and questionnaires;
+- agents must create evidence-led candidates and pull requests;
+- no direct publication by default;
+- keep confidence and evidence metadata in an internal review workspace;
+- add privacy, stale-data, and source-verification review gates.
+
+Work method:
+- implement in the phase order in delivery/PHASES_AND_MILESTONES.md;
+- create a report after each phase;
+- create ADRs for architecture decisions;
+- create RFCs for protocol changes;
+- do not hand-edit generated artifacts;
+- run and record all relevant commands;
+- fix failures rather than weakening checks;
+- use local controlled fixtures for URL-fetch tests;
+- build SSRF protections into all networked validator/crawler utilities;
+- keep exact dependency choices current and document why each was selected.
+
+Registration:
+The selected suffix is a working proposal, not a completed IANA registration. Build the registration specification and submission materials. Do not claim registration. Do not recommend general production deployment before the registration gate is met.
+
+Definition of completion:
+The repository is complete only when the definition of done, conformance criteria, release checklist, and phase acceptance criteria in this pack are satisfied. If an external action cannot be performed from the repository, such as final IANA approval or obtaining independent pilot participants, create the complete submission package, pilot guide, issue, and explicit blocked status rather than pretending it is done.
+
+Begin by:
+1. reading and indexing every planning file;
+2. producing a requirement traceability matrix;
+3. creating the repository structure and governance baseline;
+4. recording the selected architecture in ADRs;
+5. implementing the minimal manifest vertical slice;
+6. proceeding through all phases with tests and reports.

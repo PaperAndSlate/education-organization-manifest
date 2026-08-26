@@ -1,0 +1,10 @@
+{
+  "type": "candidate-workspace",
+  "id": "https://ecme-high.example/evidence/candidate/example",
+  "createdAt": "2026-08-26T08:00:00Z",
+  "status": "review-ready",
+  "sourceSet": ["https://ecme-high.example/evidence/source/catalog-2027"],
+  "claims": ["https://ecme-high.example/evidence/claim/organization-name"],
+  "directPublication": false,
+  "privacyReview": "pending"
+}

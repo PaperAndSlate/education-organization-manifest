@@ -1,0 +1,23 @@
+{
+  "name": "@paperandslate/eom-agentic",
+  "version": "0.1.0",
+  "description": "Evidence-led candidate and human-review workflow primitives for EOM.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@paperandslate/eom-core": "workspace:*",
+    "@paperandslate/eom-linter": "workspace:*",
+    "@paperandslate/eom-validator": "workspace:*"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
+    "typecheck": "tsc --noEmit",
+    "lint": "true"
+  }
+}

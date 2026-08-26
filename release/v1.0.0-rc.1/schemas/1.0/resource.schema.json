@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/resource.schema.json",
+  "title": "EOM resource descriptor",
+  "type": "object",
+  "required": ["id", "type", "href", "mediaType", "version", "subjects"],
+  "properties": {
+    "id": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "href": {
+      "$ref": "common.schema.json#/$defs/httpsUri"
+    },
+    "mediaType": {
+      "type": "string",
+      "pattern": "^[^\\s/]+/[^\\s;]+(?:;[^\\s]+)*$"
+    },
+    "profile": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "schema": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "title": {
+      "$ref": "common.schema.json#/$defs/localized"
+    },
+    "description": {
+      "$ref": "common.schema.json#/$defs/localized"
+    },
+    "subjects": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/absoluteUri"
+      }
+    },
+    "languages": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/bcp47"
+      }
+    },
+    "authority": {
+      "type": "object",
+      "properties": {
+        "delegation": {
+          "$ref": "common.schema.json#/$defs/absoluteUri"
+        },
+        "origin": {
+          "$ref": "common.schema.json#/$defs/httpsUri"
+        }
+      },
+      "required": ["delegation"],
+      "additionalProperties": false
+    },
+    "alternates": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/alternate"
+      }
+    },
+    "integrity": {
+      "$ref": "common.schema.json#/$defs/integrity"
+    },
+    "modified": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "expires": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "effective": {
+      "$ref": "common.schema.json#/$defs/period"
+    },
+    "license": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "accessPolicy": {
+      "enum": ["public", "public-with-terms", "restricted", "retired"]
+    },
+    "extensions": {
+      "$ref": "common.schema.json#/$defs/extensions"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,15 @@
+{
+  "type": "candidate-workspace",
+  "id": "https://ecme-high.example/evidence/candidate/2026-08-26",
+  "createdAt": "2026-08-26T08:00:00Z",
+  "updatedAt": "2026-08-26T08:00:00Z",
+  "status": "review-ready",
+  "sourceSet": ["https://ecme-high.example/evidence/source/catalog-2027"],
+  "claims": [
+    "https://ecme-high.example/evidence/claim/school-name-organization",
+    "https://ecme-high.example/evidence/claim/school-name-third-party"
+  ],
+  "directPublication": false,
+  "privacyReview": "pending",
+  "notes": "Synthetic controlled fixture; owner review is required."
+}

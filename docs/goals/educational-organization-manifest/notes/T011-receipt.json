@@ -1,0 +1,49 @@
+{
+  "result": "done",
+  "decision": "continue",
+  "full_outcome_complete": false,
+  "summary": "Implemented versioned, controlled interoperability mappings for Schema.org JSON-LD, CEDS, Ed-Fi, OneRoster, CASE, QTI, LTI, Common Cartridge, iCalendar, and JSON Feed/RSS/Atom. Every preview registry entry documents an explicit public allowlist, transformations, lossiness, provenance, privacy review, fixture, and certificationClaim false. Local adapters emit candidate-only claim-ledger results, preserve non-URI source identifiers as external identifiers, quarantine prohibited fields, reject unsafe XML/feed content, and provide deterministic Schema.org, CEDS, and iCalendar preview exports. No remote content is fetched and no external certification is claimed.",
+  "changed_files": [
+    "schemas/1.0/mapping.schema.json",
+    "schemas/1.0/catalog.json",
+    "packages/schema/src/index.ts",
+    "packages/types/src/generated.ts",
+    "packages/adapters/**",
+    "packages/schemaorg-adapter/**",
+    "packages/cli/src/index.ts",
+    "packages/cli/package.json",
+    "package.json",
+    "pnpm-lock.yaml",
+    "mappings/**",
+    "fixtures/mappings/**",
+    "tests/mappings.test.ts",
+    "tests/cli.test.ts",
+    "spec/1.0/interoperability.md",
+    "docs/interoperability.md",
+    "docs/reference/schema-catalog.md",
+    "reports/phase-4-interoperability.md"
+  ],
+  "commands": [
+    { "cmd": "pnpm install --frozen-lockfile", "status": "pass", "detail": "14 workspace projects" },
+    { "cmd": "pnpm format:check", "status": "pass" },
+    { "cmd": "pnpm schema:check", "status": "pass", "detail": "42 JSON Schema 2020-12 files" },
+    { "cmd": "pnpm generate:types", "status": "pass" },
+    { "cmd": "pnpm generate:drift", "status": "pass" },
+    { "cmd": "pnpm typecheck", "status": "pass" },
+    { "cmd": "pnpm test -- --runInBand", "status": "pass", "detail": "10 files, 70 tests" },
+    { "cmd": "pnpm eom map schema-org-jsonld fixtures/mappings/schema-org.json --json", "status": "pass", "detail": "candidate-only mapping with pending claims" },
+    { "cmd": "pnpm eom map qti-xml fixtures/mappings/unsafe.xml --json", "status": "pass", "detail": "expected quarantine exit 1 for active XML content" },
+    { "cmd": "pnpm build", "status": "pass", "detail": "13 buildable workspace packages" },
+    { "cmd": "git diff --check", "status": "pass" }
+  ],
+  "evidence": [
+    "schemas/1.0/mapping.schema.json",
+    "mappings/registry.json",
+    "packages/adapters/src/index.ts",
+    "packages/schemaorg-adapter/src/index.ts",
+    "fixtures/mappings/",
+    "tests/mappings.test.ts",
+    "spec/1.0/interoperability.md",
+    "reports/phase-4-interoperability.md"
+  ]
+}

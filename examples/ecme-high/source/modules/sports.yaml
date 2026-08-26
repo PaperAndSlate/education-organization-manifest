@@ -1,0 +1,22 @@
+{
+  '$schema': 'https://paperandslate.org/schemas/eom/1.0/modules/sports-catalog.schema.json',
+  'specification': 'https://paperandslate.org/spec/eom/1.0',
+  'version': '1.0',
+  'id': 'https://ecme-high.example/eom/resource/sports',
+  'type': 'sports-catalog',
+  'canonical': 'https://ecme-high.example/eom/sports.json',
+  'subjects': ['https://ecme-high.example/id/school'],
+  'items':
+    [
+      {
+        'id': 'https://ecme-high.example/id/team/track',
+        'type': 'sports-team',
+        'name': 'Track and Field',
+        'organization': { 'id': 'https://ecme-high.example/id/school' },
+        'sport': { 'id': 'https://example.org/sports/track' },
+        'season': 'spring',
+      },
+    ],
+  'modified': '2027-05-01T14:00:00Z',
+  'expires': '2028-01-01T00:00:00Z',
+}

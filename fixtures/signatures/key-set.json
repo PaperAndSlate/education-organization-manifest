@@ -1,0 +1,23 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/key-set.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://ecme-high.example/eom/keys",
+  "type": "key-set",
+  "canonical": "https://ecme-high.example/eom/keys.json",
+  "keys": [
+    {
+      "kid": "https://ecme-high.example/eom/keys#static-vector-2027",
+      "kty": "OKP",
+      "use": "sig",
+      "alg": "EdDSA",
+      "status": "active",
+      "publicKeyJwk": {
+        "crv": "Ed25519",
+        "x": "cmOcQCapn-bjuIyeLBfXYI6D3Bmudw0-hl1TzwBBx1M",
+        "kty": "OKP"
+      }
+    }
+  ],
+  "expires": "2030-01-01T00:00:00Z"
+}

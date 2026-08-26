@@ -1,0 +1,11 @@
+{
+  "sourcedId": "oneroster-example-ecme-course",
+  "name": "Culinary Foundations",
+  "type": "course",
+  "identifier": "CUL-202",
+  "courseCode": "CUL-202",
+  "title": "Culinary Foundations",
+  "classCode": "CUL-202-A",
+  "schoolYear": "2027-2028",
+  "term": "S1"
+}

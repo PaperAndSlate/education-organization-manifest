@@ -1,0 +1,21 @@
+{
+  '$schema': 'https://paperandslate.org/schemas/eom/1.0/modules/admissions-profile.schema.json',
+  'specification': 'https://paperandslate.org/spec/eom/1.0',
+  'version': '1.0',
+  'id': 'https://ecme-high.example/eom/resource/admissions',
+  'type': 'admissions-profile',
+  'canonical': 'https://ecme-high.example/eom/admissions.json',
+  'subjects': ['https://ecme-high.example/id/school'],
+  'items':
+    [
+      {
+        'id': 'https://ecme-high.example/id/admissions/general',
+        'type': 'admissions-profile',
+        'name': 'General Admissions',
+        'organization': { 'id': 'https://ecme-high.example/id/school' },
+        'admissionsType': 'secondary-school',
+      },
+    ],
+  'modified': '2027-05-01T14:00:00Z',
+  'expires': '2028-01-01T00:00:00Z',
+}

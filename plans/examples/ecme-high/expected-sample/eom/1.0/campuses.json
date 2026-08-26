@@ -1,0 +1,29 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/campus-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/campuses",
+  "type": "campus-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/campus/main",
+      "type": "campus",
+      "organization": "https://ecme-high.example/id/organization",
+      "name": "Ecme High Main Campus",
+      "address": {
+        "lines": [
+          "100 Learning Way"
+        ],
+        "locality": "Example City",
+        "administrativeArea": "IA",
+        "postalCode": "00000",
+        "countryCode": "US"
+      },
+      "extensions": {
+        "org.paperandslate.example/fixture": {
+          "fictional": true
+        }
+      }
+    }
+  ]
+}

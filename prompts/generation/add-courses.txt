@@ -1,0 +1,25 @@
+PROMPT ID: eom/add-courses
+PURPOSE: Add or revise courses for one approved department.
+
+INPUTS
+- Organization/campus: {{ORGANIZATION}}
+- Department: {{DEPARTMENT}}
+- Approved sources: {{SOURCES}}
+- Effective catalog period: {{PERIOD}}
+- Existing course tree: {{COURSE_TREE}}
+
+Follow the complete rules in create-course-catalog.txt, scoped to this department.
+
+Additional requirements:
+- preserve IDs and codes for existing courses;
+- detect near-duplicates and code reuse;
+- keep course and offering data separate;
+- represent prerequisite logic precisely;
+- flag unsupported standards alignment;
+- include source and effective dates;
+- assign department CODEOWNERS;
+- create valid/invalid fixtures if a new modeling edge case is discovered;
+- render a department catalog preview;
+- do not publish automatically.
+
+Return changed course count, new/retired items, unresolved duplicates, prerequisite graph results, provenance coverage, and required reviewers.

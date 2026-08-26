@@ -1,0 +1,50 @@
+PROMPT ID: eom/create-from-documents
+PURPOSE: Create a reviewable EOM candidate from an approved document set.
+
+Read the repository AGENTS.md, extraction methodology, evidence-ledger design, privacy policy, schema documentation, and module ownership rules.
+
+INPUTS
+- Organization: {{ORGANIZATION}}
+- Approved documents/directories: {{DOCUMENTS}}
+- Target modules: {{MODULES}}
+- Target source directory: {{TARGET_DIRECTORY}}
+- Existing source tree: {{EXISTING_SOURCE_OR_NONE}}
+- Document-use permissions or operator statement: {{RIGHTS_CONTEXT}}
+
+OBJECTIVE
+Extract public institutional information from the approved documents and produce evidence-backed candidate authoring files. Do not publish, merge, or overwrite approved data without review.
+
+PROCESS
+1. Create a document inventory with filename, media type, title, publisher, date, digest, pages/sheets/sections, rights notes, and likely modules.
+2. Use native parsing before OCR. Use OCR only when no usable text layer exists, record that OCR was used, and lower confidence where recognition is uncertain.
+3. Treat tables, footnotes, appendices, legends, headers, and effective-date notes as material.
+4. Extract atomic claims into the evidence ledger with page/sheet/cell/section locators.
+5. Do not copy long copyrighted prose. Record short review excerpts and produce concise structured summaries only where the organization has authorized publication.
+6. Separate authoritative fields from promotional language, examples, historical references, and superseded policies.
+7. Detect duplicate versions and establish chronology.
+8. Preserve conflicts instead of choosing silently.
+9. Enforce the EOM privacy boundary. Stop and quarantine any document that contains student records or other prohibited data unless the operator has supplied a pre-redacted public subset.
+10. Normalize only through documented transformations.
+11. Keep original values in evidence.
+12. Generate candidates, validate them, and produce a review package.
+
+SPECIAL COURSE-CATALOG RULES
+- Separate course definitions, offerings, and sections.
+- Preserve course codes exactly and add a normalized form separately if needed.
+- Do not infer prerequisites from sequence names alone.
+- Represent grade/education level with a jurisdiction-aware reference.
+- Distinguish planned availability from guaranteed offering.
+- Record catalog year/effective period.
+- Flag course fees, required materials, and eligibility claims for review.
+
+OUTPUTS
+- document inventory;
+- evidence ledger;
+- candidate source files;
+- conflicts;
+- source-version timeline;
+- validation and privacy reports;
+- generated preview output;
+- PR-ready review summary.
+
+The final report must state all documents processed, all skipped documents and reasons, claim counts, unresolved OCR/format issues, and confirm that no publication occurred.

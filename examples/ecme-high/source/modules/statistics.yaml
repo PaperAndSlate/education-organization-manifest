@@ -1,0 +1,23 @@
+{
+  '$schema': 'https://paperandslate.org/schemas/eom/1.0/modules/statistics-profile.schema.json',
+  'specification': 'https://paperandslate.org/spec/eom/1.0',
+  'version': '1.0',
+  'id': 'https://ecme-high.example/eom/resource/statistics',
+  'type': 'statistics-profile',
+  'canonical': 'https://ecme-high.example/eom/statistics.json',
+  'subjects': ['https://ecme-high.example/id/school'],
+  'items':
+    [
+      {
+        'id': 'https://ecme-high.example/id/statistic/enrollment-2027',
+        'type': 'statistic',
+        'subject': { 'id': 'https://ecme-high.example/id/school' },
+        'metric': 'https://ecme-high.example/metrics/enrollment',
+        'value': 500,
+        'observedAt': '2027-10-01T00:00:00Z',
+        'source': 'https://ecme-high.example/reports/enrollment',
+      },
+    ],
+  'modified': '2027-10-02T14:00:00Z',
+  'expires': '2028-10-01T00:00:00Z',
+}

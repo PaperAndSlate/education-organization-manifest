@@ -1,0 +1,21 @@
+{
+  "name": "@paperandslate/eom-schemaorg-adapter",
+  "version": "0.1.0",
+  "description": "Schema.org JSON-LD EOM candidate adapter facade.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@paperandslate/eom-adapters": "workspace:*"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
+    "typecheck": "tsc --noEmit",
+    "lint": "true"
+  }
+}

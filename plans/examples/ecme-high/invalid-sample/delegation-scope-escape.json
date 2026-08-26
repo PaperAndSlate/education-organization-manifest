@@ -1,0 +1,9 @@
+{
+  "_intendedResult": "Authority failure. Meal delegation cannot authorize a job resource.",
+  "delegation": "https://ecme-high.example/id/delegation/meal-provider-2027",
+  "resource": {
+    "id": "https://ecme-high.example/id/resource/jobs",
+    "type": "job-catalog",
+    "href": "https://menus.school-services.example/customers/ecme-high/eom/1.0/jobs.json"
+  }
+}

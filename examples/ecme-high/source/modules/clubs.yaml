@@ -1,0 +1,21 @@
+{
+  '$schema': 'https://paperandslate.org/schemas/eom/1.0/modules/club-catalog.schema.json',
+  'specification': 'https://paperandslate.org/spec/eom/1.0',
+  'version': '1.0',
+  'id': 'https://ecme-high.example/eom/resource/clubs',
+  'type': 'club-catalog',
+  'canonical': 'https://ecme-high.example/eom/clubs.json',
+  'subjects': ['https://ecme-high.example/id/school'],
+  'items':
+    [
+      {
+        'id': 'https://ecme-high.example/id/club/robotics',
+        'type': 'club',
+        'name': 'Robotics Club',
+        'organization': { 'id': 'https://ecme-high.example/id/school' },
+        'category': 'academic',
+      },
+    ],
+  'modified': '2027-05-01T14:00:00Z',
+  'expires': '2028-01-01T00:00:00Z',
+}

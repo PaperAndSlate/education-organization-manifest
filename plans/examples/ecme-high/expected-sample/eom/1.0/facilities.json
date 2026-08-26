@@ -1,0 +1,30 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/facility-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/facilities",
+  "type": "facility-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/facility/culinary-lab",
+      "type": "instructional-facility",
+      "name": "Culinary Learning Laboratory",
+      "publicDescription": "A fictional teaching kitchen; no security details."
+    },
+    {
+      "id": "https://ecme-high.example/id/facility/library",
+      "type": "library",
+      "name": "Ecme Learning Commons"
+    },
+    {
+      "id": "https://ecme-high.example/id/facility/auditorium",
+      "type": "auditorium",
+      "name": "Ecme Auditorium"
+    },
+    {
+      "id": "https://ecme-high.example/id/facility/engineering-lab",
+      "type": "instructional-facility",
+      "name": "Engineering Design Laboratory"
+    }
+  ]
+}

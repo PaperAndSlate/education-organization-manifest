@@ -1,0 +1,416 @@
+{
+  "type": "mapping-registry",
+  "version": "1.0",
+  "mappings": [
+    {
+      "id": "https://paperandslate.org/eom/mappings/schema-org-jsonld",
+      "version": "1.0",
+      "sourceFormat": "schema.org-jsonld",
+      "sourceVersion": "Schema.org vocabulary / JSON-LD 1.1",
+      "targetFormat": "eom-authoring-candidate",
+      "direction": "bidirectional",
+      "status": "preview",
+      "modules": [
+        "organization-profile",
+        "course-catalog",
+        "event-catalog",
+        "job-catalog",
+        "news-feed"
+      ],
+      "publicFieldAllowlist": [
+        "@id",
+        "@type",
+        "name",
+        "alternateName",
+        "description",
+        "url",
+        "courseCode",
+        "provider",
+        "coursePrerequisites",
+        "educationalLevel",
+        "inLanguage",
+        "startDate",
+        "endDate",
+        "location",
+        "sameAs",
+        "address",
+        "geo"
+      ],
+      "transformations": [
+        "URI identity preserved",
+        "Schema.org type mapped only when semantically exact",
+        "localized values normalized to EOM language fields"
+      ],
+      "lossiness": {
+        "exact": ["@id", "name", "description", "url"],
+        "approximate": ["@type", "coursePrerequisites", "provider"],
+        "omitted": ["arbitrary extension properties", "private operational fields"]
+      },
+      "provenance": "claim-ledger",
+      "privacy": {
+        "allowlist": ["public organization and course descriptive fields"],
+        "prohibitedFields": ["student", "enrollment", "grade", "attendance", "credential"],
+        "reviewRequired": true
+      },
+      "fixture": "fixtures/mappings/schema-org.json",
+      "maintainer": "paper&slate",
+      "reviewedAt": "2026-08-26T00:00:00Z",
+      "certificationClaim": false
+    },
+    {
+      "id": "https://paperandslate.org/eom/mappings/ceds-json",
+      "version": "1.0",
+      "sourceFormat": "ceds-json",
+      "sourceVersion": "CEDS-aligned public projection",
+      "targetFormat": "eom-authoring-candidate",
+      "direction": "bidirectional",
+      "status": "preview",
+      "modules": [
+        "organization-profile",
+        "campus-catalog",
+        "department-catalog",
+        "course-catalog",
+        "academic-calendar"
+      ],
+      "publicFieldAllowlist": [
+        "organizationId",
+        "name",
+        "organizationType",
+        "website",
+        "address",
+        "courseCode",
+        "courseTitle",
+        "schoolYear",
+        "sessionName"
+      ],
+      "transformations": [
+        "CEDS identifiers become EOM identifiers with scheme and authority",
+        "school year/session become effective academic periods"
+      ],
+      "lossiness": {
+        "exact": ["organizationId", "name", "courseCode"],
+        "approximate": ["organizationType", "sessionName"],
+        "omitted": ["person-level and operational records"]
+      },
+      "provenance": "claim-ledger",
+      "privacy": {
+        "allowlist": ["public organization, course, and calendar fields"],
+        "prohibitedFields": [
+          "student",
+          "assessment result",
+          "attendance",
+          "special program participation"
+        ],
+        "reviewRequired": true
+      },
+      "fixture": "fixtures/mappings/ceds.json",
+      "maintainer": "paper&slate",
+      "reviewedAt": "2026-08-26T00:00:00Z",
+      "certificationClaim": false
+    },
+    {
+      "id": "https://paperandslate.org/eom/mappings/ed-fi-json",
+      "version": "1.0",
+      "sourceFormat": "ed-fi-json",
+      "sourceVersion": "Ed-Fi public projection",
+      "targetFormat": "eom-authoring-candidate",
+      "direction": "import",
+      "status": "preview",
+      "modules": ["organization-profile", "campus-catalog", "course-catalog", "program-catalog"],
+      "publicFieldAllowlist": [
+        "educationOrganizationId",
+        "nameOfInstitution",
+        "shortNameOfInstitution",
+        "webSite",
+        "courseCode",
+        "courseTitle",
+        "academicSubject"
+      ],
+      "transformations": [
+        "Ed-Fi identifiers retained as external identifiers",
+        "Ed-Fi names normalized to EOM localized values"
+      ],
+      "lossiness": {
+        "exact": ["educationOrganizationId", "courseCode"],
+        "approximate": ["nameOfInstitution", "academicSubject"],
+        "omitted": ["student, staff assignment, enrollment, grade, attendance resources"]
+      },
+      "provenance": "claim-ledger",
+      "privacy": {
+        "allowlist": ["public education organization and course fields"],
+        "prohibitedFields": ["student", "staff HR", "enrollment", "grade", "attendance"],
+        "reviewRequired": true
+      },
+      "fixture": "fixtures/mappings/ed-fi.json",
+      "maintainer": "paper&slate",
+      "reviewedAt": "2026-08-26T00:00:00Z",
+      "certificationClaim": false
+    },
+    {
+      "id": "https://paperandslate.org/eom/mappings/oneroster-public",
+      "version": "1.0",
+      "sourceFormat": "oneroster-json-csv",
+      "sourceVersion": "OneRoster public allowlist",
+      "targetFormat": "eom-authoring-candidate",
+      "direction": "import",
+      "status": "preview",
+      "modules": [
+        "organization-profile",
+        "course-catalog",
+        "course-offering-catalog",
+        "academic-calendar"
+      ],
+      "publicFieldAllowlist": [
+        "sourcedId",
+        "name",
+        "type",
+        "identifier",
+        "courseCode",
+        "title",
+        "classCode",
+        "schoolYear",
+        "term"
+      ],
+      "transformations": [
+        "OneRoster org/course/class are kept as organization/course/offering layers",
+        "external sourcedId is not replaced"
+      ],
+      "lossiness": {
+        "exact": ["sourcedId", "name", "courseCode"],
+        "approximate": ["classCode", "term"],
+        "omitted": ["users, enrollments, grades, results, credentials"]
+      },
+      "provenance": "claim-ledger",
+      "privacy": {
+        "allowlist": ["public organization, course, and class metadata"],
+        "prohibitedFields": ["user", "student", "enrollment", "grade", "result", "token"],
+        "reviewRequired": true
+      },
+      "fixture": "fixtures/mappings/oneroster-public.json",
+      "maintainer": "paper&slate",
+      "reviewedAt": "2026-08-26T00:00:00Z",
+      "certificationClaim": false
+    },
+    {
+      "id": "https://paperandslate.org/eom/mappings/case-json",
+      "version": "1.0",
+      "sourceFormat": "case-json",
+      "sourceVersion": "CASE public framework/item projection",
+      "targetFormat": "eom-authoring-candidate",
+      "direction": "import",
+      "status": "preview",
+      "modules": ["course-catalog", "program-catalog"],
+      "publicFieldAllowlist": [
+        "uri",
+        "identifier",
+        "fullStatement",
+        "humanCodingScheme",
+        "CFDocumentURI",
+        "CFItemType"
+      ],
+      "transformations": [
+        "CASE URI becomes standards alignment reference",
+        "statement retained as a reviewed label snapshot"
+      ],
+      "lossiness": {
+        "exact": ["uri", "identifier", "humanCodingScheme"],
+        "approximate": ["fullStatement"],
+        "omitted": ["private assessment responses and answer keys"]
+      },
+      "provenance": "claim-ledger",
+      "privacy": {
+        "allowlist": ["public framework and competency metadata"],
+        "prohibitedFields": ["student response", "answer key", "private assessment result"],
+        "reviewRequired": true
+      },
+      "fixture": "fixtures/mappings/case.json",
+      "maintainer": "paper&slate",
+      "reviewedAt": "2026-08-26T00:00:00Z",
+      "certificationClaim": false
+    },
+    {
+      "id": "https://paperandslate.org/eom/mappings/qti-public",
+      "version": "1.0",
+      "sourceFormat": "qti-xml",
+      "sourceVersion": "QTI public resource metadata",
+      "targetFormat": "eom-authoring-candidate",
+      "direction": "import",
+      "status": "preview",
+      "modules": ["course-catalog", "api-reference"],
+      "publicFieldAllowlist": [
+        "identifier",
+        "title",
+        "description",
+        "qtiVersion",
+        "license",
+        "href"
+      ],
+      "transformations": [
+        "assessment package remains an external resource",
+        "XML entities and active content are rejected"
+      ],
+      "lossiness": {
+        "exact": ["identifier", "title"],
+        "approximate": ["description"],
+        "omitted": ["answer keys", "secure item bodies", "candidate responses"]
+      },
+      "provenance": "source-digest-only",
+      "privacy": {
+        "allowlist": ["public package metadata"],
+        "prohibitedFields": ["answer key", "response", "student", "secure item"],
+        "reviewRequired": true
+      },
+      "fixture": "fixtures/mappings/qti-public.xml",
+      "maintainer": "paper&slate",
+      "reviewedAt": "2026-08-26T00:00:00Z",
+      "certificationClaim": false
+    },
+    {
+      "id": "https://paperandslate.org/eom/mappings/lti-public",
+      "version": "1.0",
+      "sourceFormat": "lti-public-json",
+      "sourceVersion": "LTI public service metadata",
+      "targetFormat": "eom-authoring-candidate",
+      "direction": "import",
+      "status": "preview",
+      "modules": ["api-reference", "service-catalog"],
+      "publicFieldAllowlist": ["name", "description", "url", "logo", "scopes", "documentation"],
+      "transformations": [
+        "service metadata becomes a public service reference",
+        "credential-bearing endpoints are excluded"
+      ],
+      "lossiness": {
+        "exact": ["name", "description", "documentation"],
+        "approximate": ["scopes"],
+        "omitted": ["client secrets", "private keys", "tokens", "launch data"]
+      },
+      "provenance": "claim-ledger",
+      "privacy": {
+        "allowlist": ["public service and documentation metadata"],
+        "prohibitedFields": ["client_secret", "private_key", "token", "launch_data", "user"],
+        "reviewRequired": true
+      },
+      "fixture": "fixtures/mappings/lti-public.json",
+      "maintainer": "paper&slate",
+      "reviewedAt": "2026-08-26T00:00:00Z",
+      "certificationClaim": false
+    },
+    {
+      "id": "https://paperandslate.org/eom/mappings/common-cartridge-public",
+      "version": "1.0",
+      "sourceFormat": "common-cartridge-xml",
+      "sourceVersion": "Common Cartridge public package metadata",
+      "targetFormat": "eom-authoring-candidate",
+      "direction": "import",
+      "status": "preview",
+      "modules": ["course-catalog", "api-reference"],
+      "publicFieldAllowlist": [
+        "identifier",
+        "title",
+        "description",
+        "href",
+        "license",
+        "digest",
+        "formatVersion"
+      ],
+      "transformations": [
+        "package remains separate from EOM course definition",
+        "digest is retained without fetching package bytes"
+      ],
+      "lossiness": {
+        "exact": ["identifier", "title", "formatVersion"],
+        "approximate": ["description"],
+        "omitted": ["private course content", "student submissions", "credentials"]
+      },
+      "provenance": "source-digest-only",
+      "privacy": {
+        "allowlist": ["public package descriptor"],
+        "prohibitedFields": ["student submission", "grade", "credential", "private content"],
+        "reviewRequired": true
+      },
+      "fixture": "fixtures/mappings/common-cartridge-public.xml",
+      "maintainer": "paper&slate",
+      "reviewedAt": "2026-08-26T00:00:00Z",
+      "certificationClaim": false
+    },
+    {
+      "id": "https://paperandslate.org/eom/mappings/icalendar",
+      "version": "1.0",
+      "sourceFormat": "icalendar",
+      "sourceVersion": "RFC 5545 public event projection",
+      "targetFormat": "eom-authoring-candidate",
+      "direction": "bidirectional",
+      "status": "preview",
+      "modules": ["event-catalog", "course-offering-catalog", "academic-calendar"],
+      "publicFieldAllowlist": [
+        "UID",
+        "SUMMARY",
+        "DESCRIPTION",
+        "DTSTART",
+        "DTEND",
+        "LOCATION",
+        "URL"
+      ],
+      "transformations": [
+        "iCalendar dates become ISO periods",
+        "TZID is retained as timezone metadata when present"
+      ],
+      "lossiness": {
+        "exact": ["UID", "SUMMARY", "DTSTART", "DTEND"],
+        "approximate": ["RRULE", "LOCATION"],
+        "omitted": ["attendee contact data", "private organizer data"]
+      },
+      "provenance": "claim-ledger",
+      "privacy": {
+        "allowlist": ["public event and schedule fields"],
+        "prohibitedFields": ["ATTENDEE", "private schedule", "student", "transport assignment"],
+        "reviewRequired": true
+      },
+      "fixture": "fixtures/mappings/calendar.ics",
+      "maintainer": "paper&slate",
+      "reviewedAt": "2026-08-26T00:00:00Z",
+      "certificationClaim": false
+    },
+    {
+      "id": "https://paperandslate.org/eom/mappings/json-feed-rss-atom",
+      "version": "1.0",
+      "sourceFormat": "json-feed-rss-atom",
+      "sourceVersion": "JSON Feed 1.1 / RSS 2.0 / Atom 1.0 public projection",
+      "targetFormat": "eom-authoring-candidate",
+      "direction": "import",
+      "status": "preview",
+      "modules": ["news-feed", "event-catalog"],
+      "publicFieldAllowlist": [
+        "id",
+        "url",
+        "title",
+        "content_text",
+        "content_html",
+        "summary",
+        "published",
+        "updated",
+        "link",
+        "description"
+      ],
+      "transformations": [
+        "feed item becomes a news/event candidate",
+        "HTML is treated as untrusted text and not executed"
+      ],
+      "lossiness": {
+        "exact": ["id", "title", "url", "published"],
+        "approximate": ["content_html", "summary"],
+        "omitted": ["enclosures with executable content", "private author contact data"]
+      },
+      "provenance": "claim-ledger",
+      "privacy": {
+        "allowlist": ["public feed item metadata"],
+        "prohibitedFields": ["student", "private contact", "credential", "script", "iframe"],
+        "reviewRequired": true
+      },
+      "fixture": "fixtures/mappings/feed.json",
+      "maintainer": "paper&slate",
+      "reviewedAt": "2026-08-26T00:00:00Z",
+      "certificationClaim": false
+    }
+  ]
+}

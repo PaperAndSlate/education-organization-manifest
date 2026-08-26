@@ -1,0 +1,23 @@
+{
+  "name": "@paperandslate/eom-signatures",
+  "version": "0.1.0",
+  "description": "Optional EOM JCS, digest, detached JWS, and Ed25519 verification primitives.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@paperandslate/eom-authority": "workspace:*",
+    "@paperandslate/eom-core": "workspace:*",
+    "@paperandslate/eom-validator": "workspace:*"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
+    "typecheck": "tsc --noEmit",
+    "lint": "true"
+  }
+}

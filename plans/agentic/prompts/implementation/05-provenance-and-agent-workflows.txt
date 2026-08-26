@@ -1,0 +1,30 @@
+PROMPT ID: eom/implementation/provenance-agents
+GOAL: Implement provenance, evidence-led candidates, conflict review, and safe agent workflows.
+
+Implement:
+- resource/object/field provenance schemas;
+- JSON Pointer target validation;
+- source inventory;
+- claim/evidence ledger;
+- conflict records;
+- review decisions;
+- confidence and authority classes;
+- source precedence recommendation engine that never silently destroys conflicts;
+- candidate workspace separated from public output;
+- prompt catalog and version metadata;
+- extraction adapters for controlled local fixtures;
+- stale-data audit;
+- provenance coverage report;
+- PR summary generator;
+- privacy review gate;
+- no-direct-publication enforcement.
+
+Do not ship a general internet crawler in this phase unless its security design and test coverage meet the network safety requirements. Use controlled fixtures for extraction tests.
+
+Acceptance:
+- every generated candidate value can be traced to evidence;
+- inference is visibly distinct and blocked from publication by default;
+- conflict preservation is tested;
+- agent-created candidates require owner review;
+- accidental student data fixture is quarantined and never emitted;
+- reports contain no leaked sensitive values.

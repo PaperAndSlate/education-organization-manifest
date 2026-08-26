@@ -1,0 +1,26 @@
+id: "https://ecme-high.example/id/delegation/district-transport-2027"
+type: "delegation"
+delegate:
+  id: "https://district.ecme.example/id/organization"
+  name: "Ecme Public Schools"
+scope:
+  resourceTypes:
+    - "transportation-catalog"
+  resourceIds:
+    - "https://ecme-high.example/id/resource/transportation"
+  allowedOrigins:
+    - "https://district.ecme.example"
+  allowedPathPrefixes:
+    - "/eom/1.0/schools/ecme-high/"
+validFrom: "2027-07-01T00:00:00Z"
+validUntil: "2028-06-30T23:59:59Z"
+transitive: false
+status: "active"
+resource:
+  id: "https://ecme-high.example/id/resource/transportation"
+  type: "transportation-catalog"
+  href: "https://district.ecme.example/eom/1.0/schools/ecme-high/transportation.json"
+  mediaType: "application/json"
+  version: "1.0"
+  subjects:
+    - "https://ecme-high.example/id/organization"

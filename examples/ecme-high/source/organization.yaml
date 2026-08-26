@@ -1,0 +1,23 @@
+id: 'https://ecme-high.example/id/school'
+type: 'secondary-school'
+name: 'Ecme High School'
+organizationType: 'secondary-school'
+description: 'A wholly fictitious public secondary school used to demonstrate EOM.'
+canonical: 'https://ecme-high.example/eom/organization.json'
+website: 'https://ecme-high.example/'
+defaultLanguage: 'en-US'
+supportedLanguages:
+  - 'en-US'
+  - 'es'
+status: 'active'
+address:
+  lines:
+    - '100 Learning Way'
+  locality: 'Example City'
+  administrativeArea: 'IA'
+  postalCode: '00000'
+  countryCode: 'US'
+  public: true
+extensions:
+  'https://ecme-high.example/ns/fixture':
+    fictional: true

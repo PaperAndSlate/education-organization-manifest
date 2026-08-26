@@ -1,0 +1,23 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/transportation-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/transportation",
+  "type": "transportation-catalog",
+  "canonical": "https://district.ecme.example/eom/1.0/schools/ecme-high/transportation.json",
+  "subject": "https://ecme-high.example/id/organization",
+  "notice": "Synthetic public service zones only; no students, home addresses, assignments, or live vehicles.",
+  "items": [
+    {
+      "id": "https://district.ecme.example/id/transport-zone/ecme-north",
+      "type": "transportation-zone",
+      "name": "Synthetic North Service Zone",
+      "publicInformationUrl": "https://district.ecme.example/transport/ecme-high"
+    },
+    {
+      "id": "https://district.ecme.example/id/transport-notice/example",
+      "type": "transportation-notice",
+      "status": "informational",
+      "message": "Fictional service notice for protocol testing."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+PROMPT ID: eom/find-stale-information
+PURPOSE: Identify stale, expired, contradictory, or unverified EOM information without deleting it.
+
+INPUTS
+- Source tree/publication: {{TARGET}}
+- Approved comparison sources: {{SOURCES}}
+- Current date: {{CURRENT_DATE}}
+- Module freshness policy: {{POLICY}}
+
+METHOD
+1. Read module registry freshness guidance.
+2. Inspect `modified`, `observedAt`, `verifiedAt`, `validFrom`, `validUntil`, `expires`, catalog year, academic period, and source dates.
+3. Check approved external sources only.
+4. Distinguish:
+   - fresh;
+   - approaching review;
+   - stale;
+   - expired;
+   - source unavailable;
+   - contradicted;
+   - undated;
+   - historical by design.
+5. Do not infer that a field is false merely because a page disappeared.
+6. Flag volatile modules more aggressively: events, offerings, menus, jobs, news, transportation notices.
+7. Treat organization identity and historical courses differently from live information.
+8. Create review tasks assigned to module owners.
+9. Do not publish or delete.
+
+OUTPUT
+- stale-item inventory with JSON Pointer;
+- age and freshness threshold;
+- last source/evidence;
+- recommended action;
+- owner;
+- risk level;
+- candidate updates only when directly evidenced;
+- summary by module and severity.

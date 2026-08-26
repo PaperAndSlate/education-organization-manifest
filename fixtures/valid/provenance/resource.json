@@ -1,0 +1,18 @@
+{
+  "type": "provenance",
+  "id": "https://ecme-high.example/evidence/provenance/organization",
+  "scope": "resource",
+  "targetResource": "https://ecme-high.example/eom/organization",
+  "source": {
+    "uri": "https://ecme-high.example/catalog/2027",
+    "type": "organization-publication",
+    "license": "https://creativecommons.org/publicdomain/mark/1.0/"
+  },
+  "assertedBy": "https://ecme-high.example/id/school",
+  "observedAt": "2026-08-26T08:00:00Z",
+  "retrievedAt": "2026-08-26T08:00:00Z",
+  "method": "human-reviewed-extraction",
+  "contentDigest": "sha-256=:Y2F0YWxvZw==:",
+  "verificationStatus": "reviewed",
+  "confidence": 1
+}

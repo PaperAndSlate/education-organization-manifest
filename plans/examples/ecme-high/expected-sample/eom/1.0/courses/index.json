@@ -1,0 +1,1442 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/course-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/courses",
+  "type": "course-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "catalogPeriod": {
+    "from": "2027-07-01",
+    "until": "2028-06-30",
+    "label": "2027–2028"
+  },
+  "totalItems": 57,
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/course/ela-101",
+      "type": "course",
+      "code": "ELA-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/ela",
+      "title": "English 9",
+      "educationLevelDisplay": "Grades 9",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Required foundation course"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/ela-201",
+      "type": "course",
+      "code": "ELA-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/ela",
+      "title": "English 10",
+      "educationLevelDisplay": "Grades 10",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Prerequisite ELA-101"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/ela-301",
+      "type": "course",
+      "code": "ELA-301",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/ela",
+      "title": "American Literature",
+      "educationLevelDisplay": "Grades 11",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Reading and composition"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/ela-302",
+      "type": "course",
+      "code": "ELA-302",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/ela",
+      "title": "Technical Writing",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "CTE-oriented elective"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/ela-401",
+      "type": "course",
+      "code": "ELA-401",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/ela",
+      "title": "World Literature",
+      "educationLevelDisplay": "Grades 12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Advanced synthesis"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/ela-451",
+      "type": "course",
+      "code": "ELA-451",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/ela",
+      "title": "Journalism and Media",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Links news production without publishing student work"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/mat-101",
+      "type": "course",
+      "code": "MAT-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/mathematics",
+      "title": "Algebra I",
+      "educationLevelDisplay": "Grades 9–10",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Multiple placement pathways"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/mat-201",
+      "type": "course",
+      "code": "MAT-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/mathematics",
+      "title": "Geometry",
+      "educationLevelDisplay": "Grades 9–11",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Prerequisite Algebra I"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/mat-301",
+      "type": "course",
+      "code": "MAT-301",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/mathematics",
+      "title": "Algebra II",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Prerequisite Algebra I + Geometry"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/mat-321",
+      "type": "course",
+      "code": "MAT-321",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/mathematics",
+      "title": "Applied Mathematics",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Alternative pathway"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/mat-351",
+      "type": "course",
+      "code": "MAT-351",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/mathematics",
+      "title": "Statistics and Data Literacy",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Public-data methods"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/mat-401",
+      "type": "course",
+      "code": "MAT-401",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/mathematics",
+      "title": "Precalculus",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Structured prerequisite alternatives"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/mat-451",
+      "type": "course",
+      "code": "MAT-451",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/mathematics",
+      "title": "Calculus",
+      "educationLevelDisplay": "Grades 12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Advanced course"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/sci-101",
+      "type": "course",
+      "code": "SCI-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/science",
+      "title": "Integrated Science",
+      "educationLevelDisplay": "Grades 9",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Foundational laboratory science"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/sci-201",
+      "type": "course",
+      "code": "SCI-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/science",
+      "title": "Biology",
+      "educationLevelDisplay": "Grades 9–10",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Laboratory requirement"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/sci-301",
+      "type": "course",
+      "code": "SCI-301",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/science",
+      "title": "Chemistry",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Algebra prerequisite"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/sci-351",
+      "type": "course",
+      "code": "SCI-351",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/science",
+      "title": "Environmental Science",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Fieldwork notes"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/sci-401",
+      "type": "course",
+      "code": "SCI-401",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/science",
+      "title": "Physics",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Math corequisite"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/sci-421",
+      "type": "course",
+      "code": "SCI-421",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/science",
+      "title": "Anatomy and Physiology",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Health pathway"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/sci-490",
+      "type": "course",
+      "code": "SCI-490",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/science",
+      "title": "Scientific Research Seminar",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Instructor approval represented as requirement"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/soc-101",
+      "type": "course",
+      "code": "SOC-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/social-studies",
+      "title": "World History",
+      "educationLevelDisplay": "Grades 9",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Foundational course"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/soc-201",
+      "type": "course",
+      "code": "SOC-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/social-studies",
+      "title": "United States History",
+      "educationLevelDisplay": "Grades 10–11",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Synthetic catalog only"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/soc-301",
+      "type": "course",
+      "code": "SOC-301",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/social-studies",
+      "title": "Civics and Public Institutions",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Public institutions"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/soc-311",
+      "type": "course",
+      "code": "SOC-311",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/social-studies",
+      "title": "Economics",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "May link financial-literacy pathway"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/soc-351",
+      "type": "course",
+      "code": "SOC-351",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/social-studies",
+      "title": "Psychology",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "No student health data"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/soc-401",
+      "type": "course",
+      "code": "SOC-401",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/social-studies",
+      "title": "Contemporary Global Issues",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Topics change by catalog version"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/fcs-101",
+      "type": "course",
+      "code": "FCS-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fcs",
+      "title": "Foundations of Family and Consumer Sciences",
+      "educationLevelDisplay": "Grades 9–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Department introductory course"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/cul-101",
+      "type": "course",
+      "code": "CUL-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fcs",
+      "title": "Culinary Arts I",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Kitchen safety and food preparation"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/cul-202",
+      "type": "course",
+      "code": "CUL-202",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fcs",
+      "title": "Culinary Arts II",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Prerequisite CUL-101; fee and lab requirements",
+      "href": "https://ecme-high.example/eom/1.0/courses/cul-202.json"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/cul-250",
+      "type": "course",
+      "code": "CUL-250",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fcs",
+      "title": "Food Science",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Cross-links science topics"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/fcs-221",
+      "type": "course",
+      "code": "FCS-221",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fcs",
+      "title": "Child Development",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Public catalog description only"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/fcs-231",
+      "type": "course",
+      "code": "FCS-231",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fcs",
+      "title": "Personal Finance and Adult Living",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Financial literacy"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/fcs-271",
+      "type": "course",
+      "code": "FCS-271",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fcs",
+      "title": "Interior and Apparel Design",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Materials fee example"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/eng-101",
+      "type": "course",
+      "code": "ENG-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/engineering",
+      "title": "Introduction to Engineering Design",
+      "educationLevelDisplay": "Grades 9–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "CTE pathway entry"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/eng-201",
+      "type": "course",
+      "code": "ENG-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/engineering",
+      "title": "Computer-Aided Design",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Prerequisite or instructor approval"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/eng-251",
+      "type": "course",
+      "code": "ENG-251",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/engineering",
+      "title": "Robotics Systems",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Equipment and team-project notes"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/eng-301",
+      "type": "course",
+      "code": "ENG-301",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/engineering",
+      "title": "Electronics and Embedded Systems",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Safety and lab requirements"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/cse-201",
+      "type": "course",
+      "code": "CSE-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/engineering",
+      "title": "Computer Science Foundations",
+      "educationLevelDisplay": "Grades 9–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "No prior coding required"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/eng-490",
+      "type": "course",
+      "code": "ENG-490",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/engineering",
+      "title": "Engineering Capstone",
+      "educationLevelDisplay": "Grades 12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Program capstone"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/art-101",
+      "type": "course",
+      "code": "ART-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fine-arts",
+      "title": "Art Foundations",
+      "educationLevelDisplay": "Grades 9–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Fine arts entry"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/art-201",
+      "type": "course",
+      "code": "ART-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fine-arts",
+      "title": "Drawing and Painting",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Prerequisite ART-101"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/art-251",
+      "type": "course",
+      "code": "ART-251",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fine-arts",
+      "title": "Ceramics",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Materials fee and facility"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/art-301",
+      "type": "course",
+      "code": "ART-301",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fine-arts",
+      "title": "Digital Media Studio",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Technology requirements"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/mus-101",
+      "type": "course",
+      "code": "MUS-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fine-arts",
+      "title": "Concert Band",
+      "educationLevelDisplay": "Grades 9–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Repeatable course"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/mus-121",
+      "type": "course",
+      "code": "MUS-121",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fine-arts",
+      "title": "Concert Choir",
+      "educationLevelDisplay": "Grades 9–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Repeatable course"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/the-201",
+      "type": "course",
+      "code": "THE-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/fine-arts",
+      "title": "Theatre Production",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Public performance link"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/spa-101",
+      "type": "course",
+      "code": "SPA-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/world-languages",
+      "title": "Spanish I / Español I",
+      "educationLevelDisplay": "Grades 9–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Multilingual title example"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/spa-201",
+      "type": "course",
+      "code": "SPA-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/world-languages",
+      "title": "Spanish II",
+      "educationLevelDisplay": "Grades 9–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Prerequisite SPA-101"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/spa-301",
+      "type": "course",
+      "code": "SPA-301",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/world-languages",
+      "title": "Spanish III",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Prerequisite SPA-201"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/spa-401",
+      "type": "course",
+      "code": "SPA-401",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/world-languages",
+      "title": "Spanish IV",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Advanced sequence"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/fre-101",
+      "type": "course",
+      "code": "FRE-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/world-languages",
+      "title": "French I",
+      "educationLevelDisplay": "Grades 9–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Introductory"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/fre-201",
+      "type": "course",
+      "code": "FRE-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/world-languages",
+      "title": "French II",
+      "educationLevelDisplay": "Grades 9–12",
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "year"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Prerequisite FRE-101"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/peh-101",
+      "type": "course",
+      "code": "PEH-101",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/pe-health",
+      "title": "Physical Education 9",
+      "educationLevelDisplay": "Grades 9",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Required local sample"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/peh-201",
+      "type": "course",
+      "code": "PEH-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/pe-health",
+      "title": "Lifetime Fitness",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Multiple activity options"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/peh-251",
+      "type": "course",
+      "code": "PEH-251",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/pe-health",
+      "title": "Strength and Conditioning",
+      "educationLevelDisplay": "Grades 10–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Public safety notes only"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/hlt-201",
+      "type": "course",
+      "code": "HLT-201",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/pe-health",
+      "title": "Health and Wellness",
+      "educationLevelDisplay": "Grades 9–10",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "No personal health information"
+    },
+    {
+      "id": "https://ecme-high.example/id/course/hlt-351",
+      "type": "course",
+      "code": "HLT-351",
+      "provider": "https://ecme-high.example/id/organization",
+      "department": "https://ecme-high.example/id/department/pe-health",
+      "title": "Sports Medicine Foundations",
+      "educationLevelDisplay": "Grades 11–12",
+      "credits": [
+        {
+          "value": "0.5",
+          "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+        }
+      ],
+      "duration": {
+        "value": "1",
+        "unit": "semester"
+      },
+      "status": "active",
+      "effective": {
+        "from": "2027-07-01",
+        "until": "2028-06-30"
+      },
+      "catalogNote": "Anatomy recommended"
+    }
+  ],
+  "modified": "2027-05-01T12:00:00Z"
+}

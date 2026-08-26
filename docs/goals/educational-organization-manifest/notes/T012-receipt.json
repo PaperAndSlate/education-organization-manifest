@@ -1,0 +1,34 @@
+{
+  "result": "done",
+  "decision": "continue",
+  "full_outcome_complete": false,
+  "summary": "Built the accessible static docs and local-first playground. The docs site covers overview, publisher, consumer, reference, integration, Ecme exploration, governance, FAQ, and troubleshooting, and copies versioned source references deterministically. The no-account playground validates local JSON and restricted YAML, performs privacy and structural checks, generates origin-derived starter profiles, offers local exploration, module coverage, Schema.org preview, signature-shape and conformance-report views, and top-level comparison. Browser and static checks confirm semantic controls, visible focus/skip paths, no remote validation, no raw HTML injection, no upload/retention path, and draft-status language. No hosted runtime service or production deployment is claimed.",
+  "changed_files": [
+    "apps/docs/**",
+    "apps/playground/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "scripts/check-docs.ts",
+    "tests/docs.test.ts",
+    "reports/phase-7-documentation-playground.md"
+  ],
+  "commands": [
+    { "cmd": "pnpm install --frozen-lockfile", "status": "pass", "detail": "16 workspace projects" },
+    { "cmd": "pnpm format:check", "status": "pass" },
+    { "cmd": "pnpm schema:check", "status": "pass", "detail": "42 JSON Schema 2020-12 files" },
+    { "cmd": "pnpm typecheck", "status": "pass" },
+    { "cmd": "pnpm test -- --runInBand", "status": "pass", "detail": "11 files, 72 tests" },
+    { "cmd": "pnpm docs:build", "status": "pass", "detail": "static docs and playground builds" },
+    { "cmd": "pnpm docs:check", "status": "pass", "detail": "8 pages, link/CSP/local-boundary checks" },
+    { "cmd": "browser smoke: fixture, starter, YAML/privacy interaction", "status": "pass", "detail": "local browser interaction verified" },
+    { "cmd": "pnpm build", "status": "pass", "detail": "15 buildable workspace projects" },
+    { "cmd": "git diff --check", "status": "pass" }
+  ],
+  "evidence": [
+    "apps/docs/src/",
+    "apps/playground/src/",
+    "scripts/check-docs.ts",
+    "tests/docs.test.ts",
+    "reports/phase-7-documentation-playground.md"
+  ]
+}

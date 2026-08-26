@@ -1,0 +1,25 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/policy-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/policies",
+  "type": "policy-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/policy/course-catalog-2027",
+      "type": "policy-document",
+      "title": "2027–2028 Fictional Course Catalog",
+      "status": "active",
+      "href": "https://ecme-high.example/documents/course-catalog-2027-2028.pdf",
+      "mediaType": "application/pdf"
+    },
+    {
+      "id": "https://ecme-high.example/id/policy/public-data-privacy",
+      "type": "policy-document",
+      "title": "Public Data Publication and Correction Policy",
+      "status": "active",
+      "href": "https://ecme-high.example/policies/public-data",
+      "mediaType": "text/html"
+    }
+  ]
+}

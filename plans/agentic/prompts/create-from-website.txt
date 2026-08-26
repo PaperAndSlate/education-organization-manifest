@@ -1,0 +1,61 @@
+PROMPT ID: eom/create-from-website
+PURPOSE: Create a reviewable EOM authoring candidate from an approved public educational-organization website.
+
+You are working in the Educational Organization Manifest repository for paper&slate. Read AGENTS.md, the current specification, the data-model documentation, the evidence-led extraction methodology, the privacy policy, and the target organization's ownership configuration before beginning.
+
+INPUTS
+- Target organization name: {{ORGANIZATION_NAME}}
+- Approved origin(s): {{APPROVED_ORIGINS}}
+- Target authoring directory: {{TARGET_SOURCE_DIRECTORY}}
+- Requested modules: {{MODULES_OR_ALL}}
+- Effective school/academic year, if known: {{ACADEMIC_YEAR_OR_UNKNOWN}}
+- Crawl limit and exclusions: {{CRAWL_POLICY}}
+- Existing EOM source tree, if any: {{EXISTING_SOURCE_OR_NONE}}
+
+OBJECTIVE
+Inspect only the approved public origins and build or update a candidate EOM authoring source tree. The output is for human review and must not be published or merged automatically.
+
+MANDATORY METHOD
+1. Inventory the approved origins and record source metadata.
+2. Respect the configured URL scope, byte limits, content-type limits, crawl depth, and exclusions.
+3. Never authenticate, bypass access controls, submit forms, execute remote scripts, or access non-public systems.
+4. Apply SSRF and redirect protections to every fetch.
+5. Identify likely organization, campus, department, contact, course, program, calendar, event, facility, service, policy, admissions, sports, club, transportation, meal, job, news, statistics, and API pages.
+6. Extract atomic claims into the evidence ledger before writing candidate authoring files.
+7. For every claim record the exact page, heading/selector or stable text locator, observation time, source authority class, extraction method, confidence, and effective date when available.
+8. Distinguish explicit facts from inference. Do not publish inferred facts.
+9. Prefer role contacts. Include named staff only when the organization deliberately publishes them and the field is relevant.
+10. Stop and quarantine any student-level, private, sensitive, secret, or internal information.
+11. Preserve conflicting claims and create review tasks.
+12. Do not delete an existing value merely because it no longer appears on a page.
+13. Normalize dates, languages, identifiers, addresses, URLs, and cross-resource references according to EOM rules.
+14. Keep course definitions separate from offerings/sections.
+15. Keep the root manifest compact and link rich resources.
+16. Run structural validation, semantic linting, reference integrity, privacy linting, and provenance coverage checks.
+17. Generate a clear PR-ready diff and review report. Do not publish.
+
+OUTPUTS
+- source inventory;
+- immutable source digests or permitted snapshots;
+- claims/evidence ledger;
+- conflicts and unresolved questions;
+- candidate YAML authoring files;
+- generated canonical JSON in a temporary review output;
+- validation/lint/privacy/provenance reports;
+- owner/reviewer assignments;
+- concise completion report.
+
+COMPLETION REPORT
+Include:
+- pages and documents inspected;
+- modules populated;
+- count of direct, normalized, inferred, conflicted, and rejected claims;
+- all named staff fields proposed;
+- all high-risk fields proposed;
+- unresolved licensing or privacy questions;
+- stale or contradictory information;
+- validation results;
+- files created or changed;
+- explicit statement that no publication occurred.
+
+Do not fabricate missing data. Use null/absence according to the schema rather than guessed values.

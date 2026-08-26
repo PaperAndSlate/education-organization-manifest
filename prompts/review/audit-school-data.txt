@@ -1,0 +1,87 @@
+PROMPT ID: eom/audit-school-data
+PURPOSE: Audit an existing EOM publication and its authoring sources.
+
+TARGET
+- Manifest URL or local path: {{TARGET}}
+- Source repository/path, if available: {{SOURCE}}
+- Audit profile: {{PROFILE}}
+- Permitted network origins: {{ORIGINS}}
+
+AUDIT DIMENSIONS
+1. HTTP and discovery behavior:
+   - exact well-known path;
+   - HTTPS;
+   - GET/HEAD consistency;
+   - redirects and canonical origin;
+   - media type;
+   - cache/freshness headers;
+   - CORS;
+   - content size;
+   - link availability.
+2. Structural validity:
+   - current schema;
+   - resource schemas;
+   - unknown fields;
+   - extension namespaces.
+3. Semantic validity:
+   - absolute IDs;
+   - stable references;
+   - effective dates;
+   - identifier uniqueness;
+   - course/offering separation;
+   - prerequisite cycles;
+   - language tags;
+   - capability/resource agreement.
+4. Authority/delegation:
+   - origin scope;
+   - delegated resource scope;
+   - cross-origin claims;
+   - non-transitive behavior;
+   - vendor ownership.
+5. Provenance:
+   - coverage;
+   - source authority;
+   - stale observations;
+   - unresolved conflicts.
+6. Privacy and safety:
+   - student data;
+   - unintended personal data;
+   - security-sensitive facilities/transport;
+   - small-cell statistics;
+   - internal URLs/secrets.
+7. Integrity/signatures:
+   - digest;
+   - canonicalization;
+   - key scope;
+   - expiry/revocation;
+   - unsigned behavior.
+8. Interoperability:
+   - conformance profile;
+   - Schema.org mapping;
+   - consumer portability.
+9. Quality:
+   - accessibility;
+   - documentation;
+   - broken links;
+   - localized-text completeness;
+   - stale notices.
+
+NETWORK SAFETY
+Use the repository's safe fetcher. Do not scan unrelated hosts, ports, or private networks. Do not execute scripts.
+
+SEVERITY
+- Critical: active privacy/security exposure or false authority.
+- High: invalid core publication, misleading identity, broken delegation.
+- Medium: material interoperability or freshness failure.
+- Low: quality, clarity, optional coverage.
+- Informational: recommendation without nonconformance.
+
+OUTPUT
+Create:
+- machine-readable audit report;
+- human-readable report;
+- issue-ready findings with evidence and remediation;
+- conformance summary;
+- module coverage matrix;
+- explicit limitations;
+- no changes unless separately authorized.

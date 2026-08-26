@@ -1,0 +1,10 @@
+items:
+  - id: "https://ecme-high.example/id/news/catalog-published-2027"
+    type: "news-item"
+    organization: "https://ecme-high.example/id/organization"
+    headline: "Fictional 2027–2028 Course Catalog Published"
+    summary: "Ecme High's synthetic course catalog is available for protocol demonstrations."
+    publishedAt: "2027-05-01T14:00:00Z"
+    modifiedAt: "2027-05-01T14:00:00Z"
+    url: "https://ecme-high.example/news/catalog-published-2027"
+    language: "en-US"

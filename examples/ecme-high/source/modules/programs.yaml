@@ -1,0 +1,91 @@
+$schema: https://paperandslate.org/schemas/eom/1.0/modules/program-catalog.schema.json
+specification: https://paperandslate.org/spec/eom/1.0
+version: '1.0'
+id: https://ecme-high.example/eom/resource/programs
+type: program-catalog
+canonical: https://ecme-high.example/eom/programs.json
+subjects: [https://ecme-high.example/id/school]
+defaultLanguage: en-US
+catalogVersion:
+  id: https://ecme-high.example/id/catalog/2027-2028
+  label: '2027–2028'
+  status: active
+  effective: { from: '2027-07-01', until: '2028-06-30' }
+  public: true
+releaseStatus: active
+items:
+  - id: https://ecme-high.example/id/program/stem
+    type: program
+    name: STEM Pathway
+    description: A synthetic pathway connecting mathematics, science, engineering, and computing.
+    provider: { id: https://ecme-high.example/id/school }
+    departments:
+      - id: https://ecme-high.example/id/department/mathematics
+      - id: https://ecme-high.example/id/department/science
+      - id: https://ecme-high.example/id/department/engineering-technology
+    educationLevels: [grade-10, grade-11, grade-12]
+    classification: pathway
+    duration: three years
+    totalCredits: [{ value: '4.0', system: https://ecme-high.example/id/credit-system/local }]
+    requirements:
+      - kind: all
+        courses:
+          - id: https://ecme-high.example/id/course/mat-301
+          - id: https://ecme-high.example/id/course/sci-301
+      - kind: choose
+        minimum: 1
+        courses:
+          - id: https://ecme-high.example/id/course/eng-251
+          - id: https://ecme-high.example/id/course/cse-201
+        display: Choose one technology concentration course.
+    stages:
+      - order: 1
+        courses:
+          - id: https://ecme-high.example/id/course/mat-101
+          - id: https://ecme-high.example/id/course/sci-101
+      - order: 2
+        choose:
+          kind: choose
+          minimum: 1
+          courses:
+            - id: https://ecme-high.example/id/course/eng-201
+            - id: https://ecme-high.example/id/course/cse-201
+    outcomes:
+      - statement: Explain a public STEM project using evidence and technical communication.
+        level: pathway
+    modes: [in-person, lab]
+    campuses: [{ id: https://ecme-high.example/id/campus/main }]
+
+  - id: https://ecme-high.example/id/program/culinary-hospitality
+    type: program
+    name: Culinary and Hospitality Pathway
+    description: A synthetic culinary sequence combining food production, design, and service.
+    provider: { id: https://ecme-high.example/id/school }
+    departments: [{ id: https://ecme-high.example/id/department/fcs }]
+    educationLevels: [grade-10, grade-11, grade-12]
+    classification: career-pathway
+    duration: three years
+    totalCredits: [{ value: '2.5', system: https://ecme-high.example/id/credit-system/local }]
+    requirements:
+      - kind: all
+        courses:
+          - id: https://ecme-high.example/id/course/fcs-101
+          - id: https://ecme-high.example/id/course/cul-101
+          - id: https://ecme-high.example/id/course/cul-202
+    stages:
+      - order: 1
+        courses: [{ id: https://ecme-high.example/id/course/fcs-101 }]
+      - order: 2
+        courses: [{ id: https://ecme-high.example/id/course/cul-101 }]
+      - order: 3
+        choose:
+          kind: choose
+          minimum: 1
+          courses:
+            - id: https://ecme-high.example/id/course/cul-202
+            - id: https://ecme-high.example/id/course/cul-250
+    outcomes:
+      - statement: Plan and communicate a safe public food-service project.
+        level: pathway
+    modes: [in-person, lab]
+    campuses: [{ id: https://ecme-high.example/id/campus/main }]

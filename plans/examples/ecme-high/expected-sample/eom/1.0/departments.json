@@ -1,0 +1,82 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/department-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/departments",
+  "type": "department-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/department/ela",
+      "type": "department",
+      "organization": "https://ecme-high.example/id/organization",
+      "name": "English Language Arts",
+      "shortName": "ELA",
+      "contact": "https://ecme-high.example/id/contact/ela-department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/mathematics",
+      "type": "department",
+      "organization": "https://ecme-high.example/id/organization",
+      "name": "Mathematics",
+      "shortName": "Math",
+      "contact": "https://ecme-high.example/id/contact/mathematics-department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/science",
+      "type": "department",
+      "organization": "https://ecme-high.example/id/organization",
+      "name": "Science",
+      "shortName": "Science",
+      "contact": "https://ecme-high.example/id/contact/science-department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/social-studies",
+      "type": "department",
+      "organization": "https://ecme-high.example/id/organization",
+      "name": "Social Studies",
+      "shortName": "Social Studies",
+      "contact": "https://ecme-high.example/id/contact/social-studies-department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/fcs",
+      "type": "department",
+      "organization": "https://ecme-high.example/id/organization",
+      "name": "Family and Consumer Sciences",
+      "shortName": "FCS",
+      "contact": "https://ecme-high.example/id/contact/fcs-department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/engineering",
+      "type": "department",
+      "organization": "https://ecme-high.example/id/organization",
+      "name": "Engineering and Technology",
+      "shortName": "Engineering",
+      "contact": "https://ecme-high.example/id/contact/engineering-department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/fine-arts",
+      "type": "department",
+      "organization": "https://ecme-high.example/id/organization",
+      "name": "Fine Arts",
+      "shortName": "Fine Arts",
+      "contact": "https://ecme-high.example/id/contact/fine-arts-department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/world-languages",
+      "type": "department",
+      "organization": "https://ecme-high.example/id/organization",
+      "name": "World Languages",
+      "shortName": "Languages",
+      "contact": "https://ecme-high.example/id/contact/world-languages-department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/pe-health",
+      "type": "department",
+      "organization": "https://ecme-high.example/id/organization",
+      "name": "Physical Education and Health",
+      "shortName": "PE/Health",
+      "contact": "https://ecme-high.example/id/contact/pe-health-department"
+    }
+  ],
+  "modified": "2027-05-01T12:00:00Z"
+}

@@ -1,0 +1,524 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json",
+  "canonical": "https://ecme-high.example/.well-known/educational-organization-manifest",
+  "capabilities": [
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/admissions-profile",
+      "resources": [
+        "https://ecme-high.example/eom/resource/admissions"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/api-reference",
+      "resources": [
+        "https://ecme-high.example/eom/resource/apis"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/academic-calendar",
+      "resources": [
+        "https://ecme-high.example/eom/resource/calendar"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/campus-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/campuses"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/club-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/clubs"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/contact-directory",
+      "resources": [
+        "https://ecme-high.example/eom/resource/contacts"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/course-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/courses"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/department-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/departments"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/event-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/events"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/facility-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/facilities"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/job-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/jobs"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/meal-menu-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/meals"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/news-feed",
+      "resources": [
+        "https://ecme-high.example/eom/resource/news"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/course-offering-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/offerings"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/organization-profile",
+      "resources": [
+        "https://ecme-high.example/eom/resource/organization"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/policy-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/policies"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/program-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/programs"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/service-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/services"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/sports-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/sports"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/staff-directory",
+      "resources": [
+        "https://ecme-high.example/eom/resource/staff"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/statistics-profile",
+      "resources": [
+        "https://ecme-high.example/eom/resource/statistics"
+      ],
+      "status": "active",
+      "version": "1.0"
+    },
+    {
+      "id": "https://paperandslate.org/spec/eom/1.0/capabilities/transportation-catalog",
+      "resources": [
+        "https://ecme-high.example/eom/resource/transportation"
+      ],
+      "status": "active",
+      "version": "1.0"
+    }
+  ],
+  "contacts": [
+    {
+      "id": "https://ecme-high.example/id/contact/admissions"
+    },
+    {
+      "id": "https://ecme-high.example/id/contact/family-services"
+    }
+  ],
+  "defaultLanguage": "en-US",
+  "expires": "2028-05-01T14:00:00Z",
+  "id": "https://ecme-high.example/.well-known/educational-organization-manifest",
+  "indexingPolicy": {
+    "allowArchiving": true,
+    "allowCommercialReuse": null,
+    "allowPublicIndexing": true,
+    "corrections": "https://ecme-high.example/contact/data-corrections",
+    "terms": "https://ecme-high.example/data-terms"
+  },
+  "modified": "2027-05-01T14:00:00Z",
+  "notices": [
+    {
+      "id": "https://ecme-high.example/id/notice/publication",
+      "message": "Ecme High School is fictional. All data and people shown are synthetic.",
+      "title": "Publication notice"
+    }
+  ],
+  "organizations": [
+    {
+      "canonicalUrl": "https://ecme-high.example/",
+      "id": "https://ecme-high.example/id/school",
+      "name": "Ecme High School",
+      "profile": "https://ecme-high.example/eom/organization.json",
+      "type": "secondary-school"
+    }
+  ],
+  "publisher": {
+    "id": "https://ecme-high.example/id/school",
+    "name": "Ecme High School",
+    "type": "secondary-school",
+    "website": "https://ecme-high.example/"
+  },
+  "resources": [
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/admissions.json",
+      "id": "https://ecme-high.example/eom/resource/admissions",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "admissions-profile",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/apis.json",
+      "id": "https://ecme-high.example/eom/resource/apis",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "api-reference",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/calendar.json",
+      "id": "https://ecme-high.example/eom/resource/calendar",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "academic-calendar",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/campuses.json",
+      "id": "https://ecme-high.example/eom/resource/campuses",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "campus-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/clubs.json",
+      "id": "https://ecme-high.example/eom/resource/clubs",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "club-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/contacts.json",
+      "id": "https://ecme-high.example/eom/resource/contacts",
+      "languages": [
+        "en-US"
+      ],
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "contact-directory",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/courses.json",
+      "id": "https://ecme-high.example/eom/resource/courses",
+      "languages": [
+        "en-US"
+      ],
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "course-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/departments.json",
+      "id": "https://ecme-high.example/eom/resource/departments",
+      "languages": [
+        "en-US"
+      ],
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "department-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/events.json",
+      "id": "https://ecme-high.example/eom/resource/events",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "event-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/facilities.json",
+      "id": "https://ecme-high.example/eom/resource/facilities",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "facility-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/jobs.json",
+      "id": "https://ecme-high.example/eom/resource/jobs",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "job-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/meals.json",
+      "id": "https://ecme-high.example/eom/resource/meals",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "meal-menu-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/news.json",
+      "id": "https://ecme-high.example/eom/resource/news",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "news-feed",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/offerings.json",
+      "id": "https://ecme-high.example/eom/resource/offerings",
+      "languages": [
+        "en-US"
+      ],
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "course-offering-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/organization.json",
+      "id": "https://ecme-high.example/eom/resource/organization",
+      "languages": [
+        "en-US"
+      ],
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "organization-profile",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/policies.json",
+      "id": "https://ecme-high.example/eom/resource/policies",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "policy-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/programs.json",
+      "id": "https://ecme-high.example/eom/resource/programs",
+      "languages": [
+        "en-US"
+      ],
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "program-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/services.json",
+      "id": "https://ecme-high.example/eom/resource/services",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "service-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/sports.json",
+      "id": "https://ecme-high.example/eom/resource/sports",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "sports-catalog",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/staff.json",
+      "id": "https://ecme-high.example/eom/resource/staff",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "staff-directory",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/statistics.json",
+      "id": "https://ecme-high.example/eom/resource/statistics",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "statistics-profile",
+      "version": "1.0"
+    },
+    {
+      "expires": "2028-05-01T14:00:00Z",
+      "href": "https://ecme-high.example/eom/transportation.json",
+      "id": "https://ecme-high.example/eom/resource/transportation",
+      "mediaType": "application/json",
+      "modified": "2027-05-01T14:00:00Z",
+      "subjects": [
+        "https://ecme-high.example/id/school"
+      ],
+      "type": "transportation-catalog",
+      "version": "1.0"
+    }
+  ],
+  "scope": {
+    "canonicalOrigins": [
+      "https://ecme-high.example"
+    ],
+    "origin": "https://ecme-high.example",
+    "paths": [
+      "/"
+    ],
+    "scopeStatement": "Public EOM resources for Ecme High School."
+  },
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "supportedLanguages": [
+    "en-US",
+    "es"
+  ],
+  "type": "manifest",
+  "version": "1.0"
+}

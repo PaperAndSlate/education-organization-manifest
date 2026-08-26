@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'"
+    />
+    <title>Publish EOM</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <a class="brand" href="index.html">EOM 1.0</a>
+        <nav aria-label="Primary">
+          <ul>
+            <li><a href="publish.html" aria-current="page">Publish</a></li>
+            <li><a href="consume.html">Consume</a></li>
+            <li><a href="reference.html">Reference</a></li>
+            <li><a href="integrate.html">Integrate</a></li>
+            <li><a href="explore.html">Explore</a></li>
+            <li><a href="govern.html">Govern</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="shell prose">
+      <p class="eyebrow">Publish</p>
+      <h1>A five-minute publisher path</h1>
+      <p class="lede">
+        Start with a small organization profile and add modules when their public owner is ready. Do
+        not publish private operational data just because a source system contains it.
+      </p>
+      <div class="notice">
+        Before authoring: EOM is for public institutional information. Never include student
+        records, grades, individual attendance, IEP/504/SEN/medical/safeguarding or discipline
+        records, private schedules, private transportation assignments, secrets, credentials, or
+        internal-only endpoints.
+      </div>
+      <h2>1. Create an authoring project</h2>
+      <pre><code>pnpm install --frozen-lockfile
+pnpm eom check examples/ecme-high/source/eom.config.yaml --json
+pnpm eom build examples/ecme-high/source/eom.config.yaml</code></pre>
+      <p>
+        The repository’s YAML authoring model is a source format, not a wire format. The generator
+        normalizes ordering, resolves approved local references, validates resources, and writes
+        canonical UTF-8 JSON.
+      </p>
+      <h2>2. Publish the root</h2>
+      <p>Serve the generated root at:</p>
+      <pre><code>https://school.example/.well-known/educational-organization-manifest</code></pre>
+      <p>
+        Use <code>application/json</code>, HTTPS, GET and HEAD, bounded responses, and cache headers
+        that match your revision process. The root should identify the publisher, organization
+        scope, capabilities, resources, protocol version, and schema.
+      </p>
+      <h2>3. Add optional modules</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>School-owned</h3>
+          <p>
+            Organization, campuses, contacts, departments, courses, programs, events, policies,
+            admissions, sports, clubs, jobs, news, and public statistics.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Delegated</h3>
+          <p>
+            Meals, transportation, or vendor services may live on another origin only with an
+            explicit root delegation covering origin, path, resource type or ID, subject, validity,
+            and revocation.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Reviewed</h3>
+          <p>
+            Use provenance and owner review for imported or generated values. Candidates never
+            publish directly, and conflicts are preserved for a decision.
+          </p>
+        </article>
+      </div>
+      <h2>4. Review before release</h2>
+      <ol>
+        <li>Run schema validation and semantic linting.</li>
+        <li>Review privacy findings and external links.</li>
+        <li>Check freshness, language tags, effective periods, and delegated scopes.</li>
+        <li>Build twice and compare output bytes.</li>
+        <li>Optionally sign canonical JSON with the detached signature profile.</li>
+      </ol>
+      <p>
+        See the <a href="source-docs/publisher-quickstart.md">repository quickstart</a>,
+        <a href="source-docs/authoring-and-generation.md">authoring guide</a>, and
+        <a href="reference.html">reference pages</a>.
+      </p>
+    </main>
+    <footer class="footer">
+      <div class="shell">
+        Publishing EOM does not imply registration, certification, or factual endorsement.
+      </div>
+    </footer>
+  </body>
+</html>

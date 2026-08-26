@@ -1,0 +1,18 @@
+{
+  "name": "@paperandslate/eom-core",
+  "version": "0.1.0",
+  "description": "Offline-safe EOM parsing, URI, localization, and publication primitives.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
+    "typecheck": "tsc --noEmit",
+    "lint": "true"
+  }
+}

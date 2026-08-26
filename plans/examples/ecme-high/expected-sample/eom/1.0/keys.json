@@ -1,0 +1,25 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/key-set.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/eom/1.0/keys.json",
+  "type": "public-key-set",
+  "notice": "Planning fixture only. Codex must replace with deterministic test keys and never use these values in production.",
+  "keys": [
+    {
+      "kid": "school-release-2027",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "x": "ILLUSTRATIVE_TEST_VALUE",
+      "use": "sig",
+      "status": "test-only"
+    },
+    {
+      "kid": "meal-vendor-2027",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "x": "ILLUSTRATIVE_TEST_VALUE",
+      "use": "sig",
+      "status": "test-only"
+    }
+  ]
+}

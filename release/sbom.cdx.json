@@ -1,0 +1,365 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-adapters",
+      "purl": "pkg:npm/@paperandslate/eom-adapters@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-agentic",
+      "purl": "pkg:npm/@paperandslate/eom-agentic@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-authority",
+      "purl": "pkg:npm/@paperandslate/eom-authority@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-cli",
+      "purl": "pkg:npm/@paperandslate/eom-cli@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-config",
+      "purl": "pkg:npm/@paperandslate/eom-config@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-conformance-runner",
+      "purl": "pkg:npm/@paperandslate/eom-conformance-runner@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-core",
+      "purl": "pkg:npm/@paperandslate/eom-core@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-docs",
+      "purl": "pkg:npm/@paperandslate/eom-docs@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-generator",
+      "purl": "pkg:npm/@paperandslate/eom-generator@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-linter",
+      "purl": "pkg:npm/@paperandslate/eom-linter@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-playground",
+      "purl": "pkg:npm/@paperandslate/eom-playground@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-schema",
+      "purl": "pkg:npm/@paperandslate/eom-schema@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-schemaorg-adapter",
+      "purl": "pkg:npm/@paperandslate/eom-schemaorg-adapter@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-signatures",
+      "purl": "pkg:npm/@paperandslate/eom-signatures@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-testkit",
+      "purl": "pkg:npm/@paperandslate/eom-testkit@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-types",
+      "purl": "pkg:npm/@paperandslate/eom-types@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-validator",
+      "purl": "pkg:npm/@paperandslate/eom-validator@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "group": "paperandslate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "name": "eom-workspace",
+      "purl": "pkg:npm/@paperandslate/eom-workspace@0.1.0",
+      "scope": "required",
+      "type": "library",
+      "version": "0.1.0"
+    },
+    {
+      "name": "@types/node",
+      "purl": "pkg:npm/@types/node@24.0.0",
+      "scope": "required",
+      "type": "library",
+      "version": "^24.0.0"
+    },
+    {
+      "name": "ajv-formats",
+      "purl": "pkg:npm/ajv-formats@3.0.1",
+      "scope": "required",
+      "type": "library",
+      "version": "^3.0.1"
+    },
+    {
+      "name": "ajv",
+      "purl": "pkg:npm/ajv@8.17.1",
+      "scope": "required",
+      "type": "library",
+      "version": "^8.17.1"
+    },
+    {
+      "name": "commander",
+      "purl": "pkg:npm/commander@14.0.0",
+      "scope": "required",
+      "type": "library",
+      "version": "^14.0.0"
+    },
+    {
+      "name": "prettier",
+      "purl": "pkg:npm/prettier@3.6.2",
+      "scope": "required",
+      "type": "library",
+      "version": "^3.6.2"
+    },
+    {
+      "name": "tsx",
+      "purl": "pkg:npm/tsx@4.20.3",
+      "scope": "required",
+      "type": "library",
+      "version": "^4.20.3"
+    },
+    {
+      "name": "typescript",
+      "purl": "pkg:npm/typescript@5.9.2",
+      "scope": "required",
+      "type": "library",
+      "version": "^5.9.2"
+    },
+    {
+      "name": "vitest",
+      "purl": "pkg:npm/vitest@3.2.4",
+      "scope": "required",
+      "type": "library",
+      "version": "^3.2.4"
+    },
+    {
+      "name": "yaml",
+      "purl": "pkg:npm/yaml@2.8.1",
+      "scope": "required",
+      "type": "library",
+      "version": "^2.8.1"
+    }
+  ],
+  "metadata": {
+    "properties": [
+      {
+        "name": "eom.release",
+        "value": "1.0.0-rc.1"
+      },
+      {
+        "name": "eom.sourceDateEpoch",
+        "value": "0"
+      },
+      {
+        "name": "eom.pnpmLockSha256",
+        "value": "c2d2ea66653afd445f3c144376af90c92e662de73afdc446939c872b7ed653fa"
+      }
+    ],
+    "timestamp": "1970-01-01T00:00:00.000Z",
+    "tools": [
+      {
+        "name": "eom-release-tooling",
+        "vendor": "paper&slate",
+        "version": "0.1.0"
+      }
+    ]
+  },
+  "serialNumber": "urn:uuid:00000000-0000-4000-8000-000000000001",
+  "specVersion": "1.5",
+  "version": 1
+}

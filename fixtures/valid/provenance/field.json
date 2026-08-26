@@ -1,0 +1,13 @@
+{
+  "type": "provenance",
+  "id": "https://ecme-high.example/evidence/provenance/organization-name",
+  "scope": "field",
+  "targetResource": "https://ecme-high.example/eom/organization",
+  "targetPointers": ["/name"],
+  "source": {
+    "uri": "https://ecme-high.example/catalog/2027",
+    "type": "organization-publication"
+  },
+  "observedAt": "2026-08-26T08:00:00Z",
+  "verificationStatus": "verified-against-source"
+}

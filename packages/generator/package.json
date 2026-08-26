@@ -1,0 +1,26 @@
+{
+  "name": "@paperandslate/eom-generator",
+  "version": "0.1.0",
+  "description": "Offline-safe deterministic YAML-to-EOM publication generator.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@paperandslate/eom-agentic": "workspace:*",
+    "@paperandslate/eom-config": "workspace:*",
+    "@paperandslate/eom-core": "workspace:*",
+    "@paperandslate/eom-linter": "workspace:*",
+    "@paperandslate/eom-validator": "workspace:*",
+    "yaml": "^2.8.1"
+  },
+  "scripts": {
+    "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
+    "typecheck": "tsc --noEmit",
+    "lint": "true"
+  }
+}

@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json",
+  "title": "Educational Organization Manifest 1.0 root manifest",
+  "type": "object",
+  "required": [
+    "$schema",
+    "specification",
+    "version",
+    "id",
+    "type",
+    "canonical",
+    "publisher",
+    "scope",
+    "organizations",
+    "capabilities",
+    "resources"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json"
+    },
+    "specification": {
+      "const": "https://paperandslate.org/spec/eom/1.0"
+    },
+    "version": {
+      "const": "1.0"
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "type": {
+      "const": "manifest"
+    },
+    "canonical": {
+      "$ref": "common.schema.json#/$defs/httpsUri"
+    },
+    "publisher": {
+      "$ref": "common.schema.json#/$defs/publisher"
+    },
+    "scope": {
+      "$ref": "common.schema.json#/$defs/scope"
+    },
+    "organizations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/organizationSummary"
+      }
+    },
+    "organizationIndex": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "$ref": "capability.schema.json"
+      }
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "$ref": "resource.schema.json"
+      }
+    },
+    "delegations": {
+      "type": "array",
+      "items": {
+        "$ref": "delegation.schema.json"
+      }
+    },
+    "signing": {
+      "type": "object",
+      "properties": {
+        "keySet": {
+          "$ref": "common.schema.json#/$defs/absoluteUri"
+        },
+        "signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/httpsUri"
+          },
+          "uniqueItems": true
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "algorithm": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "conformance": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "contacts": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/entityRef"
+      },
+      "uniqueItems": true
+    },
+    "notices": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/notice"
+      }
+    },
+    "indexingPolicy": {
+      "$ref": "#/$defs/indexingPolicy"
+    },
+    "defaultLanguage": {
+      "$ref": "common.schema.json#/$defs/bcp47"
+    },
+    "supportedLanguages": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/bcp47"
+      },
+      "uniqueItems": true
+    },
+    "modified": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "expires": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "$ref": "provenance.schema.json"
+      }
+    },
+    "extensions": {
+      "$ref": "common.schema.json#/$defs/extensions"
+    }
+  },
+  "$defs": {
+    "organizationSummary": {
+      "type": "object",
+      "required": ["id", "type", "name", "canonicalUrl"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/absoluteUri"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "$ref": "common.schema.json#/$defs/localized"
+        },
+        "canonicalUrl": {
+          "$ref": "common.schema.json#/$defs/httpsUri"
+        },
+        "profile": {
+          "$ref": "common.schema.json#/$defs/absoluteUri"
+        },
+        "parent": {
+          "$ref": "common.schema.json#/$defs/absoluteUri"
+        },
+        "identifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          }
+        },
+        "extensions": {
+          "$ref": "common.schema.json#/$defs/extensions"
+        }
+      },
+      "additionalProperties": false
+    },
+    "notice": {
+      "type": "object",
+      "required": ["id", "title", "message"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/absoluteUri"
+        },
+        "title": {
+          "$ref": "common.schema.json#/$defs/localized"
+        },
+        "message": {
+          "$ref": "common.schema.json#/$defs/localized"
+        },
+        "href": {
+          "$ref": "common.schema.json#/$defs/httpsUri"
+        },
+        "effective": {
+          "$ref": "common.schema.json#/$defs/period"
+        }
+      },
+      "additionalProperties": false
+    },
+    "indexingPolicy": {
+      "type": "object",
+      "properties": {
+        "allowPublicIndexing": {
+          "type": "boolean"
+        },
+        "allowArchiving": {
+          "type": "boolean"
+        },
+        "allowCommercialReuse": {
+          "type": ["boolean", "null"]
+        },
+        "terms": {
+          "$ref": "common.schema.json#/$defs/httpsUri"
+        },
+        "corrections": {
+          "$ref": "common.schema.json#/$defs/httpsUri"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

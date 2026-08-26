@@ -1,0 +1,61 @@
+id: "https://ecme-high.example/id/organization"
+type: "secondary-school"
+name:
+  default: "en-US"
+  values:
+    en-US: "Ecme High School"
+    es: "Escuela Secundaria Ecme"
+description:
+  default: "en-US"
+  values:
+    en-US: "A fictional public secondary school used to demonstrate the Educational Organization Manifest."
+    es: "Una escuela secundaria pública ficticia utilizada para demostrar el Educational Organization Manifest."
+legalName: "Ecme High School"
+status: "active"
+canonicalUrl: "https://ecme-high.example/"
+governingOrganization:
+  id: "https://district.ecme.example/id/organization"
+  type: "school-district"
+  name: "Ecme Public Schools"
+campuses:
+  - "https://ecme-high.example/id/campus/main"
+educationLevels:
+  - vocabulary: "https://paperandslate.org/vocabularies/eom/jurisdictions/us-ia/education-levels/1.0"
+    code: "grade-9"
+  - vocabulary: "https://paperandslate.org/vocabularies/eom/jurisdictions/us-ia/education-levels/1.0"
+    code: "grade-10"
+  - vocabulary: "https://paperandslate.org/vocabularies/eom/jurisdictions/us-ia/education-levels/1.0"
+    code: "grade-11"
+  - vocabulary: "https://paperandslate.org/vocabularies/eom/jurisdictions/us-ia/education-levels/1.0"
+    code: "grade-12"
+languages:
+  default: "en-US"
+  supported:
+    - "en-US"
+    - "es"
+contacts:
+  - "https://ecme-high.example/id/contact/general-office"
+  - "https://ecme-high.example/id/contact/data-corrections"
+identifiers:
+  - scheme: "https://ecme-high.example/id-schemes/local-school-code"
+    value: "EXAMPLE-HS-001"
+    authority: "https://district.ecme.example/id/organization"
+    verificationStatus: "synthetic-example"
+address:
+  lines:
+    - "100 Learning Way"
+  locality: "Example City"
+  administrativeArea: "IA"
+  postalCode: "00000"
+  countryCode: "US"
+  formatted: "100 Learning Way, Example City, IA 00000, United States"
+  public: true
+accessibility:
+  publicInformationUrl: "https://ecme-high.example/accessibility"
+  accommodationContact: "https://ecme-high.example/id/contact/accessibility-services"
+modified: "2027-05-01T12:00:00Z"
+provenance:
+  - "https://ecme-high.example/id/provenance/school-profile-2027"
+extensions:
+  "org.paperandslate.example/fixture":
+    fictional: true

@@ -1,0 +1,43 @@
+PROMPT ID: eom/implementation/delegation-signatures
+GOAL: Implement explicit delegated resource authority and optional v1 integrity/signature support.
+
+Implement delegation:
+- root-origin authority;
+- resource and path scope;
+- organization/module/resource type constraints;
+- delegated origin;
+- validity period;
+- revocation;
+- no transitive delegation by default;
+- vendor-hosted Ecme meal example;
+- district-hosted transport example;
+- authority resolution API and diagnostics.
+
+Implement optional signatures:
+- RFC 8785 JSON canonicalization profile;
+- content digest;
+- detached JWS;
+- Ed25519 recommended test profile;
+- public key-set resource;
+- key purpose/scope;
+- key rotation and revocation;
+- signature time/expiry;
+- sign and verify CLI commands;
+- deterministic test vectors;
+- explicit unsigned-valid behavior;
+- optional HTTP Message Signature exploration behind an experimental profile.
+
+Security:
+- algorithm allowlist;
+- reject unknown/weak algorithms;
+- prevent key confusion;
+- bind signature to canonical resource and scope;
+- do not use signatures as proof of factual correctness;
+- clear failure reasons.
+
+Acceptance:
+- valid delegated resources resolve;
+- out-of-scope, expired, revoked, and transitive claims fail;
+- valid signed fixtures verify across at least two independent libraries or test implementations where practical;
+- unsigned conformant v1 remains valid;
+- documentation distinguishes origin authority, maintainer, publisher, and signer.

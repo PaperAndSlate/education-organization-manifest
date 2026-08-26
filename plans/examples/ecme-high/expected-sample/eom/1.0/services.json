@@ -1,0 +1,27 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/service-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/services",
+  "type": "service-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/service/library",
+      "type": "service",
+      "name": "Library and Research Support",
+      "contact": "https://ecme-high.example/id/contact/general-office"
+    },
+    {
+      "id": "https://ecme-high.example/id/service/accessibility-language",
+      "type": "service",
+      "name": "Accessibility and Language Assistance",
+      "contact": "https://ecme-high.example/id/contact/accessibility-services"
+    },
+    {
+      "id": "https://ecme-high.example/id/service/career-advising",
+      "type": "service",
+      "name": "Career Advising",
+      "publicDescriptionOnly": true
+    }
+  ]
+}

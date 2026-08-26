@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/capability.schema.json",
+  "title": "EOM capability descriptor",
+  "type": "object",
+  "required": ["id", "version", "status"],
+  "properties": {
+    "id": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "status": {
+      "enum": ["active", "experimental", "deprecated", "retired"]
+    },
+    "profile": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/absoluteUri"
+      },
+      "uniqueItems": true
+    },
+    "description": {
+      "$ref": "common.schema.json#/$defs/localized"
+    },
+    "extensions": {
+      "$ref": "common.schema.json#/$defs/extensions"
+    }
+  },
+  "additionalProperties": false
+}

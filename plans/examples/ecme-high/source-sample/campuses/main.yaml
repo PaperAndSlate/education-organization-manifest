@@ -1,0 +1,20 @@
+id: "https://ecme-high.example/id/campus/main"
+type: "campus"
+organization: "https://ecme-high.example/id/organization"
+name: "Ecme High Main Campus"
+status: "active"
+address:
+  lines:
+    - "100 Learning Way"
+  locality: "Example City"
+  administrativeArea: "IA"
+  postalCode: "00000"
+  countryCode: "US"
+  public: true
+facilities:
+  - "https://ecme-high.example/id/facility/culinary-lab"
+  - "https://ecme-high.example/id/facility/library"
+  - "https://ecme-high.example/id/facility/auditorium"
+contacts:
+  - "https://ecme-high.example/id/contact/general-office"
+modified: "2027-05-01T12:00:00Z"

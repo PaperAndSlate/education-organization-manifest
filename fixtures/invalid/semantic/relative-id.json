@@ -1,0 +1,24 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "relative-manifest-id",
+  "type": "manifest",
+  "canonical": "https://ecme-high.example/.well-known/educational-organization-manifest",
+  "publisher": {
+    "id": "https://ecme-high.example/id/publisher",
+    "name": "Ecme High School",
+    "type": "school"
+  },
+  "scope": { "origin": "https://ecme-high.example" },
+  "organizations": [
+    {
+      "id": "https://ecme-high.example/id/school",
+      "type": "secondary-school",
+      "name": "Ecme High School",
+      "canonicalUrl": "https://ecme-high.example/"
+    }
+  ],
+  "capabilities": [],
+  "resources": []
+}

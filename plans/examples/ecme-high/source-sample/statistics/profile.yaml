@@ -1,0 +1,19 @@
+id: "https://ecme-high.example/id/statistics/public-profile-2027"
+type: "statistics-profile"
+organization: "https://ecme-high.example/id/organization"
+title: "Synthetic Public Statistics"
+asOf: "2027-10-01"
+notice: "All values are invented for testing and do not describe a real school."
+measures:
+  - id: "https://ecme-high.example/id/measure/total-enrollment"
+    name: "Total enrollment"
+    value: "640"
+    unit: "students"
+    population: "all-enrolled-students"
+    source: "https://ecme-high.example/id/source/synthetic-statistics-2027"
+    disclosureReview: "approved-synthetic-fixture"
+
+  - id: "https://ecme-high.example/id/measure/example-suppressed"
+    name: "Example suppressed small-cell measure"
+    suppressed: true
+    suppressionReason: "Demonstrates that small groups must not be published."

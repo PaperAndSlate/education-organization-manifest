@@ -1,0 +1,28 @@
+id: "https://ecme-high.example/id/delegation/meal-provider-2027"
+type: "delegation"
+delegate:
+  id: "https://menus.school-services.example/id/organization"
+  name: "Example School Meal Services"
+scope:
+  resourceTypes:
+    - "meal-menu-catalog"
+  resourceIds:
+    - "https://ecme-high.example/id/resource/meal-menu"
+  allowedOrigins:
+    - "https://menus.school-services.example"
+  allowedPathPrefixes:
+    - "/customers/ecme-high/eom/1.0/"
+keys:
+  - "https://ecme-high.example/eom/1.0/keys.json#meal-vendor-2027"
+validFrom: "2027-07-01T00:00:00Z"
+validUntil: "2028-06-30T23:59:59Z"
+transitive: false
+status: "active"
+resource:
+  id: "https://ecme-high.example/id/resource/meal-menu"
+  type: "meal-menu-catalog"
+  href: "https://menus.school-services.example/customers/ecme-high/eom/1.0/menus.json"
+  mediaType: "application/json"
+  version: "1.0"
+  subjects:
+    - "https://ecme-high.example/id/organization"

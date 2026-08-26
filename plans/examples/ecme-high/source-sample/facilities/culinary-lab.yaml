@@ -1,0 +1,21 @@
+items:
+  - id: "https://ecme-high.example/id/facility/culinary-lab"
+    type: "instructional-facility"
+    campus: "https://ecme-high.example/id/campus/main"
+    name: "Culinary Learning Laboratory"
+    description: "A fictional public description of a teaching kitchen. No security or access-control details are included."
+    capabilities:
+      - "instructional-kitchen"
+      - "food-science-lab"
+    accessibility:
+      notes: "Public accessibility details should be reviewed by the school before publication."
+
+  - id: "https://ecme-high.example/id/facility/library"
+    type: "library"
+    campus: "https://ecme-high.example/id/campus/main"
+    name: "Ecme Learning Commons"
+
+  - id: "https://ecme-high.example/id/facility/auditorium"
+    type: "auditorium"
+    campus: "https://ecme-high.example/id/campus/main"
+    name: "Ecme Auditorium"

@@ -1,0 +1,36 @@
+items:
+  - id: "https://ecme-high.example/id/contact/general-office"
+    type: "contact-point"
+    contactType: "general"
+    role: "School Office"
+    organization: "https://ecme-high.example/id/organization"
+    email: "office@ecme-high.example"
+    telephone: "+1-202-555-0100"
+    website: "https://ecme-high.example/contact"
+    languages:
+      - "en-US"
+      - "es"
+    publicationReview:
+      reviewedAt: "2027-05-01"
+      reviewBy: "2028-05-01"
+
+  - id: "https://ecme-high.example/id/contact/data-corrections"
+    type: "contact-point"
+    contactType: "data-corrections"
+    role: "Public Data Corrections"
+    organization: "https://ecme-high.example/id/organization"
+    email: "data-corrections@ecme-high.example"
+    website: "https://ecme-high.example/contact/data-corrections"
+
+  - id: "https://ecme-high.example/id/contact/fcs-department"
+    type: "contact-point"
+    contactType: "academic-department"
+    role: "Family and Consumer Sciences Department"
+    department: "https://ecme-high.example/id/department/fcs"
+    email: "fcs@ecme-high.example"
+
+  - id: "https://ecme-high.example/id/contact/accessibility-services"
+    type: "contact-point"
+    contactType: "accessibility"
+    role: "Accessibility and Language Assistance"
+    email: "access@ecme-high.example"

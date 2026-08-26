@@ -1,0 +1,19 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-report.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/conformance",
+  "type": "conformance-report",
+  "subject": "https://ecme-high.example/id/organization",
+  "status": "planning-example",
+  "profiles": [
+    {
+      "id": "school-core",
+      "result": "not-run"
+    },
+    {
+      "id": "school-catalog",
+      "result": "not-run"
+    }
+  ],
+  "notice": "No conformance claim is made. The implementation must generate this report from actual tests."
+}

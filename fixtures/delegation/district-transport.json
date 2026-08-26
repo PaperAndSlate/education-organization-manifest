@@ -1,0 +1,15 @@
+{
+  "type": "delegation",
+  "id": "https://ecme-high.example/id/delegation/district-transport",
+  "delegate": "https://district.example/id/transport-authority",
+  "scope": {
+    "resourceTypes": ["transportation-catalog"],
+    "allowedOrigins": ["https://transport.district.example"],
+    "allowedPathPrefixes": ["/public/ecme-high/"]
+  },
+  "validFrom": "2027-07-01T00:00:00Z",
+  "validUntil": "2028-06-30T23:59:59Z",
+  "transitive": false,
+  "status": "active",
+  "subject": "https://ecme-high.example/id/school"
+}

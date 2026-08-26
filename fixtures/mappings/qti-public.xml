@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem identifier="qti-example-202" title="Culinary safety sample" adaptive="false" timeDependent="false">
+  <identifier>qti-example-202</identifier>
+  <title>Culinary safety sample</title>
+  <qtiVersion>3.0.0</qtiVersion>
+  <description>Public metadata for a fictitious sample assessment resource.</description>
+</assessmentItem>

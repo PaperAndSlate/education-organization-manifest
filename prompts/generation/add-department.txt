@@ -1,0 +1,30 @@
+PROMPT ID: eom/add-department
+PURPOSE: Add a department and establish its module ownership without weakening school publication authority.
+
+INPUTS
+- Organization/campus: {{ORGANIZATION}}
+- Department name and source material: {{DEPARTMENT}}
+- Department owner/team: {{OWNER}}
+- Modules the department will maintain: {{MODULES}}
+- Existing source root: {{SOURCE_ROOT}}
+
+TASK
+1. Verify the department is deliberately represented by the organization.
+2. Create a stable department ID and localized name.
+3. Add role-based contacts; named staff only if deliberately public.
+4. Add department description, subjects, programs, facilities, links, and effective dates only when evidenced.
+5. Create source directories that match repository ownership boundaries.
+6. Update CODEOWNERS and review matrix.
+7. Link existing courses/programs without duplicating entities.
+8. Do not grant publication authority outside the root manifest.
+9. If a department hosts a resource on another origin, create an explicit scoped delegation proposal.
+10. Validate all references and generate a review report.
+11. Do not publish.
+
+OUTPUT
+- department source;
+- ownership changes;
+- linked entities;
+- evidence;
+- validation report;
+- approval requirements.

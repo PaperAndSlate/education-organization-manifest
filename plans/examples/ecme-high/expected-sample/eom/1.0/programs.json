@@ -1,0 +1,41 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/program-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/programs",
+  "type": "program-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/program/core-graduation",
+      "type": "program",
+      "name": "Synthetic Core Graduation Program",
+      "publicDisclaimer": "Not a real graduation requirement."
+    },
+    {
+      "id": "https://ecme-high.example/id/program/culinary-hospitality",
+      "type": "program",
+      "name": "Culinary and Hospitality Pathway",
+      "department": "https://ecme-high.example/id/department/fcs",
+      "requiredCourses": [
+        "https://ecme-high.example/id/course/fcs-101",
+        "https://ecme-high.example/id/course/cul-101",
+        "https://ecme-high.example/id/course/cul-202"
+      ]
+    },
+    {
+      "id": "https://ecme-high.example/id/program/engineering-design",
+      "type": "program",
+      "name": "Engineering Design Pathway"
+    },
+    {
+      "id": "https://ecme-high.example/id/program/fine-arts",
+      "type": "program",
+      "name": "Fine Arts Concentration"
+    },
+    {
+      "id": "https://ecme-high.example/id/program/world-language",
+      "type": "program",
+      "name": "World Language Sequence"
+    }
+  ]
+}

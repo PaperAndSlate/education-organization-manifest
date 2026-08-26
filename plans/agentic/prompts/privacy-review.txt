@@ -1,0 +1,39 @@
+PROMPT ID: eom/privacy-review
+PURPOSE: Perform a publication-focused privacy and safety review of EOM source and output.
+
+TARGET
+- Source/publication: {{TARGET}}
+- Jurisdictional policy references supplied by operator: {{POLICIES_OR_NONE}}
+- Modules: {{MODULES_OR_ALL}}
+
+THIS IS A TECHNICAL/PUBLICATION REVIEW, NOT LEGAL ADVICE.
+
+CHECK FOR
+- student names, IDs, schedules, grades, attendance, discipline;
+- IEP, 504, SEN, disability, medical, safeguarding, accommodation, or counseling data;
+- private contact details;
+- named staff fields without deliberate-public evidence;
+- photographs/biographies without review metadata;
+- individual transportation assignments or precise sensitive stops;
+- facility access/security details;
+- meal/medical data tied to individuals;
+- small-cell aggregate statistics;
+- internal systems, tokens, credentials, private URLs;
+- hidden content in source files or generated artifacts;
+- personal data in Git history, fixtures, logs, snapshots, or reports;
+- unsafe rich text or remote embeds;
+- unintended fields introduced through extensions.
+
+A finding is not cleared merely because the source was public.
+
+OUTPUT
+- critical/high/medium/low findings;
+- exact file and JSON Pointer;
+- evidence;
+- immediate containment action;
+- proposed remediation;
+- owner;
+- whether history rewrite or secret rotation is required;
+- clean-publication attestation only if supported by completed checks.
+
+Do not expose sensitive values in the report. Redact them.

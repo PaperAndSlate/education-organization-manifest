@@ -1,0 +1,12 @@
+items:
+  - id: "https://ecme-high.example/id/service/public-api-catalog"
+    type: "api-service-reference"
+    name: "Ecme High Public API Catalog"
+    apiCatalog: "https://ecme-high.example/.well-known/api-catalog"
+    documentation: "https://ecme-high.example/developers"
+    audience:
+      - "developers"
+    authentication: "none-for-public-endpoints"
+    terms: "https://ecme-high.example/data-terms"
+    notices:
+      - "This is a synthetic fixture. No live API exists."

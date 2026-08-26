@@ -1,0 +1,28 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/event-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/events",
+  "type": "event-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/event/course-selection-night-2028",
+      "type": "event",
+      "name": "Fictional Course Selection Night",
+      "status": "scheduled",
+      "start": "2028-02-03T18:00:00-06:00",
+      "end": "2028-02-03T19:30:00-06:00",
+      "timezone": "America/Chicago",
+      "url": "https://ecme-high.example/events/course-selection-night-2028"
+    },
+    {
+      "id": "https://ecme-high.example/id/event/career-showcase-2028",
+      "type": "event",
+      "name": "Synthetic Career Showcase",
+      "status": "scheduled",
+      "start": "2028-03-16T17:30:00-05:00",
+      "end": "2028-03-16T19:00:00-05:00",
+      "timezone": "America/Chicago"
+    }
+  ]
+}

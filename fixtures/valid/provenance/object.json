@@ -1,0 +1,13 @@
+{
+  "type": "provenance",
+  "id": "https://ecme-high.example/evidence/provenance/course-cul-202",
+  "scope": "object",
+  "targetObjectId": "https://ecme-high.example/id/course/cul-202",
+  "source": {
+    "uri": "https://ecme-high.example/catalog/2027",
+    "type": "organization-publication"
+  },
+  "observedAt": "2026-08-26T08:00:00Z",
+  "effective": { "from": "2027-07-01", "until": "2028-06-30" },
+  "verificationStatus": "asserted"
+}

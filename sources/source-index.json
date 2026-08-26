@@ -1,0 +1,15 @@
+[
+  {
+    "type": "source-record",
+    "id": "https://ecme-high.example/evidence/source/catalog-2027",
+    "uri": "https://ecme-high.example/catalog/2027",
+    "title": "Ecme High public course catalog",
+    "sourceType": "organization-publication",
+    "retrievedAt": "2026-08-26T08:00:00Z",
+    "licenseStatus": "review-required",
+    "accessRestrictions": "public",
+    "modules": ["course-catalog"],
+    "reviewOwner": "curriculum-office",
+    "status": "approved"
+  }
+]

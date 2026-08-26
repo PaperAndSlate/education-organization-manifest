@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'"
+    />
+    <title>Govern EOM</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <a class="brand" href="index.html">EOM 1.0</a>
+        <nav aria-label="Primary">
+          <ul>
+            <li><a href="publish.html">Publish</a></li>
+            <li><a href="consume.html">Consume</a></li>
+            <li><a href="reference.html">Reference</a></li>
+            <li><a href="integrate.html">Integrate</a></li>
+            <li><a href="explore.html">Explore</a></li>
+            <li><a href="govern.html" aria-current="page">Govern</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="shell prose">
+      <p class="eyebrow">Govern</p>
+      <h1>Keep the draft honest</h1>
+      <p class="lede">
+        EOM is designed for independent implementations and public review. paper&amp;slate stewards
+        the repository; it does not own a school’s facts or become the authority merely by providing
+        tools.
+      </p>
+      <h2>Status language</h2>
+      <ul>
+        <li>
+          Say <strong>proposed well-known URI suffix</strong> until external registration is
+          accepted.
+        </li>
+        <li>
+          Say <strong>working draft</strong> for the current specification and release candidate.
+        </li>
+        <li>
+          Say <strong>tested against EOM 1.0 [profile]</strong> for a named local test result.
+        </li>
+        <li>
+          Do not claim IANA acceptance, independent pilot adoption, 1EdTech certification, school
+          endorsement, factual truth, or production readiness without recorded evidence.
+        </li>
+      </ul>
+      <h2>Change control</h2>
+      <p>
+        Normative protocol changes belong in versioned specifications and RFCs. Architecture choices
+        are recorded in ADRs. Schemas are structural source of truth; generated types and schema
+        docs are rebuilt and drift-checked. Security and privacy reports should be reproducible and
+        should distinguish repository evidence from external review.
+      </p>
+      <h2>External gates</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Gate</th>
+            <th>Repository can prepare</th>
+            <th>Still external</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Well-known registration</td>
+            <td>Submission draft, rationale, expert questions</td>
+            <td>IANA registry decision</td>
+          </tr>
+          <tr>
+            <td>Adoption</td>
+            <td>Pilot guide and independent consumer test guide</td>
+            <td>Real participating organizations</td>
+          </tr>
+          <tr>
+            <td>Certification</td>
+            <td>Mapping and conformance tests</td>
+            <td>External standards-body process</td>
+          </tr>
+          <tr>
+            <td>Production</td>
+            <td>Release checklist and security evidence</td>
+            <td>Operational ownership, legal review, deployment</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Read <a href="source-docs/governance/README.md">governance</a>,
+        <a href="spec/1.0/security.md">security</a>,
+        <a href="source-docs/project-status.md">status</a>, and the
+        <a href="spec/1.0/iana-registration.md">registration draft</a>.
+      </p>
+    </main>
+    <footer class="footer">
+      <div class="shell">
+        Open issues and external blockers are part of a trustworthy release process.
+      </div>
+    </footer>
+  </body>
+</html>

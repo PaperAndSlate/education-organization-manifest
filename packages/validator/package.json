@@ -1,0 +1,24 @@
+{
+  "name": "@paperandslate/eom-validator",
+  "version": "0.1.0",
+  "description": "Structural and semantic validator for EOM publications.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@paperandslate/eom-core": "workspace:*",
+    "@paperandslate/eom-schema": "workspace:*",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
+    "typecheck": "tsc --noEmit",
+    "lint": "true"
+  }
+}

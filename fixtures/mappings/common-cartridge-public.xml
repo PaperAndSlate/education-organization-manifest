@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="cc-example-202" xmlns="http://www.imsglobal.org/xsd/imsccv1p3/imscp_v1p1">
+  <metadata>
+    <schema>1EdTech</schema>
+    <schemaversion>1.3</schemaversion>
+    <title>Culinary Foundations public package</title>
+    <description>A fictitious public package descriptor.</description>
+  </metadata>
+</manifest>

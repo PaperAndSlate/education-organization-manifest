@@ -1,0 +1,89 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/course.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/course/cul-202",
+  "type": "course",
+  "code": "CUL-202",
+  "provider": "https://ecme-high.example/id/organization",
+  "department": "https://ecme-high.example/id/department/fcs",
+  "title": {
+    "default": "en-US",
+    "values": {
+      "en-US": "Culinary Arts II",
+      "es": "Artes Culinarias II"
+    }
+  },
+  "description": "An advanced fictional laboratory course in food preparation, kitchen operations, menu planning, and hospitality teamwork.",
+  "status": "active",
+  "effective": {
+    "from": "2027-07-01",
+    "until": "2028-06-30"
+  },
+  "educationLevels": [
+    {
+      "vocabulary": "https://paperandslate.org/vocabularies/eom/jurisdictions/us-ia/education-levels/1.0",
+      "code": "grade-11"
+    },
+    {
+      "vocabulary": "https://paperandslate.org/vocabularies/eom/jurisdictions/us-ia/education-levels/1.0",
+      "code": "grade-12"
+    }
+  ],
+  "credits": [
+    {
+      "value": "1.0",
+      "system": "https://ecme-high.example/id/credit-systems/local-high-school-credit"
+    }
+  ],
+  "duration": {
+    "value": "1",
+    "unit": "academic-year"
+  },
+  "prerequisites": {
+    "allOf": [
+      {
+        "course": "https://ecme-high.example/id/course/cul-101",
+        "minimumResult": {
+          "scheme": "https://ecme-high.example/id/grading-scale",
+          "value": "C"
+        }
+      }
+    ],
+    "display": "Culinary Arts I with a grade of C or better."
+  },
+  "delivery": {
+    "modes": [
+      "in-person"
+    ],
+    "locations": [
+      "https://ecme-high.example/id/facility/culinary-lab"
+    ],
+    "languageOfInstruction": [
+      "en-US"
+    ]
+  },
+  "fees": [
+    {
+      "amount": "35.00",
+      "currency": "USD",
+      "basis": "per-course",
+      "description": "Synthetic consumable-materials fee.",
+      "waiverInformation": "https://ecme-high.example/fees/waivers"
+    }
+  ],
+  "programs": [
+    "https://ecme-high.example/id/program/culinary-hospitality"
+  ],
+  "provenance": [
+    {
+      "source": "https://ecme-high.example/id/source/catalog-2027-2028",
+      "observedAt": "2027-05-01T12:00:00Z",
+      "verificationStatus": "approved-synthetic-fixture"
+    }
+  ],
+  "extensions": {
+    "org.paperandslate.example/fixture": {
+      "fictional": true
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "@id": "https://ecme-high.example/#organization",
+  "name": "Ecme High School",
+  "alternateName": "Ecme High",
+  "description": "A fictitious public secondary school for interoperability testing.",
+  "url": "https://ecme-high.example/",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Example City",
+    "addressCountry": "ZZ"
+  }
+}

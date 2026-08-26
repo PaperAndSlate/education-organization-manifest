@@ -1,0 +1,30 @@
+contacts:
+  - id: 'https://ecme-high.example/id/contact/admissions'
+    type: 'contact-point'
+    role: 'Admissions office'
+    organization:
+      id: 'https://ecme-high.example/id/school'
+    email: 'admissions@ecme-high.example'
+    telephone: '+1-555-0100'
+    website: 'https://ecme-high.example/admissions'
+    audience:
+      - 'prospective-students'
+      - 'parents-guardians'
+    publicationReview:
+      reviewedAt: '2027-05-01T12:00:00Z'
+      status: 'approved'
+      expires: '2028-05-01T00:00:00Z'
+  - id: 'https://ecme-high.example/id/contact/family-services'
+    type: 'contact-point'
+    role: 'Family Services'
+    organization:
+      id: 'https://ecme-high.example/id/school'
+    email: 'family-services@ecme-high.example'
+    website: 'https://ecme-high.example/family-services'
+    audience:
+      - 'current-students'
+      - 'parents-guardians'
+    publicationReview:
+      reviewedAt: '2027-05-01T12:00:00Z'
+      status: 'approved'
+      expires: '2028-05-01T00:00:00Z'

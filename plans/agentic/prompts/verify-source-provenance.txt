@@ -1,0 +1,39 @@
+PROMPT ID: eom/verify-source-provenance
+PURPOSE: Verify that published or candidate EOM claims are supported by traceable sources.
+
+TARGET
+- EOM source/publication: {{TARGET}}
+- Evidence ledger: {{LEDGER}}
+- Allowed sources: {{SOURCE_SCOPE}}
+
+TASK
+For each material public field:
+1. locate the corresponding claim/evidence record;
+2. verify source identity and current reachability where permitted;
+3. verify the evidence locator;
+4. verify transformation and effective date;
+5. verify authority class;
+6. verify review decision;
+7. identify stale or contradictory evidence;
+8. identify fields with no provenance where the profile requires it.
+
+Classify each field:
+- verified;
+- verified but stale;
+- supported by lower-authority source;
+- conflicting;
+- transformed with documented mapping;
+- inferred and not publication-ready;
+- unsupported;
+- unverifiable.
+
+Do not expand source scope without operator approval. Do not copy full source documents.
+
+OUTPUT
+- provenance coverage percentage by module;
+- unsupported-field list with JSON Pointers;
+- stale evidence;
+- source failures;
+- conflict list;
+- recommended remediation;
+- no source or publication changes unless separately requested.

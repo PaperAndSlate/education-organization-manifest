@@ -1,0 +1,54 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/organization.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/organization",
+  "type": "secondary-school",
+  "name": {
+    "default": "en-US",
+    "values": {
+      "en-US": "Ecme High School",
+      "es": "Escuela Secundaria Ecme"
+    }
+  },
+  "description": {
+    "default": "en-US",
+    "values": {
+      "en-US": "A fictional public secondary school used to demonstrate EOM.",
+      "es": "Una escuela secundaria pública ficticia utilizada para demostrar EOM."
+    }
+  },
+  "canonicalUrl": "https://ecme-high.example/",
+  "governingOrganization": {
+    "id": "https://district.ecme.example/id/organization",
+    "name": "Ecme Public Schools"
+  },
+  "campuses": [
+    "https://ecme-high.example/id/campus/main"
+  ],
+  "defaultLanguage": "en-US",
+  "supportedLanguages": [
+    "en-US",
+    "es"
+  ],
+  "contacts": [
+    "https://ecme-high.example/id/contact/general-office",
+    "https://ecme-high.example/id/contact/data-corrections"
+  ],
+  "address": {
+    "lines": [
+      "100 Learning Way"
+    ],
+    "locality": "Example City",
+    "administrativeArea": "IA",
+    "postalCode": "00000",
+    "countryCode": "US",
+    "public": true
+  },
+  "modified": "2027-05-01T12:00:00Z",
+  "extensions": {
+    "org.paperandslate.example/fixture": {
+      "fictional": true
+    }
+  }
+}

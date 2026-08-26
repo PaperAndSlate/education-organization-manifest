@@ -1,0 +1,36 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/meal-menu-catalog.schema.json",
+  "canonical": "https://ecme-high.example/eom/meals.json",
+  "expires": "2028-05-01T14:00:00Z",
+  "id": "https://ecme-high.example/eom/resource/meals",
+  "items": [
+    {
+      "allergenDisclaimer": "Allergen information is provided by the food-service source and is not a medical safety guarantee.",
+      "date": "2027-09-01",
+      "id": "https://ecme-high.example/id/menu/2027-09-01",
+      "mealPeriod": "lunch",
+      "menuSections": [
+        {
+          "items": [
+            {
+              "allergens": [
+                "source-declared"
+              ],
+              "name": "Example grain bowl"
+            }
+          ],
+          "name": "Main"
+        }
+      ],
+      "name": "September 1 Menu",
+      "type": "meal-menu"
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "subjects": [
+    "https://ecme-high.example/id/school"
+  ],
+  "type": "meal-menu-catalog",
+  "version": "1.0"
+}

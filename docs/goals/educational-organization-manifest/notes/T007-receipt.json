@@ -1,0 +1,53 @@
+{
+  "result": "done",
+  "decision": "continue",
+  "full_outcome_complete": false,
+  "summary": "Implemented the Phase 3 deep education model and graph validation. Course, offering, section, and program schemas now cover structured prerequisites/corequisites, lifecycle and catalog versions, delivery, outcomes, standards, fees/materials, workload, and public occurrence data. The fictional Ecme source now builds a 57-course catalog across nine departments with representative edge cases, while proposed source remains outside the public build.",
+  "changed_files": [
+    ".prettierignore",
+    "schemas/1.0/common.schema.json",
+    "schemas/1.0/module-resource.schema.json",
+    "schemas/1.0/module-items.schema.json",
+    "packages/validator/src/semantic.ts",
+    "packages/generator/src/index.ts",
+    "packages/types/src/generated.ts",
+    "examples/ecme-high/source/modules/courses.yaml",
+    "examples/ecme-high/source/modules/departments.yaml",
+    "examples/ecme-high/source/modules/calendar.yaml",
+    "examples/ecme-high/source/modules/offerings.yaml",
+    "examples/ecme-high/source/modules/programs.yaml",
+    "examples/ecme-high/source/contacts.yaml",
+    "examples/ecme-high/source/proposed/2028-2029-courses.yaml",
+    "examples/ecme-high/public/**",
+    "examples/ecme-high/build/**",
+    "fixtures/invalid/semantic/prerequisite-cycle.json",
+    "fixtures/valid/course/historical-catalog.json",
+    "tests/validator.test.ts",
+    "tests/generator.test.ts",
+    "tests/modules.test.ts",
+    "docs/authoring-and-generation.md",
+    "examples/ecme-high/README.md",
+    "docs/reference/schema-catalog.md",
+    "reports/phase-3-core-school-modules.md"
+  ],
+  "commands": [
+    { "cmd": "pnpm format:check", "status": "pass" },
+    { "cmd": "pnpm schema:check", "status": "pass", "detail": "35 JSON Schema 2020-12 files" },
+    { "cmd": "pnpm generate:types", "status": "pass" },
+    { "cmd": "pnpm generate:drift", "status": "pass" },
+    { "cmd": "pnpm typecheck", "status": "pass" },
+    { "cmd": "pnpm test -- --runInBand", "status": "pass", "detail": "5 files, 43 tests" },
+    { "cmd": "pnpm examples:build", "status": "pass", "detail": "57 courses, 3 offerings, 9 departments, 2 programs" },
+    { "cmd": "pnpm verify:determinism", "status": "pass", "detail": "24 generated files" },
+    { "cmd": "pnpm verify:examples", "status": "pass", "detail": "78 files inspected" },
+    { "cmd": "pnpm build", "status": "pass", "detail": "8 buildable workspace packages" },
+    { "cmd": "git diff --check", "status": "pass" }
+  ],
+  "evidence": [
+    "schemas/1.0/module-items.schema.json",
+    "packages/validator/src/semantic.ts",
+    "examples/ecme-high/public/eom/courses.json",
+    "fixtures/invalid/semantic/prerequisite-cycle.json",
+    "reports/phase-3-core-school-modules.md"
+  ]
+}

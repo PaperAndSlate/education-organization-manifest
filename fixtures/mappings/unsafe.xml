@@ -1,0 +1,3 @@
+<?xml version="1.0"?>
+<!DOCTYPE assessmentItem [ <!ENTITY blocked "redacted"> ]>
+<assessmentItem identifier="unsafe-example"><title>Rejected fixture</title></assessmentItem>

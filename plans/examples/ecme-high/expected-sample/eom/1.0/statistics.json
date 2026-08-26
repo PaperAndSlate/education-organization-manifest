@@ -1,0 +1,25 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/statistics-profile.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/statistics/public-profile-2027",
+  "type": "statistics-profile",
+  "organization": "https://ecme-high.example/id/organization",
+  "title": "Synthetic Public Statistics",
+  "asOf": "2027-10-01",
+  "notice": "All values are invented.",
+  "measures": [
+    {
+      "id": "https://ecme-high.example/id/measure/total-enrollment",
+      "name": "Total enrollment",
+      "value": "640",
+      "unit": "students",
+      "source": "https://ecme-high.example/id/source/synthetic-statistics-2027"
+    },
+    {
+      "id": "https://ecme-high.example/id/measure/example-suppressed",
+      "name": "Example suppressed small-cell measure",
+      "suppressed": true,
+      "suppressionReason": "Demonstrates disclosure control."
+    }
+  ]
+}

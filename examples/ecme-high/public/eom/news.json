@@ -1,0 +1,23 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/news-feed.schema.json",
+  "canonical": "https://ecme-high.example/eom/news.json",
+  "expires": "2028-05-01T14:00:00Z",
+  "id": "https://ecme-high.example/eom/resource/news",
+  "items": [
+    {
+      "articleUrl": "https://ecme-high.example/news/welcome",
+      "headline": "Welcome to the new school year",
+      "id": "https://ecme-high.example/id/news/welcome",
+      "name": "Welcome to the new school year",
+      "publishedAt": "2027-05-01T14:00:00Z",
+      "type": "news-item"
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "subjects": [
+    "https://ecme-high.example/id/school"
+  ],
+  "type": "news-feed",
+  "version": "1.0"
+}

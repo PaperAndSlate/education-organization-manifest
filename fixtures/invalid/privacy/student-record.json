@@ -1,0 +1,21 @@
+{
+  "type": "claim-record",
+  "id": "https://ecme-high.example/evidence/claim/quarantined-student",
+  "target": {
+    "resourceId": "https://ecme-high.example/eom/organization",
+    "pointer": "/notes"
+  },
+  "proposedValue": "Student Example",
+  "studentName": "Student Example",
+  "studentId": "synthetic-student-001",
+  "source": {
+    "sourceId": "https://ecme-high.example/evidence/source/quarantined-fixture",
+    "locator": { "section": "redacted" }
+  },
+  "evidence": { "observedAt": "2026-08-26T08:00:00Z" },
+  "method": { "kind": "direct-extraction" },
+  "confidence": 0.99,
+  "authorityClass": "organization-origin",
+  "privacyClass": "quarantined",
+  "review": { "state": "quarantined", "requiredOwner": "privacy-reviewer" }
+}

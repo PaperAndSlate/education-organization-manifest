@@ -1,0 +1,24 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/job-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/jobs",
+  "type": "job-catalog",
+  "canonical": "https://district.ecme.example/eom/1.0/schools/ecme-high/jobs.json",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/job/culinary-instructional-assistant-2027",
+      "type": "job-posting",
+      "title": "Fictional Culinary Instructional Assistant",
+      "status": "open",
+      "postedAt": "2027-05-10",
+      "closesAt": "2027-06-15",
+      "applicationUrl": "https://district.ecme.example/jobs/example-001",
+      "extensions": {
+        "org.paperandslate.example/fixture": {
+          "fictional": true
+        }
+      }
+    }
+  ]
+}

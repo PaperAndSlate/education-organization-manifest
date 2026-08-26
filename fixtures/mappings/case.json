@@ -1,0 +1,8 @@
+{
+  "uri": "https://standards.example/frameworks/culinary/items/202",
+  "identifier": "case-item-202",
+  "fullStatement": "Plan and prepare a safe, balanced recipe.",
+  "humanCodingScheme": "CUL.2.02",
+  "CFDocumentURI": "https://standards.example/frameworks/culinary",
+  "CFItemType": "Element"
+}

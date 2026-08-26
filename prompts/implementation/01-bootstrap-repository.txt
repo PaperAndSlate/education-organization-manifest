@@ -1,0 +1,27 @@
+PROMPT ID: eom/implementation/bootstrap
+GOAL: Create the production-quality repository foundation for EOM without prematurely implementing unstable protocol details.
+
+Read every planning document, then produce a requirement traceability matrix and architecture decision backlog before code.
+
+Implement:
+- pnpm monorepo with pinned active LTS Node.js and strict TypeScript;
+- workspace package boundaries from MONOREPO_ARCHITECTURE.md;
+- root README, licenses, code of conduct, contributing, governance, security, support, changelog;
+- issue/PR/RFC/ADR templates;
+- CODEOWNERS and ownership examples;
+- format, lint, typecheck, test, build, docs, generated-drift scripts;
+- CI baseline with least-privilege permissions and pinned actions;
+- dependency update and supply-chain policy;
+- documentation site skeleton;
+- Ecme High fixture directory skeleton;
+- release and phase-report directories.
+
+Do not invent schema semantics that have not been traced to the plans. Record each architecture choice in an ADR.
+
+Acceptance:
+- clean install on a supported environment;
+- all baseline commands pass;
+- no placeholder claims that external registration or adoption is complete;
+- licenses and package metadata are internally consistent;
+- repository structure matches the blueprint;
+- phase report lists all commands and results.

@@ -1,0 +1,989 @@
+{
+  "name": "paper-and-slate-eom-codex-pack",
+  "description": "Implementation planning pack for the Educational Organization Manifest repository.",
+  "foundation": {
+    "name": "paper&slate",
+    "domain": "paperandslate.org"
+  },
+  "protocol": {
+    "workingName": "Educational Organization Manifest",
+    "abbreviation": "EOM",
+    "proposedWellKnownSuffix": "educational-organization-manifest",
+    "registrationStatus": "proposed-not-registered"
+  },
+  "generatedAt": "2026-08-26T05:00:00Z",
+  "totalFilesIncludingManifest": 195,
+  "manifestSelfExcluded": true,
+  "files": [
+    {
+      "path": "00_PROJECT_BRIEF.md",
+      "bytes": 5224,
+      "sha256": "81c7ca4b59ceddef3d7c2ec9c40f81c5cc71f6948c2757f39d7cf5fdd474ed03"
+    },
+    {
+      "path": "01_CONFIRMED_DECISIONS.md",
+      "bytes": 5798,
+      "sha256": "d2b7ecb133a3b6fd161315bc3e16de5a1c5803eb7d66d5a8ae9bc4120f25d8ba"
+    },
+    {
+      "path": "02_NAMING_DECISION.md",
+      "bytes": 4694,
+      "sha256": "df3afdd3a1fc52ca0d67ea05fd622789269e00c554c40cc0ad392654a9e37b21"
+    },
+    {
+      "path": "03_REPOSITORY_BLUEPRINT.md",
+      "bytes": 5877,
+      "sha256": "c58ef05d18845d8a2c3748169d1b4e9a3b7bcf2da9c26aaed3a108ebb219d893"
+    },
+    {
+      "path": "04_IMPLEMENTATION_PRINCIPLES.md",
+      "bytes": 4192,
+      "sha256": "c880fa050058e4eaa71a885fad80433a728ebf91d23ce4727ba5fbb3439d0772"
+    },
+    {
+      "path": "05_GLOSSARY.md",
+      "bytes": 3150,
+      "sha256": "6db053a98503c165387804718dd4b73324bd717089b44bab6aedbaba957f439c"
+    },
+    {
+      "path": "06_SOURCE_RESEARCH.md",
+      "bytes": 3613,
+      "sha256": "f3f443599a217b36c3c761f902349cb11a2ffb38ef32fc5d9de621778122841b"
+    },
+    {
+      "path": "CODEX_EXECUTION_PLAYBOOK.md",
+      "bytes": 3782,
+      "sha256": "a5ea870a2f109767862c63244d83c98048dbf5520f497dcf935bc698bcfb408d"
+    },
+    {
+      "path": "MASTER_CODEX_GOAL_PROMPT.txt",
+      "bytes": 6397,
+      "sha256": "ae053cb5b7b847175ddb667714dcc811b600b4954d33380695139e3f7e2cbf2c"
+    },
+    {
+      "path": "OPERATOR_HANDOFF.md",
+      "bytes": 3082,
+      "sha256": "28249f23895f7e9264d4c88bbb50776e17f1068cd058f4212ba00c19a408418e"
+    },
+    {
+      "path": "PACK_INDEX.md",
+      "bytes": 10882,
+      "sha256": "fce0e265c95fe97c75012b7c76f262b45d1ef09e4a28e497b4b7d740c44f92fd"
+    },
+    {
+      "path": "PACK_VALIDATION_REPORT.md",
+      "bytes": 2164,
+      "sha256": "adbfff40ef2249e68671f9bbd5b6702cdabd590ade80204fc106951b9d714131"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3821,
+      "sha256": "5ef450bac0316e5a8f9b25828770c7048a7a84ffd19b7682c42376b9a813fb29"
+    },
+    {
+      "path": "adoption/CONSUMER_PATTERNS.md",
+      "bytes": 2432,
+      "sha256": "704ae184e3d72270df302cc699ddc4c5fda041b9b0f07cea8bf34ba70a21490b"
+    },
+    {
+      "path": "adoption/PUBLISHING_METHODS.md",
+      "bytes": 2269,
+      "sha256": "570552f4840fc4fb03cef2414d8d42e34dcb3f5c0bce9f0c8a0128be6cbb2983"
+    },
+    {
+      "path": "adoption/USE_CASES.md",
+      "bytes": 2534,
+      "sha256": "d6106d2df68b61e0d85b34ee8f17d46bcf2cc554ccf32879b73055056ac58204"
+    },
+    {
+      "path": "adoption/VENDOR_AND_DISTRICT_INTEGRATION.md",
+      "bytes": 2165,
+      "sha256": "546aedc3ba3e417ca1ff708b5e9b5ff18bd8728cb530925313109e7399152539"
+    },
+    {
+      "path": "adoption/WHY_EOM_EXISTS.md",
+      "bytes": 2196,
+      "sha256": "e72974aa95ae8aeecd2f33fb8f1c959d4e83ade40ab62200339f51df599721a6"
+    },
+    {
+      "path": "agentic/AGENTS.md",
+      "bytes": 5496,
+      "sha256": "7ebf08249f001518079d0ba87f10a741caadbd0c962c306dd1aa7c411e4b3aed"
+    },
+    {
+      "path": "agentic/EVIDENCE_LEDGER.md",
+      "bytes": 3391,
+      "sha256": "a2e4e6c11729d472bdd3675a5022f03960f3f514335093dcc3e4c6a6b72ed453"
+    },
+    {
+      "path": "agentic/EXTRACTION_METHODOLOGY.md",
+      "bytes": 5803,
+      "sha256": "00b1ec0d501aa505265e5a9d51cfe72fc42328e73dc1e74be5ea6744bb6e4733"
+    },
+    {
+      "path": "agentic/HUMAN_REVIEW_WORKFLOW.md",
+      "bytes": 2915,
+      "sha256": "fddbd235615de1b11df2eb6a5c082975e3668542cab1d5b2df3c394f5d2d3d04"
+    },
+    {
+      "path": "agentic/PROMPT_CATALOG.md",
+      "bytes": 2225,
+      "sha256": "ecff59b8edd3964d2d589c06862da9d55282d036106ffe134a9e12a0d1fab442"
+    },
+    {
+      "path": "agentic/prompts/add-courses.txt",
+      "bytes": 958,
+      "sha256": "917c8e4eecdf5f4e0ee0490248e1cdc04f9ce9b26dea2b74434835c7aca1157e"
+    },
+    {
+      "path": "agentic/prompts/add-department.txt",
+      "bytes": 1230,
+      "sha256": "8f342d5d8820f0330291078df93037be0fb498611bd0f87b6776c0ca3a877fb4"
+    },
+    {
+      "path": "agentic/prompts/audit-school-data.txt",
+      "bytes": 2340,
+      "sha256": "28c0720fce15948aaf61f16981863fc784b95597bfe4b09ac5b4fe5bd91900b2"
+    },
+    {
+      "path": "agentic/prompts/create-course-catalog.txt",
+      "bytes": 3081,
+      "sha256": "a3bbd1ef4921ece664e42b16af0302f12c3cc2197de7a49476541ee2c5308d65"
+    },
+    {
+      "path": "agentic/prompts/create-from-documents.txt",
+      "bytes": 2837,
+      "sha256": "e04c65dbd382a2e940d0b90e4e061fd2cdba5dd395227b76baa58cbda67588dc"
+    },
+    {
+      "path": "agentic/prompts/create-from-website.txt",
+      "bytes": 3572,
+      "sha256": "9fe5143ecda9f46486bc2703662fe4d60b60c159557097292ce0c15fba34a2b1"
+    },
+    {
+      "path": "agentic/prompts/enrich-from-public-data.txt",
+      "bytes": 1511,
+      "sha256": "ff246ff0922f9c795eec9a34b8ae6243f660dc6c61fbdcd59008d1158d7febea"
+    },
+    {
+      "path": "agentic/prompts/find-stale-information.txt",
+      "bytes": 1274,
+      "sha256": "a679431e2c82b341075546301706ca262f4e0d2e18d23fcd851d5f31d6805332"
+    },
+    {
+      "path": "agentic/prompts/generate-website-assets.txt",
+      "bytes": 1467,
+      "sha256": "cb86c2a9a6d6075a259b62ab2a3092905b558149e47c94a83fbcb1425b786eef"
+    },
+    {
+      "path": "agentic/prompts/implementation/01-bootstrap-repository.txt",
+      "bytes": 1324,
+      "sha256": "5c2e4c6136e9891d578de502ae44267f21b5a983f3ba9e8c275855b20476fde7"
+    },
+    {
+      "path": "agentic/prompts/implementation/02-core-protocol-and-schemas.txt",
+      "bytes": 1423,
+      "sha256": "d9b14c56bad4a65271b15c2bf2b574f3897983ac59251c4c3acd533ad87418e5"
+    },
+    {
+      "path": "agentic/prompts/implementation/03-module-schemas-and-ecme.txt",
+      "bytes": 1738,
+      "sha256": "da91804a8c2da3a988ecbfc8fac7eb7e88a75d613f377093dec04363aa68e07b"
+    },
+    {
+      "path": "agentic/prompts/implementation/04-generator-validator-cli.txt",
+      "bytes": 1460,
+      "sha256": "cad8d95c8b8185df32a6731e26997ef7aee238e616a184850726d9435ea0a386"
+    },
+    {
+      "path": "agentic/prompts/implementation/05-provenance-and-agent-workflows.txt",
+      "bytes": 1243,
+      "sha256": "ca63b38ef16fdd4f89fdff756c144908a5ce32a6993749a168077e17a896aa91"
+    },
+    {
+      "path": "agentic/prompts/implementation/06-delegation-and-signatures.txt",
+      "bytes": 1481,
+      "sha256": "fba63677f8208d8b223b9023bf840255a6c676e863b1ca55e36c21ac66c926d1"
+    },
+    {
+      "path": "agentic/prompts/implementation/07-documentation-and-playground.txt",
+      "bytes": 1677,
+      "sha256": "ad95e6806bbb0839514c6ab04e96e8f5989117a4a94246b1f9cf70744f77e6b5"
+    },
+    {
+      "path": "agentic/prompts/implementation/08-conformance-release-registration.txt",
+      "bytes": 1573,
+      "sha256": "b48ed14f4f8db903fb23a8d09f5374cce9e251e3790e833758b6e591c20f50cf"
+    },
+    {
+      "path": "agentic/prompts/migrate-schema.txt",
+      "bytes": 1265,
+      "sha256": "d4c50795af0bc67fd6ebcfffa20eea6deff68c073a5c088c54e3833cb298aae4"
+    },
+    {
+      "path": "agentic/prompts/privacy-review.txt",
+      "bytes": 1484,
+      "sha256": "37365f67652f77a20575b1265056b4d780e9832bb7784ac41005c644791cca16"
+    },
+    {
+      "path": "agentic/prompts/update-existing-school.txt",
+      "bytes": 1957,
+      "sha256": "933b8994836208f5f622643ea270e7adade4466d52d1b516ed7324f32a91fb79"
+    },
+    {
+      "path": "agentic/prompts/verify-source-provenance.txt",
+      "bytes": 1194,
+      "sha256": "13f723dde27b744e0978b3315f1c0b622bdaf2dbceac8c6457e6e8c5d4be1a04"
+    },
+    {
+      "path": "architecture/CI_CD_AND_RELEASE.md",
+      "bytes": 2228,
+      "sha256": "4528f896507c7c2b3e7a5178b72549d2ad51b7a4a42f70f86c2335d3bb41ab14"
+    },
+    {
+      "path": "architecture/CLI_DESIGN.md",
+      "bytes": 2504,
+      "sha256": "64192351542444b9d6378e5b323739e9b296f4f972536abaf2f446ee65778a3a"
+    },
+    {
+      "path": "architecture/CONFORMANCE_SUITE.md",
+      "bytes": 1918,
+      "sha256": "cc109ae8a0de552e3050474f7b7e0ca58f73f158b2a9ff2e9b16eef54ef236c2"
+    },
+    {
+      "path": "architecture/DEPENDENCY_AND_SUPPLY_CHAIN_POLICY.md",
+      "bytes": 1503,
+      "sha256": "c2bf74d7c94a7dde672414b14a76263f53cc20acd3fcf635dbd21514335d92cf"
+    },
+    {
+      "path": "architecture/DOCUMENTATION_AND_PLAYGROUND.md",
+      "bytes": 2743,
+      "sha256": "1644d7712b25a50a6e36e09c8b24330a17be0d74bc2cad527141e934cb8a7c8c"
+    },
+    {
+      "path": "architecture/GENERATOR_PIPELINE.md",
+      "bytes": 3128,
+      "sha256": "bc64b8ef2d0b9d9eddb9420ccfa01e3d83ee6faa676889a443a1b550d53d34cf"
+    },
+    {
+      "path": "architecture/MONOREPO_ARCHITECTURE.md",
+      "bytes": 3716,
+      "sha256": "b40e9d69966f5c29d5cb64d0491049e659f266cbbcd15b17e2608947c6937916"
+    },
+    {
+      "path": "architecture/PERFORMANCE_AND_CACHING.md",
+      "bytes": 1843,
+      "sha256": "a0ff33aff1d69507fb05f491a7adc7df9f354336daafab900b12a11881baf7c2"
+    },
+    {
+      "path": "architecture/REFERENCE_IMPLEMENTATION.md",
+      "bytes": 2032,
+      "sha256": "d1634be4ad7bf7a3f8d83263fd68bfd8316642e7c8d16efbe26281d392363997"
+    },
+    {
+      "path": "architecture/SCHEMA_ENGINEERING.md",
+      "bytes": 3078,
+      "sha256": "139c2ce0015535473fe2f75ca68e712d998fd3b12d8997ee403c8500cbf54595"
+    },
+    {
+      "path": "architecture/SOURCE_AND_GENERATED_DATA.md",
+      "bytes": 2652,
+      "sha256": "ec188d06c46bf2fab87ce38e72fb9171c4c6f3bc5a4147ac1e90eeec72056018"
+    },
+    {
+      "path": "architecture/TESTING_STRATEGY.md",
+      "bytes": 2079,
+      "sha256": "9a19fe8139f4acca310328607ce2442db9bd89a764c35b92bb6ad101f704381a"
+    },
+    {
+      "path": "architecture/THREAT_MODEL.md",
+      "bytes": 4005,
+      "sha256": "502a528a8dc321f7505161bd7b60db0903f29f2d787e0dae0c3288cd8c519452"
+    },
+    {
+      "path": "architecture/VALIDATOR_AND_LINTER.md",
+      "bytes": 2844,
+      "sha256": "b534a448ecbb07c7a7e9d34c850b88b72a4a8f6f096d1c538b5de7eb0a720753"
+    },
+    {
+      "path": "data-model/ADMISSIONS_AND_ENROLLMENT.md",
+      "bytes": 1369,
+      "sha256": "cea0a92939a9030b242de4150f00323bd2e3056ca08f79a7130ca5689739ab3c"
+    },
+    {
+      "path": "data-model/API_AND_SERVICE_DISCOVERY.md",
+      "bytes": 1305,
+      "sha256": "d8f43b5fb6176889ce2ba2605595b467c7e7fdd43642ddefe512aa1de998c519"
+    },
+    {
+      "path": "data-model/CALENDARS_EVENTS_AND_NEWS.md",
+      "bytes": 1946,
+      "sha256": "867f4022a94f1a07f619075eefd752657b59e4c46c7238552cedd0fda68def60"
+    },
+    {
+      "path": "data-model/COMMON_TYPES.md",
+      "bytes": 3321,
+      "sha256": "03591f2720559ac39d8a6a986db436e8ca8a9252a74125cb160d0018f83a9a4b"
+    },
+    {
+      "path": "data-model/COURSES.md",
+      "bytes": 3805,
+      "sha256": "427a514b4077f4a747c12fb8ff79f36467aff42ddffdc6f38fbf6bb1dabe45df"
+    },
+    {
+      "path": "data-model/DATA_MODEL_OVERVIEW.md",
+      "bytes": 3146,
+      "sha256": "c33590e13d0f19ae6881eeb008437d44088c38b0a7d7d3b656420545b4351f0f"
+    },
+    {
+      "path": "data-model/DEPARTMENTS_CONTACTS_AND_STAFF.md",
+      "bytes": 2322,
+      "sha256": "23519cb7d2451aa9a0113e0c55910ce3b707dff62f2615c6ec06652560ea15d9"
+    },
+    {
+      "path": "data-model/FACILITIES_SERVICES_AND_POLICIES.md",
+      "bytes": 1925,
+      "sha256": "24a2fd7eb159734403a8c6418a5968926810806f3efe8ae4fdcbb5955aec7f68"
+    },
+    {
+      "path": "data-model/JOBS.md",
+      "bytes": 1109,
+      "sha256": "8a4cbb6bc88f07a5a6a6d52f98116a94264c4c962b14c6b23f2d15bd8edde35f"
+    },
+    {
+      "path": "data-model/MEALS_AND_MENUS.md",
+      "bytes": 1610,
+      "sha256": "2b00a1189f16ecbe538f4b3b04ffec507eb00c4506e441151188a126f02d791a"
+    },
+    {
+      "path": "data-model/MODULE_REGISTRY.md",
+      "bytes": 2202,
+      "sha256": "4d54ae4a0248a938c72ddba32fbba5aea30d651223b849b7596d9aa333147001"
+    },
+    {
+      "path": "data-model/OFFERINGS_AND_SECTIONS.md",
+      "bytes": 2067,
+      "sha256": "9823fc086e061944fec557be0ce6ef8450e0f250b3ee59f5eea6dc928db00591"
+    },
+    {
+      "path": "data-model/ORGANIZATIONS_AND_CAMPUSES.md",
+      "bytes": 3510,
+      "sha256": "b761578ba019a504102fbc0c37faa5781a782fdcfb7a1f11087097c252491774"
+    },
+    {
+      "path": "data-model/PROGRAMS_AND_PATHWAYS.md",
+      "bytes": 1732,
+      "sha256": "61c3c5d72731f558ac3c4b566b3ed6e2ffba4b019f0475ef513422fdc15a08f5"
+    },
+    {
+      "path": "data-model/SPORTS_AND_CLUBS.md",
+      "bytes": 1610,
+      "sha256": "9b6edbb62489bf08dc61de9044d5c3a0d93948cb8eb02805806fda6066f8bced"
+    },
+    {
+      "path": "data-model/STATISTICS_AND_PUBLIC_DATA.md",
+      "bytes": 1730,
+      "sha256": "e985a801b7dbd0c1f9cb1511a2c26087140c5cf3c4bffef06d7a1fcffc619fa5"
+    },
+    {
+      "path": "data-model/TRANSPORTATION.md",
+      "bytes": 1664,
+      "sha256": "bd69a666b0fcae6ef9424570f08f695bcdcd72989384c20607d4bc81300bf195"
+    },
+    {
+      "path": "data-model/VOCABULARIES_AND_CODE_LISTS.md",
+      "bytes": 1872,
+      "sha256": "1786681e2e2efbfc39ecb1929357373f62e8c45601d80440bcb7801f1fdd3b0d"
+    },
+    {
+      "path": "delivery/DEFINITION_OF_DONE.md",
+      "bytes": 3479,
+      "sha256": "78ac7747928ad0c4aa7956412aecd15f7b39a85b500e47c3f29cf139c873a31a"
+    },
+    {
+      "path": "delivery/ISSUE_BACKLOG.md",
+      "bytes": 14432,
+      "sha256": "3d7dc903c75334cacfdefc485fcd11a7d9f4533d3d9d487fd8e16eef7ccdcc28"
+    },
+    {
+      "path": "delivery/PHASES_AND_MILESTONES.md",
+      "bytes": 5112,
+      "sha256": "a617c1f6fbd03aa1c4342611d4f656e3714a2ebbed5250898ea94f6a4e5810a1"
+    },
+    {
+      "path": "delivery/RELEASE_CHECKLIST.md",
+      "bytes": 3501,
+      "sha256": "b35343e7e02225024ef60b83e2a11d1b4acb5e278ba7544bc6c24bd71bf59ed3"
+    },
+    {
+      "path": "delivery/REQUIREMENT_TRACEABILITY_TEMPLATE.md",
+      "bytes": 2149,
+      "sha256": "3b3088fd258b3ff4466d834a0e6090e2e4bdf35fd0684b6429e84acf075d9c73"
+    },
+    {
+      "path": "delivery/RISK_REGISTER.md",
+      "bytes": 5545,
+      "sha256": "a023ab7dd31de9fa89e7c126345d7d3acb1267141f8055181e7f69528d2e0a98"
+    },
+    {
+      "path": "examples/ecme-high/CODEOWNERS.example",
+      "bytes": 3051,
+      "sha256": "704f2bc1450e858610c1514e585449f1506bbd6b7a283d8900983ecd73028cd2"
+    },
+    {
+      "path": "examples/ecme-high/COURSE_CATALOG_PLAN.md",
+      "bytes": 9295,
+      "sha256": "2023c8de60d1f65723a7d0e7b63ce48280fc77ca2710384ef7039d086207cdc1"
+    },
+    {
+      "path": "examples/ecme-high/DEPLOYMENT_TOPOLOGY.md",
+      "bytes": 1821,
+      "sha256": "3b60198e32840604ff6ffff8bb4f7ff51708fa34a67cc1a8eed68043a79dc9ab"
+    },
+    {
+      "path": "examples/ecme-high/EXAMPLE_BLUEPRINT.md",
+      "bytes": 5217,
+      "sha256": "27f657055b2c02346bb36ea2b101407ccdc56f7a005ce669c7f680de574c71d3"
+    },
+    {
+      "path": "examples/ecme-high/OWNERSHIP_PLAN.md",
+      "bytes": 3242,
+      "sha256": "202cd1456669636ad28e1a2311fac3802388d4570212b33bc15c9539c0e40b3d"
+    },
+    {
+      "path": "examples/ecme-high/README.md",
+      "bytes": 2646,
+      "sha256": "7f726d84a6796fcf6a38ef1f1056268cc07cb7b1f1ad295dadcb112919183329"
+    },
+    {
+      "path": "examples/ecme-high/VALIDATION_SCENARIOS.md",
+      "bytes": 1447,
+      "sha256": "671a063259afad6a30befd85aef0cdd7b567ec6adfab19ec614c29916440b5e4"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/.well-known/educational-organization-manifest",
+      "bytes": 16714,
+      "sha256": "04f245409669e0c1065d6d429521991f154eea122a6f405752c0d2fc204d903b"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/README.md",
+      "bytes": 773,
+      "sha256": "be30b45c2bff2f68aa17335700a18b6762a655822ac62a47120507dd181013ce"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/delegated/district/jobs.json",
+      "bytes": 817,
+      "sha256": "41202467e3eae203fc3491ea4ecb5c3596f22299ecaa992b1978f055f0596324"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/delegated/district/transportation.json",
+      "bytes": 981,
+      "sha256": "69ee603122eb20b8ebe76ae00ec7b24ffcb5878e4f3236056b45657e0d39bd45"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/delegated/vendor/menus.json",
+      "bytes": 1242,
+      "sha256": "9d55f02ef1e439da6964737bd6fee39732a97967f24268814c1d1b4a2f5b7a1c"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/admissions.json",
+      "bytes": 585,
+      "sha256": "0578c1441d4a80af779241096af865c1c739a0af0d8fabb2d47905c8852ddbf3"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/api-services.json",
+      "bytes": 648,
+      "sha256": "54051f65fe9df134ffe9680e73ebf6f01c62a245bc2513f17dc5f17ef20bd4fc"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/calendar.json",
+      "bytes": 988,
+      "sha256": "f6ad0deb09ffe63da3bdf7023e1141d5566b614ac285e6452900783d86f7d37b"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/campuses.json",
+      "bytes": 809,
+      "sha256": "f4ab170c5b787d19997106681135498600c051827e0b2f82bf7197a296945a92"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/clubs.json",
+      "bytes": 746,
+      "sha256": "0ac0f2d4c57b574ad5a23543bdf1a7c69e29e5f07efc2cf5da2be5115570e0dc"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/conformance.json",
+      "bytes": 559,
+      "sha256": "5971a425cfc1167777328caefa1602106ba0d8ce42942228a6faf96f389d27ba"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/contacts.json",
+      "bytes": 918,
+      "sha256": "d4dc354350083fcb14152c944c6e4da7a0e695410f397189d6475a50615a9411"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/courses/cul-202.json",
+      "bytes": 2362,
+      "sha256": "7a28ef47e1da47504fbb22033e75d34e022e3270d2a6386cb50e91e727a99439"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/courses/index.json",
+      "bytes": 43064,
+      "sha256": "f3f48a7d2574559f5370a68c439d639a09b7ecefef004a88d4377c7768dc25db"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/departments.json",
+      "bytes": 3176,
+      "sha256": "44f6bd922520ae7cd4cd8cb05ee22e7163e837fe214ea07295f8aa1bb2bfd029"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/events.json",
+      "bytes": 966,
+      "sha256": "809d8dd596c18efc32e4a8ebc68022f79e186669cb9ffd0f40b581b83351eb80"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/facilities.json",
+      "bytes": 970,
+      "sha256": "d748adb379be7a8b92536fd3279ea99fe4f3d5d563b6066713f8b95ba83a8667"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/keys.json",
+      "bytes": 683,
+      "sha256": "9786af2f4207e1b34586bd3a4029ad321f511044359273b43a7eb9ca51d6d952"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/news.json",
+      "bytes": 609,
+      "sha256": "713de4efdbc48820cde1c3db8d82d7e3b3dab7d4d601e7e099a4280208d0b7a6"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/offerings.json",
+      "bytes": 1361,
+      "sha256": "f382c08c8b6b91b4e84c61bc76ee1c8cba02602bdef2e3b4ebab8f82b6df2db9"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/organization.json",
+      "bytes": 1430,
+      "sha256": "9b6b79905b483571d6a905f0f7fb234a51d458562de1c28defb0fe4c69360861"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/policies.json",
+      "bytes": 896,
+      "sha256": "a5a4af25e09fff0cb4feec3ee8bcbb60a6bdc4606ad27bc757862782dee9f5cb"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/programs.json",
+      "bytes": 1363,
+      "sha256": "fe251681101acd59e4b487314fc990ded97ad0602f0c8de82aaedeeb578d56e0"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/schemaorg.jsonld",
+      "bytes": 570,
+      "sha256": "da226e8e2894c0d3c02d97aebd087b3bd28774262d7af662f53ff4dd00145885"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/services.json",
+      "bytes": 916,
+      "sha256": "0be8f43ab9c0b92907396ca5cdb123cd16e6850c92d958c653ffe0cdf4de3be3"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/sports.json",
+      "bytes": 768,
+      "sha256": "f87831ce9b9ce3cebc5a0ce5426a98adf2b1d3bd207890ca991b95c04256cc9a"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/staff.json",
+      "bytes": 834,
+      "sha256": "c1ff35d932eccb0dda79db02f9dcc016b3930dd4dae741269c4d843a26622d9d"
+    },
+    {
+      "path": "examples/ecme-high/expected-sample/eom/1.0/statistics.json",
+      "bytes": 883,
+      "sha256": "02519439679f4ae9ca68e010ac7a4903b65226d1e13fde46d946adb6868fa1e5"
+    },
+    {
+      "path": "examples/ecme-high/invalid-sample/delegation-scope-escape.json",
+      "bytes": 367,
+      "sha256": "be76d2a1c0afafd0fd37e6c9240b89674e2baa4a7aaf34bfc00e6c5406d70bef"
+    },
+    {
+      "path": "examples/ecme-high/invalid-sample/prerequisite-cycle.json",
+      "bytes": 568,
+      "sha256": "f3a1dbc7584fddf91a657c2f47c1023df34ba611c8611638e254d193a1af6ffe"
+    },
+    {
+      "path": "examples/ecme-high/invalid-sample/private-api-endpoint.json",
+      "bytes": 239,
+      "sha256": "d030965142f90d76c262d9dfefe5b8603c0664ed0c9d474e61e0250c2d34fc47"
+    },
+    {
+      "path": "examples/ecme-high/invalid-sample/staff-without-publication-review.json",
+      "bytes": 372,
+      "sha256": "229ce02f5bce6329f2b778c9fe228fc0485ddb809485bf3292e03b54938460f1"
+    },
+    {
+      "path": "examples/ecme-high/invalid-sample/student-record.json",
+      "bytes": 314,
+      "sha256": "1680f2b1292379acd5ca7f5e0077846fd8a2294f4a794eecfb4f8b954bf2e968"
+    },
+    {
+      "path": "examples/ecme-high/invalid-sample/transitive-delegation.json",
+      "bytes": 300,
+      "sha256": "6ae3359355be4dc66f62bd27f2d99f44de84d0e845b169ef4415667a6359eac1"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/admissions/profile.yaml",
+      "bytes": 569,
+      "sha256": "d66fda5f0ed92142fd5b89ad1807d499ab4d94897fb21a22165b037f58019116"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/apis/services.yaml",
+      "bytes": 479,
+      "sha256": "f3db220124b54f170fd1f0faa1cc81fb5400174b6aee766e9ed5f2d19b8a0f10"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/calendar/2027-2028.yaml",
+      "bytes": 1098,
+      "sha256": "9fa9e39315c9f78a1939855e0b86e354058ea95527165238fa1cebfe00aa08a6"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/campuses/main.yaml",
+      "bytes": 598,
+      "sha256": "4c1c70fefcd54e064e4fc6d63b1eec7cb093309e2e47f4722a22e6d07496e6cb"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/clubs/catalog.yaml",
+      "bytes": 531,
+      "sha256": "dadad88379e616bdd577e809b0b61604314438accad8f12325b1c009d0eb0d98"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/contacts/roles.yaml",
+      "bytes": 1291,
+      "sha256": "ed1c2e4e0400c0833e174f56284211e3ea761dab1701c459194a6b6ebe425a87"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/courses/fcs/cul-202.yaml",
+      "bytes": 2680,
+      "sha256": "b93f92f613a0978110591de0068bc842f28af932859561c1aa1ed9929754e18d"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/delegated/jobs.yaml",
+      "bytes": 777,
+      "sha256": "f3d57fd413abb5878a72a9651c544677fc0c2a82ba3f1668e4c121531a572187"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/delegated/meals.yaml",
+      "bytes": 910,
+      "sha256": "02c2d5ed3105425f01785be508c5d0a7dd2cee19f86a6bb3da6a113c10ccd8a3"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/delegated/transportation.yaml",
+      "bytes": 834,
+      "sha256": "2a1e2c071f1f5f7d03b8f3565c1a58d2528084be03328a42df008be190f51c4e"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/departments/fcs.yaml",
+      "bytes": 1131,
+      "sha256": "52ac743bf823cc05156e3c7036e4a31949d934063d942a8f28bbd7dab8997555"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/eom.config.yaml",
+      "bytes": 1837,
+      "sha256": "90306aa26d1bbff6bf53f834058d2186de986d7049abf521dcc009dfa7478e4a"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/events/course-selection-night.yaml",
+      "bytes": 672,
+      "sha256": "3f71189152e921bdfed176fca9106e3b911cec55435ce428345be7b2a30c06d5"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/facilities/culinary-lab.yaml",
+      "bytes": 849,
+      "sha256": "b7daf7097f4c38c9a30dacee054090505ba734450fae1935d107705f3d4bcb5b"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/jobs/catalog.yaml",
+      "bytes": 620,
+      "sha256": "fbf09b7e8de9d0ad31c62e473316c7078be050c292f1343fbd310a06c0ed3d51"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/news/catalog.yaml",
+      "bytes": 481,
+      "sha256": "83df30a75fc84f337ff91037668a5682148698718f50bf82deb88453fced0b6a"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/organization.yaml",
+      "bytes": 2211,
+      "sha256": "e30c5fa099b86a3c6d563bbe12db0dd2929aec9e4cf386deed4c2df2ef5d4c1c"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/policies/catalog.yaml",
+      "bytes": 776,
+      "sha256": "f867ad41c8f211ff4e13d987d7c15d7f2262928584dfcb42285c722e20314b2d"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/programs/culinary-hospitality.yaml",
+      "bytes": 1026,
+      "sha256": "b732389431c64b9699b7394a42c55b206bad1ddc79cb07643ee73ea21e1da4bd"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/provenance/sources.yaml",
+      "bytes": 726,
+      "sha256": "ee4d8c8a761f22e52962439e21ae5a47b13ea4211c9989d8e0ac97f72f327544"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/services/public-services.yaml",
+      "bytes": 643,
+      "sha256": "8258747a0882f02a0bef06f9e54ae9ce26d27023f019c703498a6921b211e120"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/sports/catalog.yaml",
+      "bytes": 628,
+      "sha256": "771bb840df549cb0e718e50d72c3f0cb6392545e3cfd3a6c28b13a62d3b7ae86"
+    },
+    {
+      "path": "examples/ecme-high/source-sample/statistics/profile.yaml",
+      "bytes": 813,
+      "sha256": "e30a79b04b408274fa07efef64051a29b72f6987b3d30977bf253a0469bd5175"
+    },
+    {
+      "path": "future/FOUNDATION_INDEX_AND_API.md",
+      "bytes": 2281,
+      "sha256": "5f9d954f493a6d1172219a2cf2a166b6a7d26093ed1ce2b6110e23fdfd04ce7e"
+    },
+    {
+      "path": "future/RELATIONSHIP_TO_OTHER_PAPER_AND_SLATE_PROJECTS.md",
+      "bytes": 1205,
+      "sha256": "5a5cb1bb1354d484b1ac907ae682adff21508e300592a096cd1654ace0d3fe02"
+    },
+    {
+      "path": "future/SCHOOL_WEBSITE_PLATFORM.md",
+      "bytes": 2158,
+      "sha256": "7016bafcf7498af3f10abfd5008e5318d6b5f089516a67708c508664f128a16b"
+    },
+    {
+      "path": "governance/ADR_PROCESS.md",
+      "bytes": 1089,
+      "sha256": "b2a25c10d140e5d50efb92766df09127b923fca8c525f8507b819e967e7d946f"
+    },
+    {
+      "path": "governance/CONFORMANCE_MARK_POLICY.md",
+      "bytes": 1129,
+      "sha256": "d6daa8826bf9e3f43fc5acf1bc537973ed96937335666f1143a68170de32ae1b"
+    },
+    {
+      "path": "governance/CONTRIBUTING_PLAN.md",
+      "bytes": 1832,
+      "sha256": "5aac5c547a1a1d1a5cc5795a268f0eb77aaae9fe3a3a49e6d35e36b997c4bdd5"
+    },
+    {
+      "path": "governance/GOVERNANCE.md",
+      "bytes": 2562,
+      "sha256": "e04b6664fa91ce5aa546bf7e7501d47bd563d2bae0f4b4fdedb1454866713d51"
+    },
+    {
+      "path": "governance/LICENSE_AND_IP_PLAN.md",
+      "bytes": 1782,
+      "sha256": "ef21f03ec00de8aaaefc1966e25420806c661b2b474c6af41d731c3d73d8a43b"
+    },
+    {
+      "path": "governance/MAINTAINERS_AND_SUCCESSION.md",
+      "bytes": 1473,
+      "sha256": "3c25bd8ca18672ead5257c656ececa2430de42bc090c82f76715460de80633f0"
+    },
+    {
+      "path": "governance/RFC_PROCESS.md",
+      "bytes": 1967,
+      "sha256": "d743a359f7d60ce669a7194860588dc107e7dfbbebc443ac6277a44e2557aee7"
+    },
+    {
+      "path": "governance/SECURITY_POLICY_PLAN.md",
+      "bytes": 1400,
+      "sha256": "19869c933819ab82d6180061510c5eba162bb8b99427e076d3c535f35cd009fd"
+    },
+    {
+      "path": "interoperability/CEDS_EDFI_MAPPING.md",
+      "bytes": 2977,
+      "sha256": "a837ff819270a165fb06dfe5d6611df7060b97239a7d6bc109e3b723ff44d533"
+    },
+    {
+      "path": "interoperability/IMPORT_EXPORT_ADAPTERS.md",
+      "bytes": 2202,
+      "sha256": "09d67f7ab5e84a1e00d7ad67716878e5a0af7d46f6b26f030409aff4cabfb5dd"
+    },
+    {
+      "path": "interoperability/ONE_ROSTER_CASE_QTI_LTI.md",
+      "bytes": 2457,
+      "sha256": "c8274d05d98b2fa9210b9bede031ea265cdd8950642ae92bd6aad716a9988d74"
+    },
+    {
+      "path": "interoperability/SCHEMA_ORG_MAPPING.md",
+      "bytes": 3404,
+      "sha256": "eb8765c4995972de578953fcfb54a25ca9a8b06500dd0c698f56b87b8277a54a"
+    },
+    {
+      "path": "interoperability/STANDARDS_LANDSCAPE.md",
+      "bytes": 5222,
+      "sha256": "f6a25db10216ffb90b252d83a1d60a91ce768834e30c189f76d82df87d2d0e43"
+    },
+    {
+      "path": "methodology/DATA_GOVERNANCE_METHOD.md",
+      "bytes": 1315,
+      "sha256": "9175f2568b48bb002a662bc77d7ef7396f658014ea7ad06247356eb52790c351"
+    },
+    {
+      "path": "methodology/IDENTIFIER_AND_ENTITY_RESOLUTION_METHOD.md",
+      "bytes": 1599,
+      "sha256": "18495b4a995c4fdc182ea0f2bbaf1ce6e92631bee5884856026bde7ff6bf64c5"
+    },
+    {
+      "path": "methodology/SPECIFICATION_DEVELOPMENT_METHOD.md",
+      "bytes": 1798,
+      "sha256": "a269156558d6efc7009daa5dd3d3346427729d6409b2cf9fbb086baa53aa8e1d"
+    },
+    {
+      "path": "ownership/CODEOWNERS_EXAMPLE.md",
+      "bytes": 2293,
+      "sha256": "283d312d64db02ab17d1832d2400c68641c954fdf37a5fb432581674051e9232"
+    },
+    {
+      "path": "ownership/DELEGATED_VENDOR_HOSTING.md",
+      "bytes": 1531,
+      "sha256": "964f0836d1b715a0ba6e9a91852aec3c25f22c57681b8c0944ef7e2da6ccfaba"
+    },
+    {
+      "path": "ownership/MULTI_OWNER_WORKFLOWS.md",
+      "bytes": 2560,
+      "sha256": "4ade0e98daee269de4764841425056ec0120a58fdf570947ae6c1ec84c90adcd"
+    },
+    {
+      "path": "ownership/REVIEW_AND_APPROVAL_MATRIX.md",
+      "bytes": 1776,
+      "sha256": "b96399b172b4c93cc4055c24e08ff8c5b3d718416ba33ce3fa92eed0b28a401e"
+    },
+    {
+      "path": "roadmap.md",
+      "bytes": 10587,
+      "sha256": "c6ee9ff33014a11fd0b9396e3c8f85db3849294931099a690104433329bd6a68"
+    },
+    {
+      "path": "specification/CONFORMANCE_MODEL.md",
+      "bytes": 3606,
+      "sha256": "ecf2a9f9df877c278ccf6069d02387448d51e10a53f62a43b67ba77e4eb5b7c4"
+    },
+    {
+      "path": "specification/HTTP_AND_DISCOVERY.md",
+      "bytes": 5333,
+      "sha256": "aa85e26a732ebc9037e48c2c885af6f66fa44d164ad0d682dbe18b808f403759"
+    },
+    {
+      "path": "specification/IANA_REGISTRATION_PLAN.md",
+      "bytes": 3620,
+      "sha256": "20bc6197508e37edd1b9d24650f16d7e9531dca9dab9c7c81343ae6579513168"
+    },
+    {
+      "path": "specification/IDENTIFIERS_AND_SCOPE.md",
+      "bytes": 3690,
+      "sha256": "a61ca00d62fa19a19a42d49cb3ff0cf493c322a8a6d7464e7de16e3420c260bd"
+    },
+    {
+      "path": "specification/INTERNATIONALIZATION.md",
+      "bytes": 3376,
+      "sha256": "aeaaa6e701d40a8e8b8a8f446adb4092b9a03684a113297a95ff93bec6b81f1a"
+    },
+    {
+      "path": "specification/OWNERSHIP_AND_DELEGATION.md",
+      "bytes": 4715,
+      "sha256": "deed2f28aa13837b41df40d378fcbbda54aa730fd1bdf1f59da21d3b6b79011d"
+    },
+    {
+      "path": "specification/PRIVACY_AND_PUBLICATION.md",
+      "bytes": 3882,
+      "sha256": "44e98dba8bc1f4d94443e25cc71cb8fdd27806050e5332bc0c3851605227ecfd"
+    },
+    {
+      "path": "specification/PROTOCOL_OVERVIEW.md",
+      "bytes": 5687,
+      "sha256": "458ca9203cdb5ef2f099c427884c1f595b17b6d49639298fcef8774a74d87671"
+    },
+    {
+      "path": "specification/PROVENANCE_AND_CONFLICTS.md",
+      "bytes": 4117,
+      "sha256": "eef6116ae9f36c1e1e58e31a2cbfce5a3a4a8eb0085e0480b318eaf5ac1ee881"
+    },
+    {
+      "path": "specification/RESOURCES_AND_CAPABILITIES.md",
+      "bytes": 4002,
+      "sha256": "7ef7ca263448f40e272470c4dc7809f95f1fb412be2b8afa6c9c2e5fa0e7c803"
+    },
+    {
+      "path": "specification/ROOT_MANIFEST.md",
+      "bytes": 4734,
+      "sha256": "5dbfb4310aab513595d5c8ff76e6f09c6378cfafa09482a7f906f973a80d781d"
+    },
+    {
+      "path": "specification/SIGNATURES_AND_INTEGRITY.md",
+      "bytes": 3738,
+      "sha256": "4a83692eb04e87f1ced719e2dcfdda0d707b850bb970c93225708d8b8657315d"
+    },
+    {
+      "path": "specification/VERSIONING_AND_EXTENSIONS.md",
+      "bytes": 3465,
+      "sha256": "1ba556b5578d57bc489a662f41116b5d9de45cbad023c347047e2b255aa644a9"
+    },
+    {
+      "path": "templates/ADR_TEMPLATE.md",
+      "bytes": 752,
+      "sha256": "4141a914a62330c0ce82dada6f1864017e11312c7e210f2448161bc1c59b3988"
+    },
+    {
+      "path": "templates/DATA_REVIEW_CHECKLIST.md",
+      "bytes": 1870,
+      "sha256": "1a23ceeab275a80ee9c01c08e8eb1b6bb6cd35ecf79e46e2bce7ae4821424923"
+    },
+    {
+      "path": "templates/MODULE_SPEC_TEMPLATE.md",
+      "bytes": 466,
+      "sha256": "9130d7abccb17e5943f4e5672dad1e38d81b96ccbb505d7f4ddb65d98f5919ae"
+    },
+    {
+      "path": "templates/PHASE_REPORT_TEMPLATE.md",
+      "bytes": 837,
+      "sha256": "22a5c2320ea93ad859af597564c115d98f2d7d4c6376efeffbcb27c8a5a16da8"
+    },
+    {
+      "path": "templates/RFC_TEMPLATE.md",
+      "bytes": 858,
+      "sha256": "fbbd011e1098ec64126f66f891625bc60c36eb9afad63591ef28c1785909dad9"
+    },
+    {
+      "path": "templates/SECURITY_REVIEW_TEMPLATE.md",
+      "bytes": 490,
+      "sha256": "bc8a3ada93305f848936f676a79343e18f037d2e9fccfb41e709cbb1ba2c4914"
+    },
+    {
+      "path": "website/EMBED_EXPORT_STRATEGY.md",
+      "bytes": 2638,
+      "sha256": "79d6ddab9689f0a746301d15cafba8f2dead67d4ee301f5d37a1322269bcd470"
+    },
+    {
+      "path": "website/MAIN_WEBSITE_COPY.md",
+      "bytes": 7389,
+      "sha256": "b48f62d7e6f5bab3853aff9b4ad96d65a5016ab9612b17c80919b8b234c89db1"
+    },
+    {
+      "path": "website/SCHOOL_ADOPTION_GUIDE.md",
+      "bytes": 3245,
+      "sha256": "443266a8691e9f95605aa24487b913f06451d64f796feebd525d38d3bdb3d59d"
+    },
+    {
+      "path": "website/TOOLS_AND_DEVELOPER_PORTAL.md",
+      "bytes": 3841,
+      "sha256": "43df6ebf5fe5c0c0417f6147462c49e9bb957918058969b2c4425fb32009afb0"
+    },
+    {
+      "path": "website/WEBSITE_INTEGRATION_VISION.md",
+      "bytes": 3693,
+      "sha256": "9cded2c7dbf35543560686589561a4a9e5602f74473db6369bedc1a8cd28e22a"
+    }
+  ]
+}

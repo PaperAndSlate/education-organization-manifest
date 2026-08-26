@@ -1,0 +1,61 @@
+[
+  {
+    "type": "claim-record",
+    "id": "https://ecme-high.example/evidence/claim/school-name-organization",
+    "target": {
+      "resourceId": "https://ecme-high.example/eom/organization",
+      "pointer": "/name"
+    },
+    "proposedValue": "Ecme High School",
+    "source": {
+      "sourceId": "https://ecme-high.example/evidence/source/catalog-2027",
+      "locator": { "section": "Cover" }
+    },
+    "evidence": {
+      "excerpt": "Ecme High School",
+      "contentDigest": "sha-256=:Y2F0YWxvZw==:",
+      "observedAt": "2026-08-26T08:00:00Z"
+    },
+    "method": {
+      "kind": "direct-extraction",
+      "agent": "controlled-fixture-agent",
+      "promptVersion": "eom/create-from-documents/1.0"
+    },
+    "confidence": 0.98,
+    "authorityClass": "organization-origin",
+    "privacyClass": "public-reviewed",
+    "review": {
+      "state": "pending",
+      "requiredOwner": "publication-admin"
+    }
+  },
+  {
+    "type": "claim-record",
+    "id": "https://ecme-high.example/evidence/claim/school-name-third-party",
+    "target": {
+      "resourceId": "https://ecme-high.example/eom/organization",
+      "pointer": "/name"
+    },
+    "proposedValue": "Ecme Academy",
+    "source": {
+      "sourceId": "https://ecme-high.example/evidence/source/district-directory",
+      "locator": { "selector": "main h1" }
+    },
+    "evidence": {
+      "excerpt": "Ecme Academy",
+      "observedAt": "2026-08-25T08:00:00Z"
+    },
+    "method": {
+      "kind": "direct-extraction",
+      "agent": "controlled-fixture-agent",
+      "promptVersion": "eom/create-from-website/1.0"
+    },
+    "confidence": 0.81,
+    "authorityClass": "third-party",
+    "privacyClass": "public-review-required",
+    "review": {
+      "state": "pending",
+      "requiredOwner": "publication-admin"
+    }
+  }
+]

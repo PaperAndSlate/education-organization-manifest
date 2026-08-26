@@ -1,0 +1,14 @@
+{
+  "organizationId": "ceds-example-ecme",
+  "name": "Ecme High School",
+  "organizationType": "School",
+  "website": "https://ecme-high.example/",
+  "address": {
+    "locality": "Example City",
+    "countryCode": "ZZ"
+  },
+  "courseCode": "CUL-202",
+  "courseTitle": "Culinary Foundations",
+  "schoolYear": "2027-2028",
+  "sessionName": "Semester 1"
+}

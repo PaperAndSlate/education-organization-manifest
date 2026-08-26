@@ -1,0 +1,56 @@
+PROMPT ID: eom/implementation/modules
+GOAL: Implement every approved v1 school-focused resource module and make Ecme High exercise all of them.
+
+Implement module schemas, prose, semantic rules, registry records, generated types, fixtures, and examples for:
+- campuses;
+- departments;
+- staff directory and role contacts;
+- courses;
+- offerings and sections;
+- programs and pathways;
+- calendars;
+- events;
+- facilities;
+- services;
+- policies/documents;
+- admissions/public enrollment information;
+- sports;
+- clubs;
+- transportation;
+- meals/menus;
+- jobs;
+- news;
+- public aggregate statistics;
+- API/service discovery.
+
+Model all educational organizations structurally while keeping examples school-focused.
+
+Course requirements:
+- deeply optional course model;
+- stable course identity;
+- definitions separate from offerings/sections;
+- structured prerequisites;
+- effective catalog periods;
+- international education levels and credits;
+- standards/topic/qualification references;
+- historical status.
+
+Ecme High requirements:
+- entirely fictional and marked as such;
+- reserved `.example` domains and non-real identifiers;
+- district + school + campus;
+- multiple owners;
+- at least eight departments and a substantial sample catalog;
+- every v1 module represented;
+- district-hosted transportation;
+- vendor-hosted meal resource with scoped delegation;
+- named staff only as clearly fictional deliberate-public examples;
+- multilingual values;
+- valid and intentionally invalid fixtures.
+
+Acceptance:
+- module registry is complete;
+- references resolve;
+- all omission combinations preserve a valid compact manifest;
+- coverage report confirms every module has valid/invalid tests;
+- privacy linter catches seeded unsafe fixtures.

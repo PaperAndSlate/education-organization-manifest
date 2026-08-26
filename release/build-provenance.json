@@ -1,0 +1,44 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://paperandslate.org/eom/build/reproducible-source-archive/v1",
+      "externalParameters": {
+        "releaseVersion": "1.0.0-rc.1",
+        "sourceDateEpoch": 0
+      },
+      "internalParameters": {
+        "packageManager": "pnpm@10.6.0",
+        "specification": "https://paperandslate.org/spec/eom/1.0"
+      },
+      "resolvedDependencies": [
+        {
+          "digest": {
+            "sha256": "c2d2ea66653afd445f3c144376af90c92e662de73afdc446939c872b7ed653fa"
+          },
+          "uri": "file:pnpm-lock.yaml"
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://paperandslate.org/eom/local-release-tooling"
+      },
+      "metadata": {
+        "finishedOn": "1970-01-01T00:00:00.000Z",
+        "reproducible": true,
+        "startedOn": "1970-01-01T00:00:00.000Z"
+      }
+    }
+  },
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "provenanceStatus": "local metadata; not a signed external attestation",
+  "subject": [
+    {
+      "digest": {
+        "sha256": "27117b13e5f9d5b34a79f1556e7764ee540b01a996e5bd4184772ee5332fc6ac"
+      },
+      "name": "educational-organization-manifest-1.0.0-rc.1.tar.gz"
+    }
+  ]
+}

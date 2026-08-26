@@ -1,0 +1,47 @@
+$schema: https://paperandslate.org/schemas/eom/1.0/modules/department-catalog.schema.json
+specification: https://paperandslate.org/spec/eom/1.0
+version: '1.0'
+id: https://ecme-high.example/eom/resource/departments
+type: department-catalog
+canonical: https://ecme-high.example/eom/departments.json
+subjects: [https://ecme-high.example/id/school]
+defaultLanguage: en-US
+items:
+  - id: https://ecme-high.example/id/department/ela
+    type: department
+    name: English Language Arts
+    parentOrganization: { id: https://ecme-high.example/id/school }
+  - id: https://ecme-high.example/id/department/mathematics
+    type: department
+    name: Mathematics
+    parentOrganization: { id: https://ecme-high.example/id/school }
+  - id: https://ecme-high.example/id/department/science
+    type: department
+    name: Science
+    parentOrganization: { id: https://ecme-high.example/id/school }
+  - id: https://ecme-high.example/id/department/social-studies
+    type: department
+    name: Social Studies
+    parentOrganization: { id: https://ecme-high.example/id/school }
+  - id: https://ecme-high.example/id/department/fcs
+    type: department
+    name: Family and Consumer Sciences
+    parentOrganization: { id: https://ecme-high.example/id/school }
+  - id: https://ecme-high.example/id/department/engineering-technology
+    type: department
+    name: Engineering and Technology
+    parentOrganization: { id: https://ecme-high.example/id/school }
+  - id: https://ecme-high.example/id/department/fine-arts
+    type: department
+    name: Fine Arts
+    parentOrganization: { id: https://ecme-high.example/id/school }
+  - id: https://ecme-high.example/id/department/world-languages
+    type: department
+    name: World Languages
+    parentOrganization: { id: https://ecme-high.example/id/school }
+  - id: https://ecme-high.example/id/department/peh
+    type: department
+    name: Physical Education and Health
+    parentOrganization: { id: https://ecme-high.example/id/school }
+modified: '2027-05-01T14:00:00Z'
+expires: '2028-05-01T00:00:00Z'

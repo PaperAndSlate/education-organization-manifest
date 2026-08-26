@@ -1,0 +1,25 @@
+name: Privacy or safety concern
+description: Report a possible prohibited publication, privacy leak, unsafe endpoint, or authority bypass.
+title: 'privacy/security: '
+labels: ['area:privacy', 'area:security']
+body:
+  - type: markdown
+    attributes:
+      value: 'Do not include the sensitive value in this public form. Use the private security channel in SECURITY.md when possible.'
+  - type: textarea
+    id: summary
+    attributes:
+      label: Redacted summary
+    validations:
+      required: true
+  - type: input
+    id: location
+    attributes:
+      label: File, fixture, finding code, or affected package
+  - type: checkboxes
+    id: disclosure
+    attributes:
+      label: Disclosure
+      options:
+        - label: I have omitted secrets, credentials, student data, and personal information.
+          required: true

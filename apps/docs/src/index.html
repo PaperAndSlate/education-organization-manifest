@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'"
+    />
+    <title>Educational Organization Manifest</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <a class="brand" href="index.html">EOM 1.0</a>
+        <nav aria-label="Primary">
+          <ul>
+            <li><a href="publish.html">Publish</a></li>
+            <li><a href="consume.html">Consume</a></li>
+            <li><a href="reference.html">Reference</a></li>
+            <li><a href="integrate.html">Integrate</a></li>
+            <li><a href="explore.html">Explore</a></li>
+            <li><a href="govern.html">Govern</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">A proposed open protocol stewarded by paper&amp;slate</p>
+          <h1>One public doorway for an educational organization.</h1>
+          <p class="lede">
+            Educational Organization Manifest (EOM) lets schools, districts, colleges, universities,
+            and training providers publish deliberately public institutional information through one
+            predictable HTTPS resource.
+          </p>
+          <p>
+            <a class="pill" href="publish.html">Start with the five-minute guide</a>
+            <a class="pill" href="https://paperandslate.org/eom/playground/"
+              >Open local playground</a
+            >
+          </p>
+        </div>
+        <aside class="notice" aria-label="Draft status">
+          <strong>Working draft</strong><br />The
+          <code>educational-organization-manifest</code> suffix is proposed and is not claimed as
+          IANA-registered. Conformance does not prove truth, quality, accreditation, or legal
+          compliance.
+        </aside>
+      </section>
+      <section aria-labelledby="why">
+        <h2 id="why">Why EOM exists</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Predictable discovery</h3>
+            <p>
+              Consumers begin at <code>/.well-known/educational-organization-manifest</code>, then
+              follow independently validatable resources.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Rich, linked modules</h3>
+            <p>
+              The root stays compact. Courses, offerings, programs, calendars, services, policies,
+              news, meals, jobs, and more live in optional modules.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Public by design</h3>
+            <p>
+              EOM is not a student information format. Privacy boundaries exclude student records,
+              grades, private schedules, credentials, and internal endpoints.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section aria-labelledby="routes">
+        <h2 id="routes">Choose your route</h2>
+        <div class="grid">
+          <article class="card">
+            <h3><a href="publish.html">I publish school data</a></h3>
+            <p>
+              Author YAML, generate deterministic JSON, host the well-known endpoint, and review
+              ownership and privacy.
+            </p>
+          </article>
+          <article class="card">
+            <h3><a href="consume.html">I consume school data</a></h3>
+            <p>
+              Discover safely, validate structure and semantics, respect caching and authority, and
+              follow only approved links.
+            </p>
+          </article>
+          <article class="card">
+            <h3><a href="reference.html">I implement EOM</a></h3>
+            <p>
+              Read the normative specification, JSON Schemas, findings, versions, and conformance
+              profiles.
+            </p>
+          </article>
+          <article class="card">
+            <h3><a href="integrate.html">I have another standard</a></h3>
+            <p>
+              Use controlled Schema.org, CEDS, Ed-Fi, OneRoster, CASE, QTI, LTI, Common Cartridge,
+              calendar, and feed mappings.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section aria-labelledby="commitments">
+        <h2 id="commitments">Protocol commitments</h2>
+        <ul>
+          <li>JSON Schema 2020-12 is the structural source of truth.</li>
+          <li>Canonical wire output is deterministic UTF-8 JSON; YAML is authoring convenience.</li>
+          <li>
+            HTTPS origin is root authority; delegated resources are explicit, scoped, time-bounded,
+            and non-transitive by default.
+          </li>
+          <li>Provenance, effective dates, review states, and conflicts are first-class.</li>
+          <li>Signatures are optional integrity metadata, not a proof of factual truth.</li>
+        </ul>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="shell">
+        EOM is neutral protocol infrastructure. Stewarded by paper&amp;slate; independently
+        implementable without a paper&amp;slate account or runtime.
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+$schema: https://paperandslate.org/schemas/eom/1.0/modules/course-catalog.schema.json
+specification: https://paperandslate.org/spec/eom/1.0
+version: '1.0'
+id: https://ecme-high.example/eom/proposed/2028-2029/courses
+type: course-catalog
+canonical: https://ecme-high.example/eom/proposed/2028-2029/courses.json
+subjects: [https://ecme-high.example/id/school]
+catalogVersion:
+  id: https://ecme-high.example/id/catalog/2028-2029
+  label: '2028–2029 proposed'
+  status: proposed
+  effective: { from: '2028-07-01', until: '2029-06-30' }
+  public: false
+releaseStatus: proposed
+items:
+  - id: https://ecme-high.example/id/course/cse-301-proposed
+    type: course
+    code: CSE-301
+    name: Applied Computing Studio (proposed)
+    description: Candidate course retained outside the 2027–2028 public release.
+    status: planned
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/engineering-technology }
+    educationLevels: [grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person]

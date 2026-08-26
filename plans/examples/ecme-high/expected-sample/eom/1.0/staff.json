@@ -1,0 +1,26 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/staff-directory.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/staff",
+  "type": "staff-directory",
+  "subject": "https://ecme-high.example/id/organization",
+  "notice": "All people are fictional. Named staff is deliberately public in this fixture.",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/person/avery-example",
+      "type": "person",
+      "name": "Avery Example",
+      "roles": [
+        {
+          "title": "Principal",
+          "organization": "https://ecme-high.example/id/organization"
+        }
+      ],
+      "publicContact": "https://ecme-high.example/id/contact/general-office",
+      "publicationReview": {
+        "reviewedAt": "2027-05-01",
+        "reviewBy": "2028-05-01"
+      }
+    }
+  ]
+}

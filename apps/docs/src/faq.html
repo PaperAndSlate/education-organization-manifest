@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'"
+    />
+    <title>EOM FAQ and troubleshooting</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <a class="brand" href="index.html">EOM 1.0</a>
+        <nav aria-label="Primary">
+          <ul>
+            <li><a href="publish.html">Publish</a></li>
+            <li><a href="consume.html">Consume</a></li>
+            <li><a href="reference.html">Reference</a></li>
+            <li><a href="integrate.html">Integrate</a></li>
+            <li><a href="explore.html">Explore</a></li>
+            <li><a href="govern.html">Govern</a></li>
+            <li><a href="faq.html" aria-current="page">FAQ</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="shell prose">
+      <p class="eyebrow">FAQ and troubleshooting</p>
+      <h1>Answers for first-time implementers</h1>
+      <p class="lede">
+        These answers describe the current EOM 1.0 working draft and may change through the
+        documented RFC process.
+      </p>
+      <details>
+        <summary>Is EOM a student information system?</summary>
+        <p>
+          No. It is a public institutional discovery and description format. Student records,
+          grades, individual attendance, disability or medical records, discipline, private
+          schedules, credentials, and internal endpoints are outside the protocol.
+        </p>
+      </details>
+      <details>
+        <summary>Does a valid document mean the school facts are true?</summary>
+        <p>
+          No. Schema validation proves shape. Provenance, authority, review, effective dates,
+          freshness, and optional signatures provide separate evidence, and none alone proves
+          factual truth.
+        </p>
+      </details>
+      <details>
+        <summary>Why is my linked resource rejected?</summary>
+        <p>
+          Check HTTPS, the final URL after redirects, declared media type, size and timeout limits,
+          resource identity, scope, expiry, and any explicit cross-origin delegation. A vendor host
+          is not automatically the school’s authority.
+        </p>
+      </details>
+      <details>
+        <summary>Why did a private field get quarantined?</summary>
+        <p>
+          The official adapters use public-field allowlists. Remove the prohibited field from the
+          source export and restart the review. Do not rename a student or credential field to
+          bypass the check.
+        </p>
+      </details>
+      <details>
+        <summary>Can I publish YAML?</summary>
+        <p>
+          YAML is authoring convenience only. Generate deterministic canonical JSON and serve the
+          JSON resource at the proposed well-known path. Sign canonical JSON bytes, never YAML.
+        </p>
+      </details>
+      <details>
+        <summary>What does “conformance” mean?</summary>
+        <p>
+          It means a named implementation passed a named EOM profile and test suite. It does not
+          mean accreditation, legal compliance, school endorsement, data quality, external standards
+          certification, or IANA registration.
+        </p>
+      </details>
+      <h2>Fast diagnostic loop</h2>
+      <ol>
+        <li>Run <code>pnpm eom check</code> or paste the document into the local playground.</li>
+        <li>Fix the first structural finding, then rerun semantic and privacy checks.</li>
+        <li>Use <code>pnpm eom explain &lt;finding-code&gt;</code> for remediation guidance.</li>
+        <li>Inspect delegation and signature dimensions independently.</li>
+        <li>Compare two builds byte-for-byte before release.</li>
+      </ol>
+      <p>
+        If a behavior is missing from the versioned specification, open an RFC rather than relying
+        on an undocumented extension. See <a href="govern.html">governance</a> and
+        <a href="reference.html">reference</a>.
+      </p>
+    </main>
+    <footer class="footer">
+      <div class="shell">Troubleshooting output should never include private input values.</div>
+    </footer>
+  </body>
+</html>

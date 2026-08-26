@@ -1,0 +1,16 @@
+version = 1
+
+[[annotations]]
+path = ["*.json", "*.yaml", "*.yml", "*.toml", "*.config.*", "*.nvmrc", ".npmrc", ".editorconfig", ".gitattributes"]
+SPDX-FileCopyrightText = "2026 paper&slate and contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["*.md", "spec/**", "docs/**"]
+SPDX-FileCopyrightText = "2026 paper&slate and contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["examples/**", "fixtures/**"]
+SPDX-FileCopyrightText = "2026 paper&slate and contributors"
+SPDX-License-Identifier = "CC0-1.0"

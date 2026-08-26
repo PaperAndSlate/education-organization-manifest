@@ -1,0 +1,182 @@
+{
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "schemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "schemas": [
+    {
+      "type": "manifest",
+      "shortName": "manifest",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json"
+    },
+    {
+      "type": "organization-profile",
+      "shortName": "organization-profile",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/organization-profile.schema.json"
+    },
+    {
+      "type": "organization-index",
+      "shortName": "organization-index",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/organization-index.schema.json"
+    },
+    {
+      "type": "resource-index",
+      "shortName": "resource-index",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/resource-index.schema.json"
+    },
+    {
+      "type": "contact-directory",
+      "shortName": "contact-directory",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/contact-directory.schema.json"
+    },
+    {
+      "type": "key-set",
+      "shortName": "key-set",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/key-set.schema.json"
+    },
+    {
+      "type": "signature",
+      "shortName": "signature",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/signature.schema.json"
+    },
+    {
+      "type": "mapping-registry",
+      "shortName": "mappings",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/mapping.schema.json"
+    },
+    {
+      "type": "provenance",
+      "shortName": "provenance",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/provenance.schema.json"
+    },
+    {
+      "type": "source-record",
+      "shortName": "source",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/source.schema.json"
+    },
+    {
+      "type": "claim-record",
+      "shortName": "evidence",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/evidence.schema.json"
+    },
+    {
+      "type": "conflict-record",
+      "shortName": "conflict",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/conflict.schema.json"
+    },
+    {
+      "type": "review-decision",
+      "shortName": "review",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/review.schema.json"
+    },
+    {
+      "type": "candidate-workspace",
+      "shortName": "candidate",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/candidate.schema.json"
+    },
+    {
+      "type": "conformance-report",
+      "shortName": "conformance-report",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/conformance-report.schema.json"
+    },
+    {
+      "type": "campus-catalog",
+      "shortName": "campuses",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/campus-catalog.schema.json"
+    },
+    {
+      "type": "department-catalog",
+      "shortName": "departments",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/department-catalog.schema.json"
+    },
+    {
+      "type": "staff-directory",
+      "shortName": "staff",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/staff-directory.schema.json"
+    },
+    {
+      "type": "course-catalog",
+      "shortName": "courses",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/course-catalog.schema.json"
+    },
+    {
+      "type": "course-offering-catalog",
+      "shortName": "offerings",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/course-offering-catalog.schema.json"
+    },
+    {
+      "type": "program-catalog",
+      "shortName": "programs",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/program-catalog.schema.json"
+    },
+    {
+      "type": "academic-calendar",
+      "shortName": "calendar",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/academic-calendar.schema.json"
+    },
+    {
+      "type": "event-catalog",
+      "shortName": "events",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/event-catalog.schema.json"
+    },
+    {
+      "type": "facility-catalog",
+      "shortName": "facilities",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/facility-catalog.schema.json"
+    },
+    {
+      "type": "service-catalog",
+      "shortName": "services",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/service-catalog.schema.json"
+    },
+    {
+      "type": "policy-catalog",
+      "shortName": "policies",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/policy-catalog.schema.json"
+    },
+    {
+      "type": "admissions-profile",
+      "shortName": "admissions",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/admissions-profile.schema.json"
+    },
+    {
+      "type": "sports-catalog",
+      "shortName": "sports",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/sports-catalog.schema.json"
+    },
+    {
+      "type": "transportation-catalog",
+      "shortName": "transportation",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/transportation-catalog.schema.json"
+    },
+    {
+      "type": "meal-menu-catalog",
+      "shortName": "meals",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/meal-menu-catalog.schema.json"
+    },
+    {
+      "type": "club-catalog",
+      "shortName": "clubs",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/club-catalog.schema.json"
+    },
+    {
+      "type": "job-catalog",
+      "shortName": "jobs",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/job-catalog.schema.json"
+    },
+    {
+      "type": "news-feed",
+      "shortName": "news",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/news-feed.schema.json"
+    },
+    {
+      "type": "statistics-profile",
+      "shortName": "statistics",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/statistics-profile.schema.json"
+    },
+    {
+      "type": "api-reference",
+      "shortName": "apis",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/modules/api-reference.schema.json"
+    }
+  ]
+}

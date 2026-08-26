@@ -1,0 +1,1321 @@
+# GoalBuddy v2 state.yaml
+# Board truth lives here. goal.md is the editable charter; notes/ holds long receipts.
+
+version: 2
+
+goal:
+  title: "Educational Organization Manifest Repository"
+  slug: "educational-organization-manifest"
+  kind: existing_plan
+  tranche: "Continuous execution of the complete EOM repository described by the approved planning pack until the full local outcome is complete and external gates are explicitly packaged as blocked where necessary."
+  status: done
+  oracle:
+    signal: "Final audit maps every implementable master-prompt and phase requirement to repository artifacts and tests, local verification and drift gates pass, safety/conformance fixtures pass, and unavailable external gates have complete explicit packages."
+    cadence: "after each Worker package, at phase boundaries, and at final audit"
+    final_proof: "A final Judge or PM receipt records full_outcome_complete: true and cites the traceability matrix, phase reports, verification output, generated-drift result, conformance result, and external-gate status."
+  intake:
+    original_request: "/goal follow the prompt in MASTER_CODEX_GOAL_PROMPT.txt until this entire project is complete"
+    interpreted_outcome: "Implement, test, document, and release-prepare the complete paper&slate Educational Organization Manifest repository specified by the master prompt and every planning document."
+    input_shape: existing_plan
+    audience: "Protocol maintainers, educational organizations, publishers, and machine-readable data consumers"
+    authority: requested
+    proof_type: artifact
+    completion_proof: "Every implementable v1 deliverable is present, traceable, locally verified, drift-free, and externally blocked work is explicitly packaged without false claims."
+    likely_misfire: "Stopping at a scaffold or documentation-only repository without executable schemas, generator, validation, privacy/SSRF enforcement, conformance tests, or release evidence."
+    blind_spots_considered:
+      - "The current directory is a planning-only bootstrap with no source tree or Git metadata."
+      - "Planning documents can conflict; priority order and confirmed decisions govern."
+      - "IANA approval, independent pilots, provider acceptance, credentials, and production deployment are external gates and cannot be invented."
+      - "Generated artifacts, module coverage, safety fixtures, provenance/conflict semantics, and documentation/playground acceptance need explicit evidence."
+      - "No destructive cleanup, push, merge, deployment, live or paid call is authorized."
+    existing_plan_facts:
+      - "Read and index every planning file before changing code."
+      - "Create a requirement traceability matrix before implementation."
+      - "Implement in delivery/PHASES_AND_MILESTONES.md order and create a report after each phase."
+      - "Use JSON Schema 2020-12 as the structural source of truth and do not hand-edit generated artifacts."
+      - "Implement the root manifest, all required v1 modules, generator, validator/linter, CLI, integrity/signature design, conformance suite, docs/playground, Ecme High example, governance, adapters, agentic workflow, and CI/release assets."
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_implementation_without_worker_or_pm_task: true
+  no_completion_without_judge_or_pm_audit: true
+  planning_is_not_completion: true
+  queued_required_worker_blocks_completion: true
+  continuous_until_full_outcome: true
+  missing_input_or_credentials_do_not_stop_goal: true
+  exact_human_approval_can_terminal_wait: true
+  preserve_and_validate_existing_plan: true
+  intake_misfire_must_be_audited: true
+  goal_pressure_requires_oracle: true
+  no_completion_on_weak_proof: true
+  slice_policy:
+    max_consecutive_tiny_tasks: 2
+    prefer_vertical_slices: true
+    judge_picks_largest_safe_slice: true
+    worker_completes_whole_slice: true
+
+agents:
+  scout: installed
+  worker: installed
+  judge: installed
+
+visual_board:
+  selected: local
+  local:
+    status: not_requested
+    url: null
+    command: "node C:/Users/Callum/.codex/plugins/cache/goalbuddy/goalbuddy/0.4.3/skills/goal-prep/surfaces/local-goal-board/scripts/local-goal-board.mjs --goal docs/goals/educational-organization-manifest"
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Read and index every planning file, validate the approved phase order and acceptance criteria, identify conflicts or missing assumptions, and choose the first safe implementation package."
+    inputs:
+      - "plans/MASTER_CODEX_GOAL_PROMPT.txt"
+      - "plans/PACK_INDEX.md"
+      - "plans/01_CONFIRMED_DECISIONS.md"
+      - "plans/specification/**"
+      - "plans/architecture/**"
+      - "plans/data-model/**"
+      - "plans/delivery/**"
+      - "plans/governance/**"
+      - "plans/interoperability/**"
+      - "plans/agentic/**"
+      - "plans/examples/ecme-high/**"
+      - "plans/website/**"
+      - "plans/adoption/**"
+      - "plans/methodology/**"
+      - "plans/future/**"
+    constraints:
+      - "Read-only with respect to product files."
+      - "Use the confirmed-decisions priority order when documents disagree."
+      - "Do not treat a plan index or scaffold as implementation evidence."
+      - "Record concrete paths and acceptance criteria; preserve blocked external gates."
+    expected_output:
+      - "Complete planning-pack index and phase map"
+      - "Conflict and assumption findings"
+      - "Goal-oracle and verification recommendation"
+      - "Exact next Worker package with allowed_files, verify, and stop_if"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      note: notes/T001-plan-index.md
+      summary: "Read and indexed all 195 planning-pack files before implementation. Confirmed the phase order, acceptance oracle, priority rules, safety boundaries, sample normalization needs, and external gates. No planning conflict blocks the minimal protocol."
+      evidence:
+        - plans/01_CONFIRMED_DECISIONS.md
+        - plans/specification/PROTOCOL_OVERVIEW.md
+        - plans/architecture/MONOREPO_ARCHITECTURE.md
+        - plans/data-model/MODULE_REGISTRY.md
+        - plans/delivery/PHASES_AND_MILESTONES.md
+        - plans/pack-manifest.json
+      worker_package:
+        objective: "Create the requirement traceability matrix and bootstrap the repository/governance baseline selected by T001."
+        allowed_files:
+          - requirements/TRACEABILITY_MATRIX.md
+          - README.md
+          - package.json
+          - pnpm-workspace.yaml
+          - tsconfig.json
+          - .gitignore
+          - .editorconfig
+          - LICENSE
+          - CODE_OF_CONDUCT.md
+          - CONTRIBUTING.md
+          - SECURITY.md
+          - GOVERNANCE.md
+          - "docs/**"
+          - "packages/**"
+          - "apps/**"
+          - "schemas/**"
+          - "examples/**"
+          - "tests/**"
+          - "scripts/**"
+        verify:
+          - "node --version"
+          - "pnpm --version"
+          - "git diff --check"
+        stop_if:
+          - "T001 identifies a required path or decision outside the listed repository scope."
+          - "A requested change would claim external approval, deployment, pilot, or registration."
+          - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+  - id: T002
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Create the requirement traceability matrix and bootstrap the repository/governance baseline selected by T001."
+    allowed_files:
+      - "requirements/TRACEABILITY_MATRIX.md"
+      - "README.md"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.json"
+      - ".gitignore"
+      - ".editorconfig"
+      - "LICENSE"
+      - "CODE_OF_CONDUCT.md"
+      - "CONTRIBUTING.md"
+      - "SECURITY.md"
+      - "GOVERNANCE.md"
+      - "docs/**"
+      - "packages/**"
+      - "apps/**"
+      - "schemas/**"
+      - "examples/**"
+      - "tests/**"
+      - "scripts/**"
+    verify:
+      - "node --version"
+      - "pnpm --version"
+      - "git diff --check"
+    stop_if:
+      - "T001 identifies a required path or decision outside the listed repository scope."
+      - "A requested change would claim external approval, deployment, pilot, or registration."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    receipt:
+      result: done
+      changed_files:
+        - README.md
+        - CONTRIBUTING.md
+        - GOVERNANCE.md
+        - SECURITY.md
+        - CODE_OF_CONDUCT.md
+        - LICENSE
+        - .gitignore
+        - .editorconfig
+        - package.json
+        - pnpm-workspace.yaml
+        - tsconfig.json
+        - docs/project-status.md
+        - docs/publisher-quickstart.md
+        - docs/source-of-truth.md
+        - docs/governance/README.md
+        - docs/architecture/README.md
+        - docs/release/README.md
+        - requirements/TRACEABILITY_MATRIX.md
+      commands:
+        - cmd: "node -e \"JSON.parse(require('fs').readFileSync('package.json','utf8'))\""
+          status: pass
+        - cmd: "node --version"
+          status: pass
+        - cmd: "pnpm --version"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Bootstrapped the local Git repository and strict pnpm/TypeScript workspace metadata, created the initial living requirement matrix, and added public governance, security, contribution, source-of-truth, quickstart, status, architecture, and release baseline documentation. No external-completion claims were added."
+  - id: T003
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: high
+    objective: "Complete the remaining Phase 0 repository foundation: agent instructions, licensing metadata, architecture/governance ADRs, stable specification-plan records, CI/release scaffolding, prompt assets, and the first phase report without inventing unstable protocol semantics."
+    allowed_files:
+      - "AGENTS.md"
+      - ".gitattributes"
+      - ".npmrc"
+      - ".nvmrc"
+      - ".prettierignore"
+      - "turbo.json"
+      - "eslint.config.mjs"
+      - "prettier.config.mjs"
+      - "vitest.config.ts"
+      - "pnpm-lock.yaml"
+      - "LICENSES/**"
+      - "REUSE.toml"
+      - "CHANGELOG.md"
+      - ".github/**"
+      - "spec/**"
+      - "prompts/**"
+      - "reports/**"
+      - "docs/**"
+      - "requirements/**"
+      - "package.json"
+      - "scripts/**"
+      - "tests/**"
+    verify:
+      - "node --version"
+      - "pnpm --version"
+      - "pnpm install --lockfile-only"
+      - "git diff --check"
+    stop_if:
+      - "A missing artifact requires protocol semantics not established by the planning pack."
+      - "A requested change would claim external approval, adoption, deployment, or registration."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    receipt:
+      result: done
+      changed_files:
+        - .nvmrc
+        - .npmrc
+        - .gitattributes
+        - .prettierignore
+        - turbo.json
+        - prettier.config.mjs
+        - eslint.config.mjs
+        - vitest.config.ts
+        - pnpm-lock.yaml
+        - REUSE.toml
+        - CHANGELOG.md
+        - AGENTS.md
+        - "LICENSES/**"
+        - ".github/**"
+        - "spec/**"
+        - "prompts/**"
+        - "docs/**"
+        - "reports/**"
+        - requirements/TRACEABILITY_MATRIX.md
+      commands:
+        - cmd: "node --version"
+          status: pass
+        - cmd: "pnpm --version"
+          status: pass
+        - cmd: "pnpm install --lockfile-only"
+          status: pass
+        - cmd: "pnpm install --frozen-lockfile"
+          status: pass
+        - cmd: "pnpm format:check"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+        - cmd: "planning-pack SHA-256 traversal"
+          status: pass
+      summary: "Completed the Phase 0 repository foundation: pinned Node/pnpm and CI metadata, licensing/REUSE, agent instructions, governance/specification/RFC/ADR status records, complete versioned prompt library, issue/release/risk surfaces, and phase report. No external registration, pilot, certification, legal approval, or production-readiness claim was made."
+  - id: T004
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: high
+    objective: "Implement the minimal EOM protocol vertical slice: JSON Schema 2020-12 core and root resources, generated types, canonical fixtures, structural and semantic validation, CLI validate/lint/inspect, and executable documentation."
+    allowed_files:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".prettierignore"
+      - "schemas/**"
+      - "spec/1.0/**"
+      - "packages/schema/**"
+      - "packages/types/**"
+      - "packages/core/**"
+      - "packages/schema/**"
+      - "packages/validator/**"
+      - "packages/linter/**"
+      - "packages/cli/**"
+      - "packages/config/**"
+      - "fixtures/**"
+      - "examples/minimal-school/**"
+      - "tests/**"
+      - "scripts/**"
+      - "docs/**"
+      - "reports/**"
+    verify:
+      - "pnpm schema:check"
+      - "pnpm generate:drift"
+      - "pnpm typecheck"
+      - "pnpm test -- --runInBand"
+      - "git diff --check"
+    stop_if:
+      - "A schema rule is not supported by the approved specification and requires an RFC."
+      - "Verification fails twice."
+      - "A fix requires modifying generated output directly."
+    receipt:
+      result: done
+      changed_files:
+        - package.json
+        - pnpm-lock.yaml
+        - .prettierignore
+        - "schemas/1.0/**"
+        - "packages/cli/**"
+        - "packages/config/**"
+        - "packages/core/**"
+        - "packages/linter/**"
+        - "packages/schema/**"
+        - "packages/types/**"
+        - "packages/validator/**"
+        - scripts/check-generated-drift.ts
+        - scripts/check-schemas.ts
+        - scripts/generate-schema-docs.ts
+        - scripts/generate-types.ts
+        - scripts/run-tests.ts
+        - "fixtures/**"
+        - "examples/minimal-school/**"
+        - "tests/**"
+        - docs/getting-started.md
+        - docs/reference/schema-catalog.md
+        - reports/phase-1-protocol-core.md
+      commands:
+        - cmd: "pnpm format:check"
+          status: pass
+        - cmd: "pnpm schema:check"
+          status: pass
+        - cmd: "pnpm generate:drift"
+          status: pass
+        - cmd: "pnpm typecheck"
+          status: pass
+        - cmd: "pnpm test -- --runInBand"
+          status: pass
+          detail: "3 files, 11 tests"
+        - cmd: "pnpm build"
+          status: pass
+          detail: "7 package builds"
+        - cmd: "CLI validate/lint/inspect smoke test"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Implemented the EOM 1.0 core vertical slice: JSON Schema 2020-12 root/core resources, generated types and drift enforcement, strict local parsing and URI/localization helpers, structural and semantic validation, privacy/security/freshness linting, validate/lint/inspect CLI commands, canonical fictional-school fixtures, schema documentation, and executable quickstart. Remote fetch/SSRF client behavior, full public module registry, generator, signatures, adapters, conformance runner, docs app, and external gates remain explicitly in later slices; no registration, certification, legal, factual, or production claim was made."
+  - id: T005
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: high
+    objective: "Implement the complete public EOM 1.0 module registry and structural envelopes for organizational, campus, department, staff/contact, program, calendar/event, facility/service/policy, admissions, sports, transportation, meals, clubs, jobs, news, statistics, and API resources, with module metadata, fixtures, and tests."
+    allowed_files:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "modules/**"
+      - "schemas/**"
+      - "spec/1.0/**"
+      - "packages/schema/**"
+      - "packages/types/**"
+      - "packages/core/**"
+      - "packages/validator/**"
+      - "packages/linter/**"
+      - "fixtures/**"
+      - "examples/minimal-school/**"
+      - "examples/ecme-high/**"
+      - "tests/**"
+      - "docs/**"
+      - "reports/**"
+    verify:
+      - "pnpm schema:check"
+      - "pnpm generate:types"
+      - "pnpm generate:drift"
+      - "pnpm typecheck"
+      - "pnpm test -- --runInBand"
+      - "pnpm build"
+      - "git diff --check"
+    stop_if:
+      - "A module requirement needs new authority semantics not supported by the approved planning pack."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+      - "A generated artifact is edited directly instead of regenerated from schema source."
+    receipt:
+      result: done
+      decision: continue
+      full_outcome_complete: false
+      summary: "Completed the public EOM 1.0 module registry and typed resource-envelope slice. All 22 registry families are represented by immutable schema metadata, the 20 module-specific envelopes compile against the shared definitions, deterministic valid fixtures cover each family, and the Ecme public baseline contains an addressable root plus every module resource. Added localization and scoped-delegation boundary tests without expanding the public data boundary."
+      changed_files:
+        - "schemas/1.0/**"
+        - modules/registry.json
+        - "packages/schema/**"
+        - "packages/types/**"
+        - packages/core/src/localized.ts
+        - packages/validator/src/semantic.ts
+        - "fixtures/valid/modules/**"
+        - "examples/ecme-high/**"
+        - tests/core.test.ts
+        - tests/modules.test.ts
+        - tests/validator.test.ts
+        - reports/phase-2-public-modules.md
+      commands:
+        - cmd: "pnpm schema:check"
+          status: pass
+          detail: "34 JSON Schema 2020-12 files"
+        - cmd: "pnpm generate:types"
+          status: pass
+        - cmd: "pnpm generate:drift"
+          status: pass
+        - cmd: "pnpm typecheck"
+          status: pass
+        - cmd: "pnpm test -- --runInBand"
+          status: pass
+          detail: "4 files, 36 tests"
+        - cmd: "pnpm build"
+          status: pass
+          detail: "7 buildable workspace packages"
+        - cmd: "git diff --check"
+          status: pass
+      evidence:
+        - modules/registry.json
+        - packages/schema/src/index.ts
+        - fixtures/valid/modules/catalog-fixtures.json
+        - examples/ecme-high/public/.well-known/educational-organization-manifest
+        - reports/phase-2-public-modules.md
+  - id: T006
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: high
+    objective: "Implement the Phase 2 authoring and deterministic generation pipeline: safe YAML source loading, configuration contracts, modular merge/normalization, reference checks, canonical JSON output, source maps, build reports, and a rich Ecme source/output build path without direct publication or secret handling."
+    allowed_files:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".prettierignore"
+      - "schemas/**"
+      - "spec/1.0/**"
+      - "packages/config/**"
+      - "packages/generator/**"
+      - "packages/schema/**"
+      - "packages/types/**"
+      - "packages/core/**"
+      - "packages/validator/**"
+      - "packages/linter/**"
+      - "packages/cli/**"
+      - "scripts/**"
+      - "examples/**"
+      - "fixtures/**"
+      - "tests/**"
+      - "docs/**"
+      - "reports/**"
+    verify:
+      - "pnpm schema:check"
+      - "pnpm generate:types"
+      - "pnpm generate:drift"
+      - "pnpm typecheck"
+      - "pnpm test -- --runInBand"
+      - "pnpm examples:build"
+      - "pnpm verify:determinism"
+      - "pnpm verify:examples"
+      - "git diff --check"
+    stop_if:
+      - "A generator rule needs unresolved authority or privacy semantics outside the approved planning pack."
+      - "YAML or archive handling would require network access, credentials, or unbounded resource use."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    receipt:
+      result: done
+      decision: continue
+      full_outcome_complete: false
+      summary: "Completed the offline Phase 2 authoring and deterministic generation slice. The repository now has a JSON-Schema-backed configuration contract, bounded YAML/JSON source loading, modular source discovery and normalization, reference-aware validation/linting, canonical root and module output, source maps, build reports, reproducibility fingerprints, CLI build support, and a fully fictional Ecme High source tree. No network, credential, signing, or publication operation is performed by the generator."
+      changed_files:
+        - package.json
+        - pnpm-lock.yaml
+        - schemas/1.0/config.schema.json
+        - "packages/config/**"
+        - "packages/generator/**"
+        - packages/schema/src/index.ts
+        - packages/types/src/generated.ts
+        - "packages/core/**"
+        - "packages/validator/**"
+        - "packages/linter/**"
+        - "packages/cli/**"
+        - scripts/build-example.ts
+        - scripts/check-determinism.ts
+        - scripts/check-examples.ts
+        - "examples/ecme-high/source/**"
+        - tests/generator.test.ts
+        - docs/authoring-and-generation.md
+        - docs/reference/schema-catalog.md
+        - reports/phase-2-authoring-generator.md
+      commands:
+        - cmd: "pnpm install --frozen-lockfile"
+          status: pass
+          detail: "workspace dependencies installed"
+        - cmd: "pnpm format:check"
+          status: pass
+        - cmd: "pnpm schema:check"
+          status: pass
+          detail: "35 JSON Schema 2020-12 files"
+        - cmd: "pnpm generate:types"
+          status: pass
+        - cmd: "pnpm generate:drift"
+          status: pass
+        - cmd: "pnpm typecheck"
+          status: pass
+        - cmd: "pnpm test -- --runInBand"
+          status: pass
+          detail: "5 files, 39 tests"
+        - cmd: "pnpm examples:build"
+          status: pass
+          detail: "22 resources and 24 generated public files"
+        - cmd: "pnpm verify:determinism"
+          status: pass
+          detail: "24 generated files"
+        - cmd: "pnpm verify:examples"
+          status: pass
+          detail: "77 files inspected"
+        - cmd: "pnpm build"
+          status: pass
+          detail: "8 buildable workspace packages"
+        - cmd: "pnpm eom build examples/ecme-high/source/eom.config.yaml --output examples/ecme-high/generated-cli/public --dry-run"
+          status: pass
+          detail: "valid dry-run build"
+        - cmd: "git diff --check"
+          status: pass
+      evidence:
+        - schemas/1.0/config.schema.json
+        - packages/generator/src/index.ts
+        - packages/cli/src/index.ts
+        - examples/ecme-high/source/eom.config.yaml
+        - examples/ecme-high/source/modules/
+        - docs/authoring-and-generation.md
+        - reports/phase-2-authoring-generator.md
+  - id: T007
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: high
+    objective: "Implement the Phase 3 deep course and program model: education levels, delivery, fees/materials, outcomes/standards, structured prerequisites and corequisites, catalog versions/lifecycle, offerings/sections, programs, graph semantic checks, and a richer fictional Ecme High catalog with positive and negative fixtures."
+    allowed_files:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".prettierignore"
+      - "schemas/**"
+      - "spec/1.0/**"
+      - "packages/schema/**"
+      - "packages/types/**"
+      - "packages/core/**"
+      - "packages/validator/**"
+      - "packages/linter/**"
+      - "packages/generator/**"
+      - "packages/cli/**"
+      - "fixtures/**"
+      - "examples/**"
+      - "tests/**"
+      - "docs/**"
+      - "reports/**"
+    verify:
+      - "pnpm format:check"
+      - "pnpm schema:check"
+      - "pnpm generate:types"
+      - "pnpm generate:drift"
+      - "pnpm typecheck"
+      - "pnpm test -- --runInBand"
+      - "pnpm examples:build"
+      - "pnpm verify:determinism"
+      - "pnpm verify:examples"
+      - "pnpm build"
+      - "git diff --check"
+    stop_if:
+      - "A new course, catalog, or program rule needs unresolved jurisdictional policy beyond the approved planning pack."
+      - "The rich example requires real personal data, external network access, credentials, or a claim of institutional approval."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    receipt:
+      result: done
+      decision: continue
+      full_outcome_complete: false
+      summary: "Implemented the Phase 3 deep education model and graph validation. Course, offering, section, and program schemas now cover structured prerequisites/corequisites, lifecycle and catalog versions, delivery, outcomes, standards, fees/materials, workload, and public occurrence data. The fictional Ecme source now builds a 57-course catalog across nine departments with representative edge cases, while proposed source remains outside the public build."
+      changed_files:
+        - .prettierignore
+        - schemas/1.0/common.schema.json
+        - schemas/1.0/module-resource.schema.json
+        - schemas/1.0/module-items.schema.json
+        - packages/validator/src/semantic.ts
+        - packages/generator/src/index.ts
+        - packages/types/src/generated.ts
+        - examples/ecme-high/source/modules/courses.yaml
+        - examples/ecme-high/source/modules/departments.yaml
+        - examples/ecme-high/source/modules/calendar.yaml
+        - examples/ecme-high/source/modules/offerings.yaml
+        - examples/ecme-high/source/modules/programs.yaml
+        - examples/ecme-high/source/contacts.yaml
+        - examples/ecme-high/source/proposed/2028-2029-courses.yaml
+        - "examples/ecme-high/public/**"
+        - "examples/ecme-high/build/**"
+        - fixtures/invalid/semantic/prerequisite-cycle.json
+        - fixtures/valid/course/historical-catalog.json
+        - tests/validator.test.ts
+        - tests/generator.test.ts
+        - tests/modules.test.ts
+        - docs/authoring-and-generation.md
+        - examples/ecme-high/README.md
+        - docs/reference/schema-catalog.md
+        - reports/phase-3-core-school-modules.md
+      commands:
+        - cmd: "pnpm format:check"
+          status: pass
+        - cmd: "pnpm schema:check"
+          status: pass
+          detail: "35 JSON Schema 2020-12 files"
+        - cmd: "pnpm generate:types"
+          status: pass
+        - cmd: "pnpm generate:drift"
+          status: pass
+        - cmd: "pnpm typecheck"
+          status: pass
+        - cmd: "pnpm test -- --runInBand"
+          status: pass
+          detail: "5 files, 43 tests"
+        - cmd: "pnpm examples:build"
+          status: pass
+          detail: "57 courses, 3 offerings, 9 departments, 2 programs"
+        - cmd: "pnpm verify:determinism"
+          status: pass
+          detail: "24 generated files"
+        - cmd: "pnpm verify:examples"
+          status: pass
+          detail: "78 files inspected"
+        - cmd: "pnpm build"
+          status: pass
+          detail: "8 buildable workspace packages"
+        - cmd: "git diff --check"
+          status: pass
+      evidence:
+        - schemas/1.0/module-items.schema.json
+        - packages/validator/src/semantic.ts
+        - examples/ecme-high/public/eom/courses.json
+        - fixtures/invalid/semantic/prerequisite-cycle.json
+        - reports/phase-3-core-school-modules.md
+  - id: T008
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: high
+    objective: "Complete the Phase 1 HTTP/discovery and consumer CLI slice: formalize discovery and redirect/cache/content-type behavior, add bounded SSRF-safe fetch and local/remote check workflows, and implement stable schema/explain/doctor/check/fetch CLI behavior with fixtures and explicit offline defaults."
+    allowed_files:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "spec/1.0/**"
+      - "packages/core/**"
+      - "packages/validator/**"
+      - "packages/linter/**"
+      - "packages/cli/**"
+      - "packages/schema/**"
+      - "packages/config/**"
+      - "fixtures/http/**"
+      - "fixtures/valid/**"
+      - "fixtures/invalid/**"
+      - "tests/**"
+      - "scripts/**"
+      - "docs/**"
+      - "reports/**"
+    verify:
+      - "pnpm format:check"
+      - "pnpm schema:check"
+      - "pnpm generate:types"
+      - "pnpm generate:drift"
+      - "pnpm typecheck"
+      - "pnpm test -- --runInBand"
+      - "pnpm build"
+      - "git diff --check"
+    stop_if:
+      - "Remote behavior cannot be tested without inventing external availability or credentials; use local deterministic HTTP fixtures and document live acceptance as external."
+      - "A fetch implementation cannot enforce HTTPS, redirect, size, timeout, private-host, or content-type boundaries within the approved scope."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    receipt:
+      result: done
+      decision: continue
+      full_outcome_complete: false
+      summary: "Completed the Phase 1 HTTP discovery and consumer CLI slice. The reference fetcher now normalizes the well-known endpoint, follows bounded redirects with observable cross-origin hops, rejects unsafe schemes, userinfo, private or reserved DNS answers, non-default ports, loops, oversized bodies, missing JSON content types, and timeout/network failures. Local check, fetch, schema, explain, and doctor commands are available with explicit offline defaults; deterministic in-process HTTP fixtures cover the transport boundary."
+      changed_files:
+        - packages/core/src/fetch.ts
+        - packages/core/src/index.ts
+        - packages/cli/src/index.ts
+        - packages/cli/package.json
+        - pnpm-lock.yaml
+        - spec/1.0/http-discovery.md
+        - spec/1.0/cli.md
+        - fixtures/http/README.md
+        - tests/fetch.test.ts
+        - tests/cli.test.ts
+      commands:
+        - cmd: "pnpm install --frozen-lockfile"
+          status: pass
+        - cmd: "pnpm format:check"
+          status: pass
+        - cmd: "pnpm schema:check"
+          status: pass
+          detail: "35 JSON Schema 2020-12 files"
+        - cmd: "pnpm generate:types"
+          status: pass
+        - cmd: "pnpm generate:drift"
+          status: pass
+        - cmd: "pnpm typecheck"
+          status: pass
+        - cmd: "pnpm test -- --runInBand"
+          status: pass
+          detail: "7 files, 49 tests"
+        - cmd: "pnpm build"
+          status: pass
+          detail: "8 buildable workspace packages"
+        - cmd: "git diff --check"
+          status: pass
+      evidence:
+        - packages/core/src/fetch.ts
+        - packages/cli/src/index.ts
+        - spec/1.0/http-discovery.md
+        - tests/fetch.test.ts
+        - tests/cli.test.ts
+  - id: T009
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: high
+    objective: "Implement provenance, evidence-led candidate workspaces, conflict preservation and review gates: resource/object/field provenance, source inventory, claim/evidence ledgers, precedence recommendations, staleness audits, privacy quarantine, prompt metadata, PR summaries, and no-direct-publication enforcement using controlled local fixtures."
+    allowed_files:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "schemas/1.0/**"
+      - "spec/1.0/**"
+      - "packages/core/**"
+      - "packages/agentic/**"
+      - "packages/validator/**"
+      - "packages/linter/**"
+      - "packages/generator/**"
+      - "packages/cli/**"
+      - "packages/config/**"
+      - "packages/schema/**"
+      - "packages/types/**"
+      - "candidates/**"
+      - "sources/**"
+      - "evidence/**"
+      - "prompts/**"
+      - "fixtures/agentic/**"
+      - "fixtures/invalid/privacy/**"
+      - "fixtures/valid/provenance/**"
+      - "tests/**"
+      - "scripts/**"
+      - "docs/**"
+      - "reports/**"
+    verify:
+      - "pnpm format:check"
+      - "pnpm schema:check"
+      - "pnpm generate:types"
+      - "pnpm generate:drift"
+      - "pnpm typecheck"
+      - "pnpm test -- --runInBand"
+      - "pnpm build"
+      - "git diff --check"
+    stop_if:
+      - "Candidate or evidence behavior would require a general internet crawler, credentials, or publication authority; use controlled local fixtures and preserve the external gate."
+      - "A privacy fixture would expose real student or staff data; use synthetic redacted values and prove quarantine."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    receipt:
+      result: done
+      decision: continue
+      full_outcome_complete: false
+      summary: "Implemented the evidence boundary for provenance and agent workflows. Resource-, object-, and field-scoped provenance plus source inventory, claim/evidence, conflict, review-decision, and candidate-workspace records are schema-backed. Candidate utilities validate RFC 6901 pointers, preserve conflicts while recommending precedence, audit staleness, measure provenance coverage, quarantine privacy-risking input, produce redacted review reports, and reject candidate workspace paths as generator inputs. Prompt catalog metadata is checked against the versioned prompt files. No candidate is published directly."
+      changed_files:
+        - schemas/1.0/provenance.schema.json
+        - schemas/1.0/source.schema.json
+        - schemas/1.0/evidence.schema.json
+        - schemas/1.0/conflict.schema.json
+        - schemas/1.0/review.schema.json
+        - schemas/1.0/candidate.schema.json
+        - packages/schema/src/index.ts
+        - "packages/agentic/**"
+        - packages/linter/src/provenance.ts
+        - packages/linter/src/index.ts
+        - packages/generator/src/index.ts
+        - packages/generator/package.json
+        - packages/cli/src/index.ts
+        - packages/cli/package.json
+        - package.json
+        - pnpm-lock.yaml
+        - packages/types/src/generated.ts
+        - scripts/generate-types.ts
+        - scripts/check-prompts.ts
+        - prompts/prompt-catalog.yaml
+        - "sources/**"
+        - "evidence/**"
+        - "candidates/**"
+        - "fixtures/agentic/**"
+        - fixtures/invalid/privacy/student-record.json
+        - "fixtures/valid/provenance/**"
+        - tests/agentic.test.ts
+        - tests/linter.test.ts
+        - docs/provenance-and-agent-workflows.md
+        - docs/reference/schema-catalog.md
+        - reports/phase-5-provenance-agentic.md
+      commands:
+        - cmd: "pnpm install --frozen-lockfile"
+          status: pass
+          detail: "10 workspace projects"
+        - cmd: "pnpm format:check"
+          status: pass
+        - cmd: "pnpm schema:check"
+          status: pass
+          detail: "40 JSON Schema 2020-12 files"
+        - cmd: "pnpm generate:types"
+          status: pass
+        - cmd: "pnpm generate:drift"
+          status: pass
+        - cmd: "pnpm prompts:check"
+          status: pass
+          detail: "21 versioned prompts"
+        - cmd: "pnpm typecheck"
+          status: pass
+        - cmd: "pnpm test -- --runInBand"
+          status: pass
+          detail: "8 files, 56 tests"
+        - cmd: "pnpm build"
+          status: pass
+          detail: "9 buildable workspace packages"
+        - cmd: "git diff --check"
+          status: pass
+      evidence:
+        - packages/agentic/src/index.ts
+        - packages/linter/src/provenance.ts
+        - schemas/1.0/evidence.schema.json
+        - fixtures/invalid/privacy/student-record.json
+        - tests/agentic.test.ts
+        - reports/phase-5-provenance-agentic.md
+  - id: T010
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: high
+    objective: "Implement optional v1 integrity and authority delegation: scoped delegation evaluation, revocation/expiry and temporal checks, RFC 8785-compatible canonical bytes and digests, detached Ed25519/JWS sign/verify, key lifecycle metadata, security findings, fixtures, and stable CLI sign/verify behavior without storing private keys."
+    allowed_files:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "schemas/1.0/**"
+      - "spec/1.0/**"
+      - "packages/core/**"
+      - "packages/validator/**"
+      - "packages/cli/**"
+      - "packages/schema/**"
+      - "packages/types/**"
+      - "packages/signatures/**"
+      - "packages/authority/**"
+      - "fixtures/delegation/**"
+      - "fixtures/signatures/**"
+      - "tests/**"
+      - "scripts/**"
+      - "docs/**"
+      - "reports/**"
+    verify:
+      - "pnpm format:check"
+      - "pnpm schema:check"
+      - "pnpm generate:types"
+      - "pnpm generate:drift"
+      - "pnpm typecheck"
+      - "pnpm test -- --runInBand"
+      - "pnpm build"
+      - "git diff --check"
+    stop_if:
+      - "A cryptographic standard or wire rule is not supported by the approved planning pack; record an RFC boundary rather than inventing interoperability."
+      - "Private key material would be written to source, generated output, fixtures, or logs."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    receipt:
+      result: done
+      decision: continue
+      full_outcome_complete: false
+      summary: "Implemented optional integrity and delegated authority. Root-origin and scoped cross-origin evaluation now covers resource type/id, origin/path, subject, validity, revocation, and non-transitive rules, with synthetic vendor-meal and district-transport fixtures. The signature package provides RFC 8785-compatible canonical JSON, SHA-256 content digests, detached b64:false EdDSA JWS records, public-only Ed25519 key metadata, key rotation fields, and multi-dimensional verification. CLI sign/verify operations use explicit local files; unsigned conformant v1 remains valid."
+      changed_files:
+        - schemas/1.0/delegation.schema.json
+        - schemas/1.0/key-set.schema.json
+        - schemas/1.0/signature.schema.json
+        - schemas/1.0/catalog.json
+        - packages/schema/src/index.ts
+        - packages/types/src/generated.ts
+        - "packages/authority/**"
+        - "packages/signatures/**"
+        - packages/validator/src/semantic.ts
+        - packages/cli/src/index.ts
+        - packages/cli/package.json
+        - package.json
+        - pnpm-lock.yaml
+        - "fixtures/delegation/**"
+        - "fixtures/signatures/**"
+        - tests/authority-signatures.test.ts
+        - tests/cli.test.ts
+        - spec/1.0/delegation-signatures.md
+        - docs/delegation-and-signatures.md
+        - docs/reference/schema-catalog.md
+        - reports/phase-6-delegation-signatures.md
+      commands:
+        - cmd: "pnpm install --frozen-lockfile"
+          status: pass
+          detail: "12 workspace projects"
+        - cmd: "pnpm format:check"
+          status: pass
+        - cmd: "pnpm schema:check"
+          status: pass
+          detail: "41 JSON Schema 2020-12 files"
+        - cmd: "pnpm generate:types"
+          status: pass
+        - cmd: "pnpm generate:drift"
+          status: pass
+        - cmd: "pnpm typecheck"
+          status: pass
+        - cmd: "pnpm test -- --runInBand"
+          status: pass
+          detail: "9 files, 63 tests"
+        - cmd: "pnpm eom verify fixtures/signatures/unsigned-resource.json --signature fixtures/signatures/static-vector.json --key-set fixtures/signatures/key-set.json --json"
+          status: pass
+          detail: "detached signature verified"
+        - cmd: "pnpm build"
+          status: pass
+          detail: "11 buildable workspace packages"
+        - cmd: "git diff --check"
+          status: pass
+      evidence:
+        - packages/authority/src/index.ts
+        - packages/signatures/src/index.ts
+        - schemas/1.0/signature.schema.json
+        - fixtures/delegation/
+        - fixtures/signatures/static-vector.json
+        - tests/authority-signatures.test.ts
+        - reports/phase-6-delegation-signatures.md
+  - id: T011
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: high
+    objective: "Implement versioned interoperability mapping artifacts and controlled adapters for Schema.org, CEDS, Ed-Fi, OneRoster, CASE, QTI, LTI, Common Cartridge, iCalendar, RSS/Atom feeds, and JSON-LD, with explicit allowlists, lossiness and provenance notes, privacy-safe fixtures, and no certification claims."
+    allowed_files:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "schemas/1.0/**"
+      - "spec/1.0/**"
+      - "packages/adapters/**"
+      - "packages/schemaorg-adapter/**"
+      - "packages/types/**"
+      - "packages/core/**"
+      - "packages/schema/**"
+      - "packages/validator/**"
+      - "packages/linter/**"
+      - "packages/cli/**"
+      - "mappings/**"
+      - "fixtures/mappings/**"
+      - "tests/**"
+      - "scripts/**"
+      - "docs/**"
+      - "reports/**"
+    verify:
+      - "pnpm format:check"
+      - "pnpm schema:check"
+      - "pnpm generate:drift"
+      - "pnpm typecheck"
+      - "pnpm test -- --runInBand"
+      - "pnpm build"
+      - "git diff --check"
+    stop_if:
+      - "An external standard cannot be represented from the approved mapping plan without claiming certification or copying private fields; document the mapping boundary."
+      - "An adapter would fetch remote content by default; use supplied local fixtures."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    receipt:
+      result: done
+      decision: continue
+      full_outcome_complete: false
+      summary: "Implemented versioned, controlled interoperability mappings for Schema.org JSON-LD, CEDS, Ed-Fi, OneRoster, CASE, QTI, LTI, Common Cartridge, iCalendar, and JSON Feed/RSS/Atom. Every preview registry entry documents an explicit public allowlist, transformations, lossiness, provenance, privacy review, fixture, and certificationClaim false. Local adapters emit candidate-only claim-ledger results, preserve non-URI source identifiers as external identifiers, quarantine prohibited fields, reject unsafe XML/feed content, and provide deterministic Schema.org, CEDS, and iCalendar preview exports. No remote content is fetched and no external certification is claimed."
+      changed_files:
+        - schemas/1.0/mapping.schema.json
+        - schemas/1.0/catalog.json
+        - packages/schema/src/index.ts
+        - packages/types/src/generated.ts
+        - "packages/adapters/**"
+        - "packages/schemaorg-adapter/**"
+        - packages/cli/src/index.ts
+        - packages/cli/package.json
+        - package.json
+        - pnpm-lock.yaml
+        - "mappings/**"
+        - "fixtures/mappings/**"
+        - tests/mappings.test.ts
+        - tests/cli.test.ts
+        - spec/1.0/interoperability.md
+        - docs/interoperability.md
+        - docs/reference/schema-catalog.md
+        - reports/phase-4-interoperability.md
+      commands:
+        - cmd: "pnpm install --frozen-lockfile"
+          status: pass
+          detail: "14 workspace projects"
+        - cmd: "pnpm format:check"
+          status: pass
+        - cmd: "pnpm schema:check"
+          status: pass
+          detail: "42 JSON Schema 2020-12 files"
+        - cmd: "pnpm generate:types"
+          status: pass
+        - cmd: "pnpm generate:drift"
+          status: pass
+        - cmd: "pnpm typecheck"
+          status: pass
+        - cmd: "pnpm test -- --runInBand"
+          status: pass
+          detail: "10 files, 70 tests"
+        - cmd: "pnpm eom map schema-org-jsonld fixtures/mappings/schema-org.json --json"
+          status: pass
+          detail: "candidate-only mapping with pending claims"
+        - cmd: "pnpm eom map qti-xml fixtures/mappings/unsafe.xml --json"
+          status: pass
+          detail: "expected quarantine exit 1 for active XML content"
+        - cmd: "pnpm build"
+          status: pass
+          detail: "13 buildable workspace packages"
+        - cmd: "git diff --check"
+          status: pass
+      evidence:
+        - schemas/1.0/mapping.schema.json
+        - mappings/registry.json
+        - packages/adapters/src/index.ts
+        - packages/schemaorg-adapter/src/index.ts
+        - fixtures/mappings/
+        - tests/mappings.test.ts
+        - spec/1.0/interoperability.md
+        - reports/phase-4-interoperability.md
+  - id: T012
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: high
+    objective: "Build the accessible static documentation and no-account playground deliverable: versioned protocol, schema, module, privacy, authority, errors, examples, and draft-status pages, local playground validation/inspection views, safe upload boundaries, documentation checks, and package build assets."
+    allowed_files:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "apps/docs/**"
+      - "apps/playground/**"
+      - "packages/**"
+      - "schemas/**"
+      - "spec/**"
+      - "examples/**"
+      - "tests/**"
+      - "scripts/**"
+      - "docs/**"
+      - "reports/**"
+      - ".github/**"
+    verify:
+      - "pnpm format:check"
+      - "pnpm schema:check"
+      - "pnpm typecheck"
+      - "pnpm test -- --runInBand"
+      - "pnpm docs:build"
+      - "pnpm build"
+      - "git diff --check"
+    stop_if:
+      - "The docs/playground would require accounts, server-side storage, remote execution, or external service availability; keep the artifact static and local."
+      - "Accessibility or security checks cannot be run locally; document the external browser gate instead of claiming pass."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    receipt:
+      result: done
+      decision: continue
+      full_outcome_complete: false
+      summary: "Built the accessible static docs and local-first playground. The docs site covers overview, publisher, consumer, reference, integration, Ecme exploration, governance, FAQ, and troubleshooting, and copies versioned source references deterministically. The no-account playground validates local JSON and restricted YAML, performs privacy and structural checks, generates origin-derived starter profiles, offers local exploration, module coverage, Schema.org preview, signature-shape and conformance-report views, and top-level comparison. Browser and static checks confirm semantic controls, visible focus/skip paths, no remote validation, no raw HTML injection, no upload/retention path, and draft-status language. No hosted runtime service or production deployment is claimed."
+      changed_files:
+        - "apps/docs/**"
+        - "apps/playground/**"
+        - package.json
+        - pnpm-lock.yaml
+        - scripts/check-docs.ts
+        - tests/docs.test.ts
+        - reports/phase-7-documentation-playground.md
+      commands:
+        - cmd: "pnpm install --frozen-lockfile"
+          status: pass
+          detail: "16 workspace projects"
+        - cmd: "pnpm format:check"
+          status: pass
+        - cmd: "pnpm schema:check"
+          status: pass
+          detail: "42 JSON Schema 2020-12 files"
+        - cmd: "pnpm typecheck"
+          status: pass
+        - cmd: "pnpm test -- --runInBand"
+          status: pass
+          detail: "11 files, 72 tests"
+        - cmd: "pnpm docs:build"
+          status: pass
+          detail: "static docs and playground builds"
+        - cmd: "pnpm docs:check"
+          status: pass
+          detail: "8 pages, link/CSP/local-boundary checks"
+        - cmd: "browser smoke: fixture, starter, YAML/privacy interaction"
+          status: pass
+          detail: "local browser interaction verified"
+        - cmd: "pnpm build"
+          status: pass
+          detail: "15 buildable workspace projects"
+        - cmd: "git diff --check"
+          status: pass
+      evidence:
+        - apps/docs/src/
+        - apps/playground/src/
+        - scripts/check-docs.ts
+        - tests/docs.test.ts
+        - reports/phase-7-documentation-playground.md
+  - id: T013
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: xhigh
+    objective: "Complete conformance, release preparation, CI/security/license/dependency evidence, reproducible archives, SBOM and build provenance, external-gate packages, and final traceability updates so the repository is locally releasable without falsely claiming IANA approval, pilots, provider acceptance, or deployment."
+    allowed_files:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "schemas/**"
+      - "spec/**"
+      - "modules/**"
+      - "packages/**"
+      - "apps/**"
+      - "fixtures/**"
+      - "tests/**"
+      - "scripts/**"
+      - ".github/**"
+      - "requirements/**"
+      - "docs/**"
+      - "reports/**"
+      - "CHANGELOG.md"
+      - "README.md"
+      - "SECURITY.md"
+      - "GOVERNANCE.md"
+      - "release/**"
+    verify:
+      - "pnpm format:check"
+      - "pnpm schema:check"
+      - "pnpm generate:drift"
+      - "pnpm typecheck"
+      - "pnpm test -- --runInBand"
+      - "pnpm conformance"
+      - "pnpm verify"
+      - "git diff --check"
+    stop_if:
+      - "An external registration, independent pilot, provider acceptance, production deployment, or paid/network gate is unavailable; package the exact command, owner, evidence needed, and status without inventing completion."
+      - "A release artifact embeds secrets or unverifiable provenance."
+      - "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    receipt:
+      result: done
+      decision: continue
+      full_outcome_complete: false
+      summary: "Completed the conformance and release-preparation tranche. Added the offline versioned EOM testkit and standalone runner, the eom conformance command, deterministic source archive and immutable specification/schema/mapping candidate copy, checksums, CycloneDX SBOM, local unsigned provenance metadata, release/migration/conformance-mark policies, IANA registration and independent pilot packets, CI candidate workflow, offline lint/security/license/dependency/release gates, conformance fixture/report evidence, and reconciled traceability. The complete fictional Ecme High publication passes the Core Publisher Profile. IANA registration, independent interoperability, legal review, stable governance approval, external certification, and production deployment remain explicitly external-blocked or pending; none is claimed."
+      changed_files:
+        - "packages/testkit/**"
+        - "apps/conformance-runner/**"
+        - packages/cli/src/index.ts
+        - tests/cli.test.ts
+        - tests/conformance.test.ts
+        - tests/release.test.ts
+        - scripts/lint.ts
+        - scripts/security-check.ts
+        - scripts/check-license.ts
+        - scripts/check-dependencies.ts
+        - scripts/generate-release-artifacts.ts
+        - scripts/check-release.ts
+        - package.json
+        - pnpm-lock.yaml
+        - ".github/**"
+        - spec/1.0/licensing.md
+        - spec/1.0/release.md
+        - docs/conformance.md
+        - docs/migration-policy.md
+        - docs/project-status.md
+        - README.md
+        - CHANGELOG.md
+        - requirements/TRACEABILITY_MATRIX.md
+        - "fixtures/conformance/**"
+        - "release/**"
+        - "reports/**"
+      commands:
+        - cmd: "pnpm install --frozen-lockfile"
+          status: pass
+          detail: "18 workspace projects"
+        - cmd: "pnpm format:check"
+          status: pass
+        - cmd: "pnpm schema:check"
+          status: pass
+          detail: "42 JSON Schema 2020-12 files"
+        - cmd: "pnpm generate:drift"
+          status: pass
+        - cmd: "pnpm typecheck"
+          status: pass
+        - cmd: "pnpm test -- --runInBand"
+          status: pass
+          detail: "13 files, 77 tests"
+        - cmd: "pnpm conformance"
+          status: pass
+          detail: "Ecme Core Publisher Profile: 75 pass, 0 fail, 0 warn"
+        - cmd: "pnpm verify"
+          status: pass
+          detail: "build, lint, security, license, dependency, determinism, examples, docs, and release checks"
+        - cmd: "pnpm release:check"
+          status: pass
+          detail: "71 immutable/checksummed artifacts verified"
+        - cmd: "git diff --check"
+          status: pass
+        - cmd: "node .../check-goal-state.mjs docs/goals/educational-organization-manifest"
+          status: pass
+      evidence:
+        - packages/testkit/src/index.ts
+        - packages/cli/src/index.ts
+        - tests/conformance.test.ts
+        - reports/conformance/ecme-high.json
+        - release/manifest.json
+        - release/checksums.sha256
+        - release/sbom.cdx.json
+        - release/build-provenance.json
+        - release/external-gates.md
+        - release/registration/
+        - release/pilot/
+        - requirements/TRACEABILITY_MATRIX.md
+        - reports/phase-8-conformance-release.md
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: xhigh
+    objective: "Audit whether the complete repository outcome is satisfied, including all planning-pack deliverables, tests, generated-drift checks, conformance evidence, documentation, release artifacts, and explicit external-gate status."
+    inputs:
+      - "All done task receipts"
+      - "requirements/TRACEABILITY_MATRIX.md"
+      - "Phase reports and ADR/RFC records"
+      - "Last full verification"
+      - "Current repository diff"
+    constraints:
+      - "Do not implement."
+      - "Reject completion if any required Worker is queued or active."
+      - "Reject completion for a scaffold, untested claim, generated drift, missing required module, or false external-status claim."
+      - "Accept external registration or pilot work only as explicitly packaged and blocked when unavailable from the repository."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "Requirement-to-evidence gaps"
+      - "Next task if not complete"
+    receipt:
+      result: done
+      decision: complete
+      full_outcome_complete: true
+      summary: "Read-only final audit accepted the complete local EOM repository outcome. All required Worker tasks T001-T013 are done; the traceability matrix maps the implementable master-prompt requirements to current specification, schema, implementation, tests/fixtures, documentation, and release evidence; generated drift is clean; the full verification command passes; the Ecme High Core Publisher report is conforming with 75 passing checks and no failures or warnings; immutable candidate artifacts, source archive, checksums, SBOM, migration policy, and local provenance are present and self-consistent. IANA registration, independent publisher/consumer interoperability, legal review, stable governance approval, external certification, and production deployment are explicitly packaged as blocked or pending external gates and are not claimed as complete."
+      requirement_gaps: []
+      external_gates:
+        - gate: "IANA well-known suffix registration"
+          status: blocked-external
+          evidence: release/registration/
+        - gate: "Independent publisher/consumer pilot"
+          status: blocked-external
+          evidence: release/pilot/
+        - gate: "Legal/license review"
+          status: pending-external
+          evidence: reports/external-gates.md
+        - gate: "Production deployment"
+          status: not-authorized
+          evidence: release/external-gates.md
+      verification:
+        install: "pnpm install --frozen-lockfile"
+        verify: "pnpm verify"
+        conformance: "pnpm conformance"
+        conformanceSummary: "EOM 1.0 publisher-core: 75 pass, 0 fail, 0 warn"
+        schemaCount: 42
+        testFiles: 13
+        tests: 77
+        releaseArtifacts: 71
+        diffCheck: "git diff --check"
+      evidence:
+        - requirements/TRACEABILITY_MATRIX.md
+        - reports/phase-0-foundation.md
+        - reports/phase-1-protocol-core.md
+        - reports/phase-2-authoring-generator.md
+        - reports/phase-2-public-modules.md
+        - reports/phase-3-core-school-modules.md
+        - reports/phase-4-interoperability.md
+        - reports/phase-5-provenance-agentic.md
+        - reports/phase-6-delegation-signatures.md
+        - reports/phase-7-documentation-playground.md
+        - reports/phase-8-conformance-release.md
+        - reports/external-gates.md
+        - reports/release-checklist.md
+        - reports/conformance/ecme-high.json
+        - release/manifest.json
+        - release/checksums.sha256
+        - release/sbom.cdx.json
+        - release/build-provenance.json
+checks:
+  dirty_fingerprint: unknown
+  last_verification:
+    result: unknown
+    task: null
+    commands: []

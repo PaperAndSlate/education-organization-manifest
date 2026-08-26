@@ -1,0 +1,86 @@
+# Illustrative authoring configuration. The final implementation must validate
+# this against the implemented config schema.
+project:
+  name: "Ecme High School EOM"
+  protocolVersion: "1.0"
+  defaultLanguage: "en-US"
+  supportedLanguages:
+    - "en-US"
+    - "es"
+
+publisher:
+  origin: "https://ecme-high.example"
+  manifestPath: "/.well-known/educational-organization-manifest"
+
+source:
+  root: "."
+  modules:
+    organization:
+      - "organization.yaml"
+    campuses:
+      - "campuses/*.yaml"
+    contacts:
+      - "contacts/*.yaml"
+    departments:
+      - "departments/*.yaml"
+    courses:
+      - "courses/**/*.yaml"
+    programs:
+      - "programs/*.yaml"
+    calendar:
+      - "calendar/*.yaml"
+    events:
+      - "events/*.yaml"
+    facilities:
+      - "facilities/*.yaml"
+    services:
+      - "services/*.yaml"
+    policies:
+      - "policies/*.yaml"
+    admissions:
+      - "admissions/*.yaml"
+    sports:
+      - "sports/*.yaml"
+    clubs:
+      - "clubs/*.yaml"
+    delegations:
+      - "delegated/*.yaml"
+    jobs:
+      - "jobs/*.yaml"
+    news:
+      - "news/*.yaml"
+    statistics:
+      - "statistics/*.yaml"
+    apiServices:
+      - "apis/*.yaml"
+    provenance:
+      - "provenance/*.yaml"
+
+output:
+  root: "../expected-sample"
+  canonicalJson: true
+  prettyPrint: true
+  sourceMaps: true
+  buildManifest: true
+  deterministicTimestamp: "from-source"
+
+validation:
+  profiles:
+    - "school-core"
+    - "school-catalog"
+    - "public-provenance"
+  privacyLint: true
+  failOn:
+    - "error"
+  warnOnMissingFreshness: true
+
+publication:
+  expires: "2028-07-01T00:00:00Z"
+  indexingPolicy:
+    allowPublicIndexing: true
+    allowArchiving: true
+    corrections: "https://ecme-high.example/contact/data-corrections"
+
+signing:
+  enabled: false
+  # Optional in v1. Signature fixtures should use synthetic test keys only.

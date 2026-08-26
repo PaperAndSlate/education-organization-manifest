@@ -1,0 +1,19 @@
+{
+  "name": "@paperandslate/eom-conformance-runner",
+  "version": "0.1.0",
+  "description": "Offline command entry point for the EOM conformance testkit.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "dependencies": {
+    "@paperandslate/eom-core": "workspace:*",
+    "@paperandslate/eom-testkit": "workspace:*"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
+    "typecheck": "tsc --noEmit",
+    "lint": "true"
+  }
+}

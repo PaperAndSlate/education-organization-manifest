@@ -1,0 +1,49 @@
+{
+  "result": "done",
+  "decision": "approved",
+  "full_outcome_complete": false,
+  "note": "notes/T001-plan-index.md",
+  "summary": "Read and indexed all 195 planning-pack files before implementation. Confirmed the phase order, acceptance oracle, priority rules, safety boundaries, sample normalization needs, and external gates. No planning conflict blocks the minimal protocol.",
+  "evidence": [
+    "plans/01_CONFIRMED_DECISIONS.md",
+    "plans/specification/PROTOCOL_OVERVIEW.md",
+    "plans/architecture/MONOREPO_ARCHITECTURE.md",
+    "plans/data-model/MODULE_REGISTRY.md",
+    "plans/delivery/PHASES_AND_MILESTONES.md",
+    "plans/pack-manifest.json"
+  ],
+  "worker_package": {
+    "objective": "Create the requirement traceability matrix and bootstrap the repository/governance baseline selected by T001.",
+    "allowed_files": [
+      "requirements/TRACEABILITY_MATRIX.md",
+      "README.md",
+      "package.json",
+      "pnpm-workspace.yaml",
+      "tsconfig.json",
+      ".gitignore",
+      ".editorconfig",
+      "LICENSE",
+      "CODE_OF_CONDUCT.md",
+      "CONTRIBUTING.md",
+      "SECURITY.md",
+      "GOVERNANCE.md",
+      "docs/**",
+      "packages/**",
+      "apps/**",
+      "schemas/**",
+      "examples/**",
+      "tests/**",
+      "scripts/**"
+    ],
+    "verify": [
+      "node --version",
+      "pnpm --version",
+      "git diff --check"
+    ],
+    "stop_if": [
+      "T001 identifies a required path or decision outside the listed repository scope.",
+      "A requested change would claim external approval, deployment, pilot, or registration.",
+      "Verification fails twice for a cause that cannot be fixed within allowed_files."
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "_intendedResult": "Semantic failure. Course prerequisite graph contains a cycle.",
+  "courses": [
+    {
+      "id": "https://ecme-high.example/id/course/example-a",
+      "prerequisites": {
+        "allOf": [
+          {
+            "course": "https://ecme-high.example/id/course/example-b"
+          }
+        ]
+      }
+    },
+    {
+      "id": "https://ecme-high.example/id/course/example-b",
+      "prerequisites": {
+        "allOf": [
+          {
+            "course": "https://ecme-high.example/id/course/example-a"
+          }
+        ]
+      }
+    }
+  ]
+}

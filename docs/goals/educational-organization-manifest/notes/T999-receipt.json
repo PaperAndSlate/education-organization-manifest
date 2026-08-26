@@ -1,0 +1,44 @@
+{
+  "result": "done",
+  "decision": "complete",
+  "full_outcome_complete": true,
+  "summary": "Read-only final audit accepted the complete local EOM repository outcome. All required Worker tasks T001-T013 are done; the traceability matrix maps the implementable master-prompt requirements to current specification, schema, implementation, tests/fixtures, documentation, and release evidence; generated drift is clean; the full verification command passes; the Ecme High Core Publisher report is conforming with 75 passing checks and no failures or warnings; immutable candidate artifacts, source archive, checksums, SBOM, migration policy, and local provenance are present and self-consistent. IANA registration, independent publisher/consumer interoperability, legal review, stable governance approval, external certification, and production deployment are explicitly packaged as blocked or pending external gates and are not claimed as complete.",
+  "requirement_gaps": [],
+  "external_gates": [
+    { "gate": "IANA well-known suffix registration", "status": "blocked-external", "evidence": "release/registration/" },
+    { "gate": "Independent publisher/consumer pilot", "status": "blocked-external", "evidence": "release/pilot/" },
+    { "gate": "Legal/license review", "status": "pending-external", "evidence": "reports/external-gates.md" },
+    { "gate": "Production deployment", "status": "not-authorized", "evidence": "release/external-gates.md" }
+  ],
+  "verification": {
+    "install": "pnpm install --frozen-lockfile",
+    "verify": "pnpm verify",
+    "conformance": "pnpm conformance",
+    "conformanceSummary": "EOM 1.0 publisher-core: 75 pass, 0 fail, 0 warn",
+    "schemaCount": 42,
+    "testFiles": 13,
+    "tests": 77,
+    "releaseArtifacts": 71,
+    "diffCheck": "git diff --check"
+  },
+  "evidence": [
+    "requirements/TRACEABILITY_MATRIX.md",
+    "reports/phase-0-foundation.md",
+    "reports/phase-1-protocol-core.md",
+    "reports/phase-2-authoring-generator.md",
+    "reports/phase-2-public-modules.md",
+    "reports/phase-3-core-school-modules.md",
+    "reports/phase-4-interoperability.md",
+    "reports/phase-5-provenance-agentic.md",
+    "reports/phase-6-delegation-signatures.md",
+    "reports/phase-7-documentation-playground.md",
+    "reports/phase-8-conformance-release.md",
+    "reports/external-gates.md",
+    "reports/release-checklist.md",
+    "reports/conformance/ecme-high.json",
+    "release/manifest.json",
+    "release/checksums.sha256",
+    "release/sbom.cdx.json",
+    "release/build-provenance.json"
+  ]
+}

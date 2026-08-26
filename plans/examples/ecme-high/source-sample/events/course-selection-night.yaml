@@ -1,0 +1,17 @@
+id: "https://ecme-high.example/id/event/course-selection-night-2028"
+type: "event"
+organization: "https://ecme-high.example/id/organization"
+name: "Fictional Course Selection Night"
+description: "Families can review the synthetic 2028–2029 course-planning process."
+status: "scheduled"
+start: "2028-02-03T18:00:00-06:00"
+end: "2028-02-03T19:30:00-06:00"
+timezone: "America/Chicago"
+location:
+  facility: "https://ecme-high.example/id/facility/auditorium"
+audience:
+  - "prospective-students"
+  - "current-students"
+  - "parents-guardians"
+contact: "https://ecme-high.example/id/contact/general-office"
+url: "https://ecme-high.example/events/course-selection-night-2028"

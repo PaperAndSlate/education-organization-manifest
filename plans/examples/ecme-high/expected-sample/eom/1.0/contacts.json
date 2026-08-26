@@ -1,0 +1,28 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/contact-directory.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/contacts",
+  "type": "contact-directory",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/contact/general-office",
+      "type": "contact-point",
+      "role": "School Office",
+      "email": "office@ecme-high.example",
+      "telephone": "+1-202-555-0100"
+    },
+    {
+      "id": "https://ecme-high.example/id/contact/data-corrections",
+      "type": "contact-point",
+      "role": "Public Data Corrections",
+      "email": "data-corrections@ecme-high.example"
+    },
+    {
+      "id": "https://ecme-high.example/id/contact/fcs-department",
+      "type": "contact-point",
+      "role": "Family and Consumer Sciences Department",
+      "email": "fcs@ecme-high.example"
+    }
+  ]
+}

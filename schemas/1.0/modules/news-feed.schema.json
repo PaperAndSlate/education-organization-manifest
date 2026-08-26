@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/modules/news-feed.schema.json",
+  "title": "EOM news feed",
+  "allOf": [
+    { "$ref": "../module-resource.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "const": "https://paperandslate.org/schemas/eom/1.0/modules/news-feed.schema.json"
+        },
+        "type": { "const": "news-feed" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "module-items.schema.json#/$defs/newsItem" }
+        }
+      }
+    }
+  ]
+}

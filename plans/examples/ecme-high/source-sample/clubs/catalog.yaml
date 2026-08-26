@@ -1,0 +1,16 @@
+items:
+  - id: "https://ecme-high.example/id/club/robotics"
+    type: "club"
+    organization: "https://ecme-high.example/id/organization"
+    name: "Robotics Club"
+    description: "A fictional after-school club."
+    publicContact:
+      role: "Activities Office"
+      email: "activities@ecme-high.example"
+    memberListPublished: false
+
+  - id: "https://ecme-high.example/id/club/culinary"
+    type: "club"
+    organization: "https://ecme-high.example/id/organization"
+    name: "Culinary Club"
+    memberListPublished: false

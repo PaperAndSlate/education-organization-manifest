@@ -1,0 +1,27 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/club-catalog.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/clubs",
+  "type": "club-catalog",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/club/robotics",
+      "type": "club",
+      "name": "Robotics Club",
+      "memberListPublished": false
+    },
+    {
+      "id": "https://ecme-high.example/id/club/culinary",
+      "type": "club",
+      "name": "Culinary Club",
+      "memberListPublished": false
+    },
+    {
+      "id": "https://ecme-high.example/id/club/theatre",
+      "type": "club",
+      "name": "Theatre Guild",
+      "memberListPublished": false
+    }
+  ]
+}

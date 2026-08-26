@@ -1,0 +1,1270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/modules/module-items.schema.json",
+  "title": "EOM public module item definitions",
+  "$defs": {
+    "entity": {
+      "type": "object",
+      "required": ["id", "type", "name"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "type": { "type": "string", "minLength": 1 },
+        "name": { "$ref": "../common.schema.json#/$defs/localized" },
+        "description": { "$ref": "../common.schema.json#/$defs/localized" },
+        "status": {
+          "enum": [
+            "draft",
+            "planned",
+            "active",
+            "suspended",
+            "retired",
+            "replaced",
+            "closed",
+            "unknown"
+          ]
+        },
+        "effective": { "$ref": "../common.schema.json#/$defs/period" },
+        "website": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+        "contact": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "provenance": { "type": "array", "items": { "$ref": "../provenance.schema.json" } },
+        "extensions": { "$ref": "../common.schema.json#/$defs/extensions" }
+      }
+    },
+    "campus": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "campus" },
+            "campusType": { "type": "string", "minLength": 1 },
+            "operator": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "organizationsServed": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "address": { "$ref": "../common.schema.json#/$defs/address" },
+            "timeZone": { "type": "string", "minLength": 1 },
+            "virtuality": { "enum": ["physical", "virtual", "hybrid"] },
+            "accessibility": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "visitorInstructions": { "$ref": "../common.schema.json#/$defs/localized" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "department": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "department" },
+            "parentOrganization": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "parentDepartment": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "subjects": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "programs": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "courses": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "campuses": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "leadership": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "staff": {
+      "type": "object",
+      "required": ["id", "type", "name", "publicationReview"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "type": { "const": "staff-member" },
+        "name": { "$ref": "../common.schema.json#/$defs/localized" },
+        "jobTitles": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/localized" }
+        },
+        "departments": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "publicCourses": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "teams": { "type": "array", "items": { "$ref": "../common.schema.json#/$defs/entityRef" } },
+        "institutionalEmail": { "type": "string", "format": "email" },
+        "institutionalTelephone": { "type": "string", "minLength": 3 },
+        "profileUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+        "languages": { "type": "array", "items": { "$ref": "../common.schema.json#/$defs/bcp47" } },
+        "publicationReview": {
+          "type": "object",
+          "required": ["reviewedAt", "status"],
+          "properties": {
+            "reviewedAt": { "$ref": "../common.schema.json#/$defs/dateTime" },
+            "reviewedBy": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "status": { "enum": ["approved", "pending", "withdrawn", "expired"] },
+            "expires": { "$ref": "../common.schema.json#/$defs/dateTime" }
+          },
+          "additionalProperties": false
+        },
+        "effective": { "$ref": "../common.schema.json#/$defs/period" },
+        "provenance": { "type": "array", "items": { "$ref": "../provenance.schema.json" } },
+        "extensions": { "$ref": "../common.schema.json#/$defs/extensions" }
+      },
+      "additionalProperties": false
+    },
+    "roleContact": {
+      "type": "object",
+      "required": ["id", "type", "role"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "type": { "const": "role-contact" },
+        "role": { "$ref": "../common.schema.json#/$defs/localized" },
+        "organization": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "department": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "email": { "type": "string", "format": "email" },
+        "telephone": { "type": "string", "minLength": 3 },
+        "website": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+        "languages": { "type": "array", "items": { "$ref": "../common.schema.json#/$defs/bcp47" } },
+        "publicationReview": { "type": "object" },
+        "extensions": { "$ref": "../common.schema.json#/$defs/extensions" }
+      },
+      "additionalProperties": false
+    },
+    "course": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "required": ["provider"],
+          "properties": {
+            "type": { "const": "course" },
+            "code": { "type": "string", "minLength": 1 },
+            "shortDescription": { "$ref": "../common.schema.json#/$defs/localized" },
+            "provider": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "department": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "subjects": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "topics": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "disciplines": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "educationLevels": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "uniqueItems": true
+            },
+            "educationLevelDetails": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/educationLevel" }
+            },
+            "gradeEligibility": { "$ref": "#/$defs/gradeEligibility" },
+            "ageRange": { "$ref": "#/$defs/ageRange" },
+            "difficulty": { "type": "string", "minLength": 1 },
+            "category": { "type": "string", "minLength": 1 },
+            "labels": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "programs": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "modes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "credits": { "type": "array", "items": { "$ref": "#/$defs/credit" } },
+            "workload": { "$ref": "#/$defs/workload" },
+            "duration": { "$ref": "#/$defs/duration" },
+            "instructionalWeeks": { "type": "integer", "minimum": 1 },
+            "meetingExpectations": { "$ref": "../common.schema.json#/$defs/localized" },
+            "labHours": { "type": "number", "minimum": 0 },
+            "prerequisites": { "$ref": "#/$defs/prerequisiteExpression" },
+            "corequisites": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "corequisiteRequirements": { "$ref": "#/$defs/prerequisiteExpression" },
+            "recommendedPriorLearning": { "$ref": "../common.schema.json#/$defs/localized" },
+            "placementRequirements": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/prerequisiteExpression" }
+            },
+            "permissions": { "type": "array", "items": { "$ref": "#/$defs/permission" } },
+            "outcomes": { "type": "array", "items": { "$ref": "#/$defs/outcome" } },
+            "standards": { "type": "array", "items": { "$ref": "#/$defs/standardAlignment" } },
+            "competencies": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "majorUnits": { "type": "array", "items": { "$ref": "#/$defs/courseUnit" } },
+            "instructionalMethods": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "assessmentMethods": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "gradingBasis": { "$ref": "../common.schema.json#/$defs/localized" },
+            "delivery": { "$ref": "#/$defs/courseDelivery" },
+            "languages": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/bcp47" },
+              "uniqueItems": true
+            },
+            "campuses": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "locations": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "accessibility": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "materials": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  { "$ref": "../common.schema.json#/$defs/entityRef" },
+                  { "$ref": "#/$defs/material" }
+                ]
+              }
+            },
+            "textbooks": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/material" }
+            },
+            "equipmentExpectations": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "technologyRequirements": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "safetyRequirements": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "fees": { "type": "array", "items": { "$ref": "#/$defs/fee" } },
+            "qualification": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "certifications": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "dualCreditPartners": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "transferableCreditNotes": { "$ref": "../common.schema.json#/$defs/localized" },
+            "relatedCourses": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "equivalentCourses": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "replaces": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "replacedBy": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "relationships": { "$ref": "#/$defs/courseRelationships" },
+            "repeatability": { "$ref": "#/$defs/repeatability" },
+            "sequencePosition": { "type": "integer", "minimum": 1 },
+            "nextCourses": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "catalogYear": { "type": "string", "pattern": "^[0-9]{4}(?:-[0-9]{4})?$" },
+            "catalogVersion": { "$ref": "../common.schema.json#/$defs/catalogVersion" },
+            "displayCategory": { "type": "string", "minLength": 1 },
+            "featured": { "type": "boolean" },
+            "enrollmentInstructions": { "$ref": "../common.schema.json#/$defs/localized" },
+            "publicContact": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "catalogUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "offering": {
+      "type": "object",
+      "required": ["id", "type", "name", "course", "provider"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "type": { "const": "course-offering" },
+        "name": { "$ref": "../common.schema.json#/$defs/localized" },
+        "course": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "provider": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "academicPeriod": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "academicYear": { "type": "string", "minLength": 1 },
+        "term": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": ["planned", "open", "waitlist", "full", "closed", "cancelled", "unknown"]
+        },
+        "modes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "deliveryMode": { "type": "string", "minLength": 1 },
+        "campuses": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "locations": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "languages": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/bcp47" },
+          "uniqueItems": true
+        },
+        "start": { "$ref": "../common.schema.json#/$defs/date" },
+        "end": { "$ref": "../common.schema.json#/$defs/date" },
+        "applicationWindow": { "$ref": "../common.schema.json#/$defs/period" },
+        "publicScheduleSummary": { "$ref": "../common.schema.json#/$defs/localized" },
+        "schedule": { "$ref": "../common.schema.json#/$defs/localized" },
+        "instructors": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "availability": { "$ref": "#/$defs/availability" },
+        "sections": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "$ref": "../common.schema.json#/$defs/entityRef" },
+              { "$ref": "#/$defs/section" }
+            ]
+          }
+        },
+        "audience": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "feeOverrides": { "type": "array", "items": { "$ref": "#/$defs/fee" } },
+        "enrollmentUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+        "provenance": { "type": "array", "items": { "$ref": "../provenance.schema.json" } },
+        "extensions": { "$ref": "../common.schema.json#/$defs/extensions" }
+      },
+      "additionalProperties": false
+    },
+    "program": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "required": ["provider"],
+          "properties": {
+            "type": { "const": "program" },
+            "classification": { "type": "string", "minLength": 1 },
+            "provider": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "departments": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "educationLevels": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "eligibility": { "$ref": "../common.schema.json#/$defs/localized" },
+            "duration": { "type": "string", "minLength": 1 },
+            "totalCredits": { "type": "array", "items": { "$ref": "#/$defs/credit" } },
+            "workload": { "$ref": "#/$defs/workload" },
+            "requirements": { "type": "array", "items": { "$ref": "#/$defs/requirementGroup" } },
+            "electiveGroups": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/requirementGroup" }
+            },
+            "stages": { "type": "array", "items": { "$ref": "#/$defs/stage" } },
+            "outcomes": { "type": "array", "items": { "$ref": "#/$defs/outcome" } },
+            "qualifications": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "certifications": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "partnerOrganizations": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "applicationProcess": { "$ref": "../common.schema.json#/$defs/localized" },
+            "fees": { "type": "array", "items": { "$ref": "#/$defs/fee" } },
+            "campuses": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "modes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "contact": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "catalogVersion": { "$ref": "../common.schema.json#/$defs/catalogVersion" },
+            "catalogUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "academicCalendar": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "required": ["timeZone"],
+          "properties": {
+            "type": { "const": "academic-calendar" },
+            "timeZone": { "type": "string", "minLength": 1 },
+            "academicYear": { "type": "string", "minLength": 1 },
+            "start": { "$ref": "../common.schema.json#/$defs/date" },
+            "end": { "$ref": "../common.schema.json#/$defs/date" },
+            "periods": { "type": "array", "items": { "$ref": "#/$defs/academicPeriod" } },
+            "days": { "type": "array", "items": { "$ref": "#/$defs/calendarDay" } },
+            "sourceLinks": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/httpsUri" }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "event": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "required": ["start", "timeZone"],
+          "properties": {
+            "type": { "const": "event" },
+            "eventType": { "type": "string", "minLength": 1 },
+            "start": { "$ref": "../common.schema.json#/$defs/dateTime" },
+            "end": { "$ref": "../common.schema.json#/$defs/dateTime" },
+            "timeZone": { "type": "string", "minLength": 1 },
+            "allDay": { "type": "boolean" },
+            "recurrence": { "type": "string", "minLength": 1 },
+            "location": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "virtualUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "audience": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "registration": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "cost": { "$ref": "#/$defs/money" },
+            "accessibility": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "facility": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "facility" },
+            "facilityType": { "type": "string", "minLength": 1 },
+            "campus": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "capabilities": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "accessibility": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "hours": { "$ref": "../common.schema.json#/$defs/localized" },
+            "booking": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "capacity": { "type": "integer", "minimum": 0 }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "service": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "required": ["provider"],
+          "properties": {
+            "type": { "const": "service" },
+            "provider": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "locations": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "audience": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "eligibility": { "$ref": "../common.schema.json#/$defs/localized" },
+            "hours": { "$ref": "../common.schema.json#/$defs/localized" },
+            "access": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "cost": { "$ref": "#/$defs/money" },
+            "languages": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/bcp47" }
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "policy": {
+      "type": "object",
+      "required": ["id", "type", "name", "documentUrl", "documentVersion"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "type": { "const": "policy-document" },
+        "name": { "$ref": "../common.schema.json#/$defs/localized" },
+        "category": { "type": "string", "minLength": 1 },
+        "organization": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "documentUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+        "mediaType": { "type": "string", "minLength": 1 },
+        "documentVersion": { "type": "string", "minLength": 1 },
+        "language": { "$ref": "../common.schema.json#/$defs/bcp47" },
+        "effectiveDate": { "$ref": "../common.schema.json#/$defs/date" },
+        "reviewDate": { "$ref": "../common.schema.json#/$defs/date" },
+        "summary": { "$ref": "../common.schema.json#/$defs/localized" },
+        "supersedes": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "supersededBy": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "digest": { "type": "string", "pattern": "^[A-Za-z0-9-]+=:.*:$" },
+        "provenance": { "type": "array", "items": { "$ref": "../provenance.schema.json" } },
+        "extensions": { "$ref": "../common.schema.json#/$defs/extensions" }
+      },
+      "additionalProperties": false
+    },
+    "admissions": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "admissions-profile" },
+            "organization": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "program": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "admissionsType": { "type": "string", "minLength": 1 },
+            "audience": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "eligibility": { "$ref": "../common.schema.json#/$defs/localized" },
+            "applicationWindows": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/applicationWindow" }
+            },
+            "requiredDocuments": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/localized" }
+            },
+            "fees": { "type": "array", "items": { "$ref": "#/$defs/money" } },
+            "applicationUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "acceptingApplications": { "$ref": "#/$defs/availability" },
+            "catchmentUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "sportsTeam": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "sports-team" },
+            "organization": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "sport": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "level": { "type": "string", "minLength": 1 },
+            "season": { "type": "string", "minLength": 1 },
+            "league": { "type": "string", "minLength": 1 },
+            "homeFacilities": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "coaches": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "schedule": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "registration": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "contact": { "$ref": "../common.schema.json#/$defs/entityRef" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "transportService": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "required": ["provider", "mode"],
+          "properties": {
+            "type": { "const": "transport-service" },
+            "provider": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "organizations": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "campuses": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "mode": { "type": "string", "minLength": 1 },
+            "serviceType": { "type": "string", "minLength": 1 },
+            "eligibility": { "$ref": "../common.schema.json#/$defs/localized" },
+            "routes": {
+              "type": "array",
+              "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+            },
+            "operatingCalendar": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "alerts": { "$ref": "../common.schema.json#/$defs/httpsUri" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "mealMenu": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "meal-menu" },
+            "campus": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "date": { "$ref": "../common.schema.json#/$defs/date" },
+            "mealPeriod": { "type": "string", "minLength": 1 },
+            "menuSections": { "type": "array", "items": { "$ref": "#/$defs/menuSection" } },
+            "alternateMenu": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "allergenDisclaimer": { "$ref": "../common.schema.json#/$defs/localized" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "club": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "club" },
+            "organization": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "department": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "category": { "type": "string", "minLength": 1 },
+            "advisor": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "meetingSchedule": { "$ref": "../common.schema.json#/$defs/localized" },
+            "location": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "eligibility": { "$ref": "../common.schema.json#/$defs/localized" },
+            "fees": { "type": "array", "items": { "$ref": "#/$defs/money" } },
+            "joinUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "job": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "required": ["hiringOrganization", "applicationUrl", "postedAt"],
+          "properties": {
+            "type": { "const": "job-posting" },
+            "hiringOrganization": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "department": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "location": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "employmentType": { "type": "string", "minLength": 1 },
+            "scheduleClassification": { "type": "string", "minLength": 1 },
+            "responsibilities": { "$ref": "../common.schema.json#/$defs/localized" },
+            "qualifications": { "$ref": "../common.schema.json#/$defs/localized" },
+            "compensation": { "$ref": "#/$defs/money" },
+            "applicationUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "postedAt": { "$ref": "../common.schema.json#/$defs/dateTime" },
+            "closingAt": { "$ref": "../common.schema.json#/$defs/dateTime" },
+            "contact": { "$ref": "../common.schema.json#/$defs/entityRef" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "newsItem": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "required": ["headline", "publishedAt"],
+          "properties": {
+            "type": { "const": "news-item" },
+            "headline": { "$ref": "../common.schema.json#/$defs/localized" },
+            "summary": { "$ref": "../common.schema.json#/$defs/localized" },
+            "body": { "$ref": "../common.schema.json#/$defs/localized" },
+            "articleUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "publishedAt": { "$ref": "../common.schema.json#/$defs/dateTime" },
+            "modifiedAt": { "$ref": "../common.schema.json#/$defs/dateTime" },
+            "author": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "categories": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "audience": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "statistic": {
+      "type": "object",
+      "required": ["id", "type", "subject", "metric", "observedAt", "source"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "type": { "const": "statistic" },
+        "subject": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "metric": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "value": {},
+        "unit": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "dimensions": { "type": "object", "additionalProperties": { "type": "string" } },
+        "period": { "$ref": "../common.schema.json#/$defs/period" },
+        "observedAt": { "$ref": "../common.schema.json#/$defs/dateTime" },
+        "publishedAt": { "$ref": "../common.schema.json#/$defs/dateTime" },
+        "source": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "methodology": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+        "revision": { "type": "string", "minLength": 1 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "suppression": { "$ref": "#/$defs/suppression" },
+        "provenance": { "type": "array", "items": { "$ref": "../provenance.schema.json" } },
+        "extensions": { "$ref": "../common.schema.json#/$defs/extensions" }
+      },
+      "additionalProperties": false
+    },
+    "apiReference": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/entity" },
+        {
+          "type": "object",
+          "required": ["provider", "baseUrl", "documentation"],
+          "properties": {
+            "type": { "const": "api-reference" },
+            "provider": { "$ref": "../common.schema.json#/$defs/entityRef" },
+            "purpose": { "$ref": "../common.schema.json#/$defs/localized" },
+            "audience": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "baseUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "documentation": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "openApi": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "terms": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+            "authentication": { "$ref": "../common.schema.json#/$defs/localized" },
+            "rateLimits": { "$ref": "../common.schema.json#/$defs/localized" },
+            "dataCategories": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "privacyClassification": { "type": "string", "minLength": 1 },
+            "support": { "$ref": "../common.schema.json#/$defs/entityRef" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "educationLevel": {
+      "type": "object",
+      "required": ["vocabulary", "code", "label"],
+      "properties": {
+        "vocabulary": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "code": { "type": "string", "minLength": 1 },
+        "label": { "$ref": "../common.schema.json#/$defs/localized" },
+        "jurisdiction": { "type": "string", "minLength": 1 },
+        "approximateAgeRange": { "$ref": "#/$defs/ageRange" },
+        "mapping": { "type": "array", "items": { "$ref": "#/$defs/educationMapping" } }
+      },
+      "additionalProperties": false
+    },
+    "educationMapping": {
+      "type": "object",
+      "required": ["target", "relationship"],
+      "properties": {
+        "target": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "relationship": { "enum": ["exact", "broader", "narrower", "approximate"] },
+        "source": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "note": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "gradeEligibility": {
+      "type": "object",
+      "properties": {
+        "minimum": { "type": "integer", "minimum": 0 },
+        "maximum": { "type": "integer", "minimum": 0 },
+        "levels": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "display": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "ageRange": {
+      "type": "object",
+      "properties": {
+        "minimum": { "type": "number", "minimum": 0 },
+        "maximum": { "type": "number", "minimum": 0 },
+        "unit": { "enum": ["years", "months"] },
+        "minimumInclusive": { "type": "boolean" },
+        "maximumInclusive": { "type": "boolean" },
+        "approximate": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "duration": {
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        {
+          "type": "object",
+          "required": ["value", "unit"],
+          "properties": {
+            "value": { "type": "number", "exclusiveMinimum": 0 },
+            "unit": { "enum": ["minutes", "hours", "days", "weeks", "months", "years"] },
+            "label": { "$ref": "../common.schema.json#/$defs/localized" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "workload": {
+      "type": "object",
+      "properties": {
+        "contactHours": { "type": "number", "minimum": 0 },
+        "independentHours": { "type": "number", "minimum": 0 },
+        "totalHours": { "type": "number", "minimum": 0 },
+        "unit": { "enum": ["per-week", "per-term", "per-course"] },
+        "label": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "courseDelivery": {
+      "type": "object",
+      "properties": {
+        "modes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "campuses": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "locations": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "languages": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/bcp47" },
+          "uniqueItems": true
+        },
+        "accessibilityFeatures": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/localized" }
+        },
+        "fieldTripNotes": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "material": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "name": { "$ref": "../common.schema.json#/$defs/localized" },
+        "kind": { "type": "string", "minLength": 1 },
+        "description": { "$ref": "../common.schema.json#/$defs/localized" },
+        "href": { "$ref": "../common.schema.json#/$defs/httpsUri" },
+        "required": { "type": "boolean" },
+        "license": { "$ref": "../common.schema.json#/$defs/absoluteUri" }
+      },
+      "additionalProperties": false
+    },
+    "waiver": {
+      "type": "object",
+      "required": ["available"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "description": { "$ref": "../common.schema.json#/$defs/localized" },
+        "contact": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "url": { "$ref": "../common.schema.json#/$defs/httpsUri" }
+      },
+      "additionalProperties": false
+    },
+    "fee": {
+      "type": "object",
+      "required": ["amount", "currency"],
+      "properties": {
+        "amount": { "type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$" },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "kind": { "enum": ["tuition", "course", "material", "lab", "equipment", "other"] },
+        "basis": { "$ref": "../common.schema.json#/$defs/localized" },
+        "description": { "$ref": "../common.schema.json#/$defs/localized" },
+        "required": { "type": "boolean" },
+        "waiver": { "$ref": "#/$defs/waiver" },
+        "effective": { "$ref": "../common.schema.json#/$defs/period" }
+      },
+      "additionalProperties": false
+    },
+    "permission": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["instructor", "department", "program", "counselor", "other"] },
+        "display": { "$ref": "../common.schema.json#/$defs/localized" },
+        "contact": { "$ref": "../common.schema.json#/$defs/entityRef" }
+      },
+      "additionalProperties": false
+    },
+    "gradingResult": {
+      "type": "object",
+      "required": ["scheme", "value"],
+      "properties": {
+        "scheme": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "value": { "type": "string", "minLength": 1 },
+        "operator": { "enum": ["at-least", "at-most", "equals"] }
+      },
+      "additionalProperties": false
+    },
+    "prerequisiteExpression": {
+      "oneOf": [
+        { "$ref": "#/$defs/prerequisiteCourse" },
+        { "$ref": "#/$defs/prerequisiteLevel" },
+        { "$ref": "#/$defs/prerequisitePermission" },
+        {
+          "type": "object",
+          "required": ["allOf"],
+          "properties": {
+            "allOf": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/prerequisiteExpression" }
+            },
+            "display": { "$ref": "../common.schema.json#/$defs/localized" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["oneOf"],
+          "properties": {
+            "oneOf": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/prerequisiteExpression" }
+            },
+            "display": { "$ref": "../common.schema.json#/$defs/localized" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["anyOf"],
+          "properties": {
+            "anyOf": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/prerequisiteExpression" }
+            },
+            "display": { "$ref": "../common.schema.json#/$defs/localized" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "prerequisiteCourse": {
+      "type": "object",
+      "required": ["course"],
+      "properties": {
+        "course": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "minimumResult": { "$ref": "#/$defs/gradingResult" },
+        "display": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "prerequisiteLevel": {
+      "type": "object",
+      "required": ["educationLevel"],
+      "properties": {
+        "educationLevel": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "display": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "prerequisitePermission": {
+      "type": "object",
+      "required": ["permission"],
+      "properties": {
+        "permission": { "$ref": "#/$defs/permission" },
+        "display": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "courseUnit": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "name": { "$ref": "../common.schema.json#/$defs/localized" },
+        "summary": { "$ref": "../common.schema.json#/$defs/localized" },
+        "topics": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/localized" }
+        },
+        "order": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "courseRelationships": {
+      "type": "object",
+      "properties": {
+        "recommendedBefore": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "recommendedAfter": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "equivalent": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "replaces": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "replacedBy": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "partOfProgram": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "sharesContentWith": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "crossListedAs": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "repeatability": {
+      "type": "object",
+      "required": ["repeatable"],
+      "properties": {
+        "repeatable": { "type": "boolean" },
+        "maximumAttempts": { "type": "integer", "minimum": 1 },
+        "note": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "section": {
+      "type": "object",
+      "required": ["id", "type", "offering", "publicSectionCode"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "type": { "const": "course-section" },
+        "name": { "$ref": "../common.schema.json#/$defs/localized" },
+        "offering": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "publicSectionCode": { "type": "string", "minLength": 1 },
+        "schedule": { "$ref": "../common.schema.json#/$defs/localized" },
+        "location": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "instructor": { "$ref": "../common.schema.json#/$defs/entityRef" },
+        "deliveryMode": { "type": "string", "minLength": 1 },
+        "capacity": { "type": "integer", "minimum": 0 },
+        "availability": { "$ref": "#/$defs/availability" },
+        "status": { "enum": ["planned", "open", "full", "closed", "cancelled", "unknown"] },
+        "start": { "$ref": "../common.schema.json#/$defs/date" },
+        "end": { "$ref": "../common.schema.json#/$defs/date" }
+      },
+      "additionalProperties": false
+    },
+    "credit": {
+      "type": "object",
+      "required": ["value", "system"],
+      "properties": {
+        "value": { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+)?$" },
+        "system": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "label": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "outcome": {
+      "type": "object",
+      "required": ["statement"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "statement": { "$ref": "../common.schema.json#/$defs/localized" },
+        "competency": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "level": { "type": "string", "minLength": 1 },
+        "assessment": { "$ref": "../common.schema.json#/$defs/localized" },
+        "standards": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/absoluteUri" }
+        },
+        "provenance": { "type": "array", "items": { "$ref": "../provenance.schema.json" } }
+      },
+      "additionalProperties": false
+    },
+    "standardAlignment": {
+      "type": "object",
+      "required": ["framework", "item"],
+      "properties": {
+        "framework": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "item": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "alignment": { "enum": ["exact", "partial", "broad"] },
+        "alignmentType": { "enum": ["exact", "partial", "broad"] },
+        "effectiveVersion": { "type": "string", "minLength": 1 },
+        "source": { "$ref": "../common.schema.json#/$defs/absoluteUri" }
+      },
+      "additionalProperties": false
+    },
+    "money": {
+      "type": "object",
+      "required": ["amount", "currency"],
+      "properties": {
+        "amount": { "type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$" },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "basis": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "availability": {
+      "type": "object",
+      "required": ["status", "observedAt", "expires"],
+      "properties": {
+        "status": { "enum": ["open", "waitlist", "full", "closed", "unknown"] },
+        "seatsRemaining": { "type": "integer", "minimum": 0 },
+        "observedAt": { "$ref": "../common.schema.json#/$defs/dateTime" },
+        "expires": { "$ref": "../common.schema.json#/$defs/dateTime" },
+        "source": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "enrollmentUrl": { "$ref": "../common.schema.json#/$defs/httpsUri" }
+      },
+      "additionalProperties": false
+    },
+    "requirementGroup": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "all",
+            "choose",
+            "minimum-credits",
+            "one-of",
+            "conditional",
+            "optional",
+            "recommended",
+            "external-credential"
+          ]
+        },
+        "minimum": { "type": "integer", "minimum": 1 },
+        "credits": { "$ref": "#/$defs/credit" },
+        "courses": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "requirements": { "type": "array", "items": { "$ref": "#/$defs/requirementGroup" } },
+        "display": { "$ref": "../common.schema.json#/$defs/localized" },
+        "label": { "$ref": "../common.schema.json#/$defs/localized" },
+        "condition": { "$ref": "../common.schema.json#/$defs/localized" },
+        "externalCredential": { "$ref": "../common.schema.json#/$defs/entityRef" }
+      },
+      "additionalProperties": false
+    },
+    "stage": {
+      "type": "object",
+      "required": ["order"],
+      "properties": {
+        "order": { "type": "integer", "minimum": 1 },
+        "courses": {
+          "type": "array",
+          "items": { "$ref": "../common.schema.json#/$defs/entityRef" }
+        },
+        "choose": { "$ref": "#/$defs/requirementGroup" }
+      },
+      "additionalProperties": false
+    },
+    "academicPeriod": {
+      "type": "object",
+      "required": ["id", "type", "name", "start", "end"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "type": { "type": "string", "minLength": 1 },
+        "name": { "$ref": "../common.schema.json#/$defs/localized" },
+        "start": { "$ref": "../common.schema.json#/$defs/date" },
+        "end": { "$ref": "../common.schema.json#/$defs/date" },
+        "order": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "calendarDay": {
+      "type": "object",
+      "required": ["date", "classification"],
+      "properties": {
+        "date": { "$ref": "../common.schema.json#/$defs/date" },
+        "classification": { "type": "string", "minLength": 1 },
+        "label": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "applicationWindow": {
+      "type": "object",
+      "required": ["from", "until"],
+      "properties": {
+        "from": { "$ref": "../common.schema.json#/$defs/date" },
+        "until": { "$ref": "../common.schema.json#/$defs/date" },
+        "for": { "$ref": "../common.schema.json#/$defs/localized" }
+      },
+      "additionalProperties": false
+    },
+    "menuSection": {
+      "type": "object",
+      "required": ["name", "items"],
+      "properties": {
+        "name": { "$ref": "../common.schema.json#/$defs/localized" },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/menuItem" } }
+      },
+      "additionalProperties": false
+    },
+    "menuItem": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "id": { "$ref": "../common.schema.json#/$defs/absoluteUri" },
+        "name": { "$ref": "../common.schema.json#/$defs/localized" },
+        "description": { "$ref": "../common.schema.json#/$defs/localized" },
+        "allergens": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "dietaryLabels": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "price": { "$ref": "#/$defs/money" },
+        "availability": { "$ref": "#/$defs/availability" }
+      },
+      "additionalProperties": false
+    },
+    "suppression": {
+      "type": "object",
+      "required": ["suppressed", "suppressionReason"],
+      "properties": {
+        "suppressed": { "const": true },
+        "suppressionReason": { "type": "string", "minLength": 1 },
+        "policy": { "$ref": "../common.schema.json#/$defs/httpsUri" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

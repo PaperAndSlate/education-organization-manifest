@@ -1,0 +1,17 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/api-reference.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/api-services",
+  "type": "api-reference",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/service/public-api-catalog",
+      "type": "api-service-reference",
+      "apiCatalog": "https://ecme-high.example/.well-known/api-catalog",
+      "documentation": "https://ecme-high.example/developers",
+      "authentication": "none-for-public-endpoints",
+      "notice": "Synthetic fixture; no live API exists."
+    }
+  ]
+}

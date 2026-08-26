@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/evidence.schema.json",
+  "title": "EOM evidence-led claim record",
+  "type": "object",
+  "required": [
+    "type",
+    "id",
+    "target",
+    "proposedValue",
+    "source",
+    "evidence",
+    "method",
+    "confidence",
+    "authorityClass",
+    "privacyClass",
+    "review"
+  ],
+  "properties": {
+    "type": { "const": "claim-record" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "target": {
+      "type": "object",
+      "required": ["resourceId", "pointer"],
+      "properties": {
+        "resourceId": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+        "pointer": {
+          "type": "string",
+          "pattern": "^(?:|(?:/(?:[^~/]|~[01])*)+)$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "proposedValue": {},
+    "originalValue": {},
+    "source": {
+      "type": "object",
+      "required": ["sourceId", "locator"],
+      "properties": {
+        "sourceId": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+        "locator": {
+          "type": "object",
+          "properties": {
+            "page": { "type": "integer", "minimum": 1 },
+            "section": { "type": "string", "minLength": 1 },
+            "selector": { "type": "string", "minLength": 1 },
+            "textRange": { "type": "string", "minLength": 1 },
+            "sheet": { "type": "string", "minLength": 1 },
+            "cell": { "type": "string", "minLength": 1 }
+          },
+          "anyOf": [
+            { "required": ["page"] },
+            { "required": ["section"] },
+            { "required": ["selector"] },
+            { "required": ["textRange"] },
+            { "required": ["sheet"] },
+            { "required": ["cell"] }
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["observedAt"],
+      "properties": {
+        "excerpt": { "type": "string", "maxLength": 1000 },
+        "contentDigest": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9-]+=:.*:$"
+        },
+        "observedAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+        "effective": { "$ref": "common.schema.json#/$defs/period" }
+      },
+      "additionalProperties": false
+    },
+    "method": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": ["direct-extraction", "normalize", "mapping", "inference", "human-input"]
+        },
+        "agent": { "type": "string", "minLength": 1 },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "promptVersion": { "type": "string", "minLength": 1 },
+        "transformation": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "authorityClass": {
+      "enum": [
+        "government-identity",
+        "organization-origin",
+        "governing-body",
+        "government-dataset",
+        "authorized-vendor",
+        "foundation-derived",
+        "third-party",
+        "unknown"
+      ]
+    },
+    "privacyClass": {
+      "enum": [
+        "public-reviewed",
+        "public-review-required",
+        "personal-data",
+        "sensitive-data",
+        "quarantined"
+      ]
+    },
+    "ambiguity": { "type": "string", "minLength": 1 },
+    "review": {
+      "type": "object",
+      "required": ["state", "requiredOwner"],
+      "properties": {
+        "state": {
+          "enum": ["pending", "changes-requested", "approved", "rejected", "quarantined"]
+        },
+        "requiredOwner": { "type": "string", "minLength": 1 },
+        "reviewedBy": { "type": "string", "minLength": 1 },
+        "reviewedAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+        "notes": { "type": "string", "maxLength": 2000 }
+      },
+      "additionalProperties": false
+    },
+    "transformation": { "type": "string", "minLength": 1 },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

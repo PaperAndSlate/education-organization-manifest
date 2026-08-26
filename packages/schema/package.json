@@ -1,0 +1,23 @@
+{
+  "name": "@paperandslate/eom-schema",
+  "version": "0.1.0",
+  "description": "Bundled EOM 1.0 JSON Schema 2020-12 catalog.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@paperandslate/eom-core": "workspace:*"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
+    "typecheck": "tsc --noEmit",
+    "lint": "true"
+  }
+}

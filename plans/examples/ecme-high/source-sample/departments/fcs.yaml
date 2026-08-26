@@ -1,0 +1,29 @@
+id: "https://ecme-high.example/id/department/fcs"
+type: "department"
+organization: "https://ecme-high.example/id/organization"
+campus: "https://ecme-high.example/id/campus/main"
+name:
+  default: "en-US"
+  values:
+    en-US: "Family and Consumer Sciences"
+    es: "Ciencias de la Familia y del Consumidor"
+shortName: "FCS"
+description: "A fictional department offering culinary, consumer, design, and human-development courses."
+subjects:
+  - "https://paperandslate.org/vocabularies/eom/subjects/1.0/family-and-consumer-sciences"
+contacts:
+  - "https://ecme-high.example/id/contact/fcs-department"
+courses:
+  - "https://ecme-high.example/id/course/fcs-101"
+  - "https://ecme-high.example/id/course/cul-101"
+  - "https://ecme-high.example/id/course/cul-202"
+  - "https://ecme-high.example/id/course/cul-250"
+  - "https://ecme-high.example/id/course/fcs-221"
+  - "https://ecme-high.example/id/course/fcs-231"
+  - "https://ecme-high.example/id/course/fcs-271"
+programs:
+  - "https://ecme-high.example/id/program/culinary-hospitality"
+facilities:
+  - "https://ecme-high.example/id/facility/culinary-lab"
+effective:
+  from: "2027-07-01"

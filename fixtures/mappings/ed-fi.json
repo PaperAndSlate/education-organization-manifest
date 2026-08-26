@@ -1,0 +1,9 @@
+{
+  "educationOrganizationId": "edfi-example-ecme",
+  "nameOfInstitution": "Ecme High School",
+  "shortNameOfInstitution": "Ecme High",
+  "webSite": "https://ecme-high.example/",
+  "courseCode": "CUL-202",
+  "courseTitle": "Culinary Foundations",
+  "academicSubject": "Hospitality and Culinary Arts"
+}

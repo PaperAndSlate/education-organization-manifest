@@ -1,0 +1,65 @@
+PROMPT ID: eom/update-existing-school
+PURPOSE: Safely update an existing school EOM source tree from a new approved source set.
+
+INPUTS
+- Existing EOM authoring root: {{SOURCE_ROOT}}
+- Existing published snapshot: {{PUBLISHED_SNAPSHOT}}
+- New approved sources: {{NEW_SOURCES}}
+- Update scope: {{MODULES_OR_PATHS}}
+- Freshness policy: {{FRESHNESS_POLICY}}
+
+RULES
+Read AGENTS.md, ownership/delegation, provenance/conflict, versioning, and the module specifications. Never treat absence from a current webpage as an instruction to delete. Never bypass CODEOWNERS.
+
+WORKFLOW
+1. Validate the current source and published snapshot before changes.
+2. Inventory and digest all new sources.
+3. Compare source chronology and authority.
+4. Build claim-level diffs:
+   - unchanged;
+   - confirmed;
+   - changed;
+   - new;
+   - possibly stale;
+   - explicitly retired;
+   - conflicting;
+   - inaccessible.
+5. Carry forward accepted provenance.
+6. Propose changes only where evidence is sufficient.
+7. Mark missing-but-not-explicitly-retired data for review.
+8. Keep stable IDs unless identity truly changed.
+9. Detect accidental rename-driven ID churn.
+10. Detect effective-date overlap and historical inconsistencies.
+11. Respect module ownership and delegation.
+12. Regenerate output deterministically.
+13. Run all validations and create a review report.
+14. Do not merge or publish.
+
+HIGH-RISK CHANGES
+Highlight separately:
+- organization name/legal identity;
+- canonical origin;
+- official identifier;
+- campus closure/opening;
+- course retirement;
+- prerequisites/eligibility;
+- staff personal data;
+- transportation;
+- allergens;
+- policies;
+- delegation/signing keys;
+- removed resources;
+- privacy/indexing policy.
+
+OUTPUT
+Produce:
+- source inventory;
+- claim diff;
+- candidate changes;
+- stale-data report;
+- conflict report;
+- privacy report;
+- generated publication diff;
+- required reviewers;
+- rollback notes;
+- completion report confirming no publication.

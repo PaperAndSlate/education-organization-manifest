@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/conformance-report.schema.json",
+  "title": "EOM conformance report",
+  "type": "object",
+  "required": [
+    "$schema",
+    "specification",
+    "version",
+    "id",
+    "type",
+    "canonical",
+    "implementation",
+    "status",
+    "checks"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://paperandslate.org/schemas/eom/1.0/conformance-report.schema.json"
+    },
+    "specification": { "const": "https://paperandslate.org/spec/eom/1.0" },
+    "version": { "const": "1.0" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "type": { "const": "conformance-report" },
+    "canonical": { "$ref": "common.schema.json#/$defs/httpsUri" },
+    "implementation": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "source": { "$ref": "common.schema.json#/$defs/httpsUri" }
+      },
+      "additionalProperties": false
+    },
+    "status": { "enum": ["conforming", "partial", "non-conforming"] },
+    "profile": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+          "status": { "enum": ["pass", "fail", "skip", "warn"] },
+          "message": { "$ref": "common.schema.json#/$defs/localized" },
+          "evidence": {
+            "type": "array",
+            "items": { "$ref": "common.schema.json#/$defs/absoluteUri" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "generatedAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "modified": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "expires": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "provenance": { "type": "array", "items": { "$ref": "provenance.schema.json" } },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

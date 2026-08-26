@@ -1,0 +1,22 @@
+{
+  '$schema': 'https://paperandslate.org/schemas/eom/1.0/modules/event-catalog.schema.json',
+  'specification': 'https://paperandslate.org/spec/eom/1.0',
+  'version': '1.0',
+  'id': 'https://ecme-high.example/eom/resource/events',
+  'type': 'event-catalog',
+  'canonical': 'https://ecme-high.example/eom/events.json',
+  'subjects': ['https://ecme-high.example/id/school'],
+  'items':
+    [
+      {
+        'id': 'https://ecme-high.example/id/event/open-house',
+        'type': 'event',
+        'name': 'Open House',
+        'start': '2027-09-10T18:00:00-07:00',
+        'timeZone': 'America/Los_Angeles',
+        'eventType': 'open-house',
+      },
+    ],
+  'modified': '2027-05-01T14:00:00Z',
+  'expires': '2027-09-11T00:00:00Z',
+}

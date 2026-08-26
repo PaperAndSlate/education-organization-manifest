@@ -1,0 +1,24 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/contact-directory.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/contact-directory",
+  "type": "contact-directory",
+  "canonical": "https://ecme-high.example/eom/contacts.json",
+  "subject": "https://ecme-high.example/id/school",
+  "defaultLanguage": "en-US",
+  "supportedLanguages": ["en-US"],
+  "contacts": [
+    {
+      "id": "https://ecme-high.example/id/contact/admissions",
+      "type": "contact-point",
+      "role": "Admissions office",
+      "email": "admissions@ecme-high.example",
+      "telephone": "+1-555-0100",
+      "website": "https://ecme-high.example/admissions",
+      "audience": ["prospective-students", "parents-guardians"]
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "expires": "2028-05-01T14:00:00Z"
+}

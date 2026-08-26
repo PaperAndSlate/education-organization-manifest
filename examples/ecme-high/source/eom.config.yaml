@@ -1,0 +1,89 @@
+project:
+  name: 'Ecme High School EOM'
+  protocolVersion: '1.0'
+  defaultLanguage: 'en-US'
+  supportedLanguages:
+    - 'en-US'
+    - 'es'
+
+publisher:
+  origin: 'https://ecme-high.example'
+  manifestPath: '/.well-known/educational-organization-manifest'
+
+source:
+  root: '.'
+  modules:
+    organization:
+      - 'organization.yaml'
+    contacts:
+      - 'contacts.yaml'
+    campuses:
+      - 'modules/campuses.yaml'
+    departments:
+      - 'modules/departments.yaml'
+    staff:
+      - 'modules/staff.yaml'
+    courses:
+      - 'modules/courses.yaml'
+    offerings:
+      - 'modules/offerings.yaml'
+    programs:
+      - 'modules/programs.yaml'
+    calendar:
+      - 'modules/calendar.yaml'
+    events:
+      - 'modules/events.yaml'
+    facilities:
+      - 'modules/facilities.yaml'
+    services:
+      - 'modules/services.yaml'
+    policies:
+      - 'modules/policies.yaml'
+    admissions:
+      - 'modules/admissions.yaml'
+    sports:
+      - 'modules/sports.yaml'
+    transportation:
+      - 'modules/transportation.yaml'
+    meals:
+      - 'modules/meals.yaml'
+    clubs:
+      - 'modules/clubs.yaml'
+    jobs:
+      - 'modules/jobs.yaml'
+    news:
+      - 'modules/news.yaml'
+    statistics:
+      - 'modules/statistics.yaml'
+    apis:
+      - 'modules/apis.yaml'
+
+output:
+  root: '../generated/public'
+  canonicalJson: true
+  prettyPrint: true
+  sourceMaps: true
+  buildManifest: true
+
+validation:
+  profiles:
+    - 'school-core'
+    - 'school-catalog'
+  privacyLint: true
+  failOn:
+    - 'error'
+  warnOnMissingFreshness: true
+
+publication:
+  modified: '2027-05-01T14:00:00Z'
+  expires: '2028-05-01T14:00:00Z'
+  notice: 'Ecme High School is fictional. All data and people shown are synthetic.'
+  indexingPolicy:
+    allowPublicIndexing: true
+    allowArchiving: true
+    allowCommercialReuse: null
+    terms: 'https://ecme-high.example/data-terms'
+    corrections: 'https://ecme-high.example/contact/data-corrections'
+
+signing:
+  enabled: false

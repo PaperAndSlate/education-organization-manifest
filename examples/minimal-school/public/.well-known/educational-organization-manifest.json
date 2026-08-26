@@ -1,0 +1,65 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://ecme-high.example/.well-known/educational-organization-manifest",
+  "type": "manifest",
+  "canonical": "https://ecme-high.example/.well-known/educational-organization-manifest",
+  "publisher": {
+    "id": "https://ecme-high.example/id/publisher",
+    "name": "Ecme High School",
+    "type": "school",
+    "website": "https://ecme-high.example/",
+    "statement": "Ecme High School publishes this public educational organization manifest."
+  },
+  "scope": {
+    "origin": "https://ecme-high.example",
+    "paths": ["/"],
+    "scopeStatement": "Public resources for Ecme High School."
+  },
+  "organizations": [
+    {
+      "id": "https://ecme-high.example/id/school",
+      "type": "secondary-school",
+      "name": "Ecme High School",
+      "canonicalUrl": "https://ecme-high.example/",
+      "profile": "https://ecme-high.example/eom/organization.json"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "https://paperandslate.org/eom/capability/organization-profile",
+      "version": "1.0",
+      "status": "active",
+      "resources": ["https://ecme-high.example/eom/resource/organization"]
+    },
+    {
+      "id": "https://paperandslate.org/eom/capability/contact-directory",
+      "version": "1.0",
+      "status": "active",
+      "resources": ["https://ecme-high.example/eom/resource/contacts"]
+    }
+  ],
+  "resources": [
+    {
+      "id": "https://ecme-high.example/eom/resource/organization",
+      "type": "organization-profile",
+      "href": "https://ecme-high.example/eom/organization.json",
+      "mediaType": "application/json",
+      "version": "1.0",
+      "subjects": ["https://ecme-high.example/id/school"],
+      "languages": ["en-US"]
+    },
+    {
+      "id": "https://ecme-high.example/eom/resource/contacts",
+      "type": "contact-directory",
+      "href": "https://ecme-high.example/eom/contacts.json",
+      "mediaType": "application/json",
+      "version": "1.0",
+      "subjects": ["https://ecme-high.example/id/school"],
+      "languages": ["en-US"]
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "expires": "2028-05-01T14:00:00Z"
+}

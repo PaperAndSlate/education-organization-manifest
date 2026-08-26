@@ -1,0 +1,21 @@
+# Protocol and schemas
+* @paperandslate/eom-maintainers
+/spec/** @paperandslate/eom-spec-editors
+/schemas/** @paperandslate/eom-schema-maintainers
+/vocabularies/** @paperandslate/eom-vocabulary-maintainers
+/packages/validator/** @paperandslate/eom-validator-maintainers
+/packages/signatures/** @paperandslate/eom-security
+/packages/testkit/** @paperandslate/eom-conformance
+/release/** @paperandslate/eom-release
+/reports/** @paperandslate/eom-release
+/scripts/** @paperandslate/eom-maintainers
+
+# Example source ownership is intentionally illustrative.
+/examples/ecme-high/source/organization/** @ecme-publication-admin @ecme-data-governance
+/examples/ecme-high/source/courses/** @ecme-curriculum
+/examples/ecme-high/source/staff/** @ecme-hr @ecme-privacy-review
+/examples/ecme-high/source/transportation/** @ecme-transportation @ecme-security-review
+/examples/ecme-high/source/meals/** @ecme-food-services @ecme-publication-admin
+
+# Generated output is published by the release owner after source review.
+/examples/**/generated/** @paperandslate/eom-release

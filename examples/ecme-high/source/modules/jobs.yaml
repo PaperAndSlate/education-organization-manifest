@@ -1,0 +1,23 @@
+{
+  '$schema': 'https://paperandslate.org/schemas/eom/1.0/modules/job-catalog.schema.json',
+  'specification': 'https://paperandslate.org/spec/eom/1.0',
+  'version': '1.0',
+  'id': 'https://ecme-high.example/eom/resource/jobs',
+  'type': 'job-catalog',
+  'canonical': 'https://ecme-high.example/eom/jobs.json',
+  'subjects': ['https://ecme-high.example/id/school'],
+  'items':
+    [
+      {
+        'id': 'https://ecme-high.example/id/job/science-teacher',
+        'type': 'job-posting',
+        'name': 'Science Teacher',
+        'hiringOrganization': { 'id': 'https://ecme-high.example/id/school' },
+        'applicationUrl': 'https://ecme-high.example/jobs/science-teacher',
+        'postedAt': '2027-05-01T14:00:00Z',
+        'employmentType': 'full-time',
+      },
+    ],
+  'modified': '2027-05-01T14:00:00Z',
+  'expires': '2027-06-01T00:00:00Z',
+}

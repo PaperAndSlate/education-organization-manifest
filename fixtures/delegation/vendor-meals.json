@@ -1,0 +1,21 @@
+{
+  "type": "delegation",
+  "id": "https://ecme-high.example/id/delegation/meal-provider",
+  "delegate": {
+    "id": "https://vendor.example/id/organization",
+    "name": "Example Food Services",
+    "type": "authorized-vendor"
+  },
+  "scope": {
+    "resourceTypes": ["meal-menu-catalog"],
+    "resourceIds": ["https://ecme-high.example/eom/resource/meals"],
+    "allowedOrigins": ["https://menus.vendor.example"],
+    "allowedPathPrefixes": ["/customers/ecme-high/"]
+  },
+  "keys": ["https://ecme-high.example/eom/keys#vendor-meals-2027"],
+  "validFrom": "2027-07-01T00:00:00Z",
+  "validUntil": "2028-06-30T23:59:59Z",
+  "transitive": false,
+  "status": "active",
+  "subject": "https://ecme-high.example/id/school"
+}

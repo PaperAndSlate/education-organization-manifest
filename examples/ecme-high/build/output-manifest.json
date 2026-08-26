@@ -1,0 +1,103 @@
+{
+  "files": [
+    {
+      "path": ".well-known/educational-organization-manifest",
+      "sha256": "049bab4266796a2c0929b995e8652c67c32b3591cacd593652c37a27ff5e3569"
+    },
+    {
+      "path": ".well-known/educational-organization-manifest.json",
+      "sha256": "049bab4266796a2c0929b995e8652c67c32b3591cacd593652c37a27ff5e3569"
+    },
+    {
+      "path": "eom/admissions.json",
+      "sha256": "42b9cc6fcba33e2f00698c9fa0ff31abcc12351477d9764e9c0252166d467155"
+    },
+    {
+      "path": "eom/apis.json",
+      "sha256": "8b323b6f758df2eaa268ebbfb2921b7a9d1afa1fe26bb93dcd3eb2f89506b723"
+    },
+    {
+      "path": "eom/calendar.json",
+      "sha256": "b86bd03fd98636a42bee33776f53a19030d1bc77b6796aecfaefa6e66bf71f9b"
+    },
+    {
+      "path": "eom/campuses.json",
+      "sha256": "0f524dc5b8121a5abb2a2d3de08a0a98a89b17ff69876e53de05d7ea1988bb2f"
+    },
+    {
+      "path": "eom/clubs.json",
+      "sha256": "335c4aec5118a8369b2bf1ea0bbfe196f5dad2b6961c939d3c38533a7ab7db41"
+    },
+    {
+      "path": "eom/contacts.json",
+      "sha256": "1c0b980c75bf8168e9e2ea1cbaf874837b8666c4bca5db19b82f1961bbbb55d2"
+    },
+    {
+      "path": "eom/courses.json",
+      "sha256": "cce07a91d12c999c9ce87c22369deb0d42adbf4dec2579fc063f59ffeff745a8"
+    },
+    {
+      "path": "eom/departments.json",
+      "sha256": "d4a56df3f839107940e55a617a74a65c627a40e8bdb8a6300e179c7c1a77397d"
+    },
+    {
+      "path": "eom/events.json",
+      "sha256": "50dc585a64cb4bd67aa67f2f8b6d3f88b0c30ffeddddb4295bfa965b7921a8c8"
+    },
+    {
+      "path": "eom/facilities.json",
+      "sha256": "dcf17c863c7305e8bd7e1de3a519ca6a6d6afc07714ef4f401cad7f3cdc6a516"
+    },
+    {
+      "path": "eom/jobs.json",
+      "sha256": "9ab5d7f755688b4e7d956985852af84fe66c9d7e02bdcb896ed4cb8d2a1f32f4"
+    },
+    {
+      "path": "eom/meals.json",
+      "sha256": "f919278d3dfd37097e002b2ed4629c56d58e835102fa123844a62af7b5ca7f1a"
+    },
+    {
+      "path": "eom/news.json",
+      "sha256": "a6bfafdeacbe499a8616a1c30b66051e091385c2a21145962e5b2289197c7db9"
+    },
+    {
+      "path": "eom/offerings.json",
+      "sha256": "f30a427608747b709e811605b7325361ca35277e2732b42e1dbc78166b0d1d2f"
+    },
+    {
+      "path": "eom/organization.json",
+      "sha256": "f2572b7092e77b83d4e44009241256574abeb439a7f871470af60e5d6ad96bcd"
+    },
+    {
+      "path": "eom/policies.json",
+      "sha256": "aec89dc706b24000c160348616656257f4eeddffe2f37a12166d12531f2f47f5"
+    },
+    {
+      "path": "eom/programs.json",
+      "sha256": "1a0675224a09efa6ce037a7a6dcfbf503ab6dbcd55ac23820c0af666bdcb2689"
+    },
+    {
+      "path": "eom/services.json",
+      "sha256": "220172126a4e5369d66a588d6e89352bf40d23300ef6d901453e467142fe49ef"
+    },
+    {
+      "path": "eom/sports.json",
+      "sha256": "414e58da7ca26e754e27488dbd0997bb681a964aafd2bf7e8f92253e5c5a7a90"
+    },
+    {
+      "path": "eom/staff.json",
+      "sha256": "c903bc25cf6e4157b327568e2c4ce2d586be1b087c73d7052959f45a0c502566"
+    },
+    {
+      "path": "eom/statistics.json",
+      "sha256": "b34d05454cb3d232c3798aad303e9c0f7ed3bc49794bbd093f567982119f9a39"
+    },
+    {
+      "path": "eom/transportation.json",
+      "sha256": "4a5e01a50df45586868461ad2e1b1e1d192d69d80c96a76309d5e70af0629a40"
+    }
+  ],
+  "fingerprint": "837ef4154b7953f0d00c8466b9ca1be900e856b43aefa12427592d991686b8e2",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "toolVersion": "0.1.0"
+}

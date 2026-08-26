@@ -1,0 +1,955 @@
+$schema: https://paperandslate.org/schemas/eom/1.0/modules/course-catalog.schema.json
+specification: https://paperandslate.org/spec/eom/1.0
+version: '1.0'
+id: https://ecme-high.example/eom/resource/courses
+type: course-catalog
+canonical: https://ecme-high.example/eom/courses.json
+subjects:
+  - https://ecme-high.example/id/school
+defaultLanguage: en-US
+supportedLanguages:
+  - en-US
+  - es
+catalogVersion:
+  id: https://ecme-high.example/id/catalog/2027-2028
+  label: '2027–2028'
+  status: active
+  effective:
+    from: '2027-07-01'
+    until: '2028-06-30'
+  publishedAt: '2027-05-01T14:00:00Z'
+  source: https://ecme-high.example/eom/courses.json
+  public: true
+releaseStatus: active
+items:
+  - id: https://ecme-high.example/id/course/ela-101
+    type: course
+    code: ELA-101
+    name: English 9
+    description: Foundations of reading, writing, speaking, and research for grade 9.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/ela }
+    educationLevels: [grade-9]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/ela-201
+    type: course
+    code: ELA-201
+    name: English 10
+    description: Sophomore literature, composition, and information literacy.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/ela }
+    educationLevels: [grade-10]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/ela-101 }
+      display: English 9 or an approved equivalent.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/ela-301
+    type: course
+    code: ELA-301
+    name: American Literature
+    description: Reading and composition through a synthetic American literature survey.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/ela }
+    educationLevels: [grade-11]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/ela-302
+    type: course
+    code: ELA-302
+    name: Technical Writing
+    description: Audience-aware technical communication for academic and career contexts.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/ela }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, hybrid]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/ela-401
+    type: course
+    code: ELA-401
+    name: World Literature
+    description: Advanced comparative reading, interpretation, and synthesis.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/ela }
+    educationLevels: [grade-12]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/ela-451
+    type: course
+    code: ELA-451
+    name: Journalism and Media
+    description: Public-interest reporting, media analysis, and responsible editorial practice.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/ela }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/mat-101
+    type: course
+    code: MAT-101
+    name: Algebra I
+    description: Equations, functions, modeling, and quantitative reasoning.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/mathematics }
+    educationLevels: [grade-9, grade-10]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person, hybrid]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/mat-201
+    type: course
+    code: MAT-201
+    name: Geometry
+    description: Geometric reasoning, proof, measurement, and spatial modeling.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/mathematics }
+    educationLevels: [grade-9, grade-10, grade-11]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/mat-101 }
+      display: Algebra I.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/mat-301
+    type: course
+    code: MAT-301
+    name: Algebra II
+    description: Advanced functions, algebraic modeling, and mathematical argument.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/mathematics }
+    educationLevels: [grade-10, grade-11, grade-12]
+    prerequisites:
+      allOf:
+        - course: { id: https://ecme-high.example/id/course/mat-101 }
+        - course: { id: https://ecme-high.example/id/course/mat-201 }
+      display: Algebra I and Geometry.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/mat-321
+    type: course
+    code: MAT-321
+    name: Applied Mathematics
+    description: Applied quantitative reasoning for science, technology, and daily decisions.
+    status: retired
+    replacedBy: { id: https://ecme-high.example/id/course/mat-351 }
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/mathematics }
+    educationLevels: [grade-11, grade-12]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/mat-351
+    type: course
+    code: MAT-351
+    name: Statistics and Data Literacy
+    description: Public-data reasoning, statistical communication, and uncertainty.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/mathematics }
+    educationLevels: [grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, online]
+    languages: [en-US]
+    relationships:
+      crossListedAs: [{ id: https://ecme-high.example/id/course/soc-311 }]
+
+  - id: https://ecme-high.example/id/course/mat-401
+    type: course
+    code: MAT-401
+    name: Precalculus
+    description: Functions, trigonometry, and analytic preparation for calculus.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/mathematics }
+    educationLevels: [grade-11, grade-12]
+    prerequisites:
+      oneOf:
+        - course: { id: https://ecme-high.example/id/course/mat-301 }
+        - course: { id: https://ecme-high.example/id/course/mat-321 }
+      display: Algebra II or Applied Mathematics.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/mat-451
+    type: course
+    code: MAT-451
+    name: Calculus
+    description: Limits, derivatives, integrals, and applications of change.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/mathematics }
+    educationLevels: [grade-12]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/mat-401 }
+      display: Precalculus.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/sci-101
+    type: course
+    code: SCI-101
+    name: Integrated Science
+    description: Foundational laboratory science across physical, life, and Earth systems.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/science }
+    educationLevels: [grade-9]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/sci-201
+    type: course
+    code: SCI-201
+    name: Biology
+    description: Life science concepts, laboratory inquiry, and ecological systems.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/science }
+    educationLevels: [grade-9, grade-10]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/sci-101 }
+      display: Integrated Science.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/sci-301
+    type: course
+    code: SCI-301
+    name: Chemistry
+    description: Matter, reactions, measurement, and laboratory investigation.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/science }
+    educationLevels: [grade-10, grade-11, grade-12]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/mat-101 }
+      display: Algebra I or demonstrated quantitative readiness.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/sci-351
+    type: course
+    code: SCI-351
+    name: Environmental Science
+    description: Environmental systems, field observations, and evidence-based stewardship.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/science }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, field-based]
+    languages: [en-US]
+    delivery:
+      modes: [in-person, field-based]
+      campuses: [{ id: https://ecme-high.example/id/campus/main }]
+      fieldTripNotes: Public fieldwork locations are confirmed per offering.
+
+  - id: https://ecme-high.example/id/course/sci-401
+    type: course
+    code: SCI-401
+    name: Physics
+    description: Motion, energy, waves, and experimental modeling.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/science }
+    educationLevels: [grade-11, grade-12]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/mat-301 }
+      display: Algebra II.
+    corequisites:
+      - id: https://ecme-high.example/id/course/mat-401
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/sci-421
+    type: course
+    code: SCI-421
+    name: Anatomy and Physiology
+    description: Human body systems and health-science foundations for public learning.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/science }
+    educationLevels: [grade-11, grade-12]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/sci-201 }
+      display: Biology.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/sci-490
+    type: course
+    code: SCI-490
+    name: Scientific Research Seminar
+    description: Research questions, methods, evidence, and public presentation.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/science }
+    educationLevels: [grade-11, grade-12]
+    permissions:
+      - kind: instructor
+        display: Instructor approval required.
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/soc-101
+    type: course
+    code: SOC-101
+    name: World History
+    description: Historical inquiry across regions, periods, and connected societies.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/social-studies }
+    educationLevels: [grade-9]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/soc-201
+    type: course
+    code: SOC-201
+    name: United States History
+    description: Synthetic survey of United States history and historical reasoning.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/social-studies }
+    educationLevels: [grade-10, grade-11]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/soc-301
+    type: course
+    code: SOC-301
+    name: Civics and Public Institutions
+    description: Public institutions, civic participation, and evidence-based policy discussion.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/social-studies }
+    educationLevels: [grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/soc-311
+    type: course
+    code: SOC-311
+    name: Economics
+    description: Economic systems, decision-making, and financial-literacy foundations.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/social-studies }
+    educationLevels: [grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person]
+    languages: [en-US]
+    relationships:
+      crossListedAs: [{ id: https://ecme-high.example/id/course/mat-351 }]
+
+  - id: https://ecme-high.example/id/course/soc-351
+    type: course
+    code: SOC-351
+    name: Psychology
+    description: Introductory psychology concepts and ethical public communication.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/social-studies }
+    educationLevels: [grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/soc-401
+    type: course
+    code: SOC-401
+    name: Contemporary Global Issues
+    description: Changing global issues, source evaluation, and civil dialogue.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/social-studies }
+    educationLevels: [grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, hybrid]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/fcs-101
+    type: course
+    code: FCS-101
+    name: Foundations of Family and Consumer Sciences
+    description: Introductory design, wellness, and practical-life inquiry.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fcs }
+    educationLevels: [grade-9, grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/cul-101
+    type: course
+    code: CUL-101
+    name: Culinary Arts I
+    description: Kitchen safety, food preparation, nutrition, and collaborative service.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fcs }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person, lab]
+    languages: [en-US]
+    labHours: 48
+    safetyRequirements:
+      - Public kitchen-safety orientation is required before lab participation.
+    materials:
+      - name: Chef jacket and closed-toe shoes
+        kind: attire
+        required: true
+    fees:
+      - amount: '35.00'
+        currency: USD
+        kind: material
+        basis: per-course
+        waiver:
+          available: true
+          description: A materials-fee waiver may be requested through the published support contact.
+          contact: { id: https://ecme-high.example/id/contact/family-services }
+
+  - id: https://ecme-high.example/id/course/cul-202
+    type: course
+    code: CUL-202
+    name: Culinary Arts II
+    description: Advanced culinary production, menu planning, and hospitality operations.
+    shortDescription: Advanced culinary production and hospitality operations.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fcs }
+    educationLevels: [grade-11, grade-12]
+    gradeEligibility:
+      minimum: 11
+      maximum: 12
+      levels: [grade-11, grade-12]
+      display: Grades 11–12.
+    ageRange:
+      minimum: 16
+      maximum: 19
+      unit: years
+      approximate: true
+    credits:
+      - value: '1.0'
+        system: https://ecme-high.example/id/credit-system/local
+        label: local credit
+    workload:
+      contactHours: 6
+      independentHours: 2
+      unit: per-week
+    duration:
+      value: 1
+      unit: years
+      label: year-long course
+    instructionalWeeks: 36
+    modes: [in-person, lab]
+    languages: [en-US]
+    campuses: [{ id: https://ecme-high.example/id/campus/main }]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/cul-101 }
+      minimumResult:
+        scheme: https://ecme-high.example/id/grading-scale/local
+        value: C
+        operator: at-least
+      display: Culinary Arts I with a grade of C or better.
+    outcomes:
+      - id: https://ecme-high.example/id/outcome/cul-202/menu-planning
+        statement: Design and explain a safe, cost-aware menu for a public audience.
+        level: advanced
+    standards:
+      - framework: https://ecme-high.example/id/standards/fcs
+        item: https://ecme-high.example/id/standards/fcs/food-production-2
+        alignment: partial
+        effectiveVersion: '2027'
+        source: https://ecme-high.example/eom/organization.json
+    topics: [menu planning, food safety, hospitality operations]
+    materials:
+      - name: Chef jacket and closed-toe shoes
+        kind: attire
+        required: true
+      - name: Culinary lab kit
+        kind: equipment
+        required: true
+    equipmentExpectations:
+      - Public culinary lab equipment is supplied during scheduled lab sessions.
+    safetyRequirements:
+      - Public kitchen-safety and attire requirements apply to every lab session.
+    fees:
+      - amount: '45.00'
+        currency: USD
+        kind: material
+        basis: per-course
+        description: Culinary lab materials.
+        required: true
+        waiver:
+          available: true
+          description: A materials-fee waiver is available through Family Services.
+          contact: { id: https://ecme-high.example/id/contact/family-services }
+    programs: [{ id: https://ecme-high.example/id/program/culinary-hospitality }]
+    relatedCourses:
+      - id: https://ecme-high.example/id/course/cul-250
+    catalogUrl: https://ecme-high.example/eom/courses/cul-202
+
+  - id: https://ecme-high.example/id/course/cul-250
+    type: course
+    code: CUL-250
+    name: Food Science
+    description: Chemistry, nutrition, and food-system inquiry through public lab work.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fcs }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, lab]
+    languages: [en-US]
+    relationships:
+      sharesContentWith: [{ id: https://ecme-high.example/id/course/sci-301 }]
+
+  - id: https://ecme-high.example/id/course/fcs-221
+    type: course
+    code: FCS-221
+    name: Child Development
+    description: Public overview of development, learning environments, and family systems.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fcs }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/fcs-231
+    type: course
+    code: FCS-231
+    name: Personal Finance and Adult Living
+    description: Public financial-literacy and practical planning concepts.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fcs }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, online]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/fcs-271
+    type: course
+    code: FCS-271
+    name: Interior and Apparel Design
+    description: Design principles, materials, and project presentation.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fcs }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, studio]
+    languages: [en-US]
+    fees:
+      - amount: '20.00'
+        currency: USD
+        kind: material
+        basis: per-course
+
+  - id: https://ecme-high.example/id/course/eng-101
+    type: course
+    code: ENG-101
+    name: Introduction to Engineering Design
+    description: Design cycles, constraints, prototyping, and technical communication.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/engineering-technology }
+    educationLevels: [grade-9, grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, lab]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/eng-201
+    type: course
+    code: ENG-201
+    name: Computer-Aided Design
+    description: Public CAD workflows, spatial modeling, and technical documentation.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/engineering-technology }
+    educationLevels: [grade-10, grade-11, grade-12]
+    prerequisites:
+      oneOf:
+        - course: { id: https://ecme-high.example/id/course/eng-101 }
+        - permission:
+            kind: instructor
+            display: Instructor approval.
+      display: Introduction to Engineering Design or instructor approval.
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, lab]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/eng-251
+    type: course
+    code: ENG-251
+    name: Robotics Systems
+    description: Public robotics systems, controls, teamwork, and iterative testing.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/engineering-technology }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person, lab]
+    languages: [en-US]
+    technologyRequirements:
+      - School-supplied robotics equipment is used during public class sessions.
+
+  - id: https://ecme-high.example/id/course/eng-301
+    type: course
+    code: ENG-301
+    name: Electronics and Embedded Systems
+    description: Circuits, sensors, embedded logic, and public lab safety.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/engineering-technology }
+    educationLevels: [grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, lab]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/cse-201
+    type: course
+    code: CSE-201
+    name: Computer Science Foundations
+    description: Computational thinking, programming concepts, and responsible technology use.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/engineering-technology }
+    educationLevels: [grade-9, grade-10, grade-11, grade-12]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person, online]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/eng-490
+    type: course
+    code: ENG-490
+    name: Engineering Capstone
+    description: Planned capstone for public design documentation and project review.
+    status: planned
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/engineering-technology }
+    educationLevels: [grade-12]
+    prerequisites:
+      allOf:
+        - course: { id: https://ecme-high.example/id/course/eng-201 }
+        - course: { id: https://ecme-high.example/id/course/eng-251 }
+      display: Computer-Aided Design and Robotics Systems.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person, lab]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/art-101
+    type: course
+    code: ART-101
+    name: Art Foundations
+    description: Foundational visual language, materials, and studio critique.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fine-arts }
+    educationLevels: [grade-9, grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, studio]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/art-201
+    type: course
+    code: ART-201
+    name: Drawing and Painting
+    description: Drawing, painting, composition, and reflective studio practice.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fine-arts }
+    educationLevels: [grade-10, grade-11, grade-12]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/art-101 }
+      display: Art Foundations.
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, studio]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/art-251
+    type: course
+    code: ART-251
+    name: Ceramics
+    description: Ceramic processes, studio safety, and three-dimensional design.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fine-arts }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, studio]
+    languages: [en-US]
+    fees:
+      - amount: '25.00'
+        currency: USD
+        kind: material
+        basis: per-course
+        description: Clay and glaze materials.
+
+  - id: https://ecme-high.example/id/course/art-301
+    type: course
+    code: ART-301
+    name: Digital Media Studio
+    description: Digital image, layout, and media production in a public studio setting.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fine-arts }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, studio, online]
+    languages: [en-US]
+    technologyRequirements:
+      - School workstations and public-domain media assets are available during studio sessions.
+
+  - id: https://ecme-high.example/id/course/mus-101
+    type: course
+    code: MUS-101
+    name: Concert Band
+    description: Instrumental ensemble performance, rehearsal, and public concert practice.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fine-arts }
+    educationLevels: [grade-9, grade-10, grade-11, grade-12]
+    repeatability:
+      repeatable: true
+      note: Students may repeat for additional ensemble experience.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person, performance]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/mus-121
+    type: course
+    code: MUS-121
+    name: Concert Choir
+    description: Vocal ensemble technique, repertoire, rehearsal, and performance.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fine-arts }
+    educationLevels: [grade-9, grade-10, grade-11, grade-12]
+    repeatability: { repeatable: true }
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person, performance]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/the-201
+    type: course
+    code: THE-201
+    name: Theatre Production
+    description: Public theatre production, design, rehearsal, and performance collaboration.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/fine-arts }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, performance]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/spa-101
+    type: course
+    code: SPA-101
+    name:
+      default: en-US
+      values:
+        en-US: Spanish I / Español I
+        es: Español I
+      directions: { es: ltr }
+    description: Introductory Spanish language and intercultural communication.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/world-languages }
+    educationLevels: [grade-9, grade-10, grade-11, grade-12]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US, es]
+
+  - id: https://ecme-high.example/id/course/spa-201
+    type: course
+    code: SPA-201
+    name: Spanish II
+    description: Intermediate Spanish communication, reading, and cultural inquiry.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/world-languages }
+    educationLevels: [grade-9, grade-10, grade-11, grade-12]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/spa-101 }
+      display: Spanish I.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US, es]
+
+  - id: https://ecme-high.example/id/course/spa-301
+    type: course
+    code: SPA-301
+    name: Spanish III
+    description: Advanced intermediate Spanish communication and literary reading.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/world-languages }
+    educationLevels: [grade-10, grade-11, grade-12]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/spa-201 }
+      display: Spanish II.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US, es]
+
+  - id: https://ecme-high.example/id/course/spa-401
+    type: course
+    code: SPA-401
+    name: Spanish IV
+    description: Advanced Spanish language, literature, and cultural analysis.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/world-languages }
+    educationLevels: [grade-11, grade-12]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/spa-301 }
+      display: Spanish III.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US, es]
+
+  - id: https://ecme-high.example/id/course/fre-101
+    type: course
+    code: FRE-101
+    name: French I
+    description: Introductory French language and intercultural communication.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/world-languages }
+    educationLevels: [grade-9, grade-10, grade-11, grade-12]
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US, fr]
+
+  - id: https://ecme-high.example/id/course/fre-201
+    type: course
+    code: FRE-201
+    name: French II
+    description: Intermediate French communication, reading, and cultural inquiry.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/world-languages }
+    educationLevels: [grade-9, grade-10, grade-11, grade-12]
+    prerequisites:
+      course: { id: https://ecme-high.example/id/course/fre-101 }
+      display: French I.
+    credits: [{ value: '1.0', system: https://ecme-high.example/id/credit-system/local }]
+    duration: year
+    modes: [in-person]
+    languages: [en-US, fr]
+
+  - id: https://ecme-high.example/id/course/peh-101
+    type: course
+    code: PEH-101
+    name: Physical Education 9
+    description: Foundational movement, fitness, teamwork, and wellness practices.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/peh }
+    educationLevels: [grade-9]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, activity-based]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/peh-201
+    type: course
+    code: PEH-201
+    name: Lifetime Fitness
+    description: Fitness planning, movement literacy, and sustainable activity habits.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/peh }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, activity-based]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/peh-251
+    type: course
+    code: PEH-251
+    name: Strength and Conditioning
+    description: Public strength-training principles, safe technique, and conditioning plans.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/peh }
+    educationLevels: [grade-10, grade-11, grade-12]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, activity-based]
+    languages: [en-US]
+    safetyRequirements:
+      - Public equipment orientation and supervised technique instruction are required.
+
+  - id: https://ecme-high.example/id/course/hlt-201
+    type: course
+    code: HLT-201
+    name: Health and Wellness
+    description: Public health, wellness, decision-making, and community resources.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/peh }
+    educationLevels: [grade-9, grade-10]
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person, hybrid]
+    languages: [en-US]
+
+  - id: https://ecme-high.example/id/course/hlt-351
+    type: course
+    code: HLT-351
+    name: Sports Medicine Foundations
+    description: Public introduction to anatomy, movement, injury prevention, and care systems.
+    provider: { id: https://ecme-high.example/id/school }
+    department: { id: https://ecme-high.example/id/department/peh }
+    educationLevels: [grade-11, grade-12]
+    recommendedPriorLearning: Anatomy and Physiology is recommended.
+    relatedCourses:
+      - id: https://ecme-high.example/id/course/sci-421
+    credits: [{ value: '0.5', system: https://ecme-high.example/id/credit-system/local }]
+    duration: semester
+    modes: [in-person]
+    languages: [en-US]
+
+modified: '2027-05-01T14:00:00Z'
+expires: '2028-05-01T00:00:00Z'

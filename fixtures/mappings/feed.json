@@ -1,0 +1,15 @@
+{
+  "version": "https://jsonfeed.org/version/1.1",
+  "title": "Ecme High public news",
+  "home_page_url": "https://ecme-high.example/news",
+  "feed_url": "https://ecme-high.example/news/feed.json",
+  "items": [
+    {
+      "id": "https://ecme-high.example/news/open-house-2027",
+      "url": "https://ecme-high.example/news/open-house-2027",
+      "title": "Open house announced",
+      "content_text": "The public open house will take place in October.",
+      "date_published": "2027-09-01T08:00:00Z"
+    }
+  ]
+}

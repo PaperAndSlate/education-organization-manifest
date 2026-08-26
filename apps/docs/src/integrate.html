@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'"
+    />
+    <title>Integrate with EOM</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <a class="brand" href="index.html">EOM 1.0</a>
+        <nav aria-label="Primary">
+          <ul>
+            <li><a href="publish.html">Publish</a></li>
+            <li><a href="consume.html">Consume</a></li>
+            <li><a href="reference.html">Reference</a></li>
+            <li><a href="integrate.html" aria-current="page">Integrate</a></li>
+            <li><a href="explore.html">Explore</a></li>
+            <li><a href="govern.html">Govern</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="shell prose">
+      <p class="eyebrow">Integrate</p>
+      <h1>Keep the boundaries visible</h1>
+      <p class="lede">
+        EOM is a public interoperability layer. Your SIS, LMS, CMS, calendar, menu service, website,
+        or district system can produce or consume EOM without making that product part of the
+        protocol.
+      </p>
+      <h2>Controlled mappings</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Use</th>
+            <th>Boundary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Schema.org JSON-LD</td>
+            <td>Organization, course, event, job, news projections</td>
+            <td>EOM remains richer; arbitrary extensions are omitted.</td>
+          </tr>
+          <tr>
+            <td>CEDS / Ed-Fi</td>
+            <td>Public organization, campus, course, program projections</td>
+            <td>No person-level, enrollment, grade, attendance, or HR copying.</td>
+          </tr>
+          <tr>
+            <td>OneRoster / CASE</td>
+            <td>Public course, offering, session, standards references</td>
+            <td>Users, results, answer keys, and private assessment data stay out.</td>
+          </tr>
+          <tr>
+            <td>QTI / LTI / Common Cartridge</td>
+            <td>Public package and service metadata</td>
+            <td>No secrets, private keys, launch data, secure items, or package fetching.</td>
+          </tr>
+          <tr>
+            <td>iCalendar / feeds</td>
+            <td>Public events and news items</td>
+            <td>
+              No attendee contacts, private organizers, executable enclosures, or active markup.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        See the <a href="source-docs/interoperability.md">mapping guide</a> and versioned
+        <a href="mappings/registry.json">mapping registry</a>. All bundled mappings are preview-only
+        and explicitly make no external certification claim.
+      </p>
+      <h2>Hosting modes</h2>
+      <ul>
+        <li><strong>Direct:</strong> school origin serves the static resource.</li>
+        <li>
+          <strong>Reverse proxy:</strong> school origin controls the public URL while a vendor
+          operates infrastructure.
+        </li>
+        <li><strong>Static generator:</strong> approved source files build in CI.</li>
+        <li>
+          <strong>Delegated:</strong> a separate district/vendor origin is linked by an explicit
+          root scope.
+        </li>
+      </ul>
+      <p>
+        A future website product may add branding, composition, workflows, and search, but public
+        institutional facts should remain traceable to reviewed EOM source data.
+      </p>
+    </main>
+    <footer class="footer">
+      <div class="shell">
+        Mapping tests are paper&amp;slate tests, not external standards certification.
+      </div>
+    </footer>
+  </body>
+</html>

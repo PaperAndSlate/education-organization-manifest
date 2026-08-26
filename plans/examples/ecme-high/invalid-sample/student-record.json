@@ -1,0 +1,10 @@
+{
+  "_intendedResult": "Critical privacy failure. Student-level data is prohibited.",
+  "type": "student-record",
+  "student": {
+    "name": "Synthetic Student",
+    "grade": "A",
+    "attendance": "present"
+  },
+  "note": "This invalid fixture must be quarantined and must never enter generated public output."
+}

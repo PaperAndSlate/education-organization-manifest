@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'"
+    />
+    <title>Consume EOM</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <a class="brand" href="index.html">EOM 1.0</a>
+        <nav aria-label="Primary">
+          <ul>
+            <li><a href="publish.html">Publish</a></li>
+            <li><a href="consume.html" aria-current="page">Consume</a></li>
+            <li><a href="reference.html">Reference</a></li>
+            <li><a href="integrate.html">Integrate</a></li>
+            <li><a href="explore.html">Explore</a></li>
+            <li><a href="govern.html">Govern</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="shell prose">
+      <p class="eyebrow">Consume</p>
+      <h1>Read the graph carefully</h1>
+      <p class="lede">
+        A valid JSON document is only one part of a trustworthy consumer workflow. Validate each
+        resource, preserve its identity and freshness, and distinguish authority from factual
+        verification.
+      </p>
+      <h2>Discovery sequence</h2>
+      <ol>
+        <li>
+          Construct the origin’s HTTPS well-known URL. Do not accept an unrelated origin as the
+          school’s identity.
+        </li>
+        <li>Fetch with bounded size, timeout, redirect, and DNS/private-network protections.</li>
+        <li>Require the expected media type and parse strict JSON without duplicate keys.</li>
+        <li>Validate the root, then independently validate linked resources and module indexes.</li>
+        <li>Evaluate delegation before treating cross-origin resources as authorized.</li>
+      </ol>
+      <h2>Authority dimensions</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Evidence</th>
+            <th>Do not infer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Who controls the resource?</td>
+            <td>HTTPS origin, root scope, delegation</td>
+            <td>That the content is true</td>
+          </tr>
+          <tr>
+            <td>Who supplied the value?</td>
+            <td>Source and provenance records</td>
+            <td>That the source is authoritative for every field</td>
+          </tr>
+          <tr>
+            <td>Was it changed?</td>
+            <td>Digest or optional signature</td>
+            <td>That it is current or correct</td>
+          </tr>
+          <tr>
+            <td>Can it be shown to users?</td>
+            <td>Privacy and review status</td>
+            <td>That a private source may be copied publicly</td>
+          </tr>
+        </tbody>
+      </table>
+      <h2>HTTP and caching</h2>
+      <p>
+        Honor cache validators and declared expiry, but treat caches as transport behavior rather
+        than authority. Revalidate redirects and final destinations. Never send cookies or
+        credentials to a discovered endpoint. The local fetch helper implements these controls for
+        tests and CLI use.
+      </p>
+      <h2>Failure handling</h2>
+      <p>
+        Findings have stable codes, categories, severity, JSON Pointers, related references, and
+        remediation. A consumer should show actionable errors while keeping warnings distinct from
+        invalidity. Unknown top-level fields are not silently accepted; namespaced extensions live
+        under <code>extensions</code>.
+      </p>
+      <p>
+        Continue to the <a href="reference.html">validation reference</a> or run the
+        <a href="https://paperandslate.org/eom/playground/">local playground</a>.
+      </p>
+    </main>
+    <footer class="footer">
+      <div class="shell">
+        A consumer is responsible for its own safety, privacy, and truthfulness decisions.
+      </div>
+    </footer>
+  </body>
+</html>

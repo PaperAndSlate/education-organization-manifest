@@ -1,0 +1,319 @@
+{
+  "findings": [],
+  "fingerprint": "837ef4154b7953f0d00c8466b9ca1be900e856b43aefa12427592d991686b8e2",
+  "inputs": [
+    {
+      "module": "admissions",
+      "path": "modules/admissions.yaml",
+      "sha256": "1f4d0431877982fb0256e6bb0820d7456af8736c4b40437085e4b994c962a8e3"
+    },
+    {
+      "module": "apis",
+      "path": "modules/apis.yaml",
+      "sha256": "a429c6ce37651d1c584eb6508a57a9412a0c7fffad00d5b5c482f1cb9304b738"
+    },
+    {
+      "module": "calendar",
+      "path": "modules/calendar.yaml",
+      "sha256": "66fba827ed9c43a7ff79cd185c40cdce61834ecab2068faedd8e4f7155df7873"
+    },
+    {
+      "module": "campuses",
+      "path": "modules/campuses.yaml",
+      "sha256": "c3be52fb341ef1039307357023f24b81cc5791b2c0b15b4300cbf03867e5a33a"
+    },
+    {
+      "module": "clubs",
+      "path": "modules/clubs.yaml",
+      "sha256": "b952740d7c823808af41230e30ad5a64250e004210667754e77eb22eb150e830"
+    },
+    {
+      "module": "contacts",
+      "path": "contacts.yaml",
+      "sha256": "e1733d434040226c07d88a654508997f7789dd7afc06de5e469358574816ed5a"
+    },
+    {
+      "module": "courses",
+      "path": "modules/courses.yaml",
+      "sha256": "aa2a8c5113318879e8c614799b9a254b6757c028e92a641781da7cba422c152d"
+    },
+    {
+      "module": "departments",
+      "path": "modules/departments.yaml",
+      "sha256": "9ebe7c7a382550f5254e0e856eb16e8b320bd978d86e74a3a11ec28b02b8d70c"
+    },
+    {
+      "module": "events",
+      "path": "modules/events.yaml",
+      "sha256": "e96eb7b83f2f94cf3f441617261222ed5494e54e254affd7e46433a8266364b7"
+    },
+    {
+      "module": "facilities",
+      "path": "modules/facilities.yaml",
+      "sha256": "bf1c32d6e6bf23e9f13f44238c6ea46f633c9452e511d292a743b21251a976ed"
+    },
+    {
+      "module": "jobs",
+      "path": "modules/jobs.yaml",
+      "sha256": "234320fcd1400a55630bb8549780f3201d69da30f6fdf5b3ec31c83f59c32e20"
+    },
+    {
+      "module": "meals",
+      "path": "modules/meals.yaml",
+      "sha256": "8c6a5ac9d27dc5927a7cb3a0f6f9a302ee498a0811b3f5a483526337724dedc6"
+    },
+    {
+      "module": "news",
+      "path": "modules/news.yaml",
+      "sha256": "7d60803c1e9491391771bee09cdfee188de4af8eb8e7dcac9d82e7110ac515bc"
+    },
+    {
+      "module": "offerings",
+      "path": "modules/offerings.yaml",
+      "sha256": "a78dc864d021032d4122230e03f2fe860ff550acc644ebf94f69f87700d0e561"
+    },
+    {
+      "module": "organization",
+      "path": "organization.yaml",
+      "sha256": "8a3f99a1ebecd37289019ded16819e1f4caab422ff1b61445455e53466b3e401"
+    },
+    {
+      "module": "policies",
+      "path": "modules/policies.yaml",
+      "sha256": "0aff1cf055cfba0483ec9084d77ac3675a0598c94bc81ab1923b8cdf1743e618"
+    },
+    {
+      "module": "programs",
+      "path": "modules/programs.yaml",
+      "sha256": "bb66de9754c157b469099242c48623cc081bd7b9edfc823756067f0d980e1d8f"
+    },
+    {
+      "module": "services",
+      "path": "modules/services.yaml",
+      "sha256": "f32bf0403670bd6d0e1ff26ddef3e1d57304d54fb060489da4b473d8bd4d7eb7"
+    },
+    {
+      "module": "sports",
+      "path": "modules/sports.yaml",
+      "sha256": "a5fd581a6296009230c58bf63d6307507b8569713f56319179ef79844138f263"
+    },
+    {
+      "module": "staff",
+      "path": "modules/staff.yaml",
+      "sha256": "f3529301df46e51d6fc9f8d4bb7b99748648f34348dd6da74ee504f9318f9aae"
+    },
+    {
+      "module": "statistics",
+      "path": "modules/statistics.yaml",
+      "sha256": "167308882423968b08f0d874078d2fc064d78e63a0d6f70bfe9be7a87c250ebf"
+    },
+    {
+      "module": "transportation",
+      "path": "modules/transportation.yaml",
+      "sha256": "58ae0f9d8bfc23c9d86add08164a510e64f208094521ad3ef5ee66a17d3d8b90"
+    }
+  ],
+  "resources": [
+    {
+      "canonical": "https://ecme-high.example/eom/calendar.json",
+      "itemCount": 1,
+      "path": "public/eom/calendar.json",
+      "sourceFiles": [
+        "modules/calendar.yaml"
+      ],
+      "type": "academic-calendar"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/admissions.json",
+      "itemCount": 1,
+      "path": "public/eom/admissions.json",
+      "sourceFiles": [
+        "modules/admissions.yaml"
+      ],
+      "type": "admissions-profile"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/apis.json",
+      "itemCount": 1,
+      "path": "public/eom/apis.json",
+      "sourceFiles": [
+        "modules/apis.yaml"
+      ],
+      "type": "api-reference"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/campuses.json",
+      "itemCount": 1,
+      "path": "public/eom/campuses.json",
+      "sourceFiles": [
+        "modules/campuses.yaml"
+      ],
+      "type": "campus-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/clubs.json",
+      "itemCount": 1,
+      "path": "public/eom/clubs.json",
+      "sourceFiles": [
+        "modules/clubs.yaml"
+      ],
+      "type": "club-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/contacts.json",
+      "itemCount": 2,
+      "path": "public/eom/contacts.json",
+      "sourceFiles": [
+        "contacts.yaml"
+      ],
+      "type": "contact-directory"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/courses.json",
+      "itemCount": 57,
+      "path": "public/eom/courses.json",
+      "sourceFiles": [
+        "modules/courses.yaml"
+      ],
+      "type": "course-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/offerings.json",
+      "itemCount": 3,
+      "path": "public/eom/offerings.json",
+      "sourceFiles": [
+        "modules/offerings.yaml"
+      ],
+      "type": "course-offering-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/departments.json",
+      "itemCount": 9,
+      "path": "public/eom/departments.json",
+      "sourceFiles": [
+        "modules/departments.yaml"
+      ],
+      "type": "department-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/events.json",
+      "itemCount": 1,
+      "path": "public/eom/events.json",
+      "sourceFiles": [
+        "modules/events.yaml"
+      ],
+      "type": "event-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/facilities.json",
+      "itemCount": 1,
+      "path": "public/eom/facilities.json",
+      "sourceFiles": [
+        "modules/facilities.yaml"
+      ],
+      "type": "facility-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/jobs.json",
+      "itemCount": 1,
+      "path": "public/eom/jobs.json",
+      "sourceFiles": [
+        "modules/jobs.yaml"
+      ],
+      "type": "job-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/meals.json",
+      "itemCount": 1,
+      "path": "public/eom/meals.json",
+      "sourceFiles": [
+        "modules/meals.yaml"
+      ],
+      "type": "meal-menu-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/news.json",
+      "itemCount": 1,
+      "path": "public/eom/news.json",
+      "sourceFiles": [
+        "modules/news.yaml"
+      ],
+      "type": "news-feed"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/organization.json",
+      "itemCount": 1,
+      "path": "public/eom/organization.json",
+      "sourceFiles": [
+        "organization.yaml"
+      ],
+      "type": "organization-profile"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/policies.json",
+      "itemCount": 1,
+      "path": "public/eom/policies.json",
+      "sourceFiles": [
+        "modules/policies.yaml"
+      ],
+      "type": "policy-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/programs.json",
+      "itemCount": 2,
+      "path": "public/eom/programs.json",
+      "sourceFiles": [
+        "modules/programs.yaml"
+      ],
+      "type": "program-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/services.json",
+      "itemCount": 1,
+      "path": "public/eom/services.json",
+      "sourceFiles": [
+        "modules/services.yaml"
+      ],
+      "type": "service-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/sports.json",
+      "itemCount": 1,
+      "path": "public/eom/sports.json",
+      "sourceFiles": [
+        "modules/sports.yaml"
+      ],
+      "type": "sports-catalog"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/staff.json",
+      "itemCount": 1,
+      "path": "public/eom/staff.json",
+      "sourceFiles": [
+        "modules/staff.yaml"
+      ],
+      "type": "staff-directory"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/statistics.json",
+      "itemCount": 1,
+      "path": "public/eom/statistics.json",
+      "sourceFiles": [
+        "modules/statistics.yaml"
+      ],
+      "type": "statistics-profile"
+    },
+    {
+      "canonical": "https://ecme-high.example/eom/transportation.json",
+      "itemCount": 1,
+      "path": "public/eom/transportation.json",
+      "sourceFiles": [
+        "modules/transportation.yaml"
+      ],
+      "type": "transportation-catalog"
+    }
+  ],
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "toolVersion": "0.1.0",
+  "valid": true
+}

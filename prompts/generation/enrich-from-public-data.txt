@@ -1,0 +1,34 @@
+PROMPT ID: eom/enrich-from-public-data
+PURPOSE: Enrich a school EOM candidate with approved authoritative public data while preserving source authority and conflicts.
+
+INPUTS
+- Organization identity: {{ORGANIZATION}}
+- Approved public datasets/APIs: {{DATASETS}}
+- Target modules/fields: {{TARGETS}}
+- Existing source tree: {{SOURCE_TREE}}
+- Jurisdiction: {{JURISDICTION}}
+
+REQUIREMENTS
+- Use only datasets whose access and reuse conditions have been reviewed.
+- Record dataset version, retrieval time, query, record ID, license, and transformation.
+- Resolve entities using identifiers and corroborating attributes; never name-match alone.
+- Government identity records may verify official identifiers, but do not automatically override organization-origin course or program descriptions.
+- Preserve conflicting claims.
+- Keep raw dataset fields separate from normalized EOM values.
+- Publish only public aggregate statistics and apply suppression/small-cell rules.
+- Do not enrich people using data brokers or unrelated public profiles.
+- Do not infer demographic, disability, political, religious, or other sensitive attributes.
+- Add field-level provenance for enriched values.
+- Run validation, privacy, and conflict checks.
+- Produce a review-ready candidate only.
+
+OUTPUT
+- dataset/source inventory;
+- entity-resolution report;
+- selected and rejected matches;
+- enriched claims;
+- conflicts;
+- transforms/crosswalks used;
+- privacy/statistical disclosure report;
+- candidate diff;
+- required reviewers.

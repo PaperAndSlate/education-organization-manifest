@@ -1,0 +1,22 @@
+{
+  "name": "@paperandslate/eom-adapters",
+  "version": "0.1.0",
+  "description": "Controlled, privacy-aware EOM interoperability adapters.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@paperandslate/eom-core": "workspace:*",
+    "@paperandslate/eom-validator": "workspace:*"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --outDir dist --rootDir src --declaration --declarationMap",
+    "typecheck": "tsc --noEmit",
+    "lint": "true"
+  }
+}

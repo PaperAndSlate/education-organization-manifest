@@ -1,0 +1,22 @@
+[
+  {
+    "type": "source-record",
+    "id": "https://ecme-high.example/evidence/source/catalog-2027",
+    "uri": "https://ecme-high.example/catalog/2027",
+    "title": "Ecme High public course catalog",
+    "sourceType": "organization-publication",
+    "jurisdiction": "US-EXAMPLE",
+    "retrievedAt": "2026-08-26T08:00:00Z",
+    "observedAt": "2026-08-26T08:00:00Z",
+    "contentDigest": "sha-256=:Y2F0YWxvZw==:",
+    "licenseStatus": "review-required",
+    "accessRestrictions": "public",
+    "modules": ["course-catalog", "program-catalog"],
+    "reviewOwner": "curriculum-office",
+    "status": "approved",
+    "snapshot": {
+      "kind": "controlled-fixture",
+      "digest": "sha-256=:Y2F0YWxvZw==:"
+    }
+  }
+]

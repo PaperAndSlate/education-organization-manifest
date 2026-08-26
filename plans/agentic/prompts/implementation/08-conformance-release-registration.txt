@@ -1,0 +1,52 @@
+PROMPT ID: eom/implementation/release
+GOAL: Prepare EOM for a public v1 release candidate, registration submission, and independent interoperability testing.
+
+Implement:
+- conformance roles and profiles;
+- complete fixture corpus;
+- black-box conformance runner;
+- JSON and human reports;
+- conformance mark usage policy;
+- compatibility matrix;
+- release manifest/SBOM/provenance;
+- package publishing dry run;
+- immutable spec/schema artifacts;
+- migration policy;
+- release notes;
+- IANA registration draft for `educational-organization-manifest`;
+- designated expert review questions;
+- media type and link relation decisions;
+- pilot publisher guide;
+- independent consumer test guide;
+- registration/adoption status page.
+
+Run:
+- full test matrix;
+- security/privacy review;
+- dependency and license audit;
+- generated drift;
+- documentation link and example checks;
+- performance limits;
+- reproducible build checks;
+- installation smoke tests.
+
+Do not claim:
+- IANA acceptance;
+- independent interoperability;
+- pilot adoption;
+- production readiness;
+unless each has actually occurred and evidence is recorded.
+
+Where an external gate cannot be completed, create:
+- complete submission/pilot material;
+- a tracked blocker;
+- owner;
+- acceptance evidence required;
+- exact status wording.
+
+Release candidate acceptance:
+- all in-repository v1 definition-of-done items pass;
+- no critical/high unresolved security or privacy issue;
+- no inconsistent schema/prose/example behavior;
+- Ecme High passes the full conformance suite;
+- public status language is accurate.

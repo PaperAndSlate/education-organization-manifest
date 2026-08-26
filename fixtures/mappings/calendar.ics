@@ -1,0 +1,13 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//paper&slate//EOM fixture//EN
+BEGIN:VEVENT
+UID:course-selection-night-2027@ecme-high.example
+DTSTART:20270914T180000Z
+DTEND:20270914T193000Z
+SUMMARY:Course selection night
+DESCRIPTION:Public information evening for families.
+LOCATION:Ecme High School auditorium
+URL:https://ecme-high.example/events/course-selection-night
+END:VEVENT
+END:VCALENDAR

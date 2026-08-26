@@ -1,0 +1,46 @@
+# Illustrative CODEOWNERS for Ecme High source ownership.
+# Handles are fictional placeholders.
+
+/source/manifest/**                 @ecme-publication-admin @ecme-data-governance
+/source/organization/**             @ecme-publication-admin @ecme-data-governance
+/source/campuses/**                 @ecme-facilities @ecme-publication-admin
+/source/contacts/**                 @ecme-communications @ecme-privacy-review
+/source/staff/**                    @ecme-hr @ecme-communications @ecme-privacy-review
+
+/source/departments/ela/**          @ecme-ela-chair @ecme-curriculum
+/source/courses/ela/**              @ecme-ela-chair @ecme-curriculum
+/source/departments/mathematics/**  @ecme-math-chair @ecme-curriculum
+/source/courses/mathematics/**      @ecme-math-chair @ecme-curriculum
+/source/departments/science/**      @ecme-science-chair @ecme-curriculum
+/source/courses/science/**          @ecme-science-chair @ecme-curriculum
+/source/departments/social-studies/** @ecme-social-studies-chair @ecme-curriculum
+/source/courses/social-studies/**   @ecme-social-studies-chair @ecme-curriculum
+/source/departments/fcs/**          @ecme-fcs-chair @ecme-curriculum
+/source/courses/fcs/**              @ecme-fcs-chair @ecme-curriculum
+/source/departments/engineering/**  @ecme-engineering-chair @ecme-curriculum
+/source/courses/engineering/**      @ecme-engineering-chair @ecme-curriculum
+/source/departments/fine-arts/**    @ecme-fine-arts-chair @ecme-curriculum
+/source/courses/fine-arts/**        @ecme-fine-arts-chair @ecme-curriculum
+/source/departments/world-languages/** @ecme-world-languages-chair @ecme-curriculum
+/source/courses/world-languages/**  @ecme-world-languages-chair @ecme-curriculum
+/source/departments/pe-health/**    @ecme-pe-health-chair @ecme-curriculum
+/source/courses/pe-health/**        @ecme-pe-health-chair @ecme-curriculum
+
+/source/programs/**                 @ecme-curriculum
+/source/calendar/**                 @ecme-school-office @ecme-communications
+/source/events/**                   @ecme-communications
+/source/facilities/**               @ecme-facilities @ecme-security-review
+/source/services/**                 @ecme-school-office @ecme-privacy-review
+/source/policies/**                 @ecme-school-office @ecme-data-governance
+/source/admissions/**               @ecme-school-office
+/source/sports/**                   @ecme-activities @ecme-communications
+/source/clubs/**                    @ecme-activities @ecme-privacy-review
+/source/delegated/meals*            @ecme-food-services @ecme-publication-admin
+/source/delegated/transportation*   @ecme-transportation @ecme-security-review @ecme-publication-admin
+/source/delegated/jobs*             @ecme-hr @ecme-publication-admin
+/source/news/**                     @ecme-communications
+/source/statistics/**               @ecme-data-governance @ecme-privacy-review
+/source/apis/**                     @ecme-technology @ecme-security-review
+/source/provenance/**               @ecme-data-governance
+
+/generated/**                       @ecme-publication-admin

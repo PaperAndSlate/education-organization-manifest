@@ -1,0 +1,36 @@
+PROMPT ID: eom/generate-website-assets
+PURPOSE: Generate public website/catalog assets from approved EOM data without creating a second source of truth.
+
+INPUTS
+- Approved EOM manifest/source: {{TARGET}}
+- Output types: {{WEBSITE_JSON|STATIC_PAGES|PDF_INPUT|SCHEMA_ORG|EMBEDS|ALL}}
+- Brand/site configuration: {{SITE_CONFIG}}
+- Languages: {{LANGUAGES}}
+- Destination review directory: {{OUTPUT}}
+
+RULES
+- EOM data is the structured source of truth for institutional facts.
+- Site-specific presentation copy may be separate but must not silently alter factual fields.
+- Generate deterministic assets.
+- Preserve stable canonical links and IDs.
+- Generate accessible text, headings, table structures, and image alternatives.
+- Produce Schema.org Course/EducationalOrganization/CourseInstance mappings according to the mapping guide.
+- Keep courses separate from offerings.
+- Omit non-public/internal fields.
+- Display freshness/effective dates where material.
+- Display source/provenance links only according to site policy.
+- Do not publish, deploy, or overwrite production assets automatically.
+- Provide a diff and validation report.
+
+OUTPUTS MAY INCLUDE
+- route/data map;
+- static course and department pages;
+- catalog search index;
+- printable-catalog intermediate data;
+- JSON-LD;
+- embeddable course cards;
+- RSS/Atom/JSON Feed adapters for news/events where defined;
+- sitemap entries;
+- accessibility report;
+- stale-data warnings;
+- generated-file manifest.

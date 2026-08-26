@@ -1,0 +1,373 @@
+{
+  "artifacts": [
+    {
+      "bytes": 1287,
+      "path": "build-provenance.json",
+      "sha256": "9b15bcfc003361817e69e794e7f8e0de4381edc17b76afd35bf8f589f0ea4fa1"
+    },
+    {
+      "bytes": 7867,
+      "path": "checksums.sha256",
+      "sha256": "e3929efccbbbacc28535f681dea96b2ae5227fabbb2e128a20db0c1e04108aaa"
+    },
+    {
+      "bytes": 1611037,
+      "path": "educational-organization-manifest-1.0.0-rc.1.tar.gz",
+      "sha256": "27117b13e5f9d5b34a79f1556e7764ee540b01a996e5bd4184772ee5332fc6ac"
+    },
+    {
+      "bytes": 7963,
+      "path": "sbom.cdx.json",
+      "sha256": "53fa1e3463b9e5620f87e2bc4525c2faeba2a0ef86aab3306851cc5abe3b54aa"
+    },
+    {
+      "bytes": 14176,
+      "path": "v1.0.0-rc.1/mappings/registry.json",
+      "sha256": "1f0fd039215b587523a682774163936752960fee3332c4fa18d9b91deb5b7ac0"
+    },
+    {
+      "bytes": 1805,
+      "path": "v1.0.0-rc.1/schemas/1.0/candidate.schema.json",
+      "sha256": "b1fcfb37f4510d168ac1b41837bef0a522fe5b5857af40fcd6618a7cd8240460"
+    },
+    {
+      "bytes": 941,
+      "path": "v1.0.0-rc.1/schemas/1.0/capability.schema.json",
+      "sha256": "4154deb31f0a5c51367708b01e4c190ee011c6e1b1ced40afd39b706ec8dd1c6"
+    },
+    {
+      "bytes": 6083,
+      "path": "v1.0.0-rc.1/schemas/1.0/catalog.json",
+      "sha256": "4f2d4b129d2737e4b1c8c3364d92839ee04002c12d16f610d6764e47bf845558"
+    },
+    {
+      "bytes": 8616,
+      "path": "v1.0.0-rc.1/schemas/1.0/common.schema.json",
+      "sha256": "b681150dbea6b67f989de1b9d1d7d6cd109dbe172740505905c3141440b7cd5c"
+    },
+    {
+      "bytes": 3524,
+      "path": "v1.0.0-rc.1/schemas/1.0/config.schema.json",
+      "sha256": "c59fad142a796c5075c15afb8358bbab5bbaeb8d608eb3f5a29a16923e97da2c"
+    },
+    {
+      "bytes": 2541,
+      "path": "v1.0.0-rc.1/schemas/1.0/conflict.schema.json",
+      "sha256": "a7a2530f221a0b86d68b6c40d995b5b21407ffca37c3985fcd7e5ca1671ed487"
+    },
+    {
+      "bytes": 2210,
+      "path": "v1.0.0-rc.1/schemas/1.0/conformance-report.schema.json",
+      "sha256": "190abcc2739173642a9f6595d9590fd51df23c9da5d2e723387f480f63cf597c"
+    },
+    {
+      "bytes": 4106,
+      "path": "v1.0.0-rc.1/schemas/1.0/contact-directory.schema.json",
+      "sha256": "6be9593231a5c9e312a942e0b8f0cd76f958d8395e8aeaa4bffdde4a4208cf04"
+    },
+    {
+      "bytes": 3079,
+      "path": "v1.0.0-rc.1/schemas/1.0/delegation.schema.json",
+      "sha256": "cb35608a049193fde0690381b436357a56562c1e0be1af1b36b82956b6d7a262"
+    },
+    {
+      "bytes": 4165,
+      "path": "v1.0.0-rc.1/schemas/1.0/evidence.schema.json",
+      "sha256": "914666f7b292a8d2cc1d489cb9d09cb354a1799af80b91d5040f51ba4ba3211f"
+    },
+    {
+      "bytes": 2931,
+      "path": "v1.0.0-rc.1/schemas/1.0/key-set.schema.json",
+      "sha256": "06159cfedc71073333e9ff2aef8a47a74e6ab81487342cbb0658e4a1368e93c8"
+    },
+    {
+      "bytes": 5250,
+      "path": "v1.0.0-rc.1/schemas/1.0/manifest.schema.json",
+      "sha256": "891653ef28b2163f9ee0f9d4faaa65cc71803881cbb8c312b87c5054d9d5bf16"
+    },
+    {
+      "bytes": 3276,
+      "path": "v1.0.0-rc.1/schemas/1.0/mapping.schema.json",
+      "sha256": "c1d041236b2d7fd4e3b871b83216f59fb4062a402992901eb92a1e2231bb4154"
+    },
+    {
+      "bytes": 53169,
+      "path": "v1.0.0-rc.1/schemas/1.0/module-items.schema.json",
+      "sha256": "651d6bd69485f2616ea26dcf50cca58f3c15bf3ac3637add1a7b75027d91ed8f"
+    },
+    {
+      "bytes": 2098,
+      "path": "v1.0.0-rc.1/schemas/1.0/module-resource.schema.json",
+      "sha256": "5483c6edafdb3334dc074e150550f84a05e153b137602b99469cea24e65deb09"
+    },
+    {
+      "bytes": 647,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/academic-calendar.schema.json",
+      "sha256": "96e5288057ec2af8e73a20065143841701de776b71a09c7d094cd9fe3f6dfa11"
+    },
+    {
+      "bytes": 652,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/admissions-profile.schema.json",
+      "sha256": "ac1e62cd7ffcca6c78e3aaf4fed21976ba84716fad67bb58d199e07ce49100a5"
+    },
+    {
+      "bytes": 634,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/api-reference.schema.json",
+      "sha256": "c3e4286ee73d5cc73271fdea5e9d3e747c6932eebdb8c0897c4cb761d93a4d38"
+    },
+    {
+      "bytes": 625,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/campus-catalog.schema.json",
+      "sha256": "8242716aa05fe16e7182b65dfac02f66882b686672ddda5ba22cc858de157e21"
+    },
+    {
+      "bytes": 587,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/club-catalog.schema.json",
+      "sha256": "93da40ff154e1d7d52fe979c2dcb74b038880356e1c9174ac0bb8e9189fe666b"
+    },
+    {
+      "bytes": 625,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/course-catalog.schema.json",
+      "sha256": "1bacf8c070b9857bc78fb2c07520299c3a0d47a7114977244aaff65ec3ba7480"
+    },
+    {
+      "bytes": 675,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/course-offering-catalog.schema.json",
+      "sha256": "eae07aab978593c50b46a0f0359e7cc281e153d9de8d6d29749d9d7c109048c1"
+    },
+    {
+      "bytes": 645,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/department-catalog.schema.json",
+      "sha256": "9a77ab36f76930723ca5c0f5f1719af3034370d0144012f7c8eb81951b115fee"
+    },
+    {
+      "bytes": 620,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/event-catalog.schema.json",
+      "sha256": "b2e50df688126ba2312926aefcddebc01dd5a43499e92489f6f87721dd09602f"
+    },
+    {
+      "bytes": 635,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/facility-catalog.schema.json",
+      "sha256": "071ac48fa5547fee54dcd3741864f825c65612423d1eb85bf1586bf64b0efa57"
+    },
+    {
+      "bytes": 589,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/job-catalog.schema.json",
+      "sha256": "075e03c3fc10451152133d53827b40f6defb3102f8958fb2c21e9a4e643922af"
+    },
+    {
+      "bytes": 639,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/meal-menu-catalog.schema.json",
+      "sha256": "dca2b91ea06f89b8d101f373f1cbff14618d30d0f8912a7694a574e91149f35f"
+    },
+    {
+      "bytes": 607,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/news-feed.schema.json",
+      "sha256": "4e90afeb31cfa6d66ca289844deb70f1514ba6762647a0a0ab1c89a6e14328db"
+    },
+    {
+      "bytes": 638,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/policy-catalog.schema.json",
+      "sha256": "5b161406ad6a044b5dbc1ea38af75fd816f3a4964494cd4695ea1328b9c964c1"
+    },
+    {
+      "bytes": 642,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/program-catalog.schema.json",
+      "sha256": "df3eda14bc6b241db673138afee2849d5cb0b83fe2c608eb5bf15bd7ad908351"
+    },
+    {
+      "bytes": 637,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/service-catalog.schema.json",
+      "sha256": "0c0569a66c0cca07b83167e9d73628e32d71dc50fb51306d114d792cd89cbae8"
+    },
+    {
+      "bytes": 629,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/sports-catalog.schema.json",
+      "sha256": "fd71d091e22cac7298ad70b7b2b99a0c20a3fde37d28d51fd22f8efc0f0b1030"
+    },
+    {
+      "bytes": 646,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/staff-directory.schema.json",
+      "sha256": "2aecb4e00c39a476b7d528ed9c8a12ebb66979df1d6ca070ba6c1db997cf7243"
+    },
+    {
+      "bytes": 654,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/statistics-profile.schema.json",
+      "sha256": "08c1a3dcd3a55172c4526899c7d075b977f5d519b6f8d5e02ad7ac85923596ab"
+    },
+    {
+      "bytes": 674,
+      "path": "v1.0.0-rc.1/schemas/1.0/modules/transportation-catalog.schema.json",
+      "sha256": "3d360bc5d718baa0f46a496d24e5321860c57cb1c4e5a771de14dc946f1af10f"
+    },
+    {
+      "bytes": 1241,
+      "path": "v1.0.0-rc.1/schemas/1.0/organization-index.schema.json",
+      "sha256": "4824e1bf233b8dbaa1511efc145c70bffec3737830fd54a3f7d2b9431c2d1035"
+    },
+    {
+      "bytes": 3156,
+      "path": "v1.0.0-rc.1/schemas/1.0/organization-profile.schema.json",
+      "sha256": "3f873eec61df6135aff67b77ff860fd7f73186bc15347dfce98904e66b9ae955"
+    },
+    {
+      "bytes": 3621,
+      "path": "v1.0.0-rc.1/schemas/1.0/provenance.schema.json",
+      "sha256": "9ea1ba28182488e6c62ca9288ad1993d70b035db040faf6f2a4d6c5d8b49a10c"
+    },
+    {
+      "bytes": 1910,
+      "path": "v1.0.0-rc.1/schemas/1.0/resource-index.schema.json",
+      "sha256": "ee7afa9130847763a2bb4fcf1a62dd4a45cb2b8517dd9aa1e513dd4e573191f9"
+    },
+    {
+      "bytes": 2402,
+      "path": "v1.0.0-rc.1/schemas/1.0/resource.schema.json",
+      "sha256": "095fdd651ce0f00e70efeabbe9886ab84a39dd2720e4e0937f7bcc6d654770a2"
+    },
+    {
+      "bytes": 1167,
+      "path": "v1.0.0-rc.1/schemas/1.0/review.schema.json",
+      "sha256": "d8bc05a6e8dcfa44a307deb6ed8d292389cc5405a9b9f9e46ad8f5ee5cbef420"
+    },
+    {
+      "bytes": 1893,
+      "path": "v1.0.0-rc.1/schemas/1.0/signature.schema.json",
+      "sha256": "3f6caec337bd51a5768e2c7971afb60e824179fc903f82bab13f6ee51ffd732f"
+    },
+    {
+      "bytes": 2555,
+      "path": "v1.0.0-rc.1/schemas/1.0/source.schema.json",
+      "sha256": "d1bf69170e36c3215ed5a0469f6650282991502150474f4e0eee32ebd115a5f1"
+    },
+    {
+      "bytes": 1224,
+      "path": "v1.0.0-rc.1/spec/1.0/cli.md",
+      "sha256": "d529d353dbba17f16d5defdb1841972fd5bbb9468a4e67f5e0849d57f0d9794a"
+    },
+    {
+      "bytes": 1719,
+      "path": "v1.0.0-rc.1/spec/1.0/conformance.md",
+      "sha256": "8690028558a7e0d4de797d5bc51e3169649f95a31194a4ed3b6d2e4f535fe49b"
+    },
+    {
+      "bytes": 2692,
+      "path": "v1.0.0-rc.1/spec/1.0/data-model.md",
+      "sha256": "ad638aad738180db8fc518828b139d79e7a5e869239ccf1a93d9dea9a65b7a8e"
+    },
+    {
+      "bytes": 1692,
+      "path": "v1.0.0-rc.1/spec/1.0/delegation-signatures.md",
+      "sha256": "2c89c54aac683567433e05dcf8eb38993bf9fdea4c7b30540f7dfeb56b917223"
+    },
+    {
+      "bytes": 860,
+      "path": "v1.0.0-rc.1/spec/1.0/generation.md",
+      "sha256": "695819bd0374f78bd0dbf7605dae45a1852dfaff782420e9d9b82d68582997ca"
+    },
+    {
+      "bytes": 918,
+      "path": "v1.0.0-rc.1/spec/1.0/governance.md",
+      "sha256": "56023d38f058c9bb6b47bd58a32c9b2c4e1c97da3b864c059f083055c6d85503"
+    },
+    {
+      "bytes": 1572,
+      "path": "v1.0.0-rc.1/spec/1.0/http-discovery.md",
+      "sha256": "34695ad1d8882b5a909491453272b1904cbf5f540c2c7d3f4e9d9f1cbb9b378d"
+    },
+    {
+      "bytes": 1519,
+      "path": "v1.0.0-rc.1/spec/1.0/iana-registration.md",
+      "sha256": "5d0e1b40e95da09e27b0fc5ab3d263113e8dd2bb84e1706292d6ed7d790326d8"
+    },
+    {
+      "bytes": 1182,
+      "path": "v1.0.0-rc.1/spec/1.0/internationalization.md",
+      "sha256": "6c660d44e8d8110a7ffbda5da75c72c94a472cbeb3eaaad8c2621447ea60872b"
+    },
+    {
+      "bytes": 4839,
+      "path": "v1.0.0-rc.1/spec/1.0/interoperability.md",
+      "sha256": "bdc07862cf22a1473dbfeb0e82b555f11ea7e62d316e3333ef1e2e5eb10feea0"
+    },
+    {
+      "bytes": 690,
+      "path": "v1.0.0-rc.1/spec/1.0/licensing.md",
+      "sha256": "19eb0fe0287f9c063673aeafb26e02937510f6817fe8d67f290e6b5d378487aa"
+    },
+    {
+      "bytes": 804,
+      "path": "v1.0.0-rc.1/spec/1.0/modules.md",
+      "sha256": "8a1ef15d465c3b9154a66c1144d25e181ccb71a1bcce84e909cfb9ef03fdd0fc"
+    },
+    {
+      "bytes": 924,
+      "path": "v1.0.0-rc.1/spec/1.0/ownership-delegation.md",
+      "sha256": "d62d7d295b72637cf4c37948b5ea0b67c80ee7a1af415e6c4a19548fa81976bc"
+    },
+    {
+      "bytes": 1523,
+      "path": "v1.0.0-rc.1/spec/1.0/privacy.md",
+      "sha256": "be35edf3d207258a3ce1bbc0ddfebd34ff680fc28ab14afc6b3d5e703764fc2f"
+    },
+    {
+      "bytes": 2424,
+      "path": "v1.0.0-rc.1/spec/1.0/protocol.md",
+      "sha256": "a17e55acdd96179104390318ef94b6c2e46b62cf1e5a070f1ca9f62b0339abdb"
+    },
+    {
+      "bytes": 853,
+      "path": "v1.0.0-rc.1/spec/1.0/provenance-conflicts.md",
+      "sha256": "90ba98a22cebad7f99d7063e2285377205bd8d2f1efb7085c0c5125af23c1e3c"
+    },
+    {
+      "bytes": 2036,
+      "path": "v1.0.0-rc.1/spec/1.0/release.md",
+      "sha256": "b094a9840ae7afd6eb4cf01eb2efaf3a9fad7af5a26e498f0228056050a704d3"
+    },
+    {
+      "bytes": 1532,
+      "path": "v1.0.0-rc.1/spec/1.0/security.md",
+      "sha256": "1479597f67117236026986e56beed5cbd9fbc820216c99cbbb9babf277be52f6"
+    },
+    {
+      "bytes": 934,
+      "path": "v1.0.0-rc.1/spec/1.0/signatures.md",
+      "sha256": "d38f5cfe6eeec3066ff14a22476874a20c25aa4f965ad8f354a915ac0779f5ab"
+    },
+    {
+      "bytes": 2544,
+      "path": "v1.0.0-rc.1/spec/1.0/specification.md",
+      "sha256": "46a55490c08fde6f666fddbaac2b2fe04bd8b3fecbc46b58babb45316ce2d062"
+    },
+    {
+      "bytes": 825,
+      "path": "v1.0.0-rc.1/spec/1.0/validation.md",
+      "sha256": "bba5c646eb39dc959f9fe509e3499672ec286febb18fb20d54d8b4853f0e1245"
+    },
+    {
+      "bytes": 798,
+      "path": "v1.0.0-rc.1/spec/1.0/versioning.md",
+      "sha256": "ecdc561da39c6590a437e93a43f03794b47ea9b369d3664f494b04ff1bfa6902"
+    },
+    {
+      "bytes": 325,
+      "path": "v1.0.0-rc.1/STATUS.md",
+      "sha256": "fdf9b04290be90b888c3dfa35f36b3ba1b21304df9479d8efb7e40d6903a7e70"
+    }
+  ],
+  "channel": "release-candidate",
+  "claimsPolicy": "No registration, certification, adoption, legal approval, factual verification, or deployment is claimed by these artifacts.",
+  "externalGates": {
+    "ianaRegistration": "blocked-external",
+    "independentPublisherConsumerPilot": "blocked-external",
+    "legalLicenseReview": "pending-external",
+    "productionDeployment": "not-authorized"
+  },
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "protocolStatus": "working-draft",
+  "release": "1.0.0-rc.1",
+  "schemaBase": "https://paperandslate.org/schemas/eom/1.0/",
+  "sourceDateEpoch": 0,
+  "specification": "https://paperandslate.org/spec/eom/1.0"
+}

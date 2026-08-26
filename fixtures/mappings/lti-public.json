@@ -1,0 +1,8 @@
+{
+  "name": "Ecme learning service",
+  "description": "Public documentation and service metadata for a fictitious learning tool.",
+  "url": "https://services.example/ecme-learning",
+  "logo": "https://services.example/assets/logo.svg",
+  "scopes": ["https://purl.imsglobal.org/spec/lti-ags/scope/lineitem"],
+  "documentation": "https://services.example/ecme-learning/docs"
+}

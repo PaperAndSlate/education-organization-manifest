@@ -1,0 +1,51 @@
+PROMPT ID: eom/implementation/docs-tools
+GOAL: Build an accessible documentation and developer-tool experience suitable for publishers, consumers, vendors, and reviewers.
+
+Implement documentation:
+- overview and rationale;
+- protocol walkthrough;
+- publisher quickstart;
+- consumer guide;
+- module reference;
+- schema and semantic-rule browser;
+- identifiers;
+- ownership/delegation;
+- privacy;
+- provenance;
+- signatures;
+- internationalization;
+- governance/versioning;
+- Ecme High walkthrough;
+- integration and mapping guides;
+- FAQ and troubleshooting.
+
+Implement browser tools:
+- paste/upload/URL validator;
+- semantic/privacy linter;
+- manifest explorer;
+- starter generator;
+- YAML-to-canonical-JSON converter;
+- course catalog preview;
+- Schema.org preview;
+- signature verifier;
+- conformance report viewer;
+- version diff/migration assistant;
+- provenance viewer;
+- module coverage report.
+
+Safety:
+- URL mode uses a secured backend fetcher; explain CORS and server-side behavior;
+- uploads are processed locally when possible, not retained by default, and covered by a clear notice;
+- no analytics capture of pasted educational data without consent;
+- remote rich text is sanitized;
+- tools are keyboard accessible and screen-reader tested.
+
+Brand:
+The protocol remains neutral. Pages should say “Stewarded by paper&slate” rather than renaming the protocol after the foundation.
+
+Acceptance:
+- docs build without broken internal links;
+- code examples execute in CI;
+- WCAG-oriented accessibility tests pass;
+- tools handle large/error cases;
+- the main paperandslate.org integration copy can link to the standalone docs without making it a runtime dependency.

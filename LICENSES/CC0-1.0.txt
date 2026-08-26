@@ -1,0 +1,7 @@
+Creative Commons Zero v1.0 Universal
+
+Example data and public vocabulary data marked CC0 are dedicated to the
+public domain to the extent permitted by law. Where that is not possible,
+the material is licensed under the most permissive terms allowed by law.
+
+License text: https://creativecommons.org/publicdomain/zero/1.0/legalcode

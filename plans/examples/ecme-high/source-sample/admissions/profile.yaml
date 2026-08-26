@@ -1,0 +1,14 @@
+id: "https://ecme-high.example/id/admissions/profile"
+type: "admissions-profile"
+organization: "https://ecme-high.example/id/organization"
+title: "Public Enrollment Information"
+description: "A fictional public summary. EOM does not contain applications or applicant records."
+audiences:
+  - "prospective-students"
+  - "parents-guardians"
+processUrl: "https://ecme-high.example/enrollment"
+contact: "https://ecme-high.example/id/contact/general-office"
+effective:
+  from: "2027-07-01"
+notices:
+  - "Eligibility and enrollment statements in this fixture are synthetic."

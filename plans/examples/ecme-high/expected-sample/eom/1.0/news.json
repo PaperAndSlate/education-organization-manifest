@@ -1,0 +1,17 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/news-feed.schema.json",
+  "version": "1.0",
+  "id": "https://ecme-high.example/id/resource/news",
+  "type": "news-feed",
+  "subject": "https://ecme-high.example/id/organization",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/news/catalog-published-2027",
+      "type": "news-item",
+      "headline": "Fictional 2027–2028 Course Catalog Published",
+      "summary": "Synthetic catalog announcement.",
+      "publishedAt": "2027-05-01T14:00:00Z",
+      "url": "https://ecme-high.example/news/catalog-published-2027"
+    }
+  ]
+}

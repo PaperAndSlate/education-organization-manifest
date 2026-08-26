@@ -1,0 +1,51 @@
+{
+  "result": "done",
+  "decision": "continue",
+  "full_outcome_complete": false,
+  "summary": "Completed the offline Phase 2 authoring and deterministic generation slice. The repository now has a JSON-Schema-backed configuration contract, bounded YAML/JSON source loading, modular source discovery and normalization, reference-aware validation/linting, canonical root and module output, source maps, build reports, reproducibility fingerprints, CLI build support, and a fully fictional Ecme High source tree. No network, credential, signing, or publication operation is performed by the generator.",
+  "changed_files": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "schemas/1.0/config.schema.json",
+    "packages/config/**",
+    "packages/generator/**",
+    "packages/schema/src/index.ts",
+    "packages/types/src/generated.ts",
+    "packages/core/**",
+    "packages/validator/**",
+    "packages/linter/**",
+    "packages/cli/**",
+    "scripts/build-example.ts",
+    "scripts/check-determinism.ts",
+    "scripts/check-examples.ts",
+    "examples/ecme-high/source/**",
+    "tests/generator.test.ts",
+    "docs/authoring-and-generation.md",
+    "docs/reference/schema-catalog.md",
+    "reports/phase-2-authoring-generator.md"
+  ],
+  "commands": [
+    { "cmd": "pnpm install --frozen-lockfile", "status": "pass", "detail": "workspace dependencies installed" },
+    { "cmd": "pnpm format:check", "status": "pass" },
+    { "cmd": "pnpm schema:check", "status": "pass", "detail": "35 JSON Schema 2020-12 files" },
+    { "cmd": "pnpm generate:types", "status": "pass" },
+    { "cmd": "pnpm generate:drift", "status": "pass" },
+    { "cmd": "pnpm typecheck", "status": "pass" },
+    { "cmd": "pnpm test -- --runInBand", "status": "pass", "detail": "5 files, 39 tests" },
+    { "cmd": "pnpm examples:build", "status": "pass", "detail": "22 resources and 24 generated public files" },
+    { "cmd": "pnpm verify:determinism", "status": "pass", "detail": "24 generated files" },
+    { "cmd": "pnpm verify:examples", "status": "pass", "detail": "77 files inspected" },
+    { "cmd": "pnpm build", "status": "pass", "detail": "8 buildable workspace packages" },
+    { "cmd": "pnpm eom build examples/ecme-high/source/eom.config.yaml --output examples/ecme-high/generated-cli/public --dry-run", "status": "pass", "detail": "valid dry-run build" },
+    { "cmd": "git diff --check", "status": "pass" }
+  ],
+  "evidence": [
+    "schemas/1.0/config.schema.json",
+    "packages/generator/src/index.ts",
+    "packages/cli/src/index.ts",
+    "examples/ecme-high/source/eom.config.yaml",
+    "examples/ecme-high/source/modules/",
+    "docs/authoring-and-generation.md",
+    "reports/phase-2-authoring-generator.md"
+  ]
+}

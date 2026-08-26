@@ -1,0 +1,19 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/signature.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://ecme-high.example/eom/organization#static-signature",
+  "type": "signature",
+  "canonical": "https://ecme-high.example/eom/organization#signature",
+  "subject": "https://ecme-high.example/eom/organization",
+  "keyId": "https://ecme-high.example/eom/keys#static-vector-2027",
+  "algorithm": "EdDSA",
+  "canonicalization": "RFC8785-JCS",
+  "payloadDigest": "sha-256=:t8NZ0ZeMDJZuqIAA41g9JPCS4BHBMB+Km3ak3+8zkWM=:",
+  "protected": "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0IiwiZW9tIl0sImN0eSI6ImFwcGxpY2F0aW9uL2pzb24iLCJlb20iOiJSRkM4Nzg1LUpDUyIsImtpZCI6Imh0dHBzOi8vZWNtZS1oaWdoLmV4YW1wbGUvZW9tL2tleXMjc3RhdGljLXZlY3Rvci0yMDI3In0",
+  "signature": "q2DI6w0jo6HfRLYJ_N_xxx4ZteaQoYunXjtt8z3J4gxQiFJCoO8Gv3bj-9q6Mc9gLzPeh_T8ojrF4919jjCUAg",
+  "compact": "eyJhbGciOiJFZERTQSIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0IiwiZW9tIl0sImN0eSI6ImFwcGxpY2F0aW9uL2pzb24iLCJlb20iOiJSRkM4Nzg1LUpDUyIsImtpZCI6Imh0dHBzOi8vZWNtZS1oaWdoLmV4YW1wbGUvZW9tL2tleXMjc3RhdGljLXZlY3Rvci0yMDI3In0..q2DI6w0jo6HfRLYJ_N_xxx4ZteaQoYunXjtt8z3J4gxQiFJCoO8Gv3bj-9q6Mc9gLzPeh_T8ojrF4919jjCUAg",
+  "detached": true,
+  "createdAt": "2027-08-01T00:00:00.000Z",
+  "contentType": "application/json"
+}

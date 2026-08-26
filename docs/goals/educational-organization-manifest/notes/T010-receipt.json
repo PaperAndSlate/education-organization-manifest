@@ -1,0 +1,50 @@
+{
+  "result": "done",
+  "decision": "continue",
+  "full_outcome_complete": false,
+  "summary": "Implemented optional integrity and delegated authority. Root-origin and scoped cross-origin evaluation now covers resource type/id, origin/path, subject, validity, revocation, and non-transitive rules, with synthetic vendor-meal and district-transport fixtures. The signature package provides RFC 8785-compatible canonical JSON, SHA-256 content digests, detached b64:false EdDSA JWS records, public-only Ed25519 key metadata, key rotation fields, and multi-dimensional verification. CLI sign/verify operations use explicit local files; unsigned conformant v1 remains valid.",
+  "changed_files": [
+    "schemas/1.0/delegation.schema.json",
+    "schemas/1.0/key-set.schema.json",
+    "schemas/1.0/signature.schema.json",
+    "schemas/1.0/catalog.json",
+    "packages/schema/src/index.ts",
+    "packages/types/src/generated.ts",
+    "packages/authority/**",
+    "packages/signatures/**",
+    "packages/validator/src/semantic.ts",
+    "packages/cli/src/index.ts",
+    "packages/cli/package.json",
+    "package.json",
+    "pnpm-lock.yaml",
+    "fixtures/delegation/**",
+    "fixtures/signatures/**",
+    "tests/authority-signatures.test.ts",
+    "tests/cli.test.ts",
+    "spec/1.0/delegation-signatures.md",
+    "docs/delegation-and-signatures.md",
+    "docs/reference/schema-catalog.md",
+    "reports/phase-6-delegation-signatures.md"
+  ],
+  "commands": [
+    { "cmd": "pnpm install --frozen-lockfile", "status": "pass", "detail": "12 workspace projects" },
+    { "cmd": "pnpm format:check", "status": "pass" },
+    { "cmd": "pnpm schema:check", "status": "pass", "detail": "41 JSON Schema 2020-12 files" },
+    { "cmd": "pnpm generate:types", "status": "pass" },
+    { "cmd": "pnpm generate:drift", "status": "pass" },
+    { "cmd": "pnpm typecheck", "status": "pass" },
+    { "cmd": "pnpm test -- --runInBand", "status": "pass", "detail": "9 files, 63 tests" },
+    { "cmd": "pnpm eom verify fixtures/signatures/unsigned-resource.json --signature fixtures/signatures/static-vector.json --key-set fixtures/signatures/key-set.json --json", "status": "pass", "detail": "detached signature verified" },
+    { "cmd": "pnpm build", "status": "pass", "detail": "11 buildable workspace packages" },
+    { "cmd": "git diff --check", "status": "pass" }
+  ],
+  "evidence": [
+    "packages/authority/src/index.ts",
+    "packages/signatures/src/index.ts",
+    "schemas/1.0/signature.schema.json",
+    "fixtures/delegation/",
+    "fixtures/signatures/static-vector.json",
+    "tests/authority-signatures.test.ts",
+    "reports/phase-6-delegation-signatures.md"
+  ]
+}

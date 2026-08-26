@@ -1,0 +1,8 @@
+Copyright 2026 paper&slate and contributors
+
+Unless a file states otherwise, software, schemas, generated types, tests, and tooling in this repository are licensed under the Apache License, Version 2.0.
+
+The specification and documentation are licensed under Creative Commons Attribution 4.0 International. Example data is dedicated to the public domain under CC0 1.0 where marked. See `LICENSES/` and per-file metadata for the complete licensing map.
+
+You may obtain a copy of the Apache License at:
+https://www.apache.org/licenses/LICENSE-2.0

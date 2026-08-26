@@ -1,0 +1,90 @@
+$schema: https://paperandslate.org/schemas/eom/1.0/modules/course-offering-catalog.schema.json
+specification: https://paperandslate.org/spec/eom/1.0
+version: '1.0'
+id: https://ecme-high.example/eom/resource/offerings
+type: course-offering-catalog
+canonical: https://ecme-high.example/eom/offerings.json
+subjects: [https://ecme-high.example/id/school]
+defaultLanguage: en-US
+catalogVersion:
+  id: https://ecme-high.example/id/catalog/2027-2028
+  label: '2027–2028'
+  status: active
+  effective: { from: '2027-07-01', until: '2028-06-30' }
+  public: true
+releaseStatus: active
+items:
+  - id: https://ecme-high.example/id/offering/cul-202-2027
+    type: course-offering
+    name: Culinary Arts II — 2027–2028
+    course: { id: https://ecme-high.example/id/course/cul-202 }
+    provider: { id: https://ecme-high.example/id/school }
+    academicPeriod: { id: https://ecme-high.example/id/academic-period/2027-fall }
+    academicYear: '2027–2028'
+    term: fall
+    status: open
+    modes: [in-person, lab]
+    campuses: [{ id: https://ecme-high.example/id/campus/main }]
+    languages: [en-US]
+    start: '2027-08-23'
+    end: '2027-12-17'
+    applicationWindow: { from: '2027-03-01', until: '2027-08-15' }
+    publicScheduleSummary: Periods 2 and 4; exact times are provided after enrollment.
+    instructors: [{ id: https://ecme-high.example/id/staff/teacher-1 }]
+    availability:
+      status: open
+      seatsRemaining: 12
+      observedAt: '2027-05-01T14:00:00Z'
+      expires: '2027-08-23T00:00:00Z'
+      source: https://ecme-high.example/eom/offerings.json
+      enrollmentUrl: https://ecme-high.example/eom/enroll/cul-202-2027
+    sections:
+      - id: https://ecme-high.example/id/section/cul-202-2027-a
+        type: course-section
+        name: Culinary Arts II — Section A
+        offering: { id: https://ecme-high.example/id/offering/cul-202-2027 }
+        publicSectionCode: CUL-202-A
+        schedule: Monday and Wednesday, periods 2 and 4.
+        location: { id: https://ecme-high.example/id/campus/main }
+        instructor: { id: https://ecme-high.example/id/staff/teacher-1 }
+        deliveryMode: in-person
+        capacity: 24
+        status: open
+        start: '2027-08-23'
+        end: '2027-12-17'
+
+  - id: https://ecme-high.example/id/offering/mat-351-2027-fall
+    type: course-offering
+    name: Statistics and Data Literacy — Fall 2027
+    course: { id: https://ecme-high.example/id/course/mat-351 }
+    provider: { id: https://ecme-high.example/id/school }
+    academicPeriod: { id: https://ecme-high.example/id/academic-period/2027-fall }
+    academicYear: '2027–2028'
+    term: fall
+    status: open
+    modes: [in-person, online]
+    campuses: [{ id: https://ecme-high.example/id/campus/main }]
+    languages: [en-US]
+    start: '2027-08-23'
+    end: '2027-12-17'
+    publicScheduleSummary: Fall semester; public times vary by section.
+    availability:
+      status: open
+      observedAt: '2027-05-01T14:00:00Z'
+      expires: '2027-08-23T00:00:00Z'
+
+  - id: https://ecme-high.example/id/offering/mat-351-2028-spring
+    type: course-offering
+    name: Statistics and Data Literacy — Spring 2028
+    course: { id: https://ecme-high.example/id/course/mat-351 }
+    provider: { id: https://ecme-high.example/id/school }
+    academicPeriod: { id: https://ecme-high.example/id/academic-period/2028-spring }
+    academicYear: '2027–2028'
+    term: spring
+    status: planned
+    modes: [in-person, online]
+    campuses: [{ id: https://ecme-high.example/id/campus/main }]
+    languages: [en-US]
+    start: '2028-01-10'
+    end: '2028-06-02'
+    publicScheduleSummary: Spring semester; final availability is published before registration.

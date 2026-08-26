@@ -1,0 +1,11 @@
+plans/**
+docs/goals/**
+pnpm-lock.yaml
+node_modules/**
+dist/**
+coverage/**
+examples/**/generated/**
+examples/**/public/**
+examples/**/build/**
+packages/types/src/generated.ts
+docs/reference/schema-catalog.md

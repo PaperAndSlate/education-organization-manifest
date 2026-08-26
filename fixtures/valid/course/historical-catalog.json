@@ -1,0 +1,42 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/course-catalog.schema.json",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": "1.0",
+  "id": "https://ecme-high.example/eom/resource/courses-2026-2027",
+  "type": "course-catalog",
+  "canonical": "https://ecme-high.example/eom/archive/2026-2027/courses.json",
+  "subjects": ["https://ecme-high.example/id/school"],
+  "catalogVersion": {
+    "id": "https://ecme-high.example/id/catalog/2026-2027",
+    "label": "2026–2027",
+    "status": "historical",
+    "effective": {
+      "from": "2026-07-01",
+      "until": "2027-06-30"
+    },
+    "public": true
+  },
+  "releaseStatus": "historical",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/course/cul-202",
+      "type": "course",
+      "code": "CUL-202",
+      "name": "Culinary Arts II",
+      "description": "Historical catalog description retained for reference.",
+      "provider": { "id": "https://ecme-high.example/id/school" },
+      "department": { "id": "https://ecme-high.example/id/department/fcs" },
+      "educationLevels": ["grade-11", "grade-12"],
+      "credits": [
+        {
+          "value": "1.0",
+          "system": "https://ecme-high.example/id/credit-system/local"
+        }
+      ],
+      "duration": "year",
+      "modes": ["in-person"]
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "expires": "2030-01-01T00:00:00Z"
+}
