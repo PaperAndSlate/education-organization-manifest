@@ -8,74 +8,56 @@
     {
       "id": "https://ecme-high.example/id/department/ela",
       "name": "English Language Arts",
-      "parentOrganization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
       "studentId": "https://student.example/id/never-publish",
       "type": "department"
     },
     {
       "id": "https://ecme-high.example/id/department/engineering-technology",
       "name": "Engineering and Technology",
-      "parentOrganization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
       "type": "department"
     },
     {
       "id": "https://ecme-high.example/id/department/fcs",
       "name": "Family and Consumer Sciences",
-      "parentOrganization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
       "type": "department"
     },
     {
       "id": "https://ecme-high.example/id/department/fine-arts",
       "name": "Fine Arts",
-      "parentOrganization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
       "type": "department"
     },
     {
       "id": "https://ecme-high.example/id/department/mathematics",
       "name": "Mathematics",
-      "parentOrganization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
       "type": "department"
     },
     {
       "id": "https://ecme-high.example/id/department/peh",
       "name": "Physical Education and Health",
-      "parentOrganization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
       "type": "department"
     },
     {
       "id": "https://ecme-high.example/id/department/science",
       "name": "Science",
-      "parentOrganization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
       "type": "department"
     },
     {
       "id": "https://ecme-high.example/id/department/social-studies",
       "name": "Social Studies",
-      "parentOrganization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
       "type": "department"
     },
     {
       "id": "https://ecme-high.example/id/department/world-languages",
       "name": "World Languages",
-      "parentOrganization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
       "type": "department"
     }
   ],

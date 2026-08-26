@@ -10,9 +10,7 @@
       "documentation": "https://ecme-high.example/api/docs",
       "id": "https://ecme-high.example/id/api/public-catalog",
       "name": "Public catalog API",
-      "provider": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "provider": { "id": "https://ecme-high.example/id/school" },
       "type": "api-reference"
     }
   ],

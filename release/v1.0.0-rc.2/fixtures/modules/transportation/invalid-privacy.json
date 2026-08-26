@@ -8,9 +8,7 @@
       "id": "https://ecme-high.example/id/transport/service",
       "mode": "bus",
       "name": "Public School Shuttle",
-      "provider": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "provider": { "id": "https://ecme-high.example/id/school" },
       "serviceType": "school-shuttle",
       "studentId": "https://student.example/id/never-publish",
       "type": "transport-service"

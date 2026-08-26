@@ -11,12 +11,7 @@
       "mealPeriod": "lunch",
       "menuSections": [
         {
-          "items": [
-            {
-              "allergens": ["source-declared"],
-              "name": "Example grain bowl"
-            }
-          ],
+          "items": [{ "allergens": ["source-declared"], "name": "Example grain bowl" }],
           "name": "Main"
         }
       ],

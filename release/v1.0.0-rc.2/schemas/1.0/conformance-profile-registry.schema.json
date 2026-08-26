@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/conformance-profile-registry.schema.json",
+  "title": "EOM conformance profile registry",
+  "type": "object",
+  "required": [
+    "$schema",
+    "specification",
+    "version",
+    "id",
+    "canonical",
+    "type",
+    "status",
+    "changeController",
+    "lastReviewed",
+    "profiles"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://paperandslate.org/schemas/eom/1.0/conformance-profile-registry.schema.json"
+    },
+    "specification": { "const": "https://paperandslate.org/spec/eom/1.0" },
+    "version": { "const": "1.0" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "canonical": { "$ref": "common.schema.json#/$defs/httpsUri" },
+    "type": { "const": "conformance-profile-registry" },
+    "status": { "enum": ["working-draft", "registered", "deprecated"] },
+    "changeController": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "lastReviewed": { "$ref": "common.schema.json#/$defs/date" },
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "conformance-profile.schema.json" }
+    },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

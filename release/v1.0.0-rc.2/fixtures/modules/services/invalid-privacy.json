@@ -8,9 +8,7 @@
       "audience": ["current-students"],
       "id": "https://ecme-high.example/id/service/counseling",
       "name": "Counseling Services",
-      "provider": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "provider": { "id": "https://ecme-high.example/id/school" },
       "studentId": "https://student.example/id/never-publish",
       "type": "service"
     }

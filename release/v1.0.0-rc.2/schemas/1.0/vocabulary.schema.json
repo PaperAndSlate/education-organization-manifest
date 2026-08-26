@@ -83,7 +83,7 @@
     },
     "mapping": {
       "type": "object",
-      "required": ["relation", "target"],
+      "required": ["relation", "target", "confidence"],
       "properties": {
         "relation": {
           "enum": [
@@ -97,6 +97,7 @@
           ]
         },
         "target": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+        "confidence": { "enum": ["high", "medium", "low", "unreviewed"] },
         "evidence": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": false

@@ -3,7 +3,7 @@
   "canonical": "https://paperandslate.org/vocabularies/eom/organization-types/1.0",
   "category": "organization-types",
   "compatibleProtocolVersions": ["1.0"],
-  "contentDigest": "sha256:e05e2eb9663ed911152105c5af12b6b961f887a250d8f00fc33576bc13990a20",
+  "contentDigest": "sha256:48ce15dd38c847396337f6f4ad8a0dded091176bf624c75ce573b903a919f5dc",
   "id": "https://paperandslate.org/vocabularies/eom/organization-types/1.0",
   "license": "CC0-1.0",
   "openness": "extensible",
@@ -17,6 +17,7 @@
       "definition": "An organization serving learners in secondary education.",
       "mappings": [
         {
+          "confidence": "medium",
           "relation": "closeMatch",
           "target": "https://schema.org/School"
         }

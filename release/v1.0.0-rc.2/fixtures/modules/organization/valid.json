@@ -12,11 +12,7 @@
   "defaultLanguage": "en-US",
   "description": "A wholly fictitious public secondary school used to demonstrate EOM.",
   "expires": "2028-05-01T14:00:00Z",
-  "extensions": {
-    "https://ecme-high.example/ns/fixture": {
-      "fictional": true
-    }
-  },
+  "extensions": { "https://ecme-high.example/ns/fixture": { "fictional": true } },
   "id": "https://ecme-high.example/id/school",
   "modified": "2027-05-01T14:00:00Z",
   "name": "Ecme High School",

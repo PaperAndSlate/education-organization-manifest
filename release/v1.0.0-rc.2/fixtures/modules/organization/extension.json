@@ -13,12 +13,8 @@
   "description": "A wholly fictitious public secondary school used to demonstrate EOM.",
   "expires": "2028-05-01T14:00:00Z",
   "extensions": {
-    "https://ecme-high.example/ns/fixture": {
-      "fictional": true
-    },
-    "https://fixture.example/eom/extensions/module-test": {
-      "value": "preserved"
-    }
+    "https://ecme-high.example/ns/fixture": { "fictional": true },
+    "https://fixture.example/eom/extensions/module-test": { "value": "preserved" }
   },
   "id": "https://ecme-high.example/id/school",
   "modified": "2027-05-01T14:00:00Z",

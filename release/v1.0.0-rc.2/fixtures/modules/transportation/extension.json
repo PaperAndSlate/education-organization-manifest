@@ -2,20 +2,14 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/transportation-catalog.schema.json",
   "canonical": "https://ecme-high.example/eom/transportation.json",
   "expires": "2028-05-01T14:00:00Z",
-  "extensions": {
-    "https://fixture.example/eom/extensions/module-test": {
-      "value": "preserved"
-    }
-  },
+  "extensions": { "https://fixture.example/eom/extensions/module-test": { "value": "preserved" } },
   "id": "https://ecme-high.example/eom/resource/transportation",
   "items": [
     {
       "id": "https://ecme-high.example/id/transport/service",
       "mode": "bus",
       "name": "Public School Shuttle",
-      "provider": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "provider": { "id": "https://ecme-high.example/id/school" },
       "serviceType": "school-shuttle",
       "type": "transport-service"
     }

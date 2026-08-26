@@ -7,13 +7,9 @@
     {
       "id": "https://ecme-high.example/id/team/track",
       "name": "Track and Field",
-      "organization": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "organization": { "id": "https://ecme-high.example/id/school" },
       "season": "spring",
-      "sport": {
-        "id": "https://example.org/sports/track"
-      },
+      "sport": { "id": "https://example.org/sports/track" },
       "studentId": "https://student.example/id/never-publish",
       "type": "sports-team"
     }

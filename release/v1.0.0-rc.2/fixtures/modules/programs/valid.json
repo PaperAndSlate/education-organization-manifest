@@ -2,10 +2,7 @@
   "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/program-catalog.schema.json",
   "canonical": "https://ecme-high.example/eom/programs.json",
   "catalogVersion": {
-    "effective": {
-      "from": "2027-07-01",
-      "until": "2028-06-30"
-    },
+    "effective": { "from": "2027-07-01", "until": "2028-06-30" },
     "id": "https://ecme-high.example/id/catalog/2027-2028",
     "label": "2027–2028",
     "public": true,
@@ -16,17 +13,9 @@
   "id": "https://ecme-high.example/eom/resource/programs",
   "items": [
     {
-      "campuses": [
-        {
-          "id": "https://ecme-high.example/id/campus/main"
-        }
-      ],
+      "campuses": [{ "id": "https://ecme-high.example/id/campus/main" }],
       "classification": "career-pathway",
-      "departments": [
-        {
-          "id": "https://ecme-high.example/id/department/fcs"
-        }
-      ],
+      "departments": [{ "id": "https://ecme-high.example/id/department/fcs" }],
       "description": "A synthetic culinary sequence combining food production, design, and service.",
       "duration": "three years",
       "educationLevels": ["grade-10", "grade-11", "grade-12"],
@@ -39,51 +28,25 @@
           "statement": "Plan and communicate a safe public food-service project."
         }
       ],
-      "provider": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "provider": { "id": "https://ecme-high.example/id/school" },
       "requirements": [
         {
           "courses": [
-            {
-              "id": "https://ecme-high.example/id/course/fcs-101"
-            },
-            {
-              "id": "https://ecme-high.example/id/course/cul-101"
-            },
-            {
-              "id": "https://ecme-high.example/id/course/cul-202"
-            }
+            { "id": "https://ecme-high.example/id/course/fcs-101" },
+            { "id": "https://ecme-high.example/id/course/cul-101" },
+            { "id": "https://ecme-high.example/id/course/cul-202" }
           ],
           "kind": "all"
         }
       ],
       "stages": [
-        {
-          "courses": [
-            {
-              "id": "https://ecme-high.example/id/course/fcs-101"
-            }
-          ],
-          "order": 1
-        },
-        {
-          "courses": [
-            {
-              "id": "https://ecme-high.example/id/course/cul-101"
-            }
-          ],
-          "order": 2
-        },
+        { "courses": [{ "id": "https://ecme-high.example/id/course/fcs-101" }], "order": 1 },
+        { "courses": [{ "id": "https://ecme-high.example/id/course/cul-101" }], "order": 2 },
         {
           "choose": {
             "courses": [
-              {
-                "id": "https://ecme-high.example/id/course/cul-202"
-              },
-              {
-                "id": "https://ecme-high.example/id/course/cul-250"
-              }
+              { "id": "https://ecme-high.example/id/course/cul-202" },
+              { "id": "https://ecme-high.example/id/course/cul-250" }
             ],
             "kind": "choose",
             "minimum": 1
@@ -92,30 +55,17 @@
         }
       ],
       "totalCredits": [
-        {
-          "system": "https://ecme-high.example/id/credit-system/local",
-          "value": "2.5"
-        }
+        { "system": "https://ecme-high.example/id/credit-system/local", "value": "2.5" }
       ],
       "type": "program"
     },
     {
-      "campuses": [
-        {
-          "id": "https://ecme-high.example/id/campus/main"
-        }
-      ],
+      "campuses": [{ "id": "https://ecme-high.example/id/campus/main" }],
       "classification": "pathway",
       "departments": [
-        {
-          "id": "https://ecme-high.example/id/department/mathematics"
-        },
-        {
-          "id": "https://ecme-high.example/id/department/science"
-        },
-        {
-          "id": "https://ecme-high.example/id/department/engineering-technology"
-        }
+        { "id": "https://ecme-high.example/id/department/mathematics" },
+        { "id": "https://ecme-high.example/id/department/science" },
+        { "id": "https://ecme-high.example/id/department/engineering-technology" }
       ],
       "description": "A synthetic pathway connecting mathematics, science, engineering, and computing.",
       "duration": "three years",
@@ -129,29 +79,19 @@
           "statement": "Explain a public STEM project using evidence and technical communication."
         }
       ],
-      "provider": {
-        "id": "https://ecme-high.example/id/school"
-      },
+      "provider": { "id": "https://ecme-high.example/id/school" },
       "requirements": [
         {
           "courses": [
-            {
-              "id": "https://ecme-high.example/id/course/mat-301"
-            },
-            {
-              "id": "https://ecme-high.example/id/course/sci-301"
-            }
+            { "id": "https://ecme-high.example/id/course/mat-301" },
+            { "id": "https://ecme-high.example/id/course/sci-301" }
           ],
           "kind": "all"
         },
         {
           "courses": [
-            {
-              "id": "https://ecme-high.example/id/course/eng-251"
-            },
-            {
-              "id": "https://ecme-high.example/id/course/cse-201"
-            }
+            { "id": "https://ecme-high.example/id/course/eng-251" },
+            { "id": "https://ecme-high.example/id/course/cse-201" }
           ],
           "display": "Choose one technology concentration course.",
           "kind": "choose",
@@ -161,24 +101,16 @@
       "stages": [
         {
           "courses": [
-            {
-              "id": "https://ecme-high.example/id/course/mat-101"
-            },
-            {
-              "id": "https://ecme-high.example/id/course/sci-101"
-            }
+            { "id": "https://ecme-high.example/id/course/mat-101" },
+            { "id": "https://ecme-high.example/id/course/sci-101" }
           ],
           "order": 1
         },
         {
           "choose": {
             "courses": [
-              {
-                "id": "https://ecme-high.example/id/course/eng-201"
-              },
-              {
-                "id": "https://ecme-high.example/id/course/cse-201"
-              }
+              { "id": "https://ecme-high.example/id/course/eng-201" },
+              { "id": "https://ecme-high.example/id/course/cse-201" }
             ],
             "kind": "choose",
             "minimum": 1
@@ -187,10 +119,7 @@
         }
       ],
       "totalCredits": [
-        {
-          "system": "https://ecme-high.example/id/credit-system/local",
-          "value": "4.0"
-        }
+        { "system": "https://ecme-high.example/id/credit-system/local", "value": "4.0" }
       ],
       "type": "program"
     }
