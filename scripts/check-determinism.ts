@@ -1,9 +1,10 @@
-import { cp, mkdir, readFile, readdir, rm } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { basename, join, relative, resolve } from 'node:path';
 import { buildPublication } from '@paperandslate/eom-generator';
 
 const sourceDirectory = resolve(process.argv[2] ?? 'examples/ecme-high/source');
-const temporaryRoot = resolve('.eom-determinism');
+let temporaryRoot = '';
 const sourceConfigName = basename(join(sourceDirectory, 'eom.config.yaml'));
 const firstOutput = join(temporaryRoot, 'first', 'public');
 const secondOutput = join(temporaryRoot, 'second', 'public');
@@ -11,7 +12,7 @@ const firstSource = join(temporaryRoot, 'first', 'source');
 const secondSource = join(temporaryRoot, 'second', 'source');
 
 try {
-  await rm(temporaryRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  temporaryRoot = await mkdtemp(join(tmpdir(), 'eom-determinism-'));
   await copySourceTree(sourceDirectory, firstSource, false);
   await copySourceTree(sourceDirectory, secondSource, true);
   const firstConfigFile = join(firstSource, sourceConfigName);
@@ -53,7 +54,9 @@ try {
     }
   }
 } finally {
-  await rm(temporaryRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  if (temporaryRoot) {
+    await rm(temporaryRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
 }
 
 async function copySourceTree(
