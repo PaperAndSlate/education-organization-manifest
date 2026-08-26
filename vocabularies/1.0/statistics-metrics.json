@@ -1,0 +1,35 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/statistics-metrics/1.0",
+  "category": "statistics-metrics",
+  "compatibleProtocolVersions": [
+    "1.0"
+  ],
+  "contentDigest": "sha256:b2db33f93e97c043e307867944f7b16103ebe5bcef9c743369d57f82356e779a",
+  "id": "https://paperandslate.org/vocabularies/eom/statistics-metrics/1.0",
+  "license": "CC0-1.0",
+  "openness": "open",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/statistics-metrics",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "enrollment",
+      "definition": "An aggregate enrollment metric with stated population and period.",
+      "preferredLabel": "Enrollment count",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/statistics-metrics/enrollment"
+    },
+    {
+      "code": "completion",
+      "definition": "An aggregate completion metric with stated population and period.",
+      "preferredLabel": "Completion count",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/statistics-metrics/completion"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

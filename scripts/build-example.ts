@@ -11,6 +11,7 @@ if (!sourceArgument || !outputArgument) {
   const report = await buildPublication({
     configFile: join(sourceDirectory, 'eom.config.yaml'),
     outputRoot: join(outputDirectory, 'public'),
+    allowExternalOutput: true,
     now: new Date('2027-01-01T00:00:00Z'),
   });
   console.log(JSON.stringify(report, null, 2));

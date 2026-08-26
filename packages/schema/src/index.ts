@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { isJsonObject, parseStrictJson, type JsonObject } from '@paperandslate/eom-core';
 
 export const SCHEMA_BASE_URI = 'https://paperandslate.org/schemas/eom/1.0/';
@@ -20,6 +20,9 @@ export const SCHEMA_FILES = [
   'candidate.schema.json',
   'signature.schema.json',
   'mapping.schema.json',
+  'module-registry.schema.json',
+  'vocabulary-registry.schema.json',
+  'vocabulary.schema.json',
   'organization-profile.schema.json',
   'organization-index.schema.json',
   'resource-index.schema.json',
@@ -52,7 +55,21 @@ export const SCHEMA_FILES = [
 
 export type SchemaFile = (typeof SCHEMA_FILES)[number];
 
-const schemaDirectory = join(dirname(fileURLToPath(import.meta.url)), '../../../schemas/1.0');
+const packageDirectory = dirname(fileURLToPath(import.meta.url));
+const bundledSchemaDirectory = join(packageDirectory, 'schemas', '1.0');
+const repositorySchemaDirectory = resolve(packageDirectory, '../../../schemas/1.0');
+const schemaDirectory = readFileExists(join(bundledSchemaDirectory, 'catalog.json'))
+  ? bundledSchemaDirectory
+  : repositorySchemaDirectory;
+
+function readFileExists(path: string): boolean {
+  try {
+    readFileSync(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function schemaPath(file: SchemaFile): string {
   return join(schemaDirectory, file);
@@ -84,6 +101,9 @@ export function schemaFileForType(type: string): SchemaFile | undefined {
     'candidate-workspace': 'candidate.schema.json',
     signature: 'signature.schema.json',
     'mapping-registry': 'mapping.schema.json',
+    'module-registry': 'module-registry.schema.json',
+    'vocabulary-registry': 'vocabulary-registry.schema.json',
+    vocabulary: 'vocabulary.schema.json',
     'organization-profile': 'organization-profile.schema.json',
     'organization-index': 'organization-index.schema.json',
     'resource-index': 'resource-index.schema.json',

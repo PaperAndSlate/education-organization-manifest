@@ -1,0 +1,35 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/sports/1.0",
+  "category": "sports",
+  "compatibleProtocolVersions": [
+    "1.0"
+  ],
+  "contentDigest": "sha256:dd0907d97e0eeb5fdc38dd6d82caa4c8ecd106acf98775a2d33873c0c54a029b",
+  "id": "https://paperandslate.org/vocabularies/eom/sports/1.0",
+  "license": "CC0-1.0",
+  "openness": "open",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/sports",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "football",
+      "definition": "A football sport label whose local rules and jurisdiction may be stated separately.",
+      "preferredLabel": "Football",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/sports/football"
+    },
+    {
+      "code": "swimming",
+      "definition": "Swimming as a public activity or team classification.",
+      "preferredLabel": "Swimming",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/sports/swimming"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

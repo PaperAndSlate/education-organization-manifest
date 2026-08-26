@@ -1,0 +1,36 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/identifier-schemes/1.0",
+  "category": "identifier-schemes",
+  "compatibleProtocolVersions": [
+    "1.0"
+  ],
+  "contentDigest": "sha256:df6fe49fab6dd5cb042ad804018aa7664a174729777c569e9d5da8de56fa7a90",
+  "id": "https://paperandslate.org/vocabularies/eom/identifier-schemes/1.0",
+  "license": "CC0-1.0",
+  "openness": "open",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/identifier-schemes",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "us-nces-school",
+      "definition": "A United States school identifier scheme; presence does not itself verify a value.",
+      "license": "Public metadata",
+      "preferredLabel": "US NCES school identifier",
+      "status": "active",
+      "uri": "https://paperandslate.org/registry/identifier-schemes/us-nces-school"
+    },
+    {
+      "code": "local",
+      "definition": "A publisher-controlled identifier scheme with separately documented authority.",
+      "preferredLabel": "Local organization identifier",
+      "status": "active",
+      "uri": "https://paperandslate.org/registry/identifier-schemes/local"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

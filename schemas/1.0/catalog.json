@@ -4,6 +4,21 @@
   "schemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "schemas": [
     {
+      "type": "module-registry",
+      "shortName": "module-registry",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/module-registry.schema.json"
+    },
+    {
+      "type": "vocabulary-registry",
+      "shortName": "vocabulary-registry",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary-registry.schema.json"
+    },
+    {
+      "type": "vocabulary",
+      "shortName": "vocabulary",
+      "schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json"
+    },
+    {
       "type": "manifest",
       "shortName": "manifest",
       "schema": "https://paperandslate.org/schemas/eom/1.0/manifest.schema.json"

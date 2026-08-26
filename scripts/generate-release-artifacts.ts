@@ -178,6 +178,7 @@ async function sourceArchiveEntries(): Promise<ArchiveEntry[]> {
     'prompts',
     'requirements',
     'schemas',
+    'vocabularies',
     'scripts',
     'sources',
     'spec',

@@ -1,4 +1,6 @@
 import { lookup } from 'node:dns/promises';
+import { request as httpRequest } from 'node:http';
+import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
 import { isPrivateOrLocalHostname } from './ids.js';
 import { parseStrictJson, type JsonValue } from './json.js';
@@ -38,7 +40,13 @@ export interface FetchOptions {
   readonly allowPrivateHosts?: boolean;
   /** Test-only escape hatch for deterministic local HTTP fixtures. */
   readonly allowNonStandardPorts?: boolean;
+  /** Test-only resolver injection used to exercise DNS-rebinding defenses. */
+  readonly dnsLookup?: FetchDnsLookup;
 }
+
+export type FetchDnsLookup = (
+  hostname: string,
+) => Promise<readonly { readonly address: string }[]>;
 
 export interface RedirectHop {
   readonly from: string;
@@ -124,8 +132,8 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
   let current = requestedUrl;
 
   for (;;) {
-    await assertSafeTarget(current, options, redirects);
-    const response = await request(current, options, timeoutMs, redirects);
+    const address = await assertSafeTarget(current, options, redirects);
+    const response = await request(current, address, options, timeoutMs, maxBytes, redirects);
     const location = response.headers.get('location');
     if (isRedirectStatus(response.status)) {
       if (!location) {
@@ -230,7 +238,7 @@ async function assertSafeTarget(
   value: string,
   options: FetchOptions,
   redirects: readonly RedirectHop[],
-): Promise<void> {
+): Promise<string> {
   let parsed: URL;
   try {
     parsed = new URL(value);
@@ -287,11 +295,11 @@ async function assertSafeTarget(
         redirects,
       );
     }
-    return;
+    return parsed.hostname;
   }
   let addresses: readonly { address: string }[];
   try {
-    addresses = await lookup(parsed.hostname, { all: true, verbatim: true });
+    addresses = await (options.dnsLookup ?? defaultDnsLookup)(parsed.hostname);
   } catch (error) {
     throw new EomFetchError(
       'EOM_FETCH_DNS',
@@ -311,47 +319,134 @@ async function assertSafeTarget(
       redirects,
     );
   }
+  const address = addresses[0]?.address;
+  if (!address) {
+    throw new EomFetchError('EOM_FETCH_DNS', 'DNS returned no addresses.', value, redirects);
+  }
+  return address;
 }
 
 async function request(
   url: string,
+  address: string,
   options: FetchOptions,
   timeoutMs: number,
+  maxBytes: number,
   redirects: readonly RedirectHop[],
 ): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  const abort = (): void => controller.abort(options.signal?.reason);
-  options.signal?.addEventListener('abort', abort, { once: true });
-  try {
-    return await fetch(url, {
-      method: options.method ?? 'GET',
-      redirect: 'manual',
-      headers: {
-        accept: 'application/json',
-        'user-agent': options.userAgent ?? 'paperandslate-eom/0.1.0',
-      },
-      signal: controller.signal,
-    });
-  } catch (error) {
-    if (controller.signal.aborted) {
-      throw new EomFetchError(
-        'EOM_FETCH_TIMEOUT',
-        'The EOM request timed out or was cancelled.',
-        url,
-        redirects,
+  const parsed = new URL(url);
+  const requestFunction = parsed.protocol === 'https:' ? httpsRequest : httpRequest;
+  const body = await new Promise<{ status: number; headers: Headers; body: Buffer }>(
+    (resolve, reject) => {
+      let settled = false;
+      let timedOut = false;
+      const chunks: Buffer[] = [];
+      let total = 0;
+      const request = requestFunction(
+        {
+          protocol: parsed.protocol,
+          hostname: address,
+          port: parsed.port || undefined,
+          path: `${parsed.pathname}${parsed.search}`,
+          method: options.method ?? 'GET',
+          headers: {
+            accept: 'application/json',
+            'accept-encoding': 'identity',
+            'user-agent': options.userAgent ?? 'paperandslate-eom/0.1.0',
+            host: parsed.host,
+          },
+          ...(parsed.protocol === 'https:'
+            ? { servername: parsed.hostname, rejectUnauthorized: true }
+            : {}),
+        },
+        (response) => {
+          const headers = new Headers();
+          for (const [key, value] of Object.entries(response.headers)) {
+            if (Array.isArray(value)) headers.set(key, value.join(', '));
+            else if (value !== undefined) headers.set(key, value);
+          }
+          response.on('data', (chunk: Buffer | string) => {
+            if (settled || options.method === 'HEAD') return;
+            const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+            total += buffer.length;
+            if (total > maxBytes) {
+              settled = true;
+              request.destroy();
+              reject(
+                new EomFetchError(
+                  'EOM_FETCH_TOO_LARGE',
+                  'The response exceeds the configured byte limit.',
+                  url,
+                  redirects,
+                ),
+              );
+              return;
+            }
+            chunks.push(buffer);
+          });
+          response.on('end', () => {
+            if (settled) return;
+            settled = true;
+            resolve({
+              status: response.statusCode ?? 0,
+              headers,
+              body: Buffer.concat(chunks),
+            });
+          });
+          response.on('error', (error) => {
+            if (settled) return;
+            settled = true;
+            reject(error);
+          });
+        },
       );
-    }
+      const timer = setTimeout(() => {
+        timedOut = true;
+        request.destroy();
+      }, timeoutMs);
+      const abort = (): void => {
+        request.destroy();
+      };
+      options.signal?.addEventListener('abort', abort, { once: true });
+      request.on('error', (error) => {
+        clearTimeout(timer);
+        options.signal?.removeEventListener('abort', abort);
+        if (settled) return;
+        settled = true;
+        reject(
+          timedOut || options.signal?.aborted
+            ? new EomFetchError(
+                'EOM_FETCH_TIMEOUT',
+                'The EOM request timed out or was cancelled.',
+                url,
+                redirects,
+              )
+            : error,
+        );
+      });
+      request.on('close', () => {
+        clearTimeout(timer);
+        options.signal?.removeEventListener('abort', abort);
+      });
+      request.end();
+    },
+  ).catch((error) => {
+    if (error instanceof EomFetchError) throw error;
     throw new EomFetchError(
       'EOM_FETCH_NETWORK',
       error instanceof Error ? error.message : 'The EOM request failed.',
       url,
       redirects,
     );
-  } finally {
-    clearTimeout(timer);
-    options.signal?.removeEventListener('abort', abort);
-  }
+  });
+  return new Response(options.method === 'HEAD' ? null : new Uint8Array(body.body), {
+    status: body.status,
+    headers: body.headers,
+  });
+}
+
+async function defaultDnsLookup(hostname: string): Promise<readonly { address: string }[]> {
+  return lookup(hostname, { all: true, verbatim: true });
 }
 
 async function readBoundedBody(

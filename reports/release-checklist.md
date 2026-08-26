@@ -1,20 +1,21 @@
 # EOM Release Checklist
 
-This checklist is the release-candidate evidence surface. Local items are backed by the T013
-completion run and release artifacts; external items remain explicitly blocked or pending.
+This checklist is the release-candidate evidence surface. The earlier completion claim has been
+superseded by `reports/remediation-audit.md`; items below remain open until the remediation gates
+produce direct evidence.
 
 ## Local gates
 
-- [x] clean frozen install;
-- [x] formatting, lint, typecheck, unit/integration tests;
-- [x] schema meta-validation and semantic fixtures;
-- [x] generated types/docs drift-free;
-- [x] deterministic builds;
-- [x] conformance profiles and Ecme High;
-- [x] SSRF/parser/privacy/signature tests;
-- [x] docs links/accessibility;
-- [x] license, dependency, secret, SBOM, and provenance checks;
-- [x] immutable spec/schema artifacts and migration notes.
+- [open] clean frozen install;
+- [open] formatting, real lint, typecheck, unit/integration tests;
+- [open] schema meta-validation and complete semantic fixtures;
+- [open] generated types/docs/browser bundles drift-free;
+- [open] deterministic builds and release archive regeneration;
+- [open] all role-specific conformance profiles and Ecme High;
+- [open] SSRF/DNS-rebinding/parser/privacy/signature tests;
+- [open] docs links and automated accessibility tests;
+- [open] license, dependency, secret, SBOM, and provenance checks;
+- [open] immutable candidate artifacts, package dry runs, and migration notes.
 
 ## External gates
 
@@ -24,6 +25,6 @@ completion run and release artifacts; external items remain explicitly blocked o
 - [pending-external] legal/licensing review;
 - [pending-external] public review and governance approval;
 - [blocked-external] pilot/adoption evidence;
-- [x] no critical/high unresolved security or privacy finding in the local evidence set; independent review remains pending.
+- [open] no critical/high unresolved security or privacy finding after the formal audit; independent review remains pending.
 
 Until evidence exists, public copy must say working draft/proposed and the release report must include the owner, required evidence, and blocker.

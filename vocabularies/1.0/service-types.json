@@ -1,0 +1,35 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/service-types/1.0",
+  "category": "service-types",
+  "compatibleProtocolVersions": [
+    "1.0"
+  ],
+  "contentDigest": "sha256:88b8222938f8a386fed535b9ec5a7da8ee76d1df99c68e0a4ba8792e7499355f",
+  "id": "https://paperandslate.org/vocabularies/eom/service-types/1.0",
+  "license": "CC0-1.0",
+  "openness": "open",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/service-types",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "library",
+      "definition": "A public library or library service.",
+      "preferredLabel": "Library",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/service-types/library"
+    },
+    {
+      "code": "counseling",
+      "definition": "A publicly described support service without individual case records.",
+      "preferredLabel": "Counseling service",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/service-types/counseling"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

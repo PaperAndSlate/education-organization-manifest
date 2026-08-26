@@ -1,0 +1,41 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/education-levels/1.0",
+  "category": "education-levels",
+  "compatibleProtocolVersions": [
+    "1.0"
+  ],
+  "contentDigest": "sha256:1a3650924fc7dd7488e54af4365d0a1f8bdbdff77d3d6c6d89feb981714137dd",
+  "id": "https://paperandslate.org/vocabularies/eom/education-levels/1.0",
+  "license": "CC0-1.0",
+  "openness": "open",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/education-levels",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "secondary",
+      "definition": "A jurisdiction-defined secondary education level.",
+      "preferredLabel": {
+        "default": "en-US",
+        "values": {
+          "en-US": "Secondary education",
+          "fr": "Enseignement secondaire"
+        }
+      },
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/education-levels/secondary"
+    },
+    {
+      "code": "postsecondary",
+      "definition": "Education after secondary schooling; local equivalence must be stated.",
+      "preferredLabel": "Postsecondary education",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/education-levels/postsecondary"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

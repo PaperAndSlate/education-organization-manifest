@@ -157,12 +157,56 @@ describe('EOM deterministic authoring generator', () => {
     }
   });
 
+  it('rejects project roots, source descendants, and unmarked replacement targets', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-generator-safety-'));
+    try {
+      await writeFile(
+        join(root, 'eom.config.yaml'),
+        [
+          'project: { name: Safety, protocolVersion: "1.0", defaultLanguage: en-US }',
+          'publisher: { origin: https://safety.example, manifestPath: /.well-known/educational-organization-manifest }',
+          'source: { root: source, modules: { organization: [organization.yaml] } }',
+          'output: { root: generated/public }',
+          'signing: { enabled: false }',
+          '',
+        ].join('\n'),
+      );
+      await mkdir(join(root, 'source'), { recursive: true });
+      await writeFile(
+        join(root, 'source', 'organization.yaml'),
+        'id: https://safety.example/id/school\ntype: school\nname: Safety\n',
+      );
+      const projectRootReport = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: root,
+      });
+      expect(projectRootReport.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE')).toBe(
+        true,
+      );
+
+      const unmarked = join(root, 'generated', 'public');
+      await mkdir(unmarked, { recursive: true });
+      await writeFile(join(unmarked, 'unrelated.txt'), 'must survive');
+      const unmarkedReport = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: unmarked,
+      });
+      expect(unmarkedReport.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE')).toBe(
+        true,
+      );
+      expect(await readFile(join(unmarked, 'unrelated.txt'), 'utf8')).toBe('must survive');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it('builds the complete fictional Ecme course catalog without proposed sources', async () => {
     const root = await mkdtemp(join(tmpdir(), 'eom-ecme-generator-'));
     try {
       const report = await buildPublication({
         configFile: join(process.cwd(), 'examples/ecme-high/source/eom.config.yaml'),
         outputRoot: join(root, 'public'),
+        allowExternalOutput: true,
         now: new Date('2027-01-01T00:00:00Z'),
       });
       expect(report.valid, JSON.stringify(report.findings)).toBe(true);

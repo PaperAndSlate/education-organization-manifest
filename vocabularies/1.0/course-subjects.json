@@ -1,0 +1,35 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/course-subjects/1.0",
+  "category": "course-subjects",
+  "compatibleProtocolVersions": [
+    "1.0"
+  ],
+  "contentDigest": "sha256:65cf45d99925bbd324e763920fbbcbfc24c6b1c0b2e7e6d4b03b9868d3dfb725",
+  "id": "https://paperandslate.org/vocabularies/eom/course-subjects/1.0",
+  "license": "CC0-1.0",
+  "openness": "open",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/course-subjects",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "computer-science",
+      "definition": "The study of computation, information, and computational systems.",
+      "preferredLabel": "Computer science",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/course-subjects/computer-science"
+    },
+    {
+      "code": "culinary-arts",
+      "definition": "The study and practice of food preparation and hospitality.",
+      "preferredLabel": "Culinary arts",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/course-subjects/culinary-arts"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

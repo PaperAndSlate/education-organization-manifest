@@ -1,6 +1,17 @@
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { dirname, extname, join, relative, resolve, sep } from 'node:path';
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  realpath,
+  rename,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { dirname, extname, isAbsolute, join, parse, relative, resolve, sep } from 'node:path';
 import { parseDocument } from 'yaml';
 import { assertApprovedSourcePath, CandidatePolicyError } from '@paperandslate/eom-agentic';
 import type { EomConfig } from '@paperandslate/eom-config';
@@ -25,12 +36,15 @@ const SPECIFICATION = 'https://paperandslate.org/spec/eom/1.0';
 const MANIFEST_SCHEMA = 'https://paperandslate.org/schemas/eom/1.0/manifest.schema.json';
 const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
 const DEFAULT_OUTPUT_MAX_BYTES = 256 * 1024;
+const GENERATED_MARKER = '.eom-generated.json';
 
 export interface BuildOptions {
   readonly configFile: string;
   readonly outputRoot?: string;
   readonly dryRun?: boolean;
   readonly now?: Date;
+  /** Allow a deliberately selected output outside the project directory. */
+  readonly allowExternalOutput?: boolean;
 }
 
 export interface BuildInput {
@@ -348,12 +362,14 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
   const config = await loadAuthoringConfig(configFile);
   const configDirectory = dirname(configFile);
   const outputRoot = resolve(options.outputRoot ?? resolve(configDirectory, config.output.root));
+  const sourceRoot = resolve(configDirectory, config.source.root);
   const maxBytes = config.maxBytes ?? DEFAULT_OUTPUT_MAX_BYTES;
   let parsedSources: readonly ParsedSource[] = [];
   let inputs: readonly BuildInput[] = [];
   try {
     try {
-      assertApprovedSourcePath(resolve(configDirectory, config.source.root));
+      assertApprovedSourcePath(sourceRoot);
+      await assertSafeOutputRoot(outputRoot, configDirectory, sourceRoot, options);
     } catch (error) {
       if (error instanceof CandidatePolicyError) {
         throw new GeneratorInputError(error.message, [
@@ -507,6 +523,113 @@ async function discoverSources(
     const moduleOrder = left.module.key.localeCompare(right.module.key);
     return moduleOrder !== 0 ? moduleOrder : left.relativePath.localeCompare(right.relativePath);
   });
+}
+
+async function assertSafeOutputRoot(
+  outputRoot: string,
+  configDirectory: string,
+  sourceRoot: string,
+  options: BuildOptions,
+): Promise<void> {
+  const configRealDirectory = await realpath(configDirectory);
+  const resolvedSourceRoot = await realpath(sourceRoot);
+  const projectRoot = await realpath(
+    sourceRoot === configDirectory ? dirname(configRealDirectory) : configRealDirectory,
+  );
+  const outputParent = await existingRealPath(dirname(outputRoot));
+  const outputCandidate = join(outputParent, relative(dirname(outputRoot), outputRoot));
+  const outputRealPath = await existingRealPath(outputCandidate);
+  const buildCandidate = join(dirname(outputCandidate), 'build');
+  const buildRealPath = await existingRealPath(buildCandidate);
+  const home = await existingRealPath(homedir());
+  const cwd = await existingRealPath(process.cwd());
+
+  if (parse(outputRealPath).root === outputRealPath || outputRealPath === home || outputRealPath === cwd) {
+    throw unsafeOutputError(outputRoot, 'The output directory is a protected filesystem root.');
+  }
+  if (
+    outputRealPath === projectRoot ||
+    outputRealPath === configRealDirectory ||
+    outputRealPath === resolvedSourceRoot ||
+    isWithin(resolvedSourceRoot, outputRealPath) ||
+    isWithin(outputRealPath, resolvedSourceRoot) ||
+    isWithin(outputRealPath, configRealDirectory)
+  ) {
+    throw unsafeOutputError(
+      outputRoot,
+      'The output directory must not replace, contain, or sit inside the authoring project inputs.',
+    );
+  }
+  if (resolvedSourceRoot !== configRealDirectory && !isWithin(projectRoot, resolvedSourceRoot)) {
+    throw unsafeOutputError(
+      sourceRoot,
+      'The source directory must be a real descendant of the authoring project; symlink escapes are not allowed.',
+    );
+  }
+  if (buildRealPath === resolvedSourceRoot || isWithin(resolvedSourceRoot, buildRealPath)) {
+    throw unsafeOutputError(buildCandidate, 'The build-report directory must not sit inside the source root.');
+  }
+  if (options.allowExternalOutput !== true && !isWithin(projectRoot, outputRealPath)) {
+    throw unsafeOutputError(
+      outputRoot,
+      'The output directory must be inside the authoring project unless external output is explicitly enabled.',
+    );
+  }
+  if (options.allowExternalOutput !== true && !isWithin(projectRoot, buildRealPath)) {
+    throw unsafeOutputError(
+      buildCandidate,
+      'The build-report directory must be inside the authoring project unless external output is explicitly enabled.',
+    );
+  }
+
+  await assertReplaceableDirectory(outputCandidate, options, outputRoot);
+  await assertReplaceableDirectory(buildCandidate, options, buildCandidate);
+}
+
+async function assertReplaceableDirectory(
+  directory: string,
+  options: BuildOptions,
+  displayPath: string,
+): Promise<void> {
+  try {
+    const information = await stat(directory);
+    if (!information.isDirectory()) {
+      throw unsafeOutputError(displayPath, 'The output target must be a directory.');
+    }
+    try {
+      await stat(join(directory, GENERATED_MARKER));
+    } catch {
+      throw unsafeOutputError(
+        displayPath,
+        `Refusing to replace an existing unmarked directory. Add ${GENERATED_MARKER} or use the explicit force option.`,
+      );
+    }
+  } catch (error) {
+    if (isNotFound(error)) return;
+    throw error;
+  }
+}
+
+async function existingRealPath(path: string): Promise<string> {
+  try {
+    return await realpath(path);
+  } catch (error) {
+    if (!isNotFound(error)) throw error;
+    const parent = dirname(path);
+    if (parent === path) return resolve(path);
+    return join(await existingRealPath(parent), path.slice(parent.length + 1));
+  }
+}
+
+function isWithin(parent: string, child: string): boolean {
+  const value = relative(parent, child);
+  return value === '' || (value !== '..' && !value.startsWith(`..${sep}`) && !isAbsolute(value));
+}
+
+function unsafeOutputError(path: string, message: string): GeneratorInputError {
+  return new GeneratorInputError(message, [
+    generatorFinding('EOM_GENERATOR_OUTPUT_UNSAFE', message, path),
+  ]);
 }
 
 async function matchingFiles(root: string, pattern: string): Promise<readonly string[]> {
@@ -1094,6 +1217,15 @@ async function writePublication(
     const eom = join(temporary, 'eom');
     await mkdir(wellKnown, { recursive: true });
     await mkdir(eom, { recursive: true });
+    await writeJson(
+      join(temporary, GENERATED_MARKER),
+      {
+        generator: 'eom',
+        specification: report.specification,
+        toolVersion: report.toolVersion,
+      },
+      true,
+    );
     await writeJson(join(wellKnown, 'educational-organization-manifest'), root, prettyPrint);
     await writeJson(join(wellKnown, 'educational-organization-manifest.json'), root, prettyPrint);
     for (const [type, document] of Object.entries(documents)) {
@@ -1122,6 +1254,15 @@ async function writePublication(
             module: input.module,
             sha256: input.sha256,
           })),
+        },
+        true,
+      );
+      await writeJson(
+        join(buildTemporary, GENERATED_MARKER),
+        {
+          generator: 'eom',
+          specification: report.specification,
+          toolVersion: report.toolVersion,
         },
         true,
       );

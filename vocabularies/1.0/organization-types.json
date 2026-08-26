@@ -1,0 +1,47 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/organization-types/1.0",
+  "category": "organization-types",
+  "compatibleProtocolVersions": [
+    "1.0"
+  ],
+  "contentDigest": "sha256:e05e2eb9663ed911152105c5af12b6b961f887a250d8f00fc33576bc13990a20",
+  "id": "https://paperandslate.org/vocabularies/eom/organization-types/1.0",
+  "license": "CC0-1.0",
+  "openness": "extensible",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/organization-types",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "secondary-school",
+      "definition": "An organization serving learners in secondary education.",
+      "mappings": [
+        {
+          "relation": "closeMatch",
+          "target": "https://schema.org/School"
+        }
+      ],
+      "preferredLabel": {
+        "default": "en-US",
+        "values": {
+          "en-US": "Secondary school",
+          "es": "Escuela secundaria"
+        }
+      },
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/organization-types/secondary-school"
+    },
+    {
+      "code": "district",
+      "definition": "A public authority coordinating multiple educational organizations.",
+      "preferredLabel": "School district",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/organization-types/district"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}
