@@ -369,8 +369,10 @@ async function createPackagePackArtifacts(
     packageManager: 'pnpm@10.6.0',
     packages,
   };
+  const manifestBytes = Buffer.from(stringifyCanonical(manifest as never), 'utf8');
+  await writeFile(join(targetRoot, 'package-pack-manifest.json'), manifestBytes);
   return {
-    manifestBytes: Buffer.from(stringifyCanonical(manifest as never), 'utf8'),
+    manifestBytes,
     artifacts,
   };
 }
