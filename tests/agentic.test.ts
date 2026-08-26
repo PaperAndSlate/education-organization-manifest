@@ -181,4 +181,78 @@ describe('EOM evidence-led candidate workflows', () => {
     expect(serialized).not.toContain('do-not-publish');
     expect(serialized).not.toContain('Student Example');
   });
+
+  it('redacts sensitive claim values while preserving review metadata', () => {
+    const result = extractControlledCandidate(
+      {
+        id: 'https://ecme-high.example/evidence/source/private-review',
+        uri: 'https://ecme-high.example/restricted-review',
+        title: 'Restricted review copy',
+        sourceType: 'human-submission',
+        format: 'plain-text',
+        content: 'A private review value was supplied for quarantine.',
+        retrievedAt: '2026-08-26T12:00:00Z',
+        reviewOwner: 'privacy-reviewer',
+      },
+      [
+        {
+          id: 'https://ecme-high.example/evidence/claim/private-value',
+          resourceId: 'https://ecme-high.example/eom/organization',
+          pointer: '/name',
+          proposedValue: 'Private Student Example',
+          locator: { section: 'restricted' },
+          privacyClass: 'personal-data',
+        },
+      ],
+    );
+
+    expect(result.privacy.status).toBe('quarantined');
+    expect(result.claims[0]).toMatchObject({
+      privacyClass: 'personal-data',
+      proposedValue: null,
+    });
+    expect(JSON.stringify(result)).not.toContain('Private Student Example');
+  });
+
+  it('bounds untrusted nested and cyclic values without a recursive stack overflow', () => {
+    const deep: unknown[] = [];
+    let cursor = deep;
+    for (let index = 0; index < 130; index += 1) {
+      const child: unknown[] = [];
+      cursor.push(child);
+      cursor = child;
+    }
+
+    const privacy = reviewPrivacy(deep);
+    expect(privacy.status).toBe('quarantined');
+    expect(privacy.findings.some((item) => item.code === 'EOM_AGENT_PRIVACY_DEPTH')).toBe(true);
+
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+    expect(() => reviewPrivacy(cyclic)).not.toThrow();
+    expect(() => provenanceCoverage(cyclic, [])).not.toThrow();
+    expect(() =>
+      extractControlledCandidate(
+        {
+          id: 'https://ecme-high.example/evidence/source/deep',
+          uri: 'https://ecme-high.example/deep',
+          title: 'Deep review copy',
+          sourceType: 'human-submission',
+          format: 'plain-text',
+          content: 'review input',
+          retrievedAt: '2026-08-26T12:00:00Z',
+          reviewOwner: 'privacy-reviewer',
+        },
+        [
+          {
+            id: 'https://ecme-high.example/evidence/claim/deep',
+            resourceId: 'https://ecme-high.example/eom/organization',
+            pointer: '/name',
+            proposedValue: deep,
+            locator: { section: 'deep' },
+          },
+        ],
+      ),
+    ).toThrow(CandidatePolicyError);
+  });
 });

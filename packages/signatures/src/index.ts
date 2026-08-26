@@ -96,6 +96,7 @@ export interface UnsignedVerificationResult {
 
 const SPECIFICATION = 'https://paperandslate.org/spec/eom/1.0';
 const SIGNATURE_SCHEMA = 'https://paperandslate.org/schemas/eom/1.0/signature.schema.json';
+const MAX_SIGNATURE_JSON_DEPTH = 128;
 
 /** Canonicalize JSON using the EOM RFC 8785 JCS profile. */
 export function canonicalizeJson(value: unknown): string {
@@ -769,7 +770,13 @@ function decodeUtf8(value: Uint8Array, source: string): string {
   }
 }
 
-function canonicalValue(value: JsonValue): string {
+function canonicalValue(value: JsonValue, depth = 0, visited = new WeakSet<object>()): string {
+  if (depth > MAX_SIGNATURE_JSON_DEPTH) {
+    throw new SignaturePolicyError(
+      'EOM_CANONICALIZATION_DEPTH',
+      `JSON nesting exceeds the ${MAX_SIGNATURE_JSON_DEPTH}-level safety limit.`,
+    );
+  }
   if (value === null || typeof value === 'boolean') return JSON.stringify(value);
   if (typeof value === 'string') {
     assertWellFormedUnicode(value);
@@ -783,26 +790,73 @@ function canonicalValue(value: JsonValue): string {
       );
     return JSON.stringify(Object.is(value, -0) ? 0 : value);
   }
-  if (Array.isArray(value)) return `[${value.map(canonicalValue).join(',')}]`;
-  const entries = Object.keys(value).sort(jcsKeyCompare);
-  return `{${entries
-    .map((key) => {
-      assertWellFormedUnicode(key);
-      return `${JSON.stringify(key)}:${canonicalValue(value[key] as JsonValue)}`;
-    })
-    .join(',')}}`;
+  if (Array.isArray(value)) {
+    assertAcyclic(value, visited);
+    try {
+      return `[${value.map((item) => canonicalValue(item, depth + 1, visited)).join(',')}]`;
+    } finally {
+      visited.delete(value);
+    }
+  }
+  assertAcyclic(value, visited);
+  try {
+    const entries = Object.keys(value).sort(jcsKeyCompare);
+    return `{${entries
+      .map((key) => {
+        assertWellFormedUnicode(key);
+        return `${JSON.stringify(key)}:${canonicalValue(value[key] as JsonValue, depth + 1, visited)}`;
+      })
+      .join(',')}}`;
+  } finally {
+    visited.delete(value);
+  }
+}
+
+function assertAcyclic(value: object, visited: WeakSet<object>): void {
+  if (visited.has(value)) {
+    throw new SignaturePolicyError(
+      'EOM_CANONICALIZATION_CYCLE',
+      'Cyclic values are not valid JSON canonicalization input.',
+    );
+  }
+  visited.add(value);
 }
 
 function jcsKeyCompare(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
-function isJsonValue(value: unknown): value is JsonValue {
+function isJsonValue(
+  value: unknown,
+  depth = 0,
+  visited = new WeakSet<object>(),
+): value is JsonValue {
+  if (depth > MAX_SIGNATURE_JSON_DEPTH)
+    throw new SignaturePolicyError(
+      'EOM_CANONICALIZATION_DEPTH',
+      `JSON nesting exceeds the ${MAX_SIGNATURE_JSON_DEPTH}-level safety limit.`,
+    );
   if (value === null || typeof value === 'boolean') return true;
   if (typeof value === 'string') return true;
   if (typeof value === 'number') return Number.isFinite(value);
-  if (Array.isArray(value)) return value.every(isJsonValue);
-  if (isJsonObject(value)) return Object.values(value).every(isJsonValue);
+  if (Array.isArray(value)) {
+    if (visited.has(value)) return false;
+    visited.add(value);
+    try {
+      return value.every((item) => isJsonValue(item, depth + 1, visited));
+    } finally {
+      visited.delete(value);
+    }
+  }
+  if (isJsonObject(value)) {
+    if (visited.has(value)) return false;
+    visited.add(value);
+    try {
+      return Object.values(value).every((item) => isJsonValue(item, depth + 1, visited));
+    } finally {
+      visited.delete(value);
+    }
+  }
   return false;
 }
 

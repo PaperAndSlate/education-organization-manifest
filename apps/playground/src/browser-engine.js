@@ -6,6 +6,7 @@ import { validatorsById } from './generated-validators.js';
 
 const SCHEMA_BASE = 'https://paperandslate.org/schemas/eom/1.0/';
 const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
+const MAX_BROWSER_JSON_DEPTH = 128;
 const TYPE_TO_SCHEMA = {
   manifest: 'manifest.schema.json',
   resource: 'resource.schema.json',
@@ -138,6 +139,8 @@ export function validateBrowserDocument(value, options = {}) {
 }
 
 export function semanticDiffBrowser(before, after) {
+  assertJsonSafe(before, 0);
+  assertJsonSafe(after, 0);
   const changes = [];
   compareValue(before, after, '', changes);
   const breaking = changes.some(
@@ -326,7 +329,9 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
   return { overall: findings.length === 0 && cryptographic, findings };
 }
 
-function compareValue(before, after, path, changes) {
+function compareValue(before, after, path, changes, depth = 0) {
+  if (depth > MAX_BROWSER_JSON_DEPTH)
+    throw new Error(`JSON nesting exceeds the ${MAX_BROWSER_JSON_DEPTH}-level safety limit.`);
   if (Array.isArray(before) && Array.isArray(after)) {
     const beforeIds = new Map(before.filter(isPlainObject).map((item) => [item.id, item]));
     const afterIds = new Map(after.filter(isPlainObject).map((item) => [item.id, item]));
@@ -347,6 +352,7 @@ function compareValue(before, after, path, changes) {
             item,
             `${path}/@id/${escapePointer(String(id))}`,
             changes,
+            depth + 1,
           );
       }
       return;
@@ -358,7 +364,7 @@ function compareValue(before, after, path, changes) {
       const childPath = `${path}/${escapePointer(key)}`;
       if (!(key in before)) changes.push({ kind: 'added', path: childPath });
       else if (!(key in after)) changes.push({ kind: 'removed', path: childPath });
-      else compareValue(before[key], after[key], childPath, changes);
+      else compareValue(before[key], after[key], childPath, changes, depth + 1);
     }
     return;
   }
@@ -366,7 +372,9 @@ function compareValue(before, after, path, changes) {
     changes.push({ kind: 'changed', path: path || '/' });
 }
 
-function canonicalJson(value) {
+function canonicalJson(value, depth = 0, visited = new WeakSet()) {
+  if (depth > MAX_BROWSER_JSON_DEPTH)
+    throw new Error(`JSON nesting exceeds the ${MAX_BROWSER_JSON_DEPTH}-level safety limit.`);
   if (value === null || typeof value === 'boolean') {
     return JSON.stringify(value);
   }
@@ -378,15 +386,30 @@ function canonicalJson(value) {
     if (!Number.isFinite(value)) throw new Error('Non-finite numbers are not valid JCS values.');
     return JSON.stringify(Object.is(value, -0) ? 0 : value);
   }
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
-  if (isPlainObject(value))
-    return `{${Object.keys(value)
-      .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
-      .map((key) => {
-        assertWellFormedUnicode(key);
-        return `${JSON.stringify(key)}:${canonicalJson(value[key])}`;
-      })
-      .join(',')}}`;
+  if (Array.isArray(value)) {
+    if (visited.has(value)) throw new Error('Cyclic values are not valid JSON.');
+    visited.add(value);
+    try {
+      return `[${value.map((item) => canonicalJson(item, depth + 1, visited)).join(',')}]`;
+    } finally {
+      visited.delete(value);
+    }
+  }
+  if (isPlainObject(value)) {
+    if (visited.has(value)) throw new Error('Cyclic values are not valid JSON.');
+    visited.add(value);
+    try {
+      return `{${Object.keys(value)
+        .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
+        .map((key) => {
+          assertWellFormedUnicode(key);
+          return `${JSON.stringify(key)}:${canonicalJson(value[key], depth + 1, visited)}`;
+        })
+        .join(',')}}`;
+    } finally {
+      visited.delete(value);
+    }
+  }
   throw new Error('Only JSON values can be canonicalized.');
 }
 
@@ -407,14 +430,26 @@ function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function assertJsonSafe(value, depth) {
-  if (depth > 100) throw new Error('The browser input exceeds the maximum nesting depth.');
+function assertJsonSafe(value, depth, visited = new WeakSet()) {
+  if (depth > MAX_BROWSER_JSON_DEPTH)
+    throw new Error(`The browser input exceeds the ${MAX_BROWSER_JSON_DEPTH}-level nesting limit.`);
   if (typeof value === 'string') assertWellFormedUnicode(value);
   if (typeof value === 'number' && !Number.isFinite(value))
     throw new Error('Non-finite numbers are not valid JSON.');
-  if (Array.isArray(value)) value.forEach((item) => assertJsonSafe(item, depth + 1));
-  else if (isPlainObject(value))
-    Object.values(value).forEach((item) => assertJsonSafe(item, depth + 1));
+  if (typeof value === 'function' || typeof value === 'symbol' || typeof value === 'bigint')
+    throw new Error('Only JSON values are supported.');
+  if (value !== null && typeof value === 'object') {
+    if (visited.has(value)) throw new Error('Cyclic values are not valid JSON.');
+    visited.add(value);
+    try {
+      if (Array.isArray(value)) value.forEach((item) => assertJsonSafe(item, depth + 1, visited));
+      else if (isPlainObject(value))
+        Object.values(value).forEach((item) => assertJsonSafe(item, depth + 1, visited));
+      else throw new Error('Only JSON objects and arrays are supported.');
+    } finally {
+      visited.delete(value);
+    }
+  }
 }
 
 function assertWellFormedUnicode(value) {

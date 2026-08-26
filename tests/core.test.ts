@@ -5,6 +5,7 @@ import {
   isPrivateOrLocalHostname,
   normalizeLocalized,
   parseStrictJson,
+  StrictJsonError,
 } from '@paperandslate/eom-core';
 
 describe('EOM core primitives', () => {
@@ -17,6 +18,17 @@ describe('EOM core primitives', () => {
   it('rejects unpaired Unicode surrogates in parsed JSON values', () => {
     expect(() => parseStrictJson('{"name":"\\ud800"}', 'unicode.json')).toThrow(
       /unpaired UTF-16 surrogate/iu,
+    );
+  });
+
+  it('keeps malformed object-key escapes inside the strict JSON error contract', () => {
+    expect(() => parseStrictJson('{"\\uZZZZ":1}', 'malformed-key.json')).toThrow(StrictJsonError);
+  });
+
+  it('rejects deeply nested JSON without overflowing the call stack', () => {
+    const nested = `${'['.repeat(129)}0${']'.repeat(129)}`;
+    expect(() => parseStrictJson(nested, 'deep.json')).toThrow(
+      /nesting exceeds the 128-level safety limit/iu,
     );
   });
 

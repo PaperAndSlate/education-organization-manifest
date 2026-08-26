@@ -2,7 +2,15 @@ export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
 export type JsonObject = { [key: string]: JsonValue };
 
-export type StrictJsonErrorCode = 'EOM_JSON_DUPLICATE_KEY' | 'EOM_JSON_PARSE' | 'EOM_JSON_UNICODE';
+export type StrictJsonErrorCode =
+  | 'EOM_JSON_DUPLICATE_KEY'
+  | 'EOM_JSON_PARSE'
+  | 'EOM_JSON_UNICODE'
+  | 'EOM_JSON_INPUT_TOO_LARGE'
+  | 'EOM_JSON_DEPTH';
+
+export const MAX_STRICT_JSON_BYTES = 32 * 1024 * 1024;
+export const MAX_STRICT_JSON_DEPTH = 128;
 
 export class StrictJsonError extends Error {
   public constructor(
@@ -17,6 +25,7 @@ export class StrictJsonError extends Error {
 
 class DuplicateKeyScanner {
   private index = 0;
+  private depth = 0;
 
   public constructor(
     private readonly text: string,
@@ -51,84 +60,109 @@ class DuplicateKeyScanner {
   }
 
   private object(): void {
+    this.enterContainer();
     this.index += 1;
-    this.skipWhitespace();
-    const keys = new Set<string>();
-    if (this.text[this.index] === '}') {
-      this.index += 1;
-      return;
-    }
-    while (this.index < this.text.length) {
+    try {
       this.skipWhitespace();
-      const start = this.index;
-      this.string();
-      const key = JSON.parse(this.text.slice(start, this.index)) as string;
-      if (keys.has(key)) {
-        throw new StrictJsonError(
-          `Duplicate JSON object key ${JSON.stringify(key)}.`,
-          this.source,
-          'EOM_JSON_DUPLICATE_KEY',
-        );
-      }
-      keys.add(key);
-      this.skipWhitespace();
-      if (this.text[this.index] !== ':') {
-        throw new StrictJsonError(
-          `Expected ':' after JSON object key at offset ${this.index}.`,
-          this.source,
-        );
-      }
-      this.index += 1;
-      this.value();
-      this.skipWhitespace();
-      const separator = this.text[this.index];
-      if (separator === '}') {
+      const keys = new Set<string>();
+      if (this.text[this.index] === '}') {
         this.index += 1;
         return;
       }
-      if (separator !== ',') {
-        throw new StrictJsonError(`Expected ',' or '}' at offset ${this.index}.`, this.source);
+      while (this.index < this.text.length) {
+        this.skipWhitespace();
+        const start = this.index;
+        this.string();
+        const key = JSON.parse(this.text.slice(start, this.index)) as string;
+        if (keys.has(key)) {
+          throw new StrictJsonError(
+            `Duplicate JSON object key ${JSON.stringify(key)}.`,
+            this.source,
+            'EOM_JSON_DUPLICATE_KEY',
+          );
+        }
+        keys.add(key);
+        this.skipWhitespace();
+        if (this.text[this.index] !== ':') {
+          throw new StrictJsonError(
+            `Expected ':' after JSON object key at offset ${this.index}.`,
+            this.source,
+          );
+        }
+        this.index += 1;
+        this.value();
+        this.skipWhitespace();
+        const separator = this.text[this.index];
+        if (separator === '}') {
+          this.index += 1;
+          return;
+        }
+        if (separator !== ',') {
+          throw new StrictJsonError(`Expected ',' or '}' at offset ${this.index}.`, this.source);
+        }
+        this.index += 1;
+        this.skipWhitespace();
+        if (this.text[this.index] === '}') {
+          throw new StrictJsonError(
+            `Trailing comma in JSON object at offset ${this.index}.`,
+            this.source,
+          );
+        }
       }
-      this.index += 1;
-      this.skipWhitespace();
-      if (this.text[this.index] === '}') {
-        throw new StrictJsonError(
-          `Trailing comma in JSON object at offset ${this.index}.`,
-          this.source,
-        );
-      }
+      throw new StrictJsonError('Unclosed JSON object.', this.source);
+    } finally {
+      this.leaveContainer();
     }
-    throw new StrictJsonError('Unclosed JSON object.', this.source);
   }
 
   private array(): void {
+    this.enterContainer();
     this.index += 1;
-    this.skipWhitespace();
-    if (this.text[this.index] === ']') {
-      this.index += 1;
-      return;
-    }
-    while (this.index < this.text.length) {
-      this.value();
+    try {
       this.skipWhitespace();
-      const separator = this.text[this.index];
-      if (separator === ']') {
+      if (this.text[this.index] === ']') {
         this.index += 1;
         return;
       }
-      if (separator !== ',') {
-        throw new StrictJsonError(`Expected ',' or ']' at offset ${this.index}.`, this.source);
+      while (this.index < this.text.length) {
+        this.value();
+        this.skipWhitespace();
+        const separator = this.text[this.index];
+        if (separator === ']') {
+          this.index += 1;
+          return;
+        }
+        if (separator !== ',') {
+          throw new StrictJsonError(`Expected ',' or ']' at offset ${this.index}.`, this.source);
+        }
+        this.index += 1;
+        this.skipWhitespace();
+        if (this.text[this.index] === ']') {
+          throw new StrictJsonError(
+            `Trailing comma in JSON array at offset ${this.index}.`,
+            this.source,
+          );
+        }
       }
-      this.index += 1;
-      this.skipWhitespace();
-      if (this.text[this.index] === ']') {
-        throw new StrictJsonError(
-          `Trailing comma in JSON array at offset ${this.index}.`,
-          this.source,
-        );
-      }
+      throw new StrictJsonError('Unclosed JSON array.', this.source);
+    } finally {
+      this.leaveContainer();
     }
-    throw new StrictJsonError('Unclosed JSON array.', this.source);
+  }
+
+  private enterContainer(): void {
+    this.depth += 1;
+    if (this.depth > MAX_STRICT_JSON_DEPTH) {
+      throw new StrictJsonError(
+        `JSON nesting exceeds the ${MAX_STRICT_JSON_DEPTH}-level safety limit.`,
+        this.source,
+        'EOM_JSON_DEPTH',
+      );
+    }
+  }
+
+  private leaveContainer(): void {
+    this.depth -= 1;
   }
 
   private string(): string {
@@ -169,6 +203,22 @@ class DuplicateKeyScanner {
 }
 
 export function parseStrictJson(text: string, source?: string): JsonValue {
+  if (new TextEncoder().encode(text).byteLength > MAX_STRICT_JSON_BYTES) {
+    throw new StrictJsonError(
+      `JSON input exceeds the ${MAX_STRICT_JSON_BYTES}-byte safety limit.`,
+      source,
+      'EOM_JSON_INPUT_TOO_LARGE',
+    );
+  }
+  // Scan before materializing the parsed value so excessive nesting is rejected before
+  // JSON.parse or the Unicode walk can recurse through attacker-controlled data.
+  try {
+    new DuplicateKeyScanner(text, source).scan();
+  } catch (error) {
+    if (error instanceof StrictJsonError) throw error;
+    const detail = error instanceof Error ? error.message : 'invalid JSON';
+    throw new StrictJsonError(`Invalid JSON${source ? ` in ${source}` : ''}: ${detail}`, source);
+  }
   let parsed: unknown;
   try {
     parsed = JSON.parse(text) as unknown;
@@ -176,7 +226,6 @@ export function parseStrictJson(text: string, source?: string): JsonValue {
     const detail = error instanceof Error ? error.message : 'invalid JSON';
     throw new StrictJsonError(`Invalid JSON${source ? ` in ${source}` : ''}: ${detail}`, source);
   }
-  new DuplicateKeyScanner(text, source).scan();
   assertWellFormedUnicode(parsed, source);
   return parsed as JsonValue;
 }

@@ -91,7 +91,9 @@ describe('EOM deterministic authoring generator', () => {
       expect(first.valid, JSON.stringify(first.findings)).toBe(true);
       expect(first.written).toBe(true);
       expect(first.resources.some((resource) => resource.type === 'course-catalog')).toBe(true);
-      expect(first.resources.every((resource) => /^[a-f0-9]{64}$/u.test(resource.sha256))).toBe(true);
+      expect(first.resources.every((resource) => /^[a-f0-9]{64}$/u.test(resource.sha256))).toBe(
+        true,
+      );
       expect(first.privacy).toMatchObject({ status: 'clear', acknowledgements: [] });
       expect(first.conflicts).toEqual([]);
 

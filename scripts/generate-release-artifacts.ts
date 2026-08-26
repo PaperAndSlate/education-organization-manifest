@@ -2,15 +2,18 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
-import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
-import { extname, dirname, join, relative, resolve } from 'node:path';
+import { cp, mkdir, readFile, readdir, realpath, rm, stat, writeFile } from 'node:fs/promises';
+import { homedir, tmpdir } from 'node:os';
+import { basename, extname, dirname, join, parse, relative, resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
-import { stringifyCanonical } from '@paperandslate/eom-core';
+import { isJsonObject, parseStrictJson, stringifyCanonical } from '@paperandslate/eom-core';
 
 const root = resolve(process.cwd());
 export const RELEASE_VERSION = process.env.EOM_RELEASE_VERSION ?? '1.0.0-rc.2';
 const outputRoot = resolve(process.env.EOM_RELEASE_OUTPUT ?? join(root, 'release'));
 const sourceDateEpoch = Number(process.env.SOURCE_DATE_EPOCH ?? '0');
+const RELEASE_MARKER = '.eom-release-generated.json';
+const SPECIFICATION = 'https://paperandslate.org/spec/eom/1.0';
 
 if (!/^1\.0\.0-rc\.\d+$/u.test(RELEASE_VERSION)) {
   throw new Error(`EOM_RELEASE_VERSION must be a release candidate, received ${RELEASE_VERSION}.`);
@@ -62,6 +65,7 @@ export async function prepareReleaseArtifacts(
     );
   }
 
+  await assertSafeReleaseOutputRoot(targetRoot);
   const generatedAt = new Date(sourceDateEpoch * 1000).toISOString();
   const candidateDirectory = join(targetRoot, `v${RELEASE_VERSION}`);
   await rm(candidateDirectory, { recursive: true, force: true });
@@ -551,6 +555,85 @@ async function exists(path: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+async function assertSafeReleaseOutputRoot(targetRoot: string): Promise<void> {
+  const resolvedTarget = resolve(targetRoot);
+  const projectRoot = await existingRealPath(root);
+  const releaseDirectory = await existingRealPath(join(root, 'release'));
+  const temporaryDirectory = await existingRealPath(tmpdir());
+  const target = await existingRealPath(resolvedTarget);
+  const home = await existingRealPath(homedir());
+  const currentDirectory = await existingRealPath(process.cwd());
+
+  if (
+    parse(target).root === target ||
+    target === home ||
+    target === currentDirectory ||
+    target === projectRoot ||
+    target === temporaryDirectory
+  ) {
+    throw new Error(`Refusing to use a protected release output root: ${resolvedTarget}`);
+  }
+
+  const isCanonicalReleaseRoot = target === releaseDirectory;
+  const isIsolatedTemporaryRoot = isWithin(temporaryDirectory, target);
+  const isOutsideProject = !isWithin(projectRoot, target);
+  if (!isCanonicalReleaseRoot && !isIsolatedTemporaryRoot && !isOutsideProject) {
+    throw new Error(
+      `Release output must use the canonical release/ directory, an isolated temporary directory, or an explicitly marked external root: ${resolvedTarget}`,
+    );
+  }
+  if (!isOutsideProject || isIsolatedTemporaryRoot) return;
+
+  const configuredOutput = process.env.EOM_RELEASE_OUTPUT;
+  if (!configuredOutput || resolve(configuredOutput) !== resolvedTarget) {
+    throw new Error(
+      'External release output requires EOM_RELEASE_OUTPUT to explicitly name the target directory.',
+    );
+  }
+  const markerPath = join(target, RELEASE_MARKER);
+  let marker: unknown;
+  try {
+    marker = parseStrictJson(await readFile(markerPath, 'utf8'), markerPath);
+  } catch {
+    throw new Error(
+      `External release output must contain a strict JSON ${RELEASE_MARKER} ownership marker.`,
+    );
+  }
+  if (
+    !isJsonObject(marker) ||
+    marker.generator !== 'eom-release' ||
+    marker.specification !== SPECIFICATION ||
+    marker.purpose !== 'release-artifacts'
+  ) {
+    throw new Error(`The external release output marker ${markerPath} is not valid.`);
+  }
+}
+
+async function existingRealPath(path: string): Promise<string> {
+  try {
+    return await realpath(path);
+  } catch (error) {
+    if (!isNotFound(error)) throw error;
+    const parent = dirname(path);
+    if (parent === path) return resolve(path);
+    return join(await existingRealPath(parent), basename(path));
+  }
+}
+
+function isNotFound(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === 'ENOENT'
+  );
+}
+
+function isWithin(parent: string, child: string): boolean {
+  const suffix = relative(resolve(parent), resolve(child));
+  return suffix === '' || (!suffix.startsWith('..') && !parse(suffix).root);
 }
 
 async function walk(directory: string): Promise<string[]> {

@@ -202,6 +202,12 @@ describe('EOM optional JCS and detached Ed25519 signatures', () => {
     expect(canonicalizeJsonText('{ "b": 2, "a": 1 }')).toBe('{"a":1,"b":2}');
     expect(() => canonicalizeJsonText('{"a":1,"a":2}')).toThrow();
     expect(() => canonicalizeJson('\ud800')).toThrow(/surrogate/u);
+    let nested: unknown = 0;
+    for (let index = 0; index < 129; index += 1) nested = [nested];
+    expect(() => canonicalizeJson(nested)).toThrow(/nesting exceeds the 128-level safety limit/iu);
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+    expect(() => canonicalizeJson(cyclic)).toThrow(/Only finite JSON values/iu);
     const { privateKey, publicKey } = generateKeyPairSync('ed25519');
     const { publicKey: wrongPublicKey } = generateKeyPairSync('ed25519');
     const resource = fixture('fixtures/signatures/unsigned-resource.json');

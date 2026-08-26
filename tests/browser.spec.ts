@@ -121,3 +121,26 @@ test('supports keyboard focus, reduced motion, zoom/reflow, and strict CSP', asy
   const accessibility = await new AxeBuilder({ page }).analyze();
   expect(accessibility.violations).toEqual([]);
 });
+
+test('bounds browser semantic diff inputs before recursive comparison', async ({ page }) => {
+  const outcome = await page.evaluate(() => {
+    const playground = (window as unknown as { __EOM_PLAYGROUND__: unknown })
+      .__EOM_PLAYGROUND__ as {
+      semanticDiff: (before: unknown, after: unknown) => unknown;
+    };
+    const deep: unknown[] = [];
+    let cursor = deep;
+    for (let index = 0; index < 130; index += 1) {
+      const child: unknown[] = [];
+      cursor.push(child);
+      cursor = child;
+    }
+    try {
+      playground.semanticDiff(deep, deep);
+      return 'accepted';
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error);
+    }
+  });
+  expect(outcome).toContain('nesting limit');
+});

@@ -158,6 +158,7 @@ export interface ControlledExtractionResult {
 
 const MAX_CONTROLLED_EXTRACTION_BYTES = 4 * 1024 * 1024;
 const MAX_CONTROLLED_EXTRACTION_CLAIMS = 10_000;
+const MAX_AGENTIC_JSON_DEPTH = 128;
 const sensitiveSourcePattern =
   /(?:student|pupil|gradebook|attendance|discipline|iep|504|medical|password|secret|token|credential|private\s*key|api\s*key)\s*[:=]/iu;
 
@@ -228,9 +229,42 @@ export function extractControlledCandidate(
       'Raw source content is retained only by the controlled operator workflow; this record contains metadata and a digest.',
   });
 
-  const claims = claimInputs.map((claim) => extractionClaimRecord(claim, sourceInput, digest));
-  const conflicts = detectConflicts(claims);
-  const privacy = reviewPrivacy({ claims });
+  const rawClaims = claimInputs.map((claim) => extractionClaimRecord(claim, sourceInput, digest));
+  const rawConflicts = detectConflicts(rawClaims);
+  const privacy = reviewPrivacy({ claims: rawClaims });
+  const explicitPrivacyFindings = claimInputs.flatMap((claim, index) => {
+    if (!isSensitivePrivacyClass(claim.privacyClass)) return [];
+    return [
+      finding(
+        'EOM_AGENT_PRIVACY_QUARANTINE',
+        'privacy',
+        'The claim is classified as personal or sensitive data and cannot be returned as a public candidate value.',
+        {
+          severity: 'error',
+          pointer: `/claims/${index}/privacyClass`,
+          help: 'Remove the claim or rework it into a genuinely public-reviewed value before release.',
+        },
+      ),
+    ];
+  });
+  const privacyFindings = uniqueFindings([...privacy.findings, ...explicitPrivacyFindings]);
+  const redactedClaimIds = new Set(
+    rawClaims.flatMap((claim, index) => {
+      const claimPrefix = `/claims/${index}/proposedValue`;
+      const contentFlagged = privacy.redactedPaths.some(
+        (path) => path === claimPrefix || path.startsWith(`${claimPrefix}/`),
+      );
+      return contentFlagged || isSensitivePrivacyClass(stringAt(claim, ['privacyClass']))
+        ? [stringAt(claim, ['id'])].filter((value): value is string => value !== undefined)
+        : [];
+    }),
+  );
+  const claims = rawClaims.map((claim) =>
+    redactedClaimIds.has(stringAt(claim, ['id']) ?? '')
+      ? asJsonObject({ ...claim, proposedValue: null })
+      : claim,
+  );
+  const conflicts = redactSensitiveConflictValues(rawConflicts, redactedClaimIds);
   const sourcePatternFinding = sensitiveSourcePattern.test(sourceText ?? '')
     ? [
         finding(
@@ -244,11 +278,19 @@ export function extractControlledCandidate(
         ),
       ]
     : [];
-  const findings = uniqueFindings([...privacy.findings, ...sourcePatternFinding]);
+  const findings = uniqueFindings([...privacyFindings, ...sourcePatternFinding]);
   const privacyResult: PrivacyReviewReport = {
     status: findings.length === 0 ? 'clear' : 'quarantined',
     findings,
-    redactedPaths: privacy.redactedPaths,
+    redactedPaths: [
+      ...new Set([
+        ...privacy.redactedPaths,
+        ...[...redactedClaimIds].flatMap((claimId) => {
+          const index = rawClaims.findIndex((claim) => stringAt(claim, ['id']) === claimId);
+          return index >= 0 ? [`/claims/${index}/proposedValue`] : [];
+        }),
+      ]),
+    ].sort(compareStrings),
     reportContainsSensitiveValues: false,
   };
   const now = options.now ?? new Date();
@@ -352,6 +394,25 @@ function extractionClaimRecord(
     authorityClass: claim.authorityClass ?? 'unknown',
     privacyClass: claim.privacyClass ?? 'public-review-required',
     review: { state: 'pending', requiredOwner: claim.owner ?? source.reviewOwner },
+  });
+}
+
+function isSensitivePrivacyClass(value: string | undefined): boolean {
+  return value === 'personal-data' || value === 'sensitive-data' || value === 'quarantined';
+}
+
+function redactSensitiveConflictValues(
+  conflicts: readonly JsonObject[],
+  redactedClaimIds: ReadonlySet<string>,
+): readonly JsonObject[] {
+  return conflicts.map((conflict) => {
+    const entries = Array.isArray(conflict.claims)
+      ? conflict.claims.map((entry) => {
+          if (!isJsonObject(entry) || typeof entry.claimId !== 'string') return entry;
+          return redactedClaimIds.has(entry.claimId) ? { ...entry, value: null } : entry;
+        })
+      : conflict.claims;
+    return asJsonObject({ ...conflict, claims: entries });
   });
 }
 
@@ -781,7 +842,23 @@ function walkPrivacy(
   findings: Finding[],
   redactedPaths: string[],
   visited: WeakSet<object>,
+  depth = 0,
 ): void {
+  if (depth > MAX_AGENTIC_JSON_DEPTH) {
+    findings.push(
+      finding(
+        'EOM_AGENT_PRIVACY_DEPTH',
+        'security',
+        'Candidate evidence exceeds the maximum inspection depth.',
+        {
+          severity: 'error',
+          ...(pointer ? { pointer } : {}),
+          help: 'Reduce nested input before review; deeply nested evidence is quarantined.',
+        },
+      ),
+    );
+    return;
+  }
   if (typeof value === 'string') {
     if (/(?:student|pupil)\s*(?:name|id)|student@|@student\b/iu.test(value)) {
       findings.push(
@@ -805,7 +882,7 @@ function walkPrivacy(
   visited.add(value);
   if (Array.isArray(value)) {
     value.forEach((item, index) =>
-      walkPrivacy(item, `${pointer}/${index}`, findings, redactedPaths, visited),
+      walkPrivacy(item, `${pointer}/${index}`, findings, redactedPaths, visited, depth + 1),
     );
     return;
   }
@@ -827,7 +904,7 @@ function walkPrivacy(
       redactedPaths.push(childPointer);
       continue;
     }
-    walkPrivacy(child, childPointer, findings, redactedPaths, visited);
+    walkPrivacy(child, childPointer, findings, redactedPaths, visited, depth + 1);
   }
 }
 
@@ -835,11 +912,26 @@ function collectLeafPointers(
   value: unknown,
   pointer = '',
   result: string[] = [],
+  depth = 0,
+  visited = new WeakSet<object>(),
 ): readonly string[] {
+  if (depth > MAX_AGENTIC_JSON_DEPTH) {
+    result.push(pointer || '/');
+    return result;
+  }
   if (pointer === '' && isJsonObject(value)) {
-    for (const key of Object.keys(value)) {
-      if (['$schema', 'specification', 'version', 'type'].includes(key)) continue;
-      collectLeafPointers(value[key], `/${escapePointer(key)}`, result);
+    if (visited.has(value)) {
+      result.push(pointer || '/');
+      return result;
+    }
+    visited.add(value);
+    try {
+      for (const key of Object.keys(value)) {
+        if (['$schema', 'specification', 'version', 'type'].includes(key)) continue;
+        collectLeafPointers(value[key], `/${escapePointer(key)}`, result, depth + 1, visited);
+      }
+    } finally {
+      visited.delete(value);
     }
     return result;
   }
@@ -847,14 +939,29 @@ function collectLeafPointers(
     if (pointer) result.push(pointer);
     return result;
   }
-  if (Array.isArray(value)) {
-    value.forEach((item, index) => collectLeafPointers(item, `${pointer}/${index}`, result));
+  if (visited.has(value)) {
+    if (pointer) result.push(pointer);
     return result;
   }
-  const entries = Object.entries(value);
-  if (entries.length === 0 && pointer) result.push(pointer);
-  for (const [key, child] of entries) {
-    collectLeafPointers(child, `${pointer}/${escapePointer(key)}`, result);
+  visited.add(value);
+  if (Array.isArray(value)) {
+    try {
+      value.forEach((item, index) =>
+        collectLeafPointers(item, `${pointer}/${index}`, result, depth + 1, visited),
+      );
+    } finally {
+      visited.delete(value);
+    }
+    return result;
+  }
+  try {
+    const entries = Object.entries(value);
+    if (entries.length === 0 && pointer) result.push(pointer);
+    for (const [key, child] of entries) {
+      collectLeafPointers(child, `${pointer}/${escapePointer(key)}`, result, depth + 1, visited);
+    }
+  } finally {
+    visited.delete(value);
   }
   return result;
 }
@@ -981,7 +1088,11 @@ function canonicalUnknown(value: unknown): string {
   if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
     return `${value}`;
   }
-  return JSON.stringify(value) ?? Object.prototype.toString.call(value);
+  try {
+    return JSON.stringify(value) ?? Object.prototype.toString.call(value);
+  } catch {
+    return Object.prototype.toString.call(value);
+  }
 }
 
 function asJsonValue(value: unknown): JsonValue {
@@ -995,11 +1106,24 @@ function asJsonObject(value: Record<string, unknown>): JsonObject {
   return result;
 }
 
-function isJsonValue(value: unknown): value is JsonValue {
+function isJsonValue(
+  value: unknown,
+  depth = 0,
+  visited = new WeakSet<object>(),
+): value is JsonValue {
+  if (depth > MAX_AGENTIC_JSON_DEPTH) return false;
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return true;
   if (typeof value === 'number') return Number.isFinite(value);
-  if (Array.isArray(value)) return value.every(isJsonValue);
-  if (isJsonObject(value)) return Object.values(value).every(isJsonValue);
+  if (typeof value !== 'object') return false;
+  if (visited.has(value)) return false;
+  visited.add(value);
+  try {
+    if (Array.isArray(value)) return value.every((item) => isJsonValue(item, depth + 1, visited));
+    if (isJsonObject(value))
+      return Object.values(value).every((item) => isJsonValue(item, depth + 1, visited));
+  } finally {
+    visited.delete(value);
+  }
   return false;
 }
 
