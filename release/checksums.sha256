@@ -20,7 +20,6 @@
 1bacf8c070b9857bc78fb2c07520299c3a0d47a7114977244aaff65ec3ba7480  v1.0.0-rc.2/schemas/1.0/modules/course-catalog.schema.json
 1c06b6402ad35c99649666fb11b4fee6bde8bd13e55924894f84e02c8925d32f  v1.0.0-rc.2/vocabularies/1.0/credit-systems.json
 1cba80cb02085de855493a53b4e094c6f68426460083e0d691c53a7a0b4243c6  v1.0.0-rc.2/fixtures/modules/statistics/invalid-security.json
-1cc8c45a41914eb0afeece8af35cdb46f197d0c1698b3c4cf9008a7655f14dbb  sbom.cdx.json
 1dd59d1bb637a34d2cbbea1202c12e61a8d4e1570e0409c39ac437e472412e89  v1.0.0-rc.2/fixtures/modules/services/valid.json
 1edccf5c0ee4a50fd6ac708a77c76499647bd8d2ca2f4e799c6179a4000acaa6  v1.0.0-rc.2/fixtures/modules/contacts/extension.json
 1f0fd039215b587523a682774163936752960fee3332c4fa18d9b91deb5b7ac0  v1.0.0-rc.2/mappings/registry.json
@@ -30,6 +29,7 @@
 26b8d54331886afd7d5883ea71be535bae016b3a950f1374aa663a6fd276723b  v1.0.0-rc.2/fixtures/conformance/README.md
 26f26ca1511a513bfd9069f1fe960ac2f829d035345e69085b1ef912d9ceeb71  v1.0.0-rc.2/vocabularies/1.0/organization-types.json
 26f80da9a51feb9f1fd475cd22879f8e3b2c1cbe9f72c90587f76efc9a97d67e  v1.0.0-rc.2/fixtures/modules/calendar/invalid-unknown-property.json
+276bb34f625d7dddfc0f2c39456b59cea02e857f7907becdcaac51a137134151  eom-documentation-1.0.0-rc.2.tar.gz
 290d6519bed273842eb4f0eed411143ceda3d1249edb7abdfc123b073d6a2abb  v1.0.0-rc.2/fixtures/conformance/expected/fixtures.json
 2a5b4eb04ca134a3dd6b0e43a01d45fb0b41a8dddedaf0139924f20fe30ec180  v1.0.0-rc.2/fixtures/modules/courses/invalid-privacy.json
 2aecb4e00c39a476b7d528ed9c8a12ebb66979df1d6ca070ba6c1db997cf7243  v1.0.0-rc.2/schemas/1.0/modules/staff-directory.schema.json
@@ -109,7 +109,6 @@
 71e0a7a158b7e4c29db953a37903842e522384d9674e5dd72e65e3ee3fc42f87  v1.0.0-rc.2/fixtures/modules/offerings/invalid-security.json
 733803399a13906aa0049697e2fcf50caf4cf0dafcb2bc23b1614202b25ff7a8  v1.0.0-rc.2/vocabularies/1.0/verification-statuses.json
 752a5e0e23c94885655a5590ffb5ae2c3a74fd1942b671db73e1f6847d07070f  eom-vocabularies-1.0.0-rc.2.tar.gz
-78e3f6ee1a2331ddc8787b9ba5f81bbb3904992d0f0c2a628acbc0ba461abb34  v1.0.0-rc.2/STATUS.md
 7b1724c8306d8ff929c2f3bbf31a7da2a770de322b9431b8cdfff0df31d3e22f  v1.0.0-rc.2/fixtures/modules/jobs/invalid-unknown-property.json
 7bd14ee3012b20e8cf8296c9a7e1d30d3a848bd062fd6c0b32b989d23ad4c57d  v1.0.0-rc.2/fixtures/modules/departments/extension.json
 7dec36430344e943bc274ed4ce46b0aa95ff54792c20bda354d3280b6eb52982  v1.0.0-rc.2/fixtures/modules/transportation/invalid-security.json
@@ -120,6 +119,7 @@
 82b3e476147a8c93a1f5ad5e656ccb3abc9562f84e6b9c60c0ef1b827e9f68c2  v1.0.0-rc.2/fixtures/modules/apis/invalid-privacy.json
 8312a10012577e61cb12c586df1267065392fc1f2a0706c7a8b8d04eea63a7a3  v1.0.0-rc.2/fixtures/modules/organization/valid.json
 84efc49a2437ef3e8a9816f4cba9494385257f4982f2892e3bbfa8177158d84e  v1.0.0-rc.2/fixtures/modules/organization/invalid-unknown-property.json
+856e7233daa75477d7055e84c9cfe14fd1f268c66192fb0704005dba0e592ed4  sbom.cdx.json
 85813bf9749da34eb29c6752a99ffdaa5e04bf65bda717ada6121c2a5d714a8c  v1.0.0-rc.2/fixtures/modules/statistics/extension.json
 85ddfa04b457311c726cd3848795f78529062f467f680d41b89b268b837015b7  v1.0.0-rc.2/fixtures/modules/services/extension.json
 87b0adf751d82f925f614069031735fee9bf150d0c8104a2444a347181ec913f  v1.0.0-rc.2/vocabularies/1.0/club-categories.json
@@ -141,7 +141,6 @@
 9f2c2f5332a82bb5f90536ebf5d24c4740702edcb993acd8193c5d712ae0a558  v1.0.0-rc.2/fixtures/modules/meals/valid.json
 a17e55acdd96179104390318ef94b6c2e46b62cf1e5a070f1ca9f62b0339abdb  v1.0.0-rc.2/spec/1.0/protocol.md
 a19f81305d1e35d77ec7d11b42b88d793b62f297d74c5b2e17b3d5dc00fd8e7e  v1.0.0-rc.2/fixtures/conformance/expected/profiles.json
-a61b2b5dd46795e8d4d05da41f01710b4463763a92663428c42554cb8133246e  educational-organization-manifest-1.0.0-rc.2.tar.gz
 a6bef7ad978f2d2cfab72949933b3190aebbdd8d7ac713544e5283bbb39e1814  v1.0.0-rc.2/vocabularies/1.0/delivery-modes.json
 a7a2530f221a0b86d68b6c40d995b5b21407ffca37c3985fcd7e5ca1671ed487  v1.0.0-rc.2/schemas/1.0/conflict.schema.json
 ac1e62cd7ffcca6c78e3aaf4fed21976ba84716fad67bb58d199e07ce49100a5  v1.0.0-rc.2/schemas/1.0/modules/admissions-profile.schema.json
@@ -159,8 +158,10 @@ b671a7e73ce0edaa2c2ad0ef64f6d76e306d3b8ebf3a8ead37cf81685a09d15d  v1.0.0-rc.2/fi
 b674d302dac6a058f12001d439d50dcb32b5c32363a6695aee5277da73a2a184  v1.0.0-rc.2/fixtures/modules/calendar/valid.json
 b681150dbea6b67f989de1b9d1d7d6cd109dbe172740505905c3141440b7cd5c  v1.0.0-rc.2/schemas/1.0/common.schema.json
 b7667c0fa031f957f4a65468d1e5dabac3e8298aa07ad1394e73aaf44073ffa6  v1.0.0-rc.2/fixtures/modules/calendar/invalid-privacy.json
+b80d883595ab1652b87dfd193f0b3542b0bf969cab7c86b8cb7e0c8b50b4b061  build-provenance.json
 ba00ae668c946bb1ed8750fa4e2fd98f57f8b56e21785cb46aea9bf09ab2d46a  v1.0.0-rc.2/fixtures/modules/meals/invalid-unknown-property.json
 bba5c646eb39dc959f9fe509e3499672ec286febb18fb20d54d8b4853f0e1245  v1.0.0-rc.2/spec/1.0/validation.md
+bd652baf3f9a08674d40f8f5d591a9a4784325fb7520ef3b5f3cb08072c36a8e  v1.0.0-rc.2/STATUS.md
 bdc07862cf22a1473dbfeb0e82b555f11ea7e62d316e3333ef1e2e5eb10feea0  v1.0.0-rc.2/spec/1.0/interoperability.md
 be0bfcadb7925ff34eecf95c393061a5b99e15121ed360e13397a8779fb97275  v1.0.0-rc.2/fixtures/modules/courses/invalid-unknown-property.json
 be348e7e7227c82235a3c94f325bc6ad810c372eda993a614c4793870f97474d  v1.0.0-rc.2/fixtures/modules/facilities/invalid-privacy.json
@@ -194,12 +195,12 @@ dca2b91ea06f89b8d101f373f1cbff14618d30d0f8912a7694a574e91149f35f  v1.0.0-rc.2/sc
 ddcdbd3dafaebc0e7c87144e911d3ee77d28ca7af71b95181dd6356346187987  v1.0.0-rc.2/vocabularies/1.0/source-types.json
 df3eda14bc6b241db673138afee2849d5cb0b83fe2c608eb5bf15bd7ad908351  v1.0.0-rc.2/schemas/1.0/modules/program-catalog.schema.json
 dfd55088d927f8cd7d39697fd3059b9e01074b8d3e448465e3ce60fd4b9832ea  v1.0.0-rc.2/fixtures/modules/jobs/invalid-security.json
+e1b4461340658cbf3356552d495fef0cc65ade14fd163d13cc3fbd35e5f83442  educational-organization-manifest-1.0.0-rc.2.tar.gz
 e32db3463712a785dcfc7b5fc73f581f9cd568186b04aa186d89c1df366d1b28  eom-conformance-1.0.0-rc.2.tar.gz
 e736cf379318ebcd1e7e02fc7cabfc29d138a4324e10e3dc0642274e4fedd4d1  v1.0.0-rc.2/fixtures/modules/contacts/invalid-privacy.json
 e909aa3d3eadddfb2332cc73fb7a10117ec9f24aba334cdf4df9235b94b8f855  v1.0.0-rc.2/fixtures/modules/jobs/valid.json
 eae07aab978593c50b46a0f0359e7cc281e153d9de8d6d29749d9d7c109048c1  v1.0.0-rc.2/schemas/1.0/modules/course-offering-catalog.schema.json
 ecdc561da39c6590a437e93a43f03794b47ea9b369d3664f494b04ff1bfa6902  v1.0.0-rc.2/spec/1.0/versioning.md
-ed7875713820cec9a1943422648565710a4b22dc6dfa746550df0117f9f1abec  build-provenance.json
 ed9018be4cd4cffe086c78d57ee96ab57eb2f624f9b2f22ac20a25260399f315  v1.0.0-rc.2/fixtures/modules/clubs/valid.json
 ee7afa9130847763a2bb4fcf1a62dd4a45cb2b8517dd9aa1e513dd4e573191f9  v1.0.0-rc.2/schemas/1.0/resource-index.schema.json
 efa6561472e04a0a4085c65063e5533544a566b7fe8579b1059173995e611c5c  v1.0.0-rc.2/fixtures/modules/offerings/invalid-privacy.json
@@ -211,6 +212,5 @@ f9761bfc5ecf86406d46f549eadf73aeafc6d3c43550f6a9c65ac5277ea9f5d5  v1.0.0-rc.2/fi
 f9f55cdf4bb64f23d0ce67d13dc90d4d64fe64f47b05ac84f58b18c9577622db  v1.0.0-rc.2/fixtures/modules/sports/invalid-security.json
 fd71d091e22cac7298ad70b7b2b99a0c20a3fde37d28d51fd22f8efc0f0b1030  v1.0.0-rc.2/schemas/1.0/modules/sports-catalog.schema.json
 fd9b90f23ba93915a927d2958ffce3262e86d335eac463f7a4e475f600aee985  v1.0.0-rc.2/fixtures/modules/offerings/invalid-unknown-property.json
-fe5a036dc45da9bcfccc73294eda3f76ec96c55654de38956fd2d0f906b4e360  eom-documentation-1.0.0-rc.2.tar.gz
 fe96d755049b5938a590712faa083f54f525993444bc1fbcefe23aa6049fba79  v1.0.0-rc.2/fixtures/modules/jobs/invalid-privacy.json
 ff628b0645ce5bfa078dc5a66fe52e3116a867675677b82e001cebb05e37f419  v1.0.0-rc.2/fixtures/modules/apis/invalid-security.json
