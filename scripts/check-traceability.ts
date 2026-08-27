@@ -392,6 +392,10 @@ function checkEvidenceExecution(command: string, receipt: unknown, owner: string
     );
     return;
   }
+  // This command is the authoritative final decision of its own execution. It
+  // cannot appear in the receipt written immediately before the finalization
+  // step without creating an impossible self-referential requirement.
+  if (commandKey(command) === 'traceability:check') return;
   if (commandKey(command) === 'verify') return;
   const completed = Array.isArray(receipt.completedBeforeReceipt)
     ? receipt.completedBeforeReceipt
