@@ -19,7 +19,7 @@ Formal post-remediation status: pass
 
 - Scan ID: `f8f6779b-8e79-4816-ba42-78970b521815`
 - Exact scanned revision: `8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38`
-- Exact scanned tree: `ff865e8cb260e8318d87a9a4178f92b0727b1eb6`
+- Exact scanned tree: `20a50470f8d14b49972504c17b3e82c0f6478c68`
 - Coverage: complete repository review
 - Reportable findings: 0
 - Unresolved critical/high/medium/low findings: 0
