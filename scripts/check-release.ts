@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { lstat, readFile, realpath } from 'node:fs/promises';
 import { join, parse, relative, resolve } from 'node:path';
 import { isJsonObject, parseStrictJson } from '@paperandslate/eom-core';
+import { readSecurityScanEvidence } from './security-scan-evidence.js';
 
 const root = resolve(process.cwd());
 const releaseRoot = join(root, 'release');
@@ -13,6 +14,24 @@ const manifest = parseStrictJson(
   'release/manifest.json',
 );
 const failures: string[] = [];
+const candidateRoot = join(releaseRoot, `v${expectedRelease}`);
+
+try {
+  const securityEvidence = await readSecurityScanEvidence(candidateRoot);
+  if (
+    !isRecord(manifest) ||
+    securityEvidence.targetCommit !== manifest.sourceCommit ||
+    securityEvidence.targetTree !== manifest.sourceTree
+  ) {
+    failures.push(
+      'release candidate formal security evidence must match the release manifest source commit and tree.',
+    );
+  }
+} catch (error) {
+  failures.push(
+    `release candidate formal security evidence is invalid: ${error instanceof Error ? error.message : String(error)}`,
+  );
+}
 
 if (!isRecord(manifest) || !Array.isArray(manifest.artifacts)) {
   failures.push('release/manifest.json must contain an artifacts array.');

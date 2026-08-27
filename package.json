@@ -37,6 +37,7 @@
     "packages:check": "tsx scripts/check-packages.ts",
     "release:check": "tsx scripts/check-release.ts",
     "release:prepare": "tsx scripts/generate-release-artifacts.ts",
+    "security:record": "tsx scripts/record-security-scan.ts",
     "traceability:check": "tsx scripts/check-traceability.ts",
     "verify:record": "tsx scripts/record-verification.ts",
     "verify:release-reproducibility": "tsx scripts/check-release-reproducibility.ts",

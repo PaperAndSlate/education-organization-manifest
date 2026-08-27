@@ -166,7 +166,16 @@ function getJob(document: JsonRecord, id: string, workflow: string): JsonRecord 
 }
 
 function checkPermissions(value: unknown, label: string): void {
-  if (!isRecord(value)) return;
+  if (value === undefined) return;
+  if (value === 'read-all') return;
+  if (typeof value === 'string') {
+    failures.push(`${label}: scalar permissions must be read-all or an explicit mapping`);
+    return;
+  }
+  if (!isRecord(value)) {
+    failures.push(`${label}: permissions must be read-all or an explicit mapping`);
+    return;
+  }
   for (const [permission, level] of Object.entries(value)) {
     if (level === 'write-all' || level === 'admin') {
       failures.push(`${label}: ${permission}: ${String(level)} is not permitted`);

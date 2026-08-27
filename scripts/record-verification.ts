@@ -2,6 +2,10 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import {
+  readSecurityScanEvidence,
+  type SecurityScanArtifactDigests,
+} from './security-scan-evidence.js';
 
 const root = resolve(process.cwd());
 const receiptPath = join(root, 'reports', 'verification', 'local-gates.json');
@@ -96,44 +100,29 @@ function isCommit(value: unknown): value is string {
   return typeof value === 'string' && /^[a-f0-9]{40}$/u.test(value);
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 async function readFormalSecurityScan(sourceTree: string): Promise<{
   readonly version: 1;
   readonly status: 'pass';
   readonly scanId: string;
   readonly targetCommit: string;
   readonly targetTree: string;
+  readonly targetId: string;
   readonly unresolvedFindingCount: 0;
+  readonly canonicalArtifacts: SecurityScanArtifactDigests;
+  readonly producer: { readonly name: string; readonly version: string };
 }> {
-  let value: unknown;
+  let evidence;
   try {
-    value = JSON.parse(
-      await readFile(join(root, 'reports', 'security-scan.json'), 'utf8'),
-    ) as unknown;
-  } catch {
-    throw new Error('Aggregate verification requires reports/security-scan.json.');
+    evidence = await readSecurityScanEvidence(root);
+  } catch (error) {
+    throw new Error(
+      `Aggregate verification requires sealed formal security scan evidence: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
-  if (!isRecord(value)) throw new Error('reports/security-scan.json must contain an object.');
-  const scanId = value.scanId;
-  const targetCommit = typeof value.targetCommit === 'string' ? value.targetCommit : undefined;
-  const targetTree = typeof value.targetTree === 'string' ? value.targetTree : undefined;
-  if (
-    value.version !== 1 ||
-    value.status !== 'pass' ||
-    typeof scanId !== 'string' ||
-    !isCommit(targetCommit) ||
-    !isCommit(targetTree) ||
-    value.unresolvedFindingCount !== 0
-  ) {
-    throw new Error('reports/security-scan.json is not a passed, zero-finding formal scan report.');
-  }
-  if (git('rev-parse', `${targetCommit}^{tree}`) !== targetTree) {
+  if (git('rev-parse', `${evidence.targetCommit}^{tree}`) !== evidence.targetTree) {
     throw new Error('Formal security scan targetCommit and targetTree do not agree.');
   }
-  if (targetTree !== sourceTree) {
+  if (evidence.targetTree !== sourceTree) {
     throw new Error(
       'Formal security scan must target the exact source tree used for aggregate verification.',
     );
@@ -141,10 +130,13 @@ async function readFormalSecurityScan(sourceTree: string): Promise<{
   return {
     version: 1,
     status: 'pass',
-    scanId,
-    targetCommit,
-    targetTree,
+    scanId: evidence.scanId,
+    targetCommit: evidence.targetCommit,
+    targetTree: evidence.targetTree,
+    targetId: evidence.targetId,
     unresolvedFindingCount: 0,
+    canonicalArtifacts: evidence.artifacts,
+    producer: evidence.producer,
   };
 }
 

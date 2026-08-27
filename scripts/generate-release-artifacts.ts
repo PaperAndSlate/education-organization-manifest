@@ -18,6 +18,7 @@ import { basename, extname, dirname, join, parse, relative, resolve } from 'node
 import { parse as parseYaml } from 'yaml';
 import { format as formatJson } from 'prettier';
 import { isJsonObject, parseStrictJson, stringifyCanonical } from '@paperandslate/eom-core';
+import { readSecurityScanEvidence } from './security-scan-evidence.js';
 
 const root = resolve(process.cwd());
 export const RELEASE_VERSION = process.env.EOM_RELEASE_VERSION ?? '1.0.0-rc.3';
@@ -73,6 +74,15 @@ export async function prepareReleaseArtifacts(
   if (sourceChanges.length > 0) {
     throw new Error(
       `Release preparation requires a clean committed source revision outside release/. Commit source changes before generating artifacts: ${sourceChanges.join(', ')}`,
+    );
+  }
+  const securityEvidence = await readSecurityScanEvidence(root);
+  if (
+    securityEvidence.targetCommit !== sourceCommit ||
+    securityEvidence.targetTree !== sourceTree
+  ) {
+    throw new Error(
+      `Release preparation requires sealed formal security evidence for ${sourceCommit} (${sourceTree}).`,
     );
   }
 

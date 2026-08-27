@@ -1,8 +1,12 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync as readFileBytes } from 'node:fs';
-import { lstat, mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
-import { join, relative, resolve } from 'node:path';
+import { lstat, mkdir, readFile, realpath, rename, unlink, writeFile } from 'node:fs/promises';
+import { join, parse, relative, resolve } from 'node:path';
+import {
+  readSecurityScanEvidence,
+  securityScanArtifactDigestsMatch,
+} from './security-scan-evidence.js';
 
 const root = resolve(process.cwd());
 const manifestPath = join(root, 'plans', 'pack-manifest.json');
@@ -12,6 +16,20 @@ const verificationPath = join(root, 'reports', 'verification', 'local-gates.json
 const traceabilityResultPath = join(root, 'reports', 'verification', 'traceability-result.json');
 const hostedMode = process.env.EOM_TRACEABILITY_MODE === 'hosted';
 const failures: string[] = [];
+const invocationRepositoryRevision = currentRepositoryRevision();
+const expectedCommit = process.env.GITHUB_SHA;
+const expectedRepositoryRevision = expectedCommit ? expectedRevision(expectedCommit) : undefined;
+
+if (expectedCommit && !expectedRepositoryRevision) {
+  failures.push(`GITHUB_SHA is not a present full commit: ${expectedCommit}`);
+}
+
+let manifest: Record<string, unknown>;
+let traceability: Record<string, unknown>;
+let packageJson: Record<string, unknown>;
+let manifestBytes: Buffer;
+let traceabilityBytes: Buffer;
+let matrixBytes: Buffer;
 
 try {
   await writeTraceabilityResult('running');
@@ -21,14 +39,28 @@ try {
   );
 }
 
-const manifest = parseJson(await readFile(manifestPath, 'utf8'), manifestPath);
-const traceability = parseJson(await readFile(traceabilityPath, 'utf8'), traceabilityPath);
-const packageJson = parseJson(await readFile(join(root, 'package.json'), 'utf8'), 'package.json');
+try {
+  manifestBytes = await readFile(manifestPath);
+  traceabilityBytes = await readFile(traceabilityPath);
+  const packageBytes = await readFile(join(root, 'package.json'));
+  matrixBytes = await readFile(matrixPath);
+  manifest = parseJson(manifestBytes.toString('utf8'), manifestPath);
+  traceability = parseJson(traceabilityBytes.toString('utf8'), traceabilityPath);
+  packageJson = parseJson(packageBytes.toString('utf8'), 'package.json');
+} catch (error) {
+  const failure = `could not read primary traceability inputs: ${error instanceof Error ? error.message : String(error)}`;
+  failures.push(failure);
+  await writeFailedTraceabilityResult(failures);
+  process.stderr.write(`${failure}\n`);
+  process.exitCode = 1;
+  throw error;
+}
 const manifestFiles = asArray(manifest.files);
 const planEntries = asArray(traceability.planFiles);
 const atomicEntries = asArray(traceability.atomicRequirements);
 const traceabilitySource = isRecord(traceability.source) ? traceability.source : {};
 const verification = await readOptionalJson(verificationPath);
+const validatedPlanningBytes = new Map<string, Buffer>();
 
 if (!verification && !hostedMode) {
   failures.push(
@@ -61,6 +93,7 @@ for (const [index, value] of manifestFiles.entries()) {
   if (!absolute) continue;
   try {
     const bytes = await readFile(absolute);
+    validatedPlanningBytes.set(value.path, bytes);
     if (bytes.length !== value.bytes)
       failures.push(`${value.path}: planning file byte length changed`);
     if (sha256(bytes) !== value.sha256)
@@ -177,7 +210,7 @@ for (const [index, value] of atomicEntries.entries()) {
     failures.push(`${id ?? index}: blocked-external requires owner and blocker`);
 }
 
-const matrix = await readFile(matrixPath, 'utf8');
+const matrix = matrixBytes.toString('utf8');
 const matrixIds = [...matrix.matchAll(/^\|\s*(EOM-[A-Z0-9-]+)\s*\|/gmu)]
   .map((match) => match[1])
   .filter((id): id is string => id !== undefined);
@@ -195,6 +228,27 @@ if (
 }
 if (matrix.includes('RC2 manifest') || matrix.includes('Final Standard workbench scan'))
   failures.push('current traceability matrix contains superseded RC2/formal-scan claims');
+
+try {
+  const finalRepositoryRevision = currentRepositoryRevision();
+  if (!sameRevision(invocationRepositoryRevision, finalRepositoryRevision)) {
+    failures.push(
+      `repository revision changed during traceability validation from ${invocationRepositoryRevision.commit} to ${finalRepositoryRevision.commit}`,
+    );
+  }
+  if (
+    expectedRepositoryRevision &&
+    !sameRevision(expectedRepositoryRevision, finalRepositoryRevision)
+  ) {
+    failures.push(
+      `traceability result does not match the immutable hosted revision ${expectedRepositoryRevision.commit}`,
+    );
+  }
+} catch (error) {
+  failures.push(
+    `could not verify the final repository revision: ${error instanceof Error ? error.message : String(error)}`,
+  );
+}
 
 if (failures.length > 0) {
   await writeFailedTraceabilityResult(failures);
@@ -235,35 +289,74 @@ async function writeTraceabilityResult(
     command: 'pnpm traceability:check',
     validationMode: hostedMode ? 'hosted-structure' : 'release-bound',
     repositoryRevision,
+    invocationRevision: invocationRepositoryRevision,
     evidencePolicy:
       'This generated result records the exact repository revision checked by pnpm traceability:check. A passed result is valid only for its recorded revision, source tree, and validation mode; report prose is not evidence.',
   };
+  if (expectedRepositoryRevision) result.expectedRevision = expectedRepositoryRevision;
   if (status === 'passed') {
     result.sourceRevision = await resolveSourceRevision();
     result.planningPack = {
       path: 'plans/pack-manifest.json',
-      sha256: sha256(await readFile(manifestPath)),
+      sha256: sha256(manifestBytes),
       fileCount: manifestFiles.length,
+      validatedFileCount: validatedPlanningBytes.size,
     };
     result.traceabilityDocument = {
       path: 'requirements/plan-file-traceability.json',
-      sha256: sha256(await readFile(traceabilityPath)),
+      sha256: sha256(traceabilityBytes),
       planFileCount: planEntries.length,
       atomicRequirementCount: atomicEntries.length,
     };
     result.matrix = {
       path: 'requirements/TRACEABILITY_MATRIX.md',
-      sha256: sha256(await readFile(matrixPath)),
+      sha256: sha256(matrixBytes),
     };
   }
   if (currentFailures.length > 0) result.failures = [...currentFailures];
-  await mkdir(join(root, 'reports', 'verification'), { recursive: true });
-  await writeFile(traceabilityResultPath, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
+  const verificationDirectory = join(root, 'reports', 'verification');
+  await mkdir(join(root, 'reports'), { recursive: true });
+  await ensureRealDirectory(join(root, 'reports'));
+  await mkdir(verificationDirectory, { recursive: true });
+  await ensureRealDirectory(verificationDirectory);
+  const temporaryPath = join(
+    verificationDirectory,
+    `.traceability-result.${process.pid}.${randomUUID()}.tmp`,
+  );
+  let replaced = false;
+  try {
+    await writeFile(temporaryPath, `${JSON.stringify(result, null, 2)}\n`, {
+      encoding: 'utf8',
+      flag: 'wx',
+    });
+    await replaceRegularFile(temporaryPath, traceabilityResultPath);
+    replaced = true;
+  } finally {
+    if (!replaced) await unlink(temporaryPath).catch(() => undefined);
+  }
 }
 
 function currentRepositoryRevision(): { readonly commit: string; readonly tree: string } {
   const commit = git('rev-parse', 'HEAD');
   return { commit, tree: git('rev-parse', `${commit}^{tree}`) };
+}
+
+function expectedRevision(
+  commit: string,
+): { readonly commit: string; readonly tree: string } | undefined {
+  if (!isCommit(commit)) return undefined;
+  try {
+    return { commit, tree: git('rev-parse', `${commit}^{tree}`) };
+  } catch {
+    return undefined;
+  }
+}
+
+function sameRevision(
+  left: { readonly commit: string; readonly tree: string },
+  right: { readonly commit: string; readonly tree: string },
+): boolean {
+  return left.commit === right.commit && left.tree === right.tree;
 }
 
 async function resolveSourceRevision(): Promise<{
@@ -355,6 +448,7 @@ async function readOptionalJson(path: string): Promise<unknown> {
     const canonicalRelative = relative(canonicalRoot, canonicalPath);
     if (
       canonicalRelative === '..' ||
+      parse(canonicalRelative).root.length > 0 ||
       canonicalRelative.startsWith(`..${'\\'}`) ||
       canonicalRelative.startsWith('../')
     ) {
@@ -437,6 +531,30 @@ async function repositoryPathIsBounded(path: string, label: string): Promise<boo
   }
 }
 
+async function ensureRealDirectory(path: string): Promise<void> {
+  const information = await lstat(path);
+  if (!information.isDirectory() || information.isSymbolicLink()) {
+    throw new Error(`traceability output directory must be a real directory: ${path}`);
+  }
+  const resolvedPath = await realpath(path);
+  if (parse(resolvedPath).root.length === 0) {
+    throw new Error(`traceability output directory has an invalid path: ${path}`);
+  }
+}
+
+async function replaceRegularFile(temporaryPath: string, destinationPath: string): Promise<void> {
+  try {
+    const existing = await lstat(destinationPath);
+    if (existing.isSymbolicLink() || !existing.isFile()) {
+      throw new Error(`traceability result destination must be a regular file: ${destinationPath}`);
+    }
+    await unlink(destinationPath);
+  } catch (error) {
+    if (!isNotFound(error)) throw error;
+  }
+  await rename(temporaryPath, destinationPath);
+}
+
 async function checkVerificationReceipt(
   value: unknown,
   scripts: Record<string, unknown>,
@@ -489,6 +607,7 @@ async function checkVerificationReceipt(
       typeof formalSecurityScan.scanId !== 'string' ||
       typeof formalSecurityScan.targetCommit !== 'string' ||
       typeof formalSecurityScan.targetTree !== 'string' ||
+      typeof formalSecurityScan.targetId !== 'string' ||
       formalSecurityScan.unresolvedFindingCount !== 0
     ) {
       failures.push('aggregate verification receipt has an invalid formal security scan record');
@@ -502,16 +621,27 @@ async function checkVerificationReceipt(
         'aggregate verification receipt formal security scan does not target the aggregate source tree',
       );
     }
-    const securityReport = await readOptionalJson(join(root, 'reports', 'security-scan.json'));
-    if (!isRecord(securityReport)) {
-      failures.push('formal security scan report is missing');
-    } else if (
-      securityReport.scanId !== formalSecurityScan.scanId ||
-      securityReport.targetCommit !== formalSecurityScan.targetCommit ||
-      securityReport.targetTree !== formalSecurityScan.targetTree ||
-      securityReport.unresolvedFindingCount !== 0
-    ) {
-      failures.push('formal security scan report does not match the aggregate receipt');
+    try {
+      const securityEvidence = await readSecurityScanEvidence(root);
+      if (
+        securityEvidence.scanId !== formalSecurityScan.scanId ||
+        securityEvidence.targetCommit !== formalSecurityScan.targetCommit ||
+        securityEvidence.targetTree !== formalSecurityScan.targetTree ||
+        securityEvidence.targetId !== formalSecurityScan.targetId ||
+        !isRecord(formalSecurityScan.producer) ||
+        formalSecurityScan.producer.name !== securityEvidence.producer.name ||
+        formalSecurityScan.producer.version !== securityEvidence.producer.version ||
+        !securityScanArtifactDigestsMatch(
+          formalSecurityScan.canonicalArtifacts,
+          securityEvidence.artifacts,
+        )
+      ) {
+        failures.push('formal security scan evidence does not match the aggregate receipt');
+      }
+    } catch (error) {
+      failures.push(
+        `formal security scan canonical evidence is invalid: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 }
@@ -565,6 +695,7 @@ function safeResolve(path: string, label: string): string | undefined {
   const relativePath = relative(root, absolute);
   if (
     relativePath === '..' ||
+    parse(relativePath).root.length > 0 ||
     relativePath.startsWith(`..${'\\'}`) ||
     relativePath.startsWith('../')
   ) {

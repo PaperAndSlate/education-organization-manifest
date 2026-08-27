@@ -3,6 +3,10 @@ import { execFileSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { format as formatPrettier } from 'prettier';
+import {
+  readSecurityScanEvidence,
+  securityScanArtifactDigestsMatch,
+} from './security-scan-evidence.js';
 
 const root = resolve(process.cwd());
 const manifestPath = join(root, 'plans', 'pack-manifest.json');
@@ -704,7 +708,8 @@ async function isReleaseReady(): Promise<boolean> {
 
 async function isFormalSecurityReady(): Promise<boolean> {
   try {
-    const report = await readJson(join(root, 'reports', 'security-scan.json'));
+    const evidence = await readSecurityScanEvidence(root);
+    const report = evidence.projection;
     const receipt = await readJson(join(root, 'reports', 'verification', 'local-gates.json'));
     const recordedScan = isRecord(receipt) ? receipt.formalSecurityScan : undefined;
     return (
@@ -720,7 +725,12 @@ async function isFormalSecurityReady(): Promise<boolean> {
       recordedScan.scanId === report.scanId &&
       recordedScan.targetCommit === report.targetCommit &&
       recordedScan.targetTree === report.targetTree &&
+      recordedScan.targetId === evidence.targetId &&
+      isRecord(recordedScan.producer) &&
+      recordedScan.producer.name === evidence.producer.name &&
+      recordedScan.producer.version === evidence.producer.version &&
       recordedScan.unresolvedFindingCount === 0 &&
+      securityScanArtifactDigestsMatch(recordedScan.canonicalArtifacts, evidence.artifacts) &&
       git('rev-parse', `${report.targetCommit}^{tree}`) === report.targetTree &&
       sourceTreeMatchesWorkingSource(report.targetTree)
     );
