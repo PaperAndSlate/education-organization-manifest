@@ -989,6 +989,12 @@ async function walk(directory: string): Promise<string[]> {
   );
   const result: string[] = [];
   for (const entry of entries) {
+    // Workspace package managers create dependency trees beneath each app and
+    // package. Those trees are intentionally excluded from every release
+    // archive; do not descend into them just to reject their expected
+    // symlinked workspace entries. Symlinks in paths that can be archived are
+    // still rejected below before any bytes are read.
+    if (isExcludedArchiveDirectory(entry.name)) continue;
     const path = join(directory, entry.name);
     const child = await lstat(path);
     if (child.isSymbolicLink()) {
@@ -999,6 +1005,10 @@ async function walk(directory: string): Promise<string[]> {
     else throw new Error(`Release input contains a non-regular file: ${path}`);
   }
   return result;
+}
+
+function isExcludedArchiveDirectory(name: string): boolean {
+  return ['.git', 'dist', 'node_modules', 'generated', 'build'].includes(name);
 }
 
 function normalizeFsPath(value: string): string {
