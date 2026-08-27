@@ -1135,14 +1135,30 @@ async function readCachedAuthoringValue(
 }
 
 async function readBoundedFile(file: string, maxBytes: number): Promise<Buffer> {
+  const linkInformation = await lstat(file);
+  if (!linkInformation.isFile() || linkInformation.isSymbolicLink()) {
+    throw new GeneratorInputError('Authoring input must be a stable regular file.', [
+      generatorFinding(
+        'EOM_GENERATOR_INPUT_INVALID',
+        'Authoring input must not be a symbolic link or non-regular file.',
+        file,
+      ),
+    ]);
+  }
   const handle = await open(file, 'r');
   try {
     const information = await handle.stat();
-    if (!information.isFile()) {
+    const identityChanged =
+      linkInformation.dev !== 0 &&
+      linkInformation.ino !== 0 &&
+      information.dev !== 0 &&
+      information.ino !== 0 &&
+      (information.dev !== linkInformation.dev || information.ino !== linkInformation.ino);
+    if (!information.isFile() || identityChanged) {
       throw new GeneratorInputError('Authoring input must be a regular file.', [
         generatorFinding(
           'EOM_GENERATOR_INPUT_INVALID',
-          'Authoring input must be a regular file.',
+          'Authoring input changed while it was being read.',
           file,
         ),
       ]);
@@ -1283,7 +1299,9 @@ async function assertPartialOutputTarget(
   let marker: JsonValue;
   try {
     marker = parseStrictJson(
-      await readFile(join(outputRoot, GENERATED_MARKER), 'utf8'),
+      new TextDecoder('utf-8', { fatal: true }).decode(
+        await readBoundedFile(join(outputRoot, GENERATED_MARKER), 64 * 1024),
+      ),
       outputRoot,
     );
   } catch {
@@ -1407,7 +1425,9 @@ async function assertReplaceableDirectory(
   const markerPath = join(directory, GENERATED_MARKER);
   let markerText: string;
   try {
-    markerText = await readFile(markerPath, 'utf8');
+    markerText = new TextDecoder('utf-8', { fatal: true }).decode(
+      await readBoundedFile(markerPath, 64 * 1024),
+    );
   } catch (error) {
     if (isNotFound(error)) {
       throw unsafeOutputError(
@@ -1415,7 +1435,10 @@ async function assertReplaceableDirectory(
         `Refusing to replace an existing unmarked directory. Add ${GENERATED_MARKER} with the generator marker fields.`,
       );
     }
-    throw error;
+    throw unsafeOutputError(
+      displayPath,
+      `The ${GENERATED_MARKER} file could not be read as a bounded stable regular file.`,
+    );
   }
   let marker: JsonValue;
   try {
@@ -2413,7 +2436,7 @@ async function createSigningDocuments(
         ],
       );
     }
-    const privateKey = createPrivateKey(await readFile(keyRealPath, 'utf8'));
+    const privateKey = createPrivateKey(await readBoundedFile(keyRealPath, 128 * 1024));
     const publicKey = createPublicKey(privateKey);
     const keySet = asJsonObject(
       {
@@ -2687,18 +2710,18 @@ async function replacePublicationPair(
   const lockPath = join(parent, '.eom-replace.lock');
   let lockAcquired = false;
   try {
-    await mkdir(lockPath);
-    await writeFile(
-      join(lockPath, 'owner.json'),
-      JSON.stringify({ generator: 'eom', pid: process.pid, startedAt: new Date().toISOString() }),
-      'utf8',
-    );
+    await initializeReplacementLock(lockPath, parent);
     lockAcquired = true;
   } catch (error) {
     if (isAlreadyExists(error)) {
       const ownerPath = join(lockPath, 'owner.json');
       try {
-        const owner = parseStrictJson(await readFile(ownerPath, 'utf8'), ownerPath);
+        const owner = parseStrictJson(
+          new TextDecoder('utf-8', { fatal: true }).decode(
+            await readBoundedFile(ownerPath, 64 * 1024),
+          ),
+          ownerPath,
+        );
         const pid = isJsonObject(owner) && typeof owner.pid === 'number' ? owner.pid : undefined;
         if (pid !== undefined && Number.isInteger(pid) && !isProcessAlive(pid)) {
           const lockInformation = await lstat(lockPath);
@@ -2706,16 +2729,7 @@ async function replacePublicationPair(
             throw unsafeOutputError(parent, 'The generator replacement lock is not a directory.');
           }
           await rm(lockPath, { recursive: true, force: true });
-          await mkdir(lockPath);
-          await writeFile(
-            ownerPath,
-            JSON.stringify({
-              generator: 'eom',
-              pid: process.pid,
-              startedAt: new Date().toISOString(),
-            }),
-            'utf8',
-          );
+          await initializeReplacementLock(lockPath, parent);
           lockAcquired = true;
         }
       } catch (ownerError) {
@@ -2841,6 +2855,37 @@ async function replacePublicationPair(
   }
 }
 
+async function initializeReplacementLock(
+  lockPath: string,
+  parent: string,
+): Promise<DirectoryIdentity> {
+  await mkdir(lockPath);
+  let identity: DirectoryIdentity | undefined;
+  try {
+    identity = await directoryIdentity(lockPath, parent);
+    if (identity === undefined) {
+      throw unsafeOutputError(parent, 'The generator replacement lock disappeared during setup.');
+    }
+    await writeFile(
+      join(lockPath, 'owner.json'),
+      JSON.stringify({ generator: 'eom', pid: process.pid, startedAt: new Date().toISOString() }),
+      'utf8',
+    );
+    return identity;
+  } catch (error) {
+    if (identity !== undefined) {
+      try {
+        await assertDirectoryIdentity(lockPath, identity, parent);
+        await rm(lockPath, { recursive: true, force: true });
+      } catch {
+        // Preserve an uncertain lock rather than risking removal of another
+        // process's replacement lock after a path race.
+      }
+    }
+    throw error;
+  }
+}
+
 async function writeReplacementJournal(
   transaction: string,
   journal: ReplacementJournal,
@@ -2910,7 +2955,12 @@ async function readReplacementJournal(transaction: string): Promise<ReplacementJ
   const journalPath = join(transaction, 'journal.json');
   let value: JsonValue;
   try {
-    value = parseStrictJson(await readFile(journalPath, 'utf8'), journalPath);
+    value = parseStrictJson(
+      new TextDecoder('utf-8', { fatal: true }).decode(
+        await readBoundedFile(journalPath, 64 * 1024),
+      ),
+      journalPath,
+    );
   } catch {
     throw unsafeOutputError(
       transaction,

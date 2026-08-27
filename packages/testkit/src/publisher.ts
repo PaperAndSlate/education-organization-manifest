@@ -1,7 +1,9 @@
 import { createHash } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
-import { readFile, realpath, stat } from 'node:fs/promises';
+import { open, realpath, stat } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
+
+const MAX_FIXTURE_FILE_BYTES = 32 * 1024 * 1024;
 
 export interface FixturePublisherOptions {
   readonly directory: string;
@@ -112,7 +114,11 @@ async function handleRequest(
     }
     const fileStat = await stat(resolvedCandidate);
     if (!fileStat.isFile()) throw new Error('not a file');
-    const body = await readFile(resolvedCandidate);
+    if (fileStat.size > MAX_FIXTURE_FILE_BYTES) {
+      send(response, 413, 'application/json', Buffer.from('{}\n'));
+      return;
+    }
+    const body = await readBoundedFile(resolvedCandidate, MAX_FIXTURE_FILE_BYTES);
     const contentType = options.contentTypes?.[path] ?? 'application/json';
     const etag = `"${createHash('sha256').update(body).digest('hex')}"`;
     const headers = {
@@ -128,6 +134,29 @@ async function handleRequest(
     else response.end(body);
   } catch {
     send(response, 404, 'application/json', Buffer.from('{}\n'));
+  }
+}
+
+async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> {
+  const handle = await open(path, 'r');
+  try {
+    const information = await handle.stat();
+    if (!information.isFile() || information.size > maxBytes) {
+      throw new Error('fixture file exceeds its byte limit');
+    }
+    const chunks: Buffer[] = [];
+    let total = 0;
+    for (;;) {
+      const chunk = Buffer.allocUnsafe(Math.min(64 * 1024, maxBytes - total + 1));
+      const { bytesRead } = await handle.read(chunk, 0, chunk.length, null);
+      if (bytesRead === 0) break;
+      total += bytesRead;
+      if (total > maxBytes) throw new Error('fixture file exceeds its byte limit');
+      chunks.push(chunk.subarray(0, bytesRead));
+    }
+    return Buffer.concat(chunks, total);
+  } finally {
+    await handle.close();
   }
 }
 

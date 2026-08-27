@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile, readdir, stat } from 'node:fs/promises';
+import { open, readdir, stat } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import {
   DEFAULT_FETCH_MAX_REDIRECTS,
@@ -852,7 +852,17 @@ async function readPublicationFiles(
         totalBytesExceeded = true;
         return;
       }
-      const bytes = await readFile(absolutePath);
+      const remainingBytes = maxTotalBytes - totalBytes;
+      let bytes: Buffer;
+      try {
+        bytes = await readBoundedFile(absolutePath, remainingBytes);
+      } catch (error) {
+        if (error instanceof BoundedFileError) {
+          totalBytesExceeded = true;
+          return;
+        }
+        throw error;
+      }
       totalBytes += bytes.byteLength;
       try {
         const parsed = parseStrictJson(decodeUtf8(bytes, relativePath), relativePath);
@@ -881,6 +891,31 @@ async function readPublicationFiles(
     totalBytesExceeded,
     depthLimitExceeded,
   };
+}
+
+class BoundedFileError extends Error {}
+
+async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> {
+  const handle = await open(path, 'r');
+  try {
+    const information = await handle.stat();
+    if (!information.isFile() || information.size > maxBytes) {
+      throw new BoundedFileError('The capture file exceeds its byte limit.');
+    }
+    const chunks: Buffer[] = [];
+    let total = 0;
+    for (;;) {
+      const chunk = Buffer.allocUnsafe(Math.min(64 * 1024, maxBytes - total + 1));
+      const { bytesRead } = await handle.read(chunk, 0, chunk.length, null);
+      if (bytesRead === 0) break;
+      total += bytesRead;
+      if (total > maxBytes) throw new BoundedFileError('The capture file exceeds its byte limit.');
+      chunks.push(chunk.subarray(0, bytesRead));
+    }
+    return Buffer.concat(chunks, total);
+  } finally {
+    await handle.close();
+  }
 }
 
 function compareStrings(left: string, right: string): number {
