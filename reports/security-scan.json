@@ -2,9 +2,9 @@
   "version": 1,
   "status": "pass",
   "scanType": "standard",
-  "scanId": "75beb51b-8b00-4da6-8ca0-867474d910c5",
-  "targetCommit": "eabcab722ddc09d96b0af0cf04c8e837d51ee7a1",
-  "targetTree": "1e9822b90ba64d6f98800136555c78bdfdd9d235",
+  "scanId": "f8f6779b-8e79-4816-ba42-78970b521815",
+  "targetCommit": "8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38",
+  "targetTree": "ff865e8cb260e8318d87a9a4178f92b0727b1eb6",
   "targetPath": ".",
   "targetKind": "git_revision",
   "targetId": "target_sha256_7c22d80eb592711a4a29f0237589139f73e10edfd120e36f9c6ca5a99a48f88d",
@@ -34,7 +34,7 @@
     "legalGovernanceApproval": "blocked-external",
     "deploymentProductionAdoption": "blocked-external"
   },
-  "evidencePolicy": "targetCommit and targetTree identify the exact revision reviewed by the formal scan; reports/verification/local-gates.json records the later clean source revision that carries this durable evidence and must reproduce the scan identity exactly.",
+  "evidencePolicy": "targetCommit and targetTree identify the exact revision reviewed by the formal scan; reports/verification/local-gates.json repeats this scan identity in the aggregate local-gate receipt.",
   "limitations": [
     "External registration, legal/governance approval, independent pilots, deployment, and production adoption remain explicitly blocked."
   ]

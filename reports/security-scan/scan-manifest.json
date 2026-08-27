@@ -5,21 +5,22 @@
       {
         "mediaType": "application/json",
         "path": "findings.json",
-        "sha256": "9e11353fdeb28c068acbcffb76d51d6a9dc7caab5bc03ad68232bc359749b5a3"
+        "sha256": "bb4e68bb603c5f0007c3afd692320733678e602a084cc1137f6d7defeb827411"
       },
       {
         "mediaType": "application/json",
         "path": "coverage.json",
-        "sha256": "599a0f78fe87d5885a853d79c471b2674b83d68e06e150af6a06d90605fe1795"
+        "sha256": "2d2f492f523483a7cfb569904181f5b961cf18cee48961ffe054015ff2fe0f2d"
       }
     ],
-    "completedAt": "2026-08-27T02:07:11.126249Z",
+    "completedAt": "2026-08-27T02:58:39.442981Z",
     "coverageRef": "coverage.json",
     "findingsRef": "findings.json",
-    "id": "75beb51b-8b00-4da6-8ca0-867474d910c5",
+    "id": "f8f6779b-8e79-4816-ba42-78970b521815",
     "preservedSources": {
-      "checkpoints/bbe72c95d63b578983b8ea3b79d5d265546c71746f5fff9f01536f4a999f7741.json": "bbe72c95d63b578983b8ea3b79d5d265546c71746f5fff9f01536f4a999f7741",
-      "checkpoints/fb761cd49b5057aed785aa310c18692b3f9bf3007de8091d7a7a1270d01a8cff.json": "5eb8785f6313c8b619773c13631a8880af6a7fe8806fd8dccf5bb978fd4d3a28"
+      "checkpoints/0b59dc154ef4e3b994d521b6c134a37ba0aded261f6770bc73fcbea639c75188.json": "c5780c83a73871c5fe1dcaf78a851e1e282caae3f85fd391bb3cca640ea466c0",
+      "checkpoints/856e605d69858be41df1c4ab373b1f794c61962766bf8d320983de61bc797967.json": "219145ac00145125833a780545e854438f63aab84ac97b27e6e85b2cab33e930",
+      "checkpoints/9332ca98a62e0ddb285d1d74d5fdb975dad3dd19e9d0d411cd3718ab1737ad82.json": "9332ca98a62e0ddb285d1d74d5fdb975dad3dd19e9d0d411cd3718ab1737ad82"
     },
     "producer": {
       "name": "codex-security-plugin",
@@ -27,26 +28,28 @@
     },
     "scope": {
       "artifactsReviewed": [
-        "Committed source revision eabcab722ddc09d96b0af0cf04c8e837d51ee7a1",
+        "Final committed source revision 8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38",
         "release/v1.0.0-rc.3"
       ],
       "context": "Complete EOM v1.0.0-rc.3 candidate in the paperandslate/well-known repository.",
       "excludePaths": [],
-      "includePaths": ["."],
+      "includePaths": [
+        "."
+      ],
       "limitations": [
         "External registration, legal/governance approval, independent pilots, deployment, and production adoption remain explicitly blocked."
       ],
-      "runtimeStatus": "Local deterministic build, test, package, release, and security checks completed for the committed candidate.",
-      "summary": "Standard prompt-only security review of the complete committed RC3 candidate after remediation.",
+      "runtimeStatus": "Local deterministic build, test, package, release, and security checks completed for the final committed candidate.",
+      "summary": "Standard prompt-only security review of the final committed RC3 candidate after conformance, security, and evidence-binding remediation.",
       "validationMode": "standard prompt-only review"
     },
-    "sealedAt": "2026-08-27T02:07:11.126249Z",
-    "startedAt": "2026-08-27T02:03:25.625191Z",
+    "sealedAt": "2026-08-27T02:58:39.442981Z",
+    "startedAt": "2026-08-27T02:55:32.526802Z",
     "status": "completed",
     "target": {
       "displayName": "well-known",
       "kind": "git_revision",
-      "revision": "eabcab722ddc09d96b0af0cf04c8e837d51ee7a1",
+      "revision": "8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38",
       "targetId": "target_sha256_7c22d80eb592711a4a29f0237589139f73e10edfd120e36f9c6ca5a99a48f88d"
     },
     "threatModel": {

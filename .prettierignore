@@ -11,4 +11,8 @@ packages/types/src/generated.ts
 apps/playground/src/generated-*.js
 docs/reference/schema-catalog.md
 reports/security-scan/coverage.json
+reports/security-scan/scan-manifest.json
+reports/security-scan/report.md
 release/v1.0.0-rc.3/reports/security-scan/coverage.json
+release/v1.0.0-rc.3/reports/security-scan/scan-manifest.json
+release/v1.0.0-rc.3/reports/security-scan/report.md
