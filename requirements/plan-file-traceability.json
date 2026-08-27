@@ -1009,7 +1009,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-078",
@@ -1023,7 +1023,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-079",
@@ -1037,7 +1037,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-080",
@@ -1051,7 +1051,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-081",
@@ -1065,7 +1065,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-082",
@@ -1079,7 +1079,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-083",
@@ -3022,7 +3022,7 @@
       ],
       "evidencePaths": ["scripts/check-release.ts", "scripts/check-release-reproducibility.ts"],
       "evidenceCommands": ["pnpm release:check", "pnpm verify:release-reproducibility"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-001",
@@ -3113,7 +3113,7 @@
       "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": ["scripts/generate-release-artifacts.ts", "scripts/check-release.ts"],
       "evidenceCommands": ["pnpm release:check", "pnpm verify:release-reproducibility"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REL-LOCAL-001",
@@ -3125,7 +3125,7 @@
         "reports/verification/local-gates.json"
       ],
       "evidenceCommands": ["pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REL-LOCAL-002",
