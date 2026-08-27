@@ -436,7 +436,22 @@ export async function readAuthoringValue(
   file: string,
   maxBytes = MAX_SOURCE_BYTES,
 ): Promise<unknown> {
+  return (await readAuthoringSnapshot(file, maxBytes)).value;
+}
+
+interface AuthoringSnapshot {
+  readonly bytes: Buffer;
+  readonly digest: string;
+  readonly value: unknown;
+}
+
+async function readAuthoringSnapshot(file: string, maxBytes: number): Promise<AuthoringSnapshot> {
   const bytes = await readBoundedFile(file, maxBytes);
+  const value = parseAuthoringBytes(bytes, file);
+  return { bytes, digest: sha256Bytes(bytes), value };
+}
+
+function parseAuthoringBytes(bytes: Buffer, file: string): unknown {
   let text: string;
   try {
     text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
@@ -455,7 +470,14 @@ export async function readAuthoringValue(
 
 export async function loadAuthoringConfig(configFile: string): Promise<EomConfig> {
   const absolute = resolve(configFile);
-  const value = await readAuthoringValue(absolute, MAX_SOURCE_BYTES);
+  return (await loadAuthoringConfigSnapshot(absolute)).config;
+}
+
+async function loadAuthoringConfigSnapshot(
+  configFile: string,
+): Promise<{ readonly config: EomConfig; readonly digest: string }> {
+  const snapshot = await readAuthoringSnapshot(configFile, MAX_SOURCE_BYTES);
+  const value = snapshot.value;
   const result = validateDocument(value, {
     schemaFile: 'config.schema.json',
     semantic: false,
@@ -469,12 +491,13 @@ export async function loadAuthoringConfig(configFile: string): Promise<EomConfig
   if (!isJsonObject(value)) {
     throw new GeneratorInputError('Authoring configuration must be an object.');
   }
-  return value as unknown as EomConfig;
+  return { config: value as unknown as EomConfig, digest: snapshot.digest };
 }
 
 export async function buildPublication(options: BuildOptions): Promise<BuildReport> {
   const configFile = resolve(options.configFile);
-  const loadedConfig = await loadAuthoringConfig(configFile);
+  const configSnapshot = await loadAuthoringConfigSnapshot(configFile);
+  const loadedConfig = configSnapshot.config;
   const config: EomConfig =
     options.sign === true
       ? {
@@ -482,7 +505,7 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
           signing: { ...(loadedConfig.signing ?? {}), enabled: true },
         }
       : loadedConfig;
-  const configDigest = await sha256File(configFile);
+  const configDigest = configSnapshot.digest;
   const configDirectory = dirname(configFile);
   const outputRoot = resolve(options.outputRoot ?? resolve(configDirectory, config.output.root));
   const sourceRoot = resolve(configDirectory, config.source.root);
@@ -1001,23 +1024,15 @@ async function discoverSources(
           if (previous) continue;
           claimedFiles.set(normalized, module.key);
         }
-        const fileStat = await stat(normalized);
-        if (fileStat.size > maxBytes) {
-          throw new GeneratorInputError('Source file exceeds the configured size limit.', [
-            generatorFinding(
-              'EOM_GENERATOR_INPUT_TOO_LARGE',
-              'Source file is too large.',
-              normalized,
-            ),
-          ]);
-        }
-        const digest = await sha256File(normalized);
+        const snapshot = await readAuthoringSnapshot(normalized, maxBytes);
+        const digest = snapshot.digest;
         const value = await readCachedAuthoringValue(
           normalized,
           digest,
           maxBytes,
           cacheDirectory,
           configDigest,
+          snapshot.value,
         );
         parsed.push({
           module,
@@ -1053,8 +1068,9 @@ async function readCachedAuthoringValue(
   maxBytes: number,
   cacheDirectory: string | undefined,
   configDigest: string,
+  sourceValue: unknown,
 ): Promise<unknown> {
-  if (!cacheDirectory) return readAuthoringValue(file, maxBytes);
+  if (!cacheDirectory) return sourceValue;
   const cacheKey = createHash('sha256')
     .update(`1.0.0-rc.3\0${SPECIFICATION}\0${configDigest}\0${sourceDigest}`)
     .digest('hex');
@@ -1085,7 +1101,7 @@ async function readCachedAuthoringValue(
     // A cache miss or malformed cache entry falls back to authoritative source bytes.
   }
 
-  const value = await readAuthoringValue(file, maxBytes);
+  const value = sourceValue;
   try {
     await mkdir(directory, { recursive: true });
     const temporary = `${cachePath}.${process.pid}.tmp`;
@@ -1340,6 +1356,36 @@ interface ReplacementMarkerExpectation {
   readonly buildMode: BuildMode;
   readonly projectIdentity: string;
   readonly selector: JsonObject;
+}
+
+interface DirectoryIdentity {
+  readonly device: number;
+  readonly inode: number;
+}
+
+type ReplacementJournalStatus =
+  | 'prepared'
+  | 'publication-moved'
+  | 'build-moved'
+  | 'build-installed'
+  | 'publication-installed'
+  | 'committed';
+
+interface ReplacementJournal {
+  readonly version: 1;
+  readonly status: ReplacementJournalStatus;
+  readonly publicationTarget: string;
+  readonly buildTarget: string;
+  readonly publicationBackup: string;
+  readonly buildBackup: string;
+  readonly expected: ReplacementMarkerExpectation;
+}
+
+class ReplacementIntegrityError extends GeneratorInputError {
+  public constructor(path: string, message: string) {
+    super(message, [generatorFinding('EOM_GENERATOR_OUTPUT_UNSAFE', message, path)]);
+    this.name = 'ReplacementIntegrityError';
+  }
 }
 
 async function assertReplaceableDirectory(
@@ -2642,53 +2688,135 @@ async function replacePublicationPair(
   let lockAcquired = false;
   try {
     await mkdir(lockPath);
+    await writeFile(
+      join(lockPath, 'owner.json'),
+      JSON.stringify({ generator: 'eom', pid: process.pid, startedAt: new Date().toISOString() }),
+      'utf8',
+    );
     lockAcquired = true;
   } catch (error) {
+    if (isAlreadyExists(error)) {
+      const ownerPath = join(lockPath, 'owner.json');
+      try {
+        const owner = parseStrictJson(await readFile(ownerPath, 'utf8'), ownerPath);
+        const pid = isJsonObject(owner) && typeof owner.pid === 'number' ? owner.pid : undefined;
+        if (pid !== undefined && Number.isInteger(pid) && !isProcessAlive(pid)) {
+          const lockInformation = await lstat(lockPath);
+          if (!lockInformation.isDirectory() || lockInformation.isSymbolicLink()) {
+            throw unsafeOutputError(parent, 'The generator replacement lock is not a directory.');
+          }
+          await rm(lockPath, { recursive: true, force: true });
+          await mkdir(lockPath);
+          await writeFile(
+            ownerPath,
+            JSON.stringify({
+              generator: 'eom',
+              pid: process.pid,
+              startedAt: new Date().toISOString(),
+            }),
+            'utf8',
+          );
+          lockAcquired = true;
+        }
+      } catch (ownerError) {
+        if (ownerError instanceof GeneratorInputError) throw ownerError;
+        // An unreadable or incomplete lock is intentionally fail-closed. It may
+        // belong to a process that has not finished writing its owner record.
+      }
+    }
+    if (lockAcquired) {
+      // A stale lock was safely replaced after its owner process was confirmed dead.
+    } else {
+      throw unsafeOutputError(
+        parent,
+        error instanceof Error && 'code' in error && error.code === 'EEXIST'
+          ? 'Another generator replacement is already in progress.'
+          : 'The generator could not acquire an exclusive replacement lock.',
+      );
+    }
+  }
+  if (!lockAcquired) {
     throw unsafeOutputError(
       parent,
-      error instanceof Error && 'code' in error && error.code === 'EEXIST'
-        ? 'Another generator replacement is already in progress.'
-        : 'The generator could not acquire an exclusive replacement lock.',
+      'The generator could not acquire an exclusive replacement lock.',
     );
+  }
+  try {
+    await recoverPendingReplacementTransactions(parent, expectedParent);
+  } catch (error) {
+    await rm(lockPath, { recursive: true, force: true }).catch(() => undefined);
+    throw error;
   }
   let transaction: string | undefined;
   let movedPublication = false;
   let movedBuild = false;
   let installedPublication = false;
   let installedBuild = false;
+  let preserveTransaction = false;
   try {
     await assertStableReplacementParent(parent, expectedParent);
     // Validate both targets immediately before moving either one. This keeps a
     // build report and its publication as one ownership-checked transaction.
+    const publicationIdentity = await directoryIdentity(publicationTarget, publicationTarget);
+    const buildIdentity = await directoryIdentity(buildTarget, buildTarget);
     await assertReplaceableDirectory(publicationTarget, publicationTarget, expected);
     await assertReplaceableDirectory(buildTarget, buildTarget, expected);
     transaction = await mkdtemp(join(parent, '.eom-replace-'));
     const publicationBackup = join(transaction, 'publication.previous');
     const buildBackup = join(transaction, 'build.previous');
+    let journal: ReplacementJournal = {
+      version: 1,
+      status: 'prepared',
+      publicationTarget: relative(parent, publicationTarget),
+      buildTarget: relative(parent, buildTarget),
+      publicationBackup: 'publication.previous',
+      buildBackup: 'build.previous',
+      expected,
+    };
+    await writeReplacementJournal(transaction, journal);
     try {
       await assertStableReplacementParent(parent, expectedParent);
+      await assertDirectoryIdentity(publicationTarget, publicationIdentity, publicationTarget);
       await rename(publicationTarget, publicationBackup);
+      await assertMovedDirectoryIdentity(publicationBackup, publicationIdentity, publicationTarget);
       movedPublication = true;
+      journal = { ...journal, status: 'publication-moved' };
+      await writeReplacementJournal(transaction, journal);
     } catch (error) {
-      if (!isNotFound(error)) throw error;
+      if (!isNotFound(error) || publicationIdentity !== undefined) throw error;
     }
     try {
       await assertStableReplacementParent(parent, expectedParent);
+      await assertDirectoryIdentity(buildTarget, buildIdentity, buildTarget);
       await rename(buildTarget, buildBackup);
+      await assertMovedDirectoryIdentity(buildBackup, buildIdentity, buildTarget);
       movedBuild = true;
+      journal = { ...journal, status: 'build-moved' };
+      await writeReplacementJournal(transaction, journal);
     } catch (error) {
-      if (!isNotFound(error)) throw error;
+      if (!isNotFound(error) || buildIdentity !== undefined) throw error;
     }
     await assertStableReplacementParent(parent, expectedParent);
     await rename(buildTemporary, buildTarget);
     installedBuild = true;
+    journal = { ...journal, status: 'build-installed' };
+    await writeReplacementJournal(transaction, journal);
     await assertStableReplacementParent(parent, expectedParent);
     await rename(publicationTemporary, publicationTarget);
     installedPublication = true;
+    journal = { ...journal, status: 'publication-installed' };
+    await writeReplacementJournal(transaction, journal);
     await assertStableReplacementParent(parent, expectedParent);
+    journal = { ...journal, status: 'committed' };
+    await writeReplacementJournal(transaction, journal);
     await rm(transaction, { recursive: true, force: true });
   } catch (error) {
-    if (transaction && (await isStableReplacementParent(parent, expectedParent))) {
+    if (error instanceof ReplacementIntegrityError) preserveTransaction = true;
+    if (
+      transaction &&
+      !preserveTransaction &&
+      (await isStableReplacementParent(parent, expectedParent))
+    ) {
       const publicationBackup = join(transaction, 'publication.previous');
       const buildBackup = join(transaction, 'build.previous');
       if (installedPublication) {
@@ -2710,6 +2838,165 @@ async function replacePublicationPair(
     if (lockAcquired && (await isStableReplacementParent(parent, expectedParent))) {
       await rm(lockPath, { recursive: true, force: true }).catch(() => undefined);
     }
+  }
+}
+
+async function writeReplacementJournal(
+  transaction: string,
+  journal: ReplacementJournal,
+): Promise<void> {
+  const journalPath = join(transaction, 'journal.json');
+  const temporary = join(transaction, 'journal.tmp');
+  await writeFile(temporary, jsonText(journal, true), 'utf8');
+  await rename(temporary, journalPath);
+}
+
+async function recoverPendingReplacementTransactions(
+  parent: string,
+  expectedParent: string,
+): Promise<void> {
+  await assertStableReplacementParent(parent, expectedParent);
+  const entries = await readdir(parent, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.name.startsWith('.eom-replace-')) continue;
+    if (!entry.isDirectory() || entry.isSymbolicLink()) {
+      throw unsafeOutputError(
+        join(parent, entry.name),
+        'An interrupted generator transaction must be a real directory.',
+      );
+    }
+    const transaction = join(parent, entry.name);
+    const journal = await readReplacementJournal(transaction);
+    const publicationTarget = resolveJournalPath(parent, journal.publicationTarget, 'publication');
+    const buildTarget = resolveJournalPath(parent, journal.buildTarget, 'build');
+    if (dirname(publicationTarget) !== parent || dirname(buildTarget) !== parent) {
+      throw unsafeOutputError(
+        transaction,
+        'An interrupted generator transaction references a target outside its protected parent.',
+      );
+    }
+    const publicationBackup = join(transaction, journal.publicationBackup);
+    const buildBackup = join(transaction, journal.buildBackup);
+    const expected = journal.expected;
+    if (journal.status === 'committed') {
+      if (
+        (await directoryIdentity(publicationTarget, publicationTarget)) === undefined ||
+        (await directoryIdentity(buildTarget, buildTarget)) === undefined
+      ) {
+        throw unsafeOutputError(
+          transaction,
+          'A committed generator transaction is missing one of its output directories.',
+        );
+      }
+      await assertReplaceableDirectory(publicationTarget, publicationTarget, expected);
+      await assertReplaceableDirectory(buildTarget, buildTarget, expected);
+      await assertReplaceableDirectory(publicationBackup, publicationBackup, expected);
+      await assertReplaceableDirectory(buildBackup, buildBackup, expected);
+      await rm(transaction, { recursive: true, force: true });
+      continue;
+    }
+    await rollbackPendingTarget(publicationTarget, publicationBackup, expected, false);
+    await rollbackPendingTarget(
+      buildTarget,
+      buildBackup,
+      expected,
+      journal.status === 'build-installed' || journal.status === 'publication-installed',
+    );
+    await rm(transaction, { recursive: true, force: true });
+  }
+}
+
+async function readReplacementJournal(transaction: string): Promise<ReplacementJournal> {
+  const journalPath = join(transaction, 'journal.json');
+  let value: JsonValue;
+  try {
+    value = parseStrictJson(await readFile(journalPath, 'utf8'), journalPath);
+  } catch {
+    throw unsafeOutputError(
+      transaction,
+      'An interrupted generator transaction is missing a valid recovery journal.',
+    );
+  }
+  if (!isJsonObject(value)) {
+    throw unsafeOutputError(transaction, 'The generator recovery journal must be an object.');
+  }
+  const statuses: readonly ReplacementJournalStatus[] = [
+    'prepared',
+    'publication-moved',
+    'build-moved',
+    'build-installed',
+    'publication-installed',
+    'committed',
+  ];
+  const expected = value.expected;
+  if (
+    value.version !== 1 ||
+    typeof value.status !== 'string' ||
+    !statuses.includes(value.status as ReplacementJournalStatus) ||
+    typeof value.publicationTarget !== 'string' ||
+    typeof value.buildTarget !== 'string' ||
+    value.publicationBackup !== 'publication.previous' ||
+    value.buildBackup !== 'build.previous' ||
+    !isJsonObject(expected) ||
+    typeof expected.buildMode !== 'string' ||
+    !['full', 'module', 'organization', 'changed-files'].includes(expected.buildMode) ||
+    typeof expected.projectIdentity !== 'string' ||
+    !isJsonObject(expected.selector)
+  ) {
+    throw unsafeOutputError(transaction, 'The generator recovery journal is invalid.');
+  }
+  return {
+    version: 1,
+    status: value.status as ReplacementJournalStatus,
+    publicationTarget: value.publicationTarget,
+    buildTarget: value.buildTarget,
+    publicationBackup: value.publicationBackup,
+    buildBackup: value.buildBackup,
+    expected: {
+      buildMode: expected.buildMode as BuildMode,
+      projectIdentity: expected.projectIdentity,
+      selector: expected.selector,
+    },
+  };
+}
+
+function resolveJournalPath(parent: string, value: string, label: string): string {
+  const resolved = resolve(parent, value);
+  if (
+    !value ||
+    isAbsolute(value) ||
+    !isWithin(parent, resolved) ||
+    normalizePath(relative(parent, resolved)) !== normalizePath(value)
+  ) {
+    throw unsafeOutputError(
+      join(parent, value),
+      `The generator recovery journal ${label} target is outside its protected parent.`,
+    );
+  }
+  return resolved;
+}
+
+async function rollbackPendingTarget(
+  target: string,
+  backup: string,
+  expected: ReplacementMarkerExpectation,
+  removeUnbackedTarget: boolean,
+): Promise<void> {
+  const backupIdentity = await directoryIdentity(backup, backup);
+  const targetIdentity = await directoryIdentity(target, target);
+  if (backupIdentity !== undefined) {
+    await assertReplaceableDirectory(backup, backup, expected);
+    if (targetIdentity !== undefined) {
+      await assertReplaceableDirectory(target, target, expected);
+      await rm(target, { recursive: true, force: true });
+    }
+    await rename(backup, target);
+    await assertMovedDirectoryIdentity(target, backupIdentity, target);
+    return;
+  }
+  if (removeUnbackedTarget && targetIdentity !== undefined) {
+    await assertReplaceableDirectory(target, target, expected);
+    await rm(target, { recursive: true, force: true });
   }
 }
 
@@ -2919,6 +3206,10 @@ function sha256Text(value: string): string {
   return createHash('sha256').update(value, 'utf8').digest('hex');
 }
 
+function sha256Bytes(value: Uint8Array): string {
+  return createHash('sha256').update(value).digest('hex');
+}
+
 async function sha256File(path: string): Promise<string> {
   return createHash('sha256')
     .update(await readFile(path))
@@ -2933,6 +3224,79 @@ function compareStrings(left: string, right: string): number {
 
 function escapeRegExp(value: string): string {
   return value.replace(/[\\^$.*+?()[\]{}|]/gu, '\\$&');
+}
+
+async function directoryIdentity(
+  path: string,
+  displayPath: string,
+): Promise<DirectoryIdentity | undefined> {
+  let information;
+  try {
+    information = await lstat(path);
+  } catch (error) {
+    if (isNotFound(error)) return undefined;
+    throw error;
+  }
+  if (!information.isDirectory() || information.isSymbolicLink()) {
+    throw unsafeOutputError(displayPath, 'The replacement target must be a real directory.');
+  }
+  return { device: information.dev, inode: information.ino };
+}
+
+async function assertDirectoryIdentity(
+  path: string,
+  expected: DirectoryIdentity | undefined,
+  displayPath: string,
+): Promise<void> {
+  const actual = await directoryIdentity(path, displayPath);
+  if (
+    (expected === undefined && actual !== undefined) ||
+    (expected !== undefined &&
+      (actual === undefined ||
+        actual.device !== expected.device ||
+        actual.inode !== expected.inode))
+  ) {
+    throw unsafeOutputError(
+      displayPath,
+      'The replacement target changed after ownership validation; refusing to move it.',
+    );
+  }
+}
+
+async function assertMovedDirectoryIdentity(
+  path: string,
+  expected: DirectoryIdentity | undefined,
+  displayPath: string,
+): Promise<void> {
+  try {
+    const actual = await directoryIdentity(path, displayPath);
+    if (
+      expected === undefined ||
+      actual === undefined ||
+      actual.device !== expected.device ||
+      actual.inode !== expected.inode
+    ) {
+      throw new Error('the moved replacement target identity changed');
+    }
+  } catch (error) {
+    throw new ReplacementIntegrityError(
+      displayPath,
+      `The replacement target changed during its move; the transaction was preserved for recovery. (${error instanceof Error ? error.message : String(error)})`,
+    );
+  }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return isNodeError(error) && error.code === 'EEXIST';
+}
+
+function isProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return isNodeError(error) && error.code !== 'ESRCH';
+  }
 }
 
 function isNotFound(error: unknown): boolean {

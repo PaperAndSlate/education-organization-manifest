@@ -34,6 +34,12 @@ describe('EOM hardened HTTP retrieval', () => {
         response.writeHead(200, { 'content-type': 'application/json' }).end('x'.repeat(256));
         return;
       }
+      if (request.url === '/head-large') {
+        response
+          .writeHead(200, { 'content-type': 'application/json', 'content-length': '256' })
+          .end();
+        return;
+      }
       if (request.url === '/compressed') {
         response
           .writeHead(200, {
@@ -132,6 +138,9 @@ describe('EOM hardened HTTP retrieval', () => {
     await expect(fetchEom(`${baseUrl}/large`, { ...local, maxBytes: 32 })).rejects.toMatchObject({
       code: 'EOM_FETCH_TOO_LARGE',
     });
+    await expect(
+      fetchEom(`${baseUrl}/head-large`, { ...local, method: 'HEAD', maxBytes: 32 }),
+    ).rejects.toMatchObject({ code: 'EOM_FETCH_TOO_LARGE' });
     await expect(fetchEom(`${baseUrl}/compressed`, local)).rejects.toMatchObject({
       code: 'EOM_FETCH_CONTENT_ENCODING',
     });

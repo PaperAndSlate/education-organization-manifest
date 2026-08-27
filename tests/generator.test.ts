@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { generateKeyPairSync } from 'node:crypto';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -589,6 +589,67 @@ describe('EOM deterministic authoring generator', () => {
       expect(second.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE')).toBe(
         true,
       );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('recovers a journaled interrupted publication replacement before building', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-generator-recovery-'));
+    try {
+      const configFile = join(root, 'eom.config.yaml');
+      await writeFile(
+        configFile,
+        [
+          'project: { name: Recovery, protocolVersion: "1.0", defaultLanguage: en-US }',
+          'publisher: { origin: https://recovery.example, manifestPath: /.well-known/educational-organization-manifest }',
+          'source: { root: source, modules: { organization: [organization.yaml] } }',
+          'output: { root: generated/public }',
+          'signing: { enabled: false }',
+          '',
+        ].join('\n'),
+      );
+      await mkdir(join(root, 'source'), { recursive: true });
+      await writeFile(
+        join(root, 'source', 'organization.yaml'),
+        'id: https://recovery.example/id/school\ntype: school\nname: Recovery\n',
+      );
+      const output = join(root, 'generated', 'public');
+      const build = join(root, 'generated', 'build');
+      const first = await buildPublication({ configFile, outputRoot: output });
+      expect(first.valid).toBe(true);
+
+      const transaction = join(root, 'generated', '.eom-replace-recovery');
+      await mkdir(transaction);
+      await rename(output, join(transaction, 'publication.previous'));
+      await rename(build, join(transaction, 'build.previous'));
+      await writeFile(
+        join(transaction, 'journal.json'),
+        JSON.stringify({
+          version: 1,
+          status: 'build-moved',
+          publicationTarget: 'public',
+          buildTarget: 'build',
+          publicationBackup: 'publication.previous',
+          buildBackup: 'build.previous',
+          expected: {
+            buildMode: 'full',
+            projectIdentity: 'https://recovery.example|Recovery|1.0',
+            selector: {},
+          },
+        }),
+        'utf8',
+      );
+
+      const recovered = await buildPublication({ configFile, outputRoot: output });
+      expect(recovered.valid, JSON.stringify(recovered.findings)).toBe(true);
+      expect(recovered.written).toBe(true);
+      expect(await readFile(join(output, 'eom', 'organization.json'), 'utf8')).toContain(
+        'Recovery',
+      );
+      await expect(readFile(join(transaction, 'journal.json'), 'utf8')).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
     } finally {
       await rm(root, { recursive: true, force: true });
     }

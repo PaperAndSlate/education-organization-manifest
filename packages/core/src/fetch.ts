@@ -419,8 +419,26 @@ async function request(
             if (Array.isArray(value)) headers.set(key, value.join(', '));
             else if (value !== undefined) headers.set(key, value);
           }
+          const advertisedLength = response.headers['content-length'];
+          if (
+            advertisedLength !== undefined &&
+            Number.isFinite(Number(advertisedLength)) &&
+            Number(advertisedLength) > maxBytes
+          ) {
+            settled = true;
+            request.destroy();
+            reject(
+              new EomFetchError(
+                'EOM_FETCH_TOO_LARGE',
+                'The response exceeds the configured byte limit.',
+                url,
+                redirects,
+              ),
+            );
+            return;
+          }
           response.on('data', (chunk: Buffer | string) => {
-            if (settled || options.method === 'HEAD') return;
+            if (settled) return;
             const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
             total += buffer.length;
             if (total > maxBytes) {
@@ -436,6 +454,7 @@ async function request(
               );
               return;
             }
+            if (options.method === 'HEAD') return;
             chunks.push(buffer);
           });
           response.on('end', () => {

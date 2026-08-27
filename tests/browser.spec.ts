@@ -152,7 +152,7 @@ test('rejects detached signature lifetime removal in the browser engine', async 
   expect(missingStatusResult.overall).toBe(false);
   expect(missingStatusResult.findings.join(' ')).toContain('status');
 
-  const expiredResource = {
+  const expiredResource: Record<string, unknown> = {
     ...resource,
     expires: '2026-01-01T00:00:00Z',
   };
@@ -161,8 +161,13 @@ test('rejects detached signature lifetime removal in the browser engine', async 
     keyId,
     createdAt: '2025-01-01T00:00:00Z',
   });
+  const expiredResourceInput: { resource: unknown; signature: unknown; keySet: unknown } = {
+    resource: expiredResource,
+    signature: expiredResourceSignature,
+    keySet,
+  };
   const expiredResourceResult = await page.evaluate(
-    async ({ resource, signature, keySet }) => {
+    async (input: { resource: unknown; signature: unknown; keySet: unknown }) => {
       const playground = (window as unknown as { __EOM_PLAYGROUND__: unknown })
         .__EOM_PLAYGROUND__ as {
         verifyDetachedSignature: (
@@ -172,11 +177,11 @@ test('rejects detached signature lifetime removal in the browser engine', async 
           options?: { now?: string },
         ) => Promise<{ overall: boolean; findings: readonly string[] }>;
       };
-      return playground.verifyDetachedSignature(resource, signature, keySet, {
+      return playground.verifyDetachedSignature(input.resource, input.signature, input.keySet, {
         now: '2027-01-02T00:00:00Z',
       });
     },
-    { resource: expiredResource, signature: expiredResourceSignature, keySet },
+    expiredResourceInput,
   );
   expect(expiredResourceResult.overall).toBe(false);
   expect(expiredResourceResult.findings.join(' ')).toContain('resource');
