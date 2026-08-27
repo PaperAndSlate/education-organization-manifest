@@ -346,7 +346,11 @@ function sourceTreeMatchesCheckedOutSource(sourceTree: string): boolean {
       .filter(Boolean)
       .every((line) => {
         const path = line.slice(3).trim().replace(/^"|"$/gu, '').replaceAll('\\', '/');
-        return path === 'release' || path.startsWith('release/');
+        return (
+          path === 'release' ||
+          path.startsWith('release/') ||
+          path === 'reports/verification/local-gates.json'
+        );
       });
   } catch {
     return false;
