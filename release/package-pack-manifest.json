@@ -2,10 +2,10 @@
   "packageManager": "pnpm@10.6.0",
   "packages": [
     {
-      "bytes": 11298,
+      "bytes": 11271,
       "files": ["dist/index.d.ts", "dist/index.d.ts.map", "dist/index.js", "package.json"],
       "name": "@paperandslate/eom-adapters",
-      "sha256": "6d3a1ed94943a5302984da26e1903b98bc0be9b2e8052d11ba3422cae5ae6e64",
+      "sha256": "9eff8c23b1dac523d2ed70d72477b36bb731035a315aa4d8f3898c04720b6de6",
       "tarball": "packages/paperandslate-eom-adapters-1.0.0-rc.3.tgz",
       "version": "1.0.0-rc.3"
     },
@@ -18,10 +18,10 @@
       "version": "1.0.0-rc.3"
     },
     {
-      "bytes": 5022,
+      "bytes": 5050,
       "files": ["dist/index.d.ts", "dist/index.d.ts.map", "dist/index.js", "package.json"],
       "name": "@paperandslate/eom-authority",
-      "sha256": "c593dae14ddd594dd1057c1f33933fb4a49f1a82fc32c3f75d86ff65a88d793b",
+      "sha256": "b845e36add704dcebd75d476e278efb94594aa7578091fa56842aebeb6e1ed15",
       "tarball": "packages/paperandslate-eom-authority-1.0.0-rc.3.tgz",
       "version": "1.0.0-rc.3"
     },
@@ -50,7 +50,7 @@
       "version": "1.0.0-rc.3"
     },
     {
-      "bytes": 16406,
+      "bytes": 16555,
       "files": [
         "dist/diff.d.ts",
         "dist/diff.d.ts.map",
@@ -79,15 +79,15 @@
         "package.json"
       ],
       "name": "@paperandslate/eom-core",
-      "sha256": "5c67c0ecbbf2933f706b49d7e8624256eea72c43e20007ac3e0ff6c56e8b10f7",
+      "sha256": "10b761c15be4854916caece8609e381a6efea689f9e713e4d99b2ac2a0bcf3d8",
       "tarball": "packages/paperandslate-eom-core-1.0.0-rc.3.tgz",
       "version": "1.0.0-rc.3"
     },
     {
-      "bytes": 24567,
+      "bytes": 24903,
       "files": ["dist/index.d.ts", "dist/index.d.ts.map", "dist/index.js", "package.json"],
       "name": "@paperandslate/eom-generator",
-      "sha256": "c9a39616701a90010f71aef97d8481eff2eb6e98a089c9203e9666e7e4de11b5",
+      "sha256": "991cb64850d55d53bbe1b8152e439890f0cecb696f076a2dd5f3e9cde56a8b59",
       "tarball": "packages/paperandslate-eom-generator-1.0.0-rc.3.tgz",
       "version": "1.0.0-rc.3"
     },
@@ -186,7 +186,7 @@
       "version": "1.0.0-rc.3"
     },
     {
-      "bytes": 14061,
+      "bytes": 14447,
       "files": [
         "dist/index.d.ts",
         "dist/index.d.ts.map",
@@ -197,7 +197,7 @@
         "package.json"
       ],
       "name": "@paperandslate/eom-testkit",
-      "sha256": "6e1e3fb0ececd20573f930835293720597f9c8be3417055c602520f30b5e1642",
+      "sha256": "a41ccc6c37bd5d0455cdf8577d02ad6f6e67f606c0d9a59a622d944ba5d28036",
       "tarball": "packages/paperandslate-eom-testkit-1.0.0-rc.3.tgz",
       "version": "1.0.0-rc.3"
     },
@@ -218,7 +218,7 @@
       "version": "1.0.0-rc.3"
     },
     {
-      "bytes": 16489,
+      "bytes": 16852,
       "files": [
         "dist/engine.d.ts",
         "dist/engine.d.ts.map",
@@ -241,13 +241,13 @@
         "package.json"
       ],
       "name": "@paperandslate/eom-validator",
-      "sha256": "4765a17254cabadbf00b00ca365830029399e64f0349430d83e48fbbd2047ca4",
+      "sha256": "6b250c090b58c9c14a416582566c1770a877d943f97dd8698ec1a736654c3560",
       "tarball": "packages/paperandslate-eom-validator-1.0.0-rc.3.tgz",
       "version": "1.0.0-rc.3"
     }
   ],
   "release": "1.0.0-rc.3",
-  "sourceCommit": "a6dd48891c86c221bf45614e3b5dc23de547ade4",
-  "sourceTree": "89f836fae8dff06c09efdd4437e87a80d161452f",
+  "sourceCommit": "3c6a3aaa2e3b54bb783c1a7b9533ac9b332cd02d",
+  "sourceTree": "2194631cccab67c255a1023f6516ea18393ca4ea",
   "version": 1
 }
