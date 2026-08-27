@@ -1,35 +1,36 @@
 # Security scan evidence
 
-Status: post-remediation formal scan passed for the exact reviewed RC3 candidate. This is local
-security evidence, not an external clearance or authorization to publish a stable release.
+Status: pass. This report is the project projection of the sealed Standard scan artifacts for the
+RC3 remediation source revision. It is local security evidence, not an external clearance or
+authorization to publish a stable release.
 
-The deterministic repository security gate can be run with:
+## Exact target
 
-```powershell
-pnpm verify:security
-```
-
-It checks private-key material, credential-shaped tokens, committed environment files, unsafe remote
-installers, workflow permissions, and the browser network/XSS boundary. Intentional invalid privacy
-fixtures remain test inputs and are not release data.
-
-## Current post-remediation status
-
-Formal post-remediation status: pass
-
-- Scan ID: `f8f6779b-8e79-4816-ba42-78970b521815`
-- Exact scanned revision: `8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38`
-- Exact scanned tree: `20a50470f8d14b49972504c17b3e82c0f6478c68`
+- Scan ID: `d4abb4f5-1f16-4cdd-9122-d24528efbbdb`
+- Exact scanned revision: `c42b3df9e1670db80c41275eba1eba2058f22c13`
+- Exact scanned tree: `3157225c89e3a66f6988bfe3f08c8929dc2b230d`
+- Target ID: `target_sha256_7c22d80eb592711a4a29f0237589139f73e10edfd120e36f9c6ca5a99a48f88d`
+- Scan mode: repository Standard scan
+- Completion: `2026-08-27T17:40:50.918461Z`
 - Coverage: complete repository review
 - Reportable findings: 0
 - Unresolved critical/high/medium/low findings: 0
-- Canonical evidence: [`security-scan/scan-manifest.json`](security-scan/scan-manifest.json),
-  [`security-scan/findings.json`](security-scan/findings.json), and
-  [`security-scan/coverage.json`](security-scan/coverage.json)
 
-The aggregate verification receipt repeats this scan ID, target commit, and target tree. The scan
-identity is exact without pretending that a commit can include a report whose contents depend on
-that same commit hash.
+Canonical artifacts: [`security-scan/scan-manifest.json`](security-scan/scan-manifest.json),
+[`security-scan/findings.json`](security-scan/findings.json),
+[`security-scan/coverage.json`](security-scan/coverage.json), and
+[`security-scan/report.md`](security-scan/report.md).
+
+The scan reviewed the RC3 transport, strict-input, delegation, signature, validator, generator,
+browser, package, archive, reproducibility, CI, and release-evidence boundaries. The sealed scan
+found no reportable security findings and recorded complete coverage.
+
+Limitations:
+
+- An independent baseline worker was unavailable because the desktop thread worker limit was
+  reached; parent-thread source review and executable gates provide the recorded review basis.
+- Linux, macOS, and external CI execution are not available in this local Windows session.
 
 This local report does not claim an external penetration test, hosted CodeQL result, production
-deployment review, IANA registration, legal approval, independent interoperability, or adoption.
+deployment review, IANA registration, legal or governance approval, independent interoperability,
+or adoption. Those gates remain explicitly blocked or pending.

@@ -1,54 +1,56 @@
 # EOM v1 Remediation Audit
 
-Status: RC3 remediation is incomplete. The repository contains uncommitted remediation changes,
-so no current aggregate verification or release claim is valid; the post-remediation security
-result below is evidence for this exact working-tree snapshot only.
+Status: local RC3 remediation and release-evidence gates passed for the exact committed source
+revision below. RC3 remains a working-draft release candidate: it has not been published, deployed,
+registered, or approved as a stable release.
 
-## Baseline and historical evidence
+## Exact evidence identity
 
-- The 194 files listed by `plans/pack-manifest.json` remain byte-for-byte unchanged. The generated
-  traceability artifacts bind each file to its recorded SHA-256 digest.
-- The remediation branch is the review target, but the current source changes have not yet been
-  committed in a clean release revision.
-- RC1 and RC2 artifacts and their reports are preserved as immutable historical evidence and are
-  superseded for current acceptance. They are not evidence for RC3.
-- The checked-in `release/v1.0.0-rc.3/` directory is also a stale candidate packet from an earlier
-  source revision. Its generated status, checklist, and scan artifacts are preserved for audit
-  history but are superseded and must not be read as current RC3 acceptance evidence.
-- The durable pre-remediation formal scans are recorded in
-  [`security-scan-pre-remediation.md`](security-scan-pre-remediation.md) and
-  [`security-scan-pre-remediation-current.md`](security-scan-pre-remediation-current.md). The
-  latter records the five findings from the current pre-patch Standard scan; neither is evidence
-  that the present working tree is clean or remediated.
+- Source commit: `c42b3df9e1670db80c41275eba1eba2058f22c13`
+- Source tree: `3157225c89e3a66f6988bfe3f08c8929dc2b230d`
+- Formal Standard scan: `d4abb4f5-1f16-4cdd-9122-d24528efbbdb`
+- Aggregate receipt: `reports/verification/local-gates.json`
+- RC3 release manifest: `release/manifest.json`
+- Planning traceability: `194` manifest files and `58` atomic requirements
 
-## Remediation scope
+The formal scan targeted the exact clean source commit and recorded complete coverage with zero
+reportable findings and zero unresolved findings at every severity. Its canonical artifacts are
+preserved under [`security-scan/`](security-scan/), with the project projection at
+[`security-scan.json`](security-scan.json). The aggregate receipt repeats the same source commit,
+source tree, lockfile binding, and scan identity.
 
-The implementation work addresses package-boundary safety, generator ownership and partial-build
-modes, DNS-bound transport, final-URL delegation authority, finite delegation lifetimes and key
-scopes, versioned signature lifetime binding, CLI behavior, browser-safe validation, conformance
-evidence, 194-file traceability, release reproducibility, and truthful status reporting.
+## Remediation scope and local evidence
 
-Focused characterization and regression checks pass for the changes currently in the worktree.
-An earlier worktree-only post-remediation Standard scan (`77d6ca39-cf5a-4506-afd0-481bb7803bb1`)
-is superseded and is not evidence for this revision; no clean-revision post-remediation scan is
-claimed yet. The worktree is still uncommitted, so this is remediation evidence rather than
-clean-commit release evidence.
-The aggregate `pnpm verify` receipt, release packet, and generated traceability status remain
-stale or unavailable for this source revision and must be regenerated only after a clean commit.
-RC3 therefore remains an unissued working-draft candidate.
+The implementation addresses package-boundary safety, generator ownership and partial-build modes,
+DNS-bound transport, final-URL delegation authority, finite delegation lifetimes and key scopes,
+versioned signature lifetime binding, CLI behavior, browser-safe validation, conformance evidence,
+194-file traceability, release reproducibility, and truthful status reporting. A release-tooling
+fix for isolated reproducibility output roots and a traceability fix for the final gate's
+self-referential evidence requirement were also applied, tested, committed, and included in the
+final scan.
+
+The authoritative aggregate gate passed all configured local checks, including build, typecheck,
+185 tests, coverage, browser/Playwright, lint, policy/security, package packing and clean installs,
+conformance, deterministic builds, examples, documentation, release checks, reproducibility, and
+traceability. The RC3 packet contains the generated manifest, checksums, provenance, SBOM, package
+manifest, archives, current scan evidence, receipt, and traceability outputs.
+
+RC1 and RC2 artifacts and reports remain preserved as immutable historical evidence and are marked
+superseded for current acceptance. Pre-remediation and earlier candidate scans likewise remain
+historical; none are used as current acceptance evidence.
 
 ## External gates intentionally retained
 
-IANA registration, independent publisher/consumer interoperability, legal review, governance
-approval, production deployment, and adoption/certification remain explicitly blocked or pending.
-They require named external owners and evidence in [`external-gates.md`](external-gates.md).
+IANA registration, independent publisher/consumer interoperability, legal review, governance or
+public approval, production deployment, stable publication, and adoption/certification remain
+explicitly blocked, pending, or not authorized. They require named external owners and evidence in
+[`external-gates.md`](external-gates.md); no local report claims those gates complete.
 
-## Current exit blockers
+## Remaining limitations
 
-- Commit the complete remediation on a clean revision and regenerate the receipt and traceability.
-- Rerun the post-remediation Standard scan on the clean release commit; a dirty-tree scan cannot
-  bind release evidence to that commit.
-- Run the aggregate local gate, package/release reproducibility, browser/accessibility, and
-  cross-platform checks; only then issue new RC3 evidence.
-- Keep the external gates listed above blocked; they are not silently converted into local
-  completion.
+- This local run was performed on Windows. Linux and macOS CI execution, hosted CodeQL/dependency
+  review, external interoperability, legal/governance review, registration, deployment, and
+  production adoption were not available and remain external gates.
+- The Standard scan recorded that an independent baseline worker was unavailable because the
+  desktop thread worker limit was reached; parent-thread review and executable gates are the
+  recorded basis for this local scan.

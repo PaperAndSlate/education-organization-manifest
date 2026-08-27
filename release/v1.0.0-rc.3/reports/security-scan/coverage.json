@@ -3,109 +3,148 @@
   "deferred": [],
   "documentType": "codex-security.coverage",
   "excludePaths": [],
-  "explicitExclusions": [
-    {
-      "id": "iana-registration",
-      "label": "IANA registration",
-      "pattern": "IANA registration",
-      "reason": "External governance action; no local evidence can authorize completion.",
-      "status": "blocked"
-    },
-    {
-      "id": "independent-interoperability",
-      "label": "Independent interoperability pilots",
-      "pattern": "independent interoperability",
-      "reason": "Requires external implementers and independently controlled test evidence.",
-      "status": "blocked"
-    },
-    {
-      "id": "legal-governance-approval",
-      "label": "Legal and governance approval",
-      "pattern": "legal governance approval",
-      "reason": "Requires external approvers.",
-      "status": "blocked"
-    },
-    {
-      "id": "deployment-production-adoption",
-      "label": "Deployment and production adoption",
-      "pattern": "deployment production adoption",
-      "reason": "Operational/external gate outside this repository.",
-      "status": "blocked"
-    }
-  ],
+  "explicitExclusions": [],
   "includePaths": [
     "."
   ],
   "inventoryStrategy": "repository",
   "mode": "repository",
   "openQuestions": [],
-  "scanId": "f8f6779b-8e79-4816-ba42-78970b521815",
+  "scanId": "d4abb4f5-1f16-4cdd-9122-d24528efbbdb",
   "schemaVersion": "1.0",
   "surfaces": [
     {
       "disposition": "no_issue_found",
-      "id": "transport",
-      "label": "DNS-bound HTTPS transport, redirects, cache, and resource budgets",
+      "id": "surface_dns-pinned-http-retrieval-and-cache",
+      "label": "DNS-pinned HTTP retrieval and cache",
+      "notes": "Validated addresses are bound to connections; redirects and cache hits revalidate transport policy.",
+      "paths": [
+        "packages/core/src/fetch.ts"
+      ],
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "authority",
-      "label": "Root/delegated authority, scope, subject, time, revocation, and key allowlists",
+      "id": "surface_strict-json-and-resource-limits",
+      "label": "Strict JSON and resource limits",
+      "notes": "Duplicate keys, depth, node, byte, cycle, sparse-array, and non-JSON checks are covered.",
+      "paths": [
+        "packages/core/src/json.ts",
+        "packages/generator/src/index.ts",
+        "apps/playground/src/browser-engine.js"
+      ],
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "signatures",
-      "label": "Detached signatures, protected lifetime metadata, and verified key binding",
+      "id": "surface_delegation-and-final-url-authority",
+      "label": "Delegation and final-URL authority",
+      "notes": "Observed final URL, descriptor, scope, subject, time, revocation, and key allowlist checks are shared.",
+      "paths": [
+        "packages/authority/src/index.ts",
+        "packages/validator/src/inputs.ts"
+      ],
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "generator",
-      "label": "Safe full/partial/organization/changed-files generation and atomic replacement",
+      "id": "surface_detached-signature-metadata-and-cryptographic-verification",
+      "label": "Detached signature metadata and cryptographic verification",
+      "notes": "RC3 structured protected metadata and sidecar lifetime binding are fail-closed.",
+      "paths": [
+        "packages/signatures/src/index.ts"
+      ],
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "validator",
-      "label": "Publication graph validation, final-URL authority, and bounded local inputs",
+      "id": "surface_validator-structural-and-semantic-input-boundary",
+      "label": "Validator structural and semantic input boundary",
+      "notes": "Runtime and graph inputs are bounded and normalized before schema and semantic processing.",
+      "paths": [
+        "packages/validator/src/engine.ts",
+        "packages/validator/src/inputs.ts",
+        "packages/validator/src/semantic.ts"
+      ],
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "packages",
-      "label": "Compiled package exports, packed installation, and package-local assets",
+      "id": "surface_generator-source-output-ownership-and-atomic-replacement",
+      "label": "Generator source/output ownership and atomic replacement",
+      "notes": "Approved roots, markers, mode selectors, dependency closure, symlink checks, locks, journals, and rollback reviewed.",
+      "paths": [
+        "packages/generator/src/index.ts"
+      ],
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "cli-browser",
-      "label": "CLI, browser engine, adapter, and conformance behavior",
+      "id": "surface_release-archive-traversal-and-reproducibility",
+      "label": "Release archive traversal and reproducibility",
+      "notes": "Excluded dependency trees are pruned before traversal; isolated temporary output roots are trusted only after safe-root validation.",
+      "paths": [
+        "scripts/generate-release-artifacts.ts",
+        "scripts/check-release-reproducibility.ts",
+        "scripts/check-release.ts"
+      ],
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "traceability",
-      "label": "194-file planning-pack mapping, executable evidence, and completion-claim controls",
+      "id": "surface_cli-path-graph-report-and-dry-run-boundaries",
+      "label": "CLI path, graph, and dry-run boundaries",
+      "notes": "CLI paths and report writes use bounded and symlink-aware operations.",
+      "paths": [
+        "packages/cli/src/index.ts"
+      ],
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "release",
-      "label": "RC3 release artifacts, provenance, reproducibility, and clean-tree enforcement",
+      "id": "surface_browser-engine-uploads-url-service-csp-xss",
+      "label": "Browser engine, uploads, URL service, CSP/XSS",
+      "notes": "Browser JSON/YAML is bounded and normalized; report output uses textContent; service requests are same-origin HTTPS-bound.",
+      "paths": [
+        "apps/playground/src/browser-engine.js",
+        "apps/playground/src/app.js"
+      ],
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "ci",
-      "label": "CI action pinning, dependency/security policy, licensing, and quality gates",
+      "id": "surface_package-exports-and-clean-tarball-installation",
+      "label": "Package exports and clean tarball installation",
+      "notes": "Exports target dist and clean package runtime/type smoke checks passed.",
+      "paths": [
+        "packages/*/package.json",
+        "packages/*/src"
+      ],
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "privacy",
-      "label": "Privacy, retention, accessibility, and documentation surfaces",
+      "id": "surface_traceability-and-aggregate-verification-evidence",
+      "label": "Traceability and aggregate verification evidence",
+      "notes": "Evidence records require formal zero-finding scan, exact source-tree agreement, and an authoritative self-check.",
+      "paths": [
+        "scripts/record-verification.ts",
+        "scripts/check-release.ts",
+        "scripts/check-traceability.ts",
+        "scripts/generate-traceability.ts"
+      ],
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "surface_ci-security-policy-and-dependency-controls",
+      "label": "CI, security policy, and dependency controls",
+      "notes": "Action pins, policy/security checks, lint, dependency audit, and license checks passed locally where available.",
+      "paths": [
+        ".github/workflows",
+        "scripts/security-check.ts",
+        "eslint.config.mjs"
+      ],
       "receiptRefs": []
     }
   ]

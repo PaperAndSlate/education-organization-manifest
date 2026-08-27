@@ -18,7 +18,7 @@
         "requirements/plan-file-traceability.json"
       ],
       "evidenceCommands": ["pnpm traceability:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-002",
@@ -32,7 +32,7 @@
         "requirements/plan-file-traceability.json"
       ],
       "evidenceCommands": ["pnpm traceability:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-003",
@@ -46,7 +46,7 @@
         "requirements/plan-file-traceability.json"
       ],
       "evidenceCommands": ["pnpm traceability:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-004",
@@ -59,7 +59,7 @@
         "requirements/TRACEABILITY_MATRIX.md"
       ],
       "evidenceCommands": ["pnpm traceability:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-005",
@@ -72,7 +72,7 @@
         "requirements/TRACEABILITY_MATRIX.md"
       ],
       "evidenceCommands": ["pnpm traceability:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-006",
@@ -85,7 +85,7 @@
         "requirements/TRACEABILITY_MATRIX.md"
       ],
       "evidenceCommands": ["pnpm traceability:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-007",
@@ -98,7 +98,7 @@
         "requirements/TRACEABILITY_MATRIX.md"
       ],
       "evidenceCommands": ["pnpm traceability:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-008",
@@ -757,7 +757,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-060",
@@ -771,7 +771,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-061",
@@ -785,7 +785,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-062",
@@ -799,7 +799,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-063",
@@ -813,7 +813,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-064",
@@ -827,7 +827,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-065",
@@ -841,7 +841,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-066",
@@ -855,7 +855,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-067",
@@ -869,7 +869,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-068",
@@ -883,7 +883,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-069",
@@ -897,7 +897,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-070",
@@ -911,7 +911,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-071",
@@ -925,7 +925,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-072",
@@ -939,7 +939,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-073",
@@ -953,7 +953,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-074",
@@ -967,7 +967,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-075",
@@ -981,7 +981,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-076",
@@ -995,7 +995,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-077",
@@ -1009,7 +1009,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-078",
@@ -1023,7 +1023,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-079",
@@ -1037,7 +1037,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-080",
@@ -1051,7 +1051,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-081",
@@ -1065,7 +1065,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-082",
@@ -1079,7 +1079,7 @@
         "package.json"
       ],
       "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-083",
@@ -1840,7 +1840,7 @@
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/ADR_PROCESS.md; prose alone cannot establish completion.",
       "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
       "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-151",
@@ -1850,7 +1850,7 @@
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/CONFORMANCE_MARK_POLICY.md; prose alone cannot establish completion.",
       "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
       "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-152",
@@ -1860,7 +1860,7 @@
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/CONTRIBUTING_PLAN.md; prose alone cannot establish completion.",
       "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
       "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-153",
@@ -1870,7 +1870,7 @@
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/GOVERNANCE.md; prose alone cannot establish completion.",
       "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
       "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-154",
@@ -1880,7 +1880,7 @@
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/LICENSE_AND_IP_PLAN.md; prose alone cannot establish completion.",
       "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
       "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-155",
@@ -1890,7 +1890,7 @@
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/MAINTAINERS_AND_SUCCESSION.md; prose alone cannot establish completion.",
       "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
       "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-156",
@@ -1900,7 +1900,7 @@
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/RFC_PROCESS.md; prose alone cannot establish completion.",
       "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
       "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-157",
@@ -1910,7 +1910,7 @@
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/SECURITY_POLICY_PLAN.md; prose alone cannot establish completion.",
       "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
       "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-158",
@@ -1924,7 +1924,7 @@
         "tests/mappings.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm verify:security"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-159",
@@ -1938,7 +1938,7 @@
         "tests/mappings.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm verify:security"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-160",
@@ -1952,7 +1952,7 @@
         "tests/mappings.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm verify:security"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-161",
@@ -1966,7 +1966,7 @@
         "tests/mappings.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm verify:security"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-162",
@@ -1980,7 +1980,7 @@
         "tests/mappings.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm verify:security"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-163",
@@ -2033,7 +2033,7 @@
         "scripts/check-ownership.ts"
       ],
       "evidenceCommands": ["pnpm ownership:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-167",
@@ -2047,7 +2047,7 @@
         "scripts/check-ownership.ts"
       ],
       "evidenceCommands": ["pnpm ownership:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-168",
@@ -2061,7 +2061,7 @@
         "scripts/check-ownership.ts"
       ],
       "evidenceCommands": ["pnpm ownership:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-169",
@@ -2075,7 +2075,7 @@
         "scripts/check-ownership.ts"
       ],
       "evidenceCommands": ["pnpm ownership:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-170",
@@ -2100,7 +2100,7 @@
         "tests/validator.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-172",
@@ -2114,7 +2114,7 @@
         "tests/fetch.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm verify:security"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-173",
@@ -2139,7 +2139,7 @@
         "tests/validator.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-175",
@@ -2153,7 +2153,7 @@
         "tests/validator.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-176",
@@ -2167,7 +2167,7 @@
         "tests/authority-signatures.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm ownership:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-177",
@@ -2181,7 +2181,7 @@
         "tests/validator.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-178",
@@ -2195,7 +2195,7 @@
         "tests/validator.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-179",
@@ -2209,7 +2209,7 @@
         "tests/validator.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-180",
@@ -2223,7 +2223,7 @@
         "tests/validator.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-181",
@@ -2237,7 +2237,7 @@
         "tests/validator.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-182",
@@ -2251,7 +2251,7 @@
         "tests/authority-signatures.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-183",
@@ -2265,7 +2265,7 @@
         "tests/validator.test.ts"
       ],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-PLAN-184",
@@ -2404,7 +2404,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-001",
@@ -2423,7 +2423,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-002",
@@ -2442,7 +2442,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-003",
@@ -2461,7 +2461,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-004",
@@ -2480,7 +2480,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-005",
@@ -2499,7 +2499,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-006",
@@ -2518,7 +2518,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-007",
@@ -2537,7 +2537,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-008",
@@ -2556,7 +2556,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-009",
@@ -2575,7 +2575,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-010",
@@ -2594,7 +2594,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-011",
@@ -2613,7 +2613,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-012",
@@ -2632,7 +2632,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-013",
@@ -2651,7 +2651,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-014",
@@ -2670,7 +2670,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-015",
@@ -2689,7 +2689,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-016",
@@ -2708,7 +2708,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-017",
@@ -2727,7 +2727,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-018",
@@ -2746,7 +2746,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-019",
@@ -2765,7 +2765,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-020",
@@ -2784,7 +2784,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-021",
@@ -2803,7 +2803,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-MOD-022",
@@ -2822,7 +2822,7 @@
         "tests/modules.test.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-001",
@@ -2830,7 +2830,7 @@
       "source": ["spec/1.0/http-discovery.md", "packages/core/src/fetch.ts", "tests/fetch.test.ts"],
       "evidencePaths": ["packages/core/src/fetch.ts", "tests/fetch.test.ts"],
       "evidenceCommands": ["pnpm test", "pnpm verify:security"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-002",
@@ -2842,7 +2842,7 @@
       ],
       "evidencePaths": ["schemas/1.0/manifest.schema.json", "tests/validator.test.ts"],
       "evidenceCommands": ["pnpm schema:check", "pnpm test"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-003",
@@ -2850,7 +2850,7 @@
       "source": ["spec/1.0/protocol.md", "packages/core/src/ids.ts", "tests/validator.test.ts"],
       "evidencePaths": ["packages/core/src/ids.ts", "tests/validator.test.ts"],
       "evidenceCommands": ["pnpm test"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-004",
@@ -2858,7 +2858,7 @@
       "source": ["schemas/1.0/catalog.json", "scripts/check-schemas.ts", "tests/modules.test.ts"],
       "evidencePaths": ["scripts/check-schemas.ts", "tests/modules.test.ts"],
       "evidenceCommands": ["pnpm schema:check", "pnpm module:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-005",
@@ -2870,7 +2870,7 @@
       ],
       "evidencePaths": ["packages/core/src/localized.ts", "tests/core.test.ts"],
       "evidenceCommands": ["pnpm test"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-006",
@@ -2882,7 +2882,7 @@
       ],
       "evidencePaths": ["packages/validator/src/semantic.ts", "tests/validator.test.ts"],
       "evidenceCommands": ["pnpm test"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-007",
@@ -2894,7 +2894,7 @@
       ],
       "evidencePaths": ["packages/linter/src/index.ts", "scripts/security-check.ts"],
       "evidenceCommands": ["pnpm verify:security", "pnpm test"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-008",
@@ -2906,7 +2906,7 @@
       ],
       "evidencePaths": ["packages/agentic/src/index.ts", "tests/agentic.test.ts"],
       "evidenceCommands": ["pnpm test"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-009",
@@ -2918,7 +2918,7 @@
       ],
       "evidencePaths": ["packages/authority/src/index.ts", "tests/authority-signatures.test.ts"],
       "evidenceCommands": ["pnpm test", "pnpm ownership:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-010",
@@ -2930,7 +2930,7 @@
       ],
       "evidencePaths": ["packages/signatures/src/index.ts", "tests/authority-signatures.test.ts"],
       "evidenceCommands": ["pnpm test", "pnpm schema:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-011",
@@ -2942,7 +2942,7 @@
       ],
       "evidencePaths": ["schemas/1.0/catalog.json", "vocabularies/registry.json"],
       "evidenceCommands": ["pnpm schema:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-012",
@@ -2954,7 +2954,7 @@
       ],
       "evidencePaths": ["packages/generator/src/index.ts", "tests/generator.test.ts"],
       "evidenceCommands": ["pnpm test", "pnpm verify:determinism"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-013",
@@ -2966,7 +2966,7 @@
       ],
       "evidencePaths": ["packages/validator/src/reports.ts", "tests/validator.test.ts"],
       "evidenceCommands": ["pnpm test"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-014",
@@ -2974,7 +2974,7 @@
       "source": ["spec/1.0/cli.md", "packages/cli/src/index.ts", "tests/cli.test.ts"],
       "evidencePaths": ["packages/cli/src/index.ts", "tests/cli.test.ts"],
       "evidenceCommands": ["pnpm test", "pnpm typecheck"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-015",
@@ -2986,7 +2986,7 @@
       ],
       "evidencePaths": ["mappings/registry.json", "tests/mappings.test.ts"],
       "evidenceCommands": ["pnpm test"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-016",
@@ -2998,7 +2998,7 @@
       ],
       "evidencePaths": ["conformance/registry.json", "scripts/run-conformance-profiles.ts"],
       "evidenceCommands": ["pnpm conformance:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-017",
@@ -3010,7 +3010,7 @@
       ],
       "evidencePaths": ["apps/playground/src/browser-engine.js", "tests/browser.spec.ts"],
       "evidenceCommands": ["pnpm test:browser", "pnpm docs:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-NORM-018",
@@ -3022,7 +3022,7 @@
       ],
       "evidencePaths": ["scripts/check-release.ts", "scripts/check-release-reproducibility.ts"],
       "evidenceCommands": ["pnpm release:check", "pnpm verify:release-reproducibility"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-001",
@@ -3030,7 +3030,7 @@
       "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": ["scripts/check-packages.ts", "packages/schema/package.json"],
       "evidenceCommands": ["pnpm packages:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-002",
@@ -3038,7 +3038,7 @@
       "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": ["packages/generator/src/index.ts", "tests/generator.test.ts"],
       "evidenceCommands": ["pnpm test"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-003",
@@ -3046,7 +3046,7 @@
       "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": ["packages/core/src/fetch.ts", "tests/fetch.test.ts"],
       "evidenceCommands": ["pnpm test"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-004",
@@ -3058,7 +3058,7 @@
         "scripts/check-modules.ts"
       ],
       "evidenceCommands": ["pnpm module:check", "pnpm vocabulary:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-005",
@@ -3066,7 +3066,7 @@
       "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": ["scripts/check-modules.ts", "fixtures/modules"],
       "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-006",
@@ -3074,7 +3074,7 @@
       "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": ["packages/cli/src/index.ts", "tests/cli.test.ts"],
       "evidenceCommands": ["pnpm test", "pnpm typecheck"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-007",
@@ -3085,7 +3085,7 @@
         "fixtures/conformance/expected/profiles.json"
       ],
       "evidenceCommands": ["pnpm conformance:profiles"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-008",
@@ -3093,7 +3093,7 @@
       "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": ["apps/playground/src/browser-engine.js", "tests/browser.spec.ts"],
       "evidenceCommands": ["pnpm test:browser"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-009",
@@ -3105,7 +3105,7 @@
         "scripts/check-action-pins.ts"
       ],
       "evidenceCommands": ["pnpm actions:check", "pnpm lint"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REM-010",
@@ -3113,7 +3113,7 @@
       "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": ["scripts/generate-release-artifacts.ts", "scripts/check-release.ts"],
       "evidenceCommands": ["pnpm release:check", "pnpm verify:release-reproducibility"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REL-LOCAL-001",
@@ -3125,7 +3125,7 @@
         "reports/verification/local-gates.json"
       ],
       "evidenceCommands": ["pnpm verify"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REL-LOCAL-002",
@@ -3138,7 +3138,7 @@
         "scripts/check-action-pins.ts"
       ],
       "evidenceCommands": ["pnpm actions:check"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REL-LOCAL-003",
@@ -3150,7 +3150,7 @@
         "scripts/security-check.ts"
       ],
       "evidenceCommands": ["pnpm verify:security"],
-      "status": "open"
+      "status": "verified-local"
     },
     {
       "id": "EOM-REL-EXT-001",
@@ -3188,7 +3188,7 @@
       "source": ["specification/IANA_REGISTRATION_PLAN.md", "website/MAIN_WEBSITE_COPY.md"],
       "evidencePaths": ["docs/project-status.md", "reports/external-gates.md"],
       "evidenceCommands": ["pnpm release:check"],
-      "status": "open",
+      "status": "verified-local",
       "owner": "release authority",
       "blocker": "Deployment and adoption are intentionally not authorized by this release candidate."
     }

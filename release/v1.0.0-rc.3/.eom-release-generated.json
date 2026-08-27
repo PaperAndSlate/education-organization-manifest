@@ -1,0 +1,8 @@
+{
+  "generator": "eom-release",
+  "purpose": "release-candidate",
+  "release": "1.0.0-rc.3",
+  "sourceCommit": "c42b3df9e1670db80c41275eba1eba2058f22c13",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "version": 1
+}

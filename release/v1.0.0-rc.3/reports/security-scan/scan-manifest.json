@@ -5,22 +5,21 @@
       {
         "mediaType": "application/json",
         "path": "findings.json",
-        "sha256": "bb4e68bb603c5f0007c3afd692320733678e602a084cc1137f6d7defeb827411"
+        "sha256": "648d158cf03475afc514ecb3c0b5bf7bf5ef7e5b68623a5ba0c30adeaf98ef7d"
       },
       {
         "mediaType": "application/json",
         "path": "coverage.json",
-        "sha256": "2d2f492f523483a7cfb569904181f5b961cf18cee48961ffe054015ff2fe0f2d"
+        "sha256": "e7cbd6a7a31cdece1b68cc54b56358c46e99599ef1c164968498dbecdaffbebd"
       }
     ],
-    "completedAt": "2026-08-27T02:58:39.442981Z",
+    "completedAt": "2026-08-27T17:40:50.918461Z",
     "coverageRef": "coverage.json",
     "findingsRef": "findings.json",
-    "id": "f8f6779b-8e79-4816-ba42-78970b521815",
+    "id": "d4abb4f5-1f16-4cdd-9122-d24528efbbdb",
     "preservedSources": {
-      "checkpoints/0b59dc154ef4e3b994d521b6c134a37ba0aded261f6770bc73fcbea639c75188.json": "c5780c83a73871c5fe1dcaf78a851e1e282caae3f85fd391bb3cca640ea466c0",
-      "checkpoints/856e605d69858be41df1c4ab373b1f794c61962766bf8d320983de61bc797967.json": "219145ac00145125833a780545e854438f63aab84ac97b27e6e85b2cab33e930",
-      "checkpoints/9332ca98a62e0ddb285d1d74d5fdb975dad3dd19e9d0d411cd3718ab1737ad82.json": "9332ca98a62e0ddb285d1d74d5fdb975dad3dd19e9d0d411cd3718ab1737ad82"
+      "checkpoints/5117c88207ed0ade5a29966e1e268e9ec061a7449c5309b91767de880d633a31.json": "5117c88207ed0ade5a29966e1e268e9ec061a7449c5309b91767de880d633a31",
+      "checkpoints/be7368ffef6ca579d2ba301fd3f1b0b6f06bb195b106220bd93c44f69b77b6a6.json": "c257da470977936d6cf9707611829832867e5ed5cfa8c47290cebdea7833d1b9"
     },
     "producer": {
       "name": "codex-security-plugin",
@@ -28,64 +27,81 @@
     },
     "scope": {
       "artifactsReviewed": [
-        "Final committed source revision 8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38",
-        "release/v1.0.0-rc.3"
+        "packages/core/src/fetch.ts",
+        "packages/core/src/json.ts",
+        "packages/core/src/ids.ts",
+        "packages/authority/src/index.ts",
+        "packages/signatures/src/index.ts",
+        "packages/validator/src/engine.ts",
+        "packages/validator/src/inputs.ts",
+        "packages/validator/src/semantic.ts",
+        "packages/generator/src/index.ts",
+        "packages/cli/src/index.ts",
+        "apps/playground/src/browser-engine.js",
+        "apps/playground/src/app.js",
+        "scripts/generate-release-artifacts.ts",
+        "scripts/check-release-reproducibility.ts",
+        "scripts/check-release.ts",
+        "scripts/record-verification.ts",
+        ".github/workflows"
       ],
-      "context": "Complete EOM v1.0.0-rc.3 candidate in the paperandslate/well-known repository.",
+      "context": "Focused post-remediation review of transport and cache binding, strict input handling, delegation and final-URL authority, signatures, generator output ownership, isolated release reproducibility roots, archive traversal, package boundaries, browser inputs, CI, and release evidence.",
       "excludePaths": [],
       "includePaths": [
         "."
       ],
       "limitations": [
-        "External registration, legal/governance approval, independent pilots, deployment, and production adoption remain explicitly blocked."
+        "Independent baseline worker was unavailable because the desktop thread worker limit was reached; parent-thread source review and executable gates provide the recorded review basis.",
+        "Linux, macOS, and external CI execution are not available in this local Windows session."
       ],
-      "runtimeStatus": "Local deterministic build, test, package, release, and security checks completed for the final committed candidate.",
-      "summary": "Standard prompt-only security review of the final committed RC3 candidate after conformance, security, and evidence-binding remediation.",
-      "validationMode": "standard prompt-only review"
+      "summary": "Authoritative Standard scan over the complete repository at the exact clean committed source revision."
     },
-    "sealedAt": "2026-08-27T02:58:39.442981Z",
-    "startedAt": "2026-08-27T02:55:32.526802Z",
+    "sealedAt": "2026-08-27T17:40:50.918461Z",
+    "startedAt": "2026-08-27T17:39:50.638000Z",
     "status": "completed",
     "target": {
       "displayName": "well-known",
       "kind": "git_revision",
-      "revision": "8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38",
+      "revision": "c42b3df9e1670db80c41275eba1eba2058f22c13",
       "targetId": "target_sha256_7c22d80eb592711a4a29f0237589139f73e10edfd120e36f9c6ca5a99a48f88d"
     },
     "threatModel": {
       "assets": [
-        "Published EOM manifests and resource graphs",
-        "Delegation and signature authority decisions",
-        "Generated publication and release artifacts",
-        "Consumer validator and browser-facing behavior",
-        "Traceability and release provenance"
+        "Public EOM publication integrity",
+        "Delegation and final-URL authorization",
+        "Detached signature authenticity and lifetime",
+        "Generator output and release archive integrity",
+        "Release provenance, traceability, and package boundaries"
       ],
       "assumptions": [
-        "TLS certificate hostname verification remains required for HTTPS transport.",
-        "Cryptographic verification uses trusted configured public keys.",
-        "External governance and operational gates are not represented as locally completed."
+        "The scan target is the exact clean committed source revision named by the scan context.",
+        "Historical candidate and pre-remediation reports are evidence only.",
+        "External registration, pilot, legal/governance, deployment, and stable-publication gates are not local security findings."
       ],
       "attackerCapabilities": [
-        "Control or vary DNS answers and redirect destinations.",
-        "Provide malformed, oversized, cyclic, stale, or symlinked local inputs and cache entries.",
-        "Attempt unsafe partial output replacement or marker reuse.",
-        "Modify delegation, subject, key, timestamp, signature, vocabulary, and manifest metadata.",
-        "Exploit package boundaries, browser inputs, or stale completion evidence."
+        "Supply malformed or adversarial JSON/YAML",
+        "Control or race DNS answers and HTTP redirects",
+        "Provide unauthorized delegated origins or scope metadata",
+        "Mutate signature lifetime, key, and sidecar metadata",
+        "Supply polluted runtime objects or workspace dependency links",
+        "Attempt unsafe output paths, symlinks, stale markers, temporary roots, or release archive traversal"
       ],
       "securityObjectives": [
-        "Prevent SSRF, DNS rebinding, unauthorized graph traversal, and scope bypass.",
-        "Fail closed on malformed, expired, revoked, mismatched, or unbounded inputs.",
-        "Prevent destructive or cross-project generated-output replacement.",
-        "Bind signatures, release evidence, and completion claims to verifiable inputs and revisions."
+        "Fail closed on malformed, oversized, cyclic, or ambiguous inputs",
+        "Bind connections to validated addresses and revalidate redirects and cache hits",
+        "Enforce delegation origin/path/type/id/subject/time/revocation/key scope",
+        "Cryptographically bind signature metadata and expiry",
+        "Prevent destructive or cross-project generated-output replacement and archive traversal",
+        "Keep release evidence tied to an exact committed source tree and lockfile"
       ],
-      "summary": "The public publication graph, generator, validator, signing flow, package distribution, and release evidence must remain safe when inputs, DNS, redirects, cache contents, signatures, manifests, and generated output are attacker-influenced.",
+      "summary": "Whole-repository post-remediation review of public EOM authoring, validation, retrieval, authority, signing, browser, packaging, release archives, reproducibility, and evidence paths.",
       "trustBoundaries": [
-        "Authoring filesystem to generator",
-        "DNS/network transport to fetched publication graph",
-        "Declared resource metadata to observed final URL",
-        "Delegated authority to signed resource",
-        "Workspace source revision to packed/released artifacts",
-        "Browser or CLI user input to validator and report output"
+        "Untrusted local authoring files to generator",
+        "Untrusted network DNS/HTTP responses to validator",
+        "Root manifest declarations to delegated resource fetches",
+        "Detached signature/key-set inputs to verification",
+        "Browser uploads and same-origin validation responses",
+        "Committed source revision to generated release evidence"
       ]
     }
   },

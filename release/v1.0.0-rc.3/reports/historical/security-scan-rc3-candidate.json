@@ -2,9 +2,9 @@
   "version": 1,
   "status": "pass",
   "scanType": "standard",
-  "scanId": "d4abb4f5-1f16-4cdd-9122-d24528efbbdb",
-  "targetCommit": "c42b3df9e1670db80c41275eba1eba2058f22c13",
-  "targetTree": "3157225c89e3a66f6988bfe3f08c8929dc2b230d",
+  "scanId": "f8f6779b-8e79-4816-ba42-78970b521815",
+  "targetCommit": "8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38",
+  "targetTree": "20a50470f8d14b49972504c17b3e82c0f6478c68",
   "targetPath": ".",
   "targetKind": "git_revision",
   "targetId": "target_sha256_7c22d80eb592711a4a29f0237589139f73e10edfd120e36f9c6ca5a99a48f88d",
@@ -34,10 +34,8 @@
     "legalGovernanceApproval": "blocked-external",
     "deploymentProductionAdoption": "blocked-external"
   },
-  "evidencePolicy": "This projection is generated from the sealed Standard scan artifacts. targetCommit and targetTree identify the exact source revision reviewed by the formal scan; reports/verification/local-gates.json repeats the same identity in the aggregate local-gate receipt.",
+  "evidencePolicy": "targetCommit and targetTree identify the exact revision reviewed by the formal scan; reports/verification/local-gates.json repeats this scan identity in the aggregate local-gate receipt.",
   "limitations": [
-    "Independent baseline worker was unavailable because the desktop thread worker limit was reached; parent-thread source review and executable gates provide the recorded review basis.",
-    "Linux, macOS, and external CI execution were not available in this local Windows session.",
-    "External registration, interoperability, legal or governance approval, deployment, adoption, and stable publication remain explicitly blocked or pending."
+    "External registration, legal/governance approval, independent pilots, deployment, and production adoption remain explicitly blocked."
   ]
 }

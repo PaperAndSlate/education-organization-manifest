@@ -3,32 +3,32 @@
     {
       "bytes": 5507,
       "path": "build-provenance.json",
-      "sha256": "ad2322da0a0ceb9b26495ca664194e11994939ee6d6ca22df2a63e017d99e48f"
+      "sha256": "03e44ae5794e1651ac31b9ddcb9ab724229a110cfe60dd167a8799dc04aac46b"
     },
     {
-      "bytes": 30894,
+      "bytes": 31505,
       "path": "checksums.sha256",
-      "sha256": "070d2393ae27fb19a23001a17a30f24baaa39e663b750225e5fcf1e7dfdf92c7"
+      "sha256": "6213da2c30f43c475070ee50d8833ac4ca0e502508bd249bce7f81834a0778d3"
     },
     {
-      "bytes": 773534,
+      "bytes": 814039,
       "path": "educational-organization-manifest-1.0.0-rc.3.tar.gz",
-      "sha256": "d1fa31feb64710fe4070978f253432e78967476f14ce51272ad16186ad3f6879"
+      "sha256": "d7f24c28cd51d695f96932109bbd22bc80bb0501236cf324230c3b6a85ee87d4"
     },
     {
-      "bytes": 50138,
+      "bytes": 54336,
       "path": "eom-conformance-1.0.0-rc.3.tar.gz",
-      "sha256": "cf329764d07838828c7b30c199a2fe1c5dd69594248fa00084ee9f7b6edf19c7"
+      "sha256": "0d8af7ef6f35906bb33eb8902c42a0d475a7850b0dec30b963ff85a427d6d65a"
     },
     {
-      "bytes": 193966,
+      "bytes": 196210,
       "path": "eom-documentation-1.0.0-rc.3.tar.gz",
-      "sha256": "f5d0a9c420f0e698f56e2a08856a1a010ad99108f3cf9c6af9c93e2ca306079f"
+      "sha256": "abce42c245c7b4c1e509e3024eb12aa71165470668cc2024039c5a681162aac8"
     },
     {
-      "bytes": 17157,
+      "bytes": 17162,
       "path": "eom-schemas-1.0.0-rc.3.tar.gz",
-      "sha256": "91aae9f8364d8b6f13b5d710c9c5098841ae95ea33b361fa71debf97df5fe91c"
+      "sha256": "69f237e50fefe7e71e51939bc2b02276a103f6f53776f1c4be75457d1635a2dd"
     },
     {
       "bytes": 15568,
@@ -41,9 +41,9 @@
       "sha256": "fa05941924e0dceb9d55c11a726f47647bd3450985bcf1b698a96213ec14d706"
     },
     {
-      "bytes": 9930,
+      "bytes": 10010,
       "path": "package-pack-manifest.json",
-      "sha256": "dbf66558aa6b7a60a0a5026654dee83712b658d2e61f830d177c4c863a6b78fb"
+      "sha256": "3cf60216fa670bbed5f2aa5600240a15c7fa08febec45b14f59b7170054a4090"
     },
     {
       "bytes": 11271,
@@ -56,14 +56,14 @@
       "sha256": "ce931b4ece9d7eafd6b3f297310e2675d320c5a75dd2040513834df45a19279a"
     },
     {
-      "bytes": 5050,
+      "bytes": 7635,
       "path": "packages/paperandslate-eom-authority-1.0.0-rc.3.tgz",
-      "sha256": "b845e36add704dcebd75d476e278efb94594aa7578091fa56842aebeb6e1ed15"
+      "sha256": "28dcc548b0bcca16cb10e0cbfa94037cb08d4741040ab16240bdc9e0c62dee93"
     },
     {
-      "bytes": 17201,
+      "bytes": 20083,
       "path": "packages/paperandslate-eom-cli-1.0.0-rc.3.tgz",
-      "sha256": "f727c6fc5763f504cbaf0099325557d459bd2b5bd09844e1a8728a218c97ba08"
+      "sha256": "1a755b7a2d0aae602129c74675bbd00ad0dacf501b0efdf8ee8c563976fd3c61"
     },
     {
       "bytes": 2298,
@@ -71,29 +71,29 @@
       "sha256": "e2ff17091b8d2d065e386e9f42aefcee9d83dce68fe1ad38b0efcf2b72981e90"
     },
     {
-      "bytes": 3465,
+      "bytes": 4671,
       "path": "packages/paperandslate-eom-conformance-runner-1.0.0-rc.3.tgz",
-      "sha256": "11493f3191fab8d831b6456fa0aa3819c07cf574207c19e9dcac21d390a8bab3"
+      "sha256": "5c7c7b31e3ef95372d8a4a9940c3be3e5677287f60853e64891c8cf9ca682e54"
     },
     {
-      "bytes": 16555,
+      "bytes": 20427,
       "path": "packages/paperandslate-eom-core-1.0.0-rc.3.tgz",
-      "sha256": "10b761c15be4854916caece8609e381a6efea689f9e713e4d99b2ac2a0bcf3d8"
+      "sha256": "8daad65f997a3a0177eaa2696f67bc85b3fff4f0b61b06381a5a3110db6e41fe"
     },
     {
-      "bytes": 24903,
+      "bytes": 27680,
       "path": "packages/paperandslate-eom-generator-1.0.0-rc.3.tgz",
-      "sha256": "991cb64850d55d53bbe1b8152e439890f0cecb696f076a2dd5f3e9cde56a8b59"
+      "sha256": "d6b08573cf0ea85e93ccda418bb5cf9f3ff3304bfc38458df3b23d943374343c"
     },
     {
-      "bytes": 3520,
+      "bytes": 4523,
       "path": "packages/paperandslate-eom-linter-1.0.0-rc.3.tgz",
-      "sha256": "5c386d32a72aa5d3f1b898497757a020f6dfa97ccf71a319d74502d8f9700fa7"
+      "sha256": "60c46abda8b86746226bcfb833e1e7c919428035da6e3534e9523faeee06f280"
     },
     {
-      "bytes": 19863,
+      "bytes": 19869,
       "path": "packages/paperandslate-eom-schema-1.0.0-rc.3.tgz",
-      "sha256": "3e4e8f4eca3f6bd37231a331e4de6e419165967b093f9f1ad49a8d09e30e3f8a"
+      "sha256": "5ccb859c7a9efbf899dc95caa2019585ec85940dd44e734ab947d0350008cc5e"
     },
     {
       "bytes": 1017,
@@ -101,34 +101,39 @@
       "sha256": "cfb78c0e8e8a8e86e8bc0279226f902c5f94057703f1f33d72f70032fb1d6700"
     },
     {
-      "bytes": 10062,
+      "bytes": 11261,
       "path": "packages/paperandslate-eom-signatures-1.0.0-rc.3.tgz",
-      "sha256": "5360c1bfc855c22b288a008ed86df99a1080cf9bed259547ab50aa0470d17e41"
+      "sha256": "384fe07fa171330beee67ce5869156c9545c87168900449df281a0eca0c88648"
     },
     {
-      "bytes": 14447,
+      "bytes": 17340,
       "path": "packages/paperandslate-eom-testkit-1.0.0-rc.3.tgz",
-      "sha256": "a41ccc6c37bd5d0455cdf8577d02ad6f6e67f606c0d9a59a622d944ba5d28036"
+      "sha256": "e505f0e3feaae7a80d10bc3d1a53a2fea71e5c3e433084651ee1d53fffad9e9a"
     },
     {
-      "bytes": 12971,
+      "bytes": 12968,
       "path": "packages/paperandslate-eom-types-1.0.0-rc.3.tgz",
-      "sha256": "e9856e22712e54dd4cddac2daa55ce3a2ac4c373281a3828c045a649bcd5c22b"
+      "sha256": "c88aaffd007fff87503b852bb298d46a71d79c46a3c715963958f62842f658cc"
     },
     {
-      "bytes": 16852,
+      "bytes": 19311,
       "path": "packages/paperandslate-eom-validator-1.0.0-rc.3.tgz",
-      "sha256": "6b250c090b58c9c14a416582566c1770a877d943f97dd8698ec1a736654c3560"
+      "sha256": "847d1f853e56a6803bc1014fd4bd9d788cdc1ef4efea00efa720b23d425c9bba"
     },
     {
       "bytes": 94236,
       "path": "sbom.cdx.json",
-      "sha256": "a23f394d5d9f513bd7406d4700bf5275ba14032f12a692fbb09926bd9f071309"
+      "sha256": "1121d9a0edbc6517f8ee705ba2f67069562c63cc95582d8a69e880840092dc8f"
+    },
+    {
+      "bytes": 233,
+      "path": "v1.0.0-rc.3/.eom-release-generated.json",
+      "sha256": "d1c4cc881955c52defc3e1c2b3ab54957e93d2a0cc33a01204ebce4ffcbfd403"
     },
     {
       "bytes": 381,
       "path": "v1.0.0-rc.3/STATUS.md",
-      "sha256": "550910f2bdec855ac18446c6261cca811ea077fbdc05dff8e33769e352857893"
+      "sha256": "eb763bef55224ead9d3101accb36c014079f867430d4413b70462412488dffff"
     },
     {
       "bytes": 997,
@@ -741,6 +746,16 @@
       "sha256": "eb9f79caf9eb8468c32ec8afb1c9e09ba16d46f4e5f6066bd0677e6bd90e0857"
     },
     {
+      "bytes": 420,
+      "path": "v1.0.0-rc.3/reports/historical/README.md",
+      "sha256": "77072ff9f0572be9f6674fa11fc660e1fe07277562fbe3f2b43f4f6b2a6f5b48"
+    },
+    {
+      "bytes": 1521,
+      "path": "v1.0.0-rc.3/reports/historical/security-scan-rc3-candidate.json",
+      "sha256": "75b796f66a041711f2fb49d8577cec9668889f6c1747ae51f08f2eac2e98df0b"
+    },
+    {
       "bytes": 502,
       "path": "v1.0.0-rc.3/reports/license-audit.md",
       "sha256": "2027f4db01dee6d51ecb2beb74dc7bb205f4ff538b54db3b9cc3838369688908"
@@ -796,14 +811,14 @@
       "sha256": "70ba5be77181b2186583c96b38ad9aeaacb424a9ea39449a17d3747a1cc18306"
     },
     {
-      "bytes": 2267,
+      "bytes": 2763,
       "path": "v1.0.0-rc.3/reports/release-checklist.md",
-      "sha256": "2c03afcc699fec35bad9597e79358ff4f3ed380cfb5b6c4a0c94e8fc200e8d9a"
+      "sha256": "efe2b38d9f03ea64138fab708f55893f90a6a38594f5bcfd8b836054528cfcb3"
     },
     {
-      "bytes": 2371,
+      "bytes": 3371,
       "path": "v1.0.0-rc.3/reports/remediation-audit.md",
-      "sha256": "de271622804d2b30e67c478ffab2b91a057dbfd23b24781b7556d5a142999d98"
+      "sha256": "0f41ef2fd31aaf98247a5999678ee6630a2d3e396042739d9a6a06c5d3425150"
     },
     {
       "bytes": 495,
@@ -821,44 +836,54 @@
       "sha256": "25b64a471b337724473a4c2ec9b45328169573f6ca9069e6f3653f92559eceb3"
     },
     {
+      "bytes": 1584,
+      "path": "v1.0.0-rc.3/reports/security-scan-pre-remediation-current.md",
+      "sha256": "e9e37bfe9f8eee3665587893051dfb8b480996c739cfe76624e6f7f7b9760932"
+    },
+    {
       "bytes": 1238,
       "path": "v1.0.0-rc.3/reports/security-scan-pre-remediation.md",
       "sha256": "7c2ad571c881011d9a0d99d99bc6d447a8ad9d00379d9f7ec3452a3c6d5c20f3"
     },
     {
-      "bytes": 1521,
+      "bytes": 1903,
       "path": "v1.0.0-rc.3/reports/security-scan.json",
-      "sha256": "75b796f66a041711f2fb49d8577cec9668889f6c1747ae51f08f2eac2e98df0b"
+      "sha256": "e5a03d7d6e805f27d9d9f746bacc68dc0f2d56d0d1789414f45d8049c5aa23db"
     },
     {
-      "bytes": 1581,
+      "bytes": 1844,
       "path": "v1.0.0-rc.3/reports/security-scan.md",
-      "sha256": "dd0ef90955bb4cafe3f7b839669e6682b19176fb381c88eae5b4bb9d70c11d95"
+      "sha256": "9e2dd2cb709b2bd25a562c7144a8c04147605d4f78b3c037ac33bfcbad86bca3"
     },
     {
-      "bytes": 3466,
+      "bytes": 5620,
       "path": "v1.0.0-rc.3/reports/security-scan/coverage.json",
-      "sha256": "2d2f492f523483a7cfb569904181f5b961cf18cee48961ffe054015ff2fe0f2d"
+      "sha256": "e7cbd6a7a31cdece1b68cc54b56358c46e99599ef1c164968498dbecdaffbebd"
     },
     {
       "bytes": 144,
       "path": "v1.0.0-rc.3/reports/security-scan/findings.json",
-      "sha256": "bb4e68bb603c5f0007c3afd692320733678e602a084cc1137f6d7defeb827411"
+      "sha256": "648d158cf03475afc514ecb3c0b5bf7bf5ef7e5b68623a5ba0c30adeaf98ef7d"
     },
     {
-      "bytes": 5470,
+      "bytes": 6356,
       "path": "v1.0.0-rc.3/reports/security-scan/report.md",
-      "sha256": "a72843433eb0767777b78c52779b9ed3799959677fe870d2a13c7ed2aaa6234b"
+      "sha256": "21af62c6dfbd9b91ec33e6c707902dbf70b4b8b2b4c9f81b401dc2f2ae86d987"
     },
     {
-      "bytes": 4603,
+      "bytes": 5332,
       "path": "v1.0.0-rc.3/reports/security-scan/scan-manifest.json",
-      "sha256": "40c1be04d0342e1a0c034680c0713067d0ea9980116c2e95dd6f51fa338b381b"
+      "sha256": "2eb5225028aec459af402dd2a870aa29cec4c7516f4c7da4dc8cc12447fabe70"
+    },
+    {
+      "bytes": 2924,
+      "path": "v1.0.0-rc.3/reports/verification/historical/local-gates-rc3-candidate.json",
+      "sha256": "d832a3821977a3e91809bcdd1dd3aa716363be4b91f4415b005fea13b798da68"
     },
     {
       "bytes": 3452,
       "path": "v1.0.0-rc.3/reports/verification/local-gates.json",
-      "sha256": "67b369c28a03181da1f2444f1ebf170debe92fe14084e65bce92f6474b58eb5c"
+      "sha256": "3b2bcaf23f0960969aad1118b47c84fdd3b25cb86589fe9fa623be8b605e65b2"
     },
     {
       "bytes": 133729,
@@ -886,9 +911,9 @@
       "sha256": "2f0de25ce276e4b8eb4cd32fa5eb6f5a9f4606fbebbb360ff3cfdd6fc596431f"
     },
     {
-      "bytes": 8616,
+      "bytes": 8617,
       "path": "v1.0.0-rc.3/schemas/1.0/common.schema.json",
-      "sha256": "b681150dbea6b67f989de1b9d1d7d6cd109dbe172740505905c3141440b7cd5c"
+      "sha256": "cfcc142bdbd5a0a9108c1826940e9589139298969e54f36f3b42bca54b0505ac"
     },
     {
       "bytes": 5983,
@@ -921,9 +946,9 @@
       "sha256": "6be9593231a5c9e312a942e0b8f0cd76f958d8395e8aeaa4bffdde4a4208cf04"
     },
     {
-      "bytes": 3114,
+      "bytes": 3158,
       "path": "v1.0.0-rc.3/schemas/1.0/delegation.schema.json",
-      "sha256": "71a3f48d42c42079c37dc134c4a041d9d2a4afb58c619bb22687c0d118d6cf4e"
+      "sha256": "77e84dbf6c34f28915a7188759bf91b94b05919636f80cd6adb434e7a7cf0ff3"
     },
     {
       "bytes": 4165,
@@ -1345,8 +1370,8 @@
   "protocolStatus": "working-draft",
   "release": "1.0.0-rc.3",
   "schemaBase": "https://paperandslate.org/schemas/eom/1.0/",
-  "sourceCommit": "ec48db9f3789810dec4a69c97ec7e73f823cce21",
+  "sourceCommit": "c42b3df9e1670db80c41275eba1eba2058f22c13",
   "sourceDateEpoch": 0,
-  "sourceTree": "0b985b5cb9e79f40a8b808b78b8f7d8369c4771c",
+  "sourceTree": "3157225c89e3a66f6988bfe3f08c8929dc2b230d",
   "specification": "https://paperandslate.org/spec/eom/1.0"
 }

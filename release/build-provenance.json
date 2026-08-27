@@ -14,13 +14,13 @@
       "resolvedDependencies": [
         {
           "digest": {
-            "sha1": "ec48db9f3789810dec4a69c97ec7e73f823cce21"
+            "sha1": "c42b3df9e1670db80c41275eba1eba2058f22c13"
           },
-          "uri": "git:ec48db9f3789810dec4a69c97ec7e73f823cce21"
+          "uri": "git:c42b3df9e1670db80c41275eba1eba2058f22c13"
         },
         {
           "digest": {
-            "sha256": "6189b85d4df6839209c12bd5db79fe042477277dc69d09eef7432add96ce7db1"
+            "sha256": "83cc8dc0c83cb333453620ff80a69bb5480558b6655812190f893162ae2efb8f"
           },
           "uri": "file:pnpm-lock.yaml"
         }
@@ -39,12 +39,12 @@
   },
   "predicateType": "https://slsa.dev/provenance/v1",
   "provenanceStatus": "local metadata; not a signed external attestation",
-  "sourceCommit": "ec48db9f3789810dec4a69c97ec7e73f823cce21",
-  "sourceTree": "0b985b5cb9e79f40a8b808b78b8f7d8369c4771c",
+  "sourceCommit": "c42b3df9e1670db80c41275eba1eba2058f22c13",
+  "sourceTree": "3157225c89e3a66f6988bfe3f08c8929dc2b230d",
   "subject": [
     {
       "digest": {
-        "sha256": "d1fa31feb64710fe4070978f253432e78967476f14ce51272ad16186ad3f6879"
+        "sha256": "d7f24c28cd51d695f96932109bbd22bc80bb0501236cf324230c3b6a85ee87d4"
       },
       "name": "educational-organization-manifest-1.0.0-rc.3.tar.gz"
     },
@@ -56,7 +56,7 @@
     },
     {
       "digest": {
-        "sha256": "91aae9f8364d8b6f13b5d710c9c5098841ae95ea33b361fa71debf97df5fe91c"
+        "sha256": "69f237e50fefe7e71e51939bc2b02276a103f6f53776f1c4be75457d1635a2dd"
       },
       "name": "eom-schemas-1.0.0-rc.3.tar.gz"
     },
@@ -68,25 +68,25 @@
     },
     {
       "digest": {
-        "sha256": "cf329764d07838828c7b30c199a2fe1c5dd69594248fa00084ee9f7b6edf19c7"
+        "sha256": "0d8af7ef6f35906bb33eb8902c42a0d475a7850b0dec30b963ff85a427d6d65a"
       },
       "name": "eom-conformance-1.0.0-rc.3.tar.gz"
     },
     {
       "digest": {
-        "sha256": "f5d0a9c420f0e698f56e2a08856a1a010ad99108f3cf9c6af9c93e2ca306079f"
+        "sha256": "abce42c245c7b4c1e509e3024eb12aa71165470668cc2024039c5a681162aac8"
       },
       "name": "eom-documentation-1.0.0-rc.3.tar.gz"
     },
     {
       "digest": {
-        "sha256": "a23f394d5d9f513bd7406d4700bf5275ba14032f12a692fbb09926bd9f071309"
+        "sha256": "1121d9a0edbc6517f8ee705ba2f67069562c63cc95582d8a69e880840092dc8f"
       },
       "name": "sbom.cdx.json"
     },
     {
       "digest": {
-        "sha256": "11493f3191fab8d831b6456fa0aa3819c07cf574207c19e9dcac21d390a8bab3"
+        "sha256": "5c7c7b31e3ef95372d8a4a9940c3be3e5677287f60853e64891c8cf9ca682e54"
       },
       "name": "packages/paperandslate-eom-conformance-runner-1.0.0-rc.3.tgz"
     },
@@ -104,13 +104,13 @@
     },
     {
       "digest": {
-        "sha256": "b845e36add704dcebd75d476e278efb94594aa7578091fa56842aebeb6e1ed15"
+        "sha256": "28dcc548b0bcca16cb10e0cbfa94037cb08d4741040ab16240bdc9e0c62dee93"
       },
       "name": "packages/paperandslate-eom-authority-1.0.0-rc.3.tgz"
     },
     {
       "digest": {
-        "sha256": "f727c6fc5763f504cbaf0099325557d459bd2b5bd09844e1a8728a218c97ba08"
+        "sha256": "1a755b7a2d0aae602129c74675bbd00ad0dacf501b0efdf8ee8c563976fd3c61"
       },
       "name": "packages/paperandslate-eom-cli-1.0.0-rc.3.tgz"
     },
@@ -122,25 +122,25 @@
     },
     {
       "digest": {
-        "sha256": "10b761c15be4854916caece8609e381a6efea689f9e713e4d99b2ac2a0bcf3d8"
+        "sha256": "8daad65f997a3a0177eaa2696f67bc85b3fff4f0b61b06381a5a3110db6e41fe"
       },
       "name": "packages/paperandslate-eom-core-1.0.0-rc.3.tgz"
     },
     {
       "digest": {
-        "sha256": "991cb64850d55d53bbe1b8152e439890f0cecb696f076a2dd5f3e9cde56a8b59"
+        "sha256": "d6b08573cf0ea85e93ccda418bb5cf9f3ff3304bfc38458df3b23d943374343c"
       },
       "name": "packages/paperandslate-eom-generator-1.0.0-rc.3.tgz"
     },
     {
       "digest": {
-        "sha256": "5c386d32a72aa5d3f1b898497757a020f6dfa97ccf71a319d74502d8f9700fa7"
+        "sha256": "60c46abda8b86746226bcfb833e1e7c919428035da6e3534e9523faeee06f280"
       },
       "name": "packages/paperandslate-eom-linter-1.0.0-rc.3.tgz"
     },
     {
       "digest": {
-        "sha256": "3e4e8f4eca3f6bd37231a331e4de6e419165967b093f9f1ad49a8d09e30e3f8a"
+        "sha256": "5ccb859c7a9efbf899dc95caa2019585ec85940dd44e734ab947d0350008cc5e"
       },
       "name": "packages/paperandslate-eom-schema-1.0.0-rc.3.tgz"
     },
@@ -152,25 +152,25 @@
     },
     {
       "digest": {
-        "sha256": "5360c1bfc855c22b288a008ed86df99a1080cf9bed259547ab50aa0470d17e41"
+        "sha256": "384fe07fa171330beee67ce5869156c9545c87168900449df281a0eca0c88648"
       },
       "name": "packages/paperandslate-eom-signatures-1.0.0-rc.3.tgz"
     },
     {
       "digest": {
-        "sha256": "a41ccc6c37bd5d0455cdf8577d02ad6f6e67f606c0d9a59a622d944ba5d28036"
+        "sha256": "e505f0e3feaae7a80d10bc3d1a53a2fea71e5c3e433084651ee1d53fffad9e9a"
       },
       "name": "packages/paperandslate-eom-testkit-1.0.0-rc.3.tgz"
     },
     {
       "digest": {
-        "sha256": "e9856e22712e54dd4cddac2daa55ce3a2ac4c373281a3828c045a649bcd5c22b"
+        "sha256": "c88aaffd007fff87503b852bb298d46a71d79c46a3c715963958f62842f658cc"
       },
       "name": "packages/paperandslate-eom-types-1.0.0-rc.3.tgz"
     },
     {
       "digest": {
-        "sha256": "6b250c090b58c9c14a416582566c1770a877d943f97dd8698ec1a736654c3560"
+        "sha256": "847d1f853e56a6803bc1014fd4bd9d788cdc1ef4efea00efa720b23d425c9bba"
       },
       "name": "packages/paperandslate-eom-validator-1.0.0-rc.3.tgz"
     }
