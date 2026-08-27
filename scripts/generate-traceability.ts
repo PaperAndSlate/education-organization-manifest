@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { format as formatPrettier } from 'prettier';
 
 const root = resolve(process.cwd());
 const manifestPath = join(root, 'plans', 'pack-manifest.json');
@@ -104,8 +105,23 @@ const document = {
   planFiles,
   atomicRequirements,
 };
-await writeFile(outputPath, `${JSON.stringify(document, null, 2)}\n`, 'utf8');
-await writeFile(matrixPath, renderMatrix(document), 'utf8');
+await writeFile(
+  outputPath,
+  await formatPrettier(JSON.stringify(document, null, 2), {
+    parser: 'json',
+    printWidth: 100,
+  }),
+  'utf8',
+);
+await writeFile(
+  matrixPath,
+  await formatPrettier(renderMatrix(document), {
+    parser: 'markdown',
+    printWidth: 100,
+    proseWrap: 'preserve',
+  }),
+  'utf8',
+);
 process.stdout.write(
   `generated traceability for ${planFiles.length} planning files and ${atomicRequirements.length} atomic requirements\n`,
 );
