@@ -199,7 +199,7 @@ export async function prepareReleaseArtifacts(
   const provenanceBytes = Buffer.from(stringifyCanonical(provenance), 'utf8');
   await writeFile(join(targetRoot, 'build-provenance.json'), provenanceBytes);
 
-  const candidateFiles = await filesWithBytes(candidateDirectory);
+  const candidateFiles = await filesWithBytes(candidateDirectory, targetRoot);
   const releaseArtifacts: ReleaseArtifact[] = [
     ...candidateFiles.map((file) => ({
       path: `v${RELEASE_VERSION}/${file.relativePath}`,
@@ -607,13 +607,13 @@ function isArchivePath(path: string): boolean {
   return extname(normalized) !== '.log';
 }
 
-async function filesWithBytes(directory: string): Promise<ReleaseFile[]> {
+async function filesWithBytes(directory: string, allowedRoot = root): Promise<ReleaseFile[]> {
   const paths = await walk(directory);
   const files: ReleaseFile[] = [];
   for (const path of paths) {
     files.push({
       relativePath: relative(directory, path).replaceAll('\\', '/'),
-      bytes: await readReleaseInput(path),
+      bytes: await readReleaseInput(path, allowedRoot),
     });
   }
   return files.sort((left, right) => compareStrings(left.relativePath, right.relativePath));
@@ -924,7 +924,10 @@ async function assertReplaceableCandidateDirectory(
   if (await exists(markerPath)) {
     let marker: unknown;
     try {
-      marker = parseStrictJson((await readReleaseInput(markerPath)).toString('utf8'), markerPath);
+      marker = parseStrictJson(
+        (await readReleaseInput(markerPath, outputRoot)).toString('utf8'),
+        markerPath,
+      );
     } catch {
       throw new Error(`The release candidate ownership marker ${markerPath} is invalid.`);
     }
@@ -939,7 +942,7 @@ async function assertReplaceableCandidateDirectory(
     }
   } else {
     const statusPath = join(candidateDirectory, 'STATUS.md');
-    const status = (await readReleaseInput(statusPath)).toString('utf8');
+    const status = (await readReleaseInput(statusPath, outputRoot)).toString('utf8');
     if (!status.startsWith(`# EOM ${RELEASE_VERSION}\n`)) {
       throw new Error(`Refusing to replace an unmarked release candidate: ${candidateDirectory}`);
     }
@@ -1016,15 +1019,15 @@ function normalizeFsPath(value: string): string {
   return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
-async function readReleaseInput(path: string): Promise<Buffer> {
+async function readReleaseInput(path: string, allowedRoot = root): Promise<Buffer> {
   const information = await lstat(path);
   if (information.isSymbolicLink() || !information.isFile()) {
     throw new Error(`Release input must be a regular file without symlink traversal: ${path}`);
   }
-  const projectRoot = await existingRealPath(root);
+  const trustedRoot = await existingRealPath(allowedRoot);
   const fileReal = await realpath(path);
-  if (!isWithin(projectRoot, fileReal)) {
-    throw new Error(`Release input escapes the project root: ${path}`);
+  if (!isWithin(trustedRoot, fileReal)) {
+    throw new Error(`Release input escapes its trusted root: ${path}`);
   }
   return readFile(path);
 }
