@@ -2,18 +2,22 @@
 
 Status: historical, superseded, and preserved for audit provenance.
 
-- Scan: `5a9b2061-44d3-4203-88ca-0eade4e56e11`
+- Scan: `7d2b34bb-c4b0-4fe1-a167-e5e80b31e363`
+- Target revision: `f1aaa66324e99b3c8f04c7325e7cdb485951deaa`
 - Scope: the pre-remediation implementation baseline
-- Findings: five confirmed security and plan-conformance defects
+- Findings: six confirmed security and plan-conformance defects
 
 The findings were:
 
-1. delegated signature key allowlists were not enforced;
-2. redirect destinations were not re-authorized against the declared resource;
-3. signature expiry metadata was mutable outside the protected signature input;
-4. delegated resource subjects were not enforced; and
-5. delegations lacked a required finite validity bound.
+1. canonical JSON serialization dropped an own `__proto__` property;
+2. the CLI allocated an unbounded file before applying its size limit;
+3. generator output replacement had a pathname time-of-check/time-of-use race;
+4. iCalendar mapping accepted carriage-return/line-feed injection;
+5. mapping adapters lacked local resource limits; and
+6. the browser signature verifier did not match the Node verifier's protected-field checks.
 
 This artifact is evidence of the starting state, not evidence of a current vulnerability or a
-completed fix. Each item is now represented by executable characterization/regression coverage and
-must remain closed only while the aggregate verification and post-remediation formal scan pass.
+completed fix. The six items are now represented by executable characterization/regression coverage
+and hardened implementations. They must remain closed only while the aggregate verification and
+post-remediation formal scan pass. The earlier five-finding audit summary is superseded by this
+correction; no historical scan result is silently rewritten.

@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { readFileSync as readFileBytes } from 'node:fs';
 import { access, readFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 
@@ -6,6 +8,7 @@ const root = resolve(process.cwd());
 const manifestPath = join(root, 'plans', 'pack-manifest.json');
 const traceabilityPath = join(root, 'requirements', 'plan-file-traceability.json');
 const matrixPath = join(root, 'requirements', 'TRACEABILITY_MATRIX.md');
+const verificationPath = join(root, 'reports', 'verification', 'local-gates.json');
 const failures: string[] = [];
 
 const manifest = parseJson(await readFile(manifestPath, 'utf8'), manifestPath);
@@ -15,6 +18,13 @@ const manifestFiles = asArray(manifest.files);
 const planEntries = asArray(traceability.planFiles);
 const atomicEntries = asArray(traceability.atomicRequirements);
 const traceabilitySource = isRecord(traceability.source) ? traceability.source : {};
+const verification = await readOptionalJson(verificationPath);
+
+if (!verification) {
+  failures.push(
+    'missing executable aggregate verification receipt reports/verification/local-gates.json',
+  );
+}
 
 if (manifestFiles.length !== 194)
   failures.push(`planning-pack manifest must contain 194 files, found ${manifestFiles.length}`);
@@ -53,6 +63,7 @@ for (const [index, value] of manifestFiles.entries()) {
 const ids = new Set<string>();
 const planPaths = new Set<string>();
 const scripts = isRecord(packageJson.scripts) ? packageJson.scripts : {};
+if (verification) checkVerificationReceipt(verification, scripts);
 for (const [index, value] of planEntries.entries()) {
   if (!isRecord(value)) {
     failures.push(`traceability plan entry ${index} is not an object`);
@@ -180,6 +191,27 @@ function parseJson(text: string, path: string): Record<string, unknown> {
   }
 }
 
+async function readOptionalJson(path: string): Promise<unknown> {
+  try {
+    return JSON.parse(await readFile(path, 'utf8')) as unknown;
+  } catch (error) {
+    if (isNotFound(error)) return undefined;
+    failures.push(
+      `${path}: invalid aggregate verification JSON (${error instanceof Error ? error.message : String(error)})`,
+    );
+    return undefined;
+  }
+}
+
+function isNotFound(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === 'ENOENT'
+  );
+}
+
 function asArray(value: unknown): readonly unknown[] {
   return Array.isArray(value) ? value : [];
 }
@@ -222,6 +254,47 @@ async function checkSourcePath(path: string, owner: string): Promise<void> {
   failures.push(`${owner}: missing source path ${path}`);
 }
 
+function checkVerificationReceipt(value: unknown, scripts: Record<string, unknown>): void {
+  if (!isRecord(value)) {
+    failures.push('aggregate verification receipt must be a JSON object');
+    return;
+  }
+  if (value.version !== 1 || value.status !== 'passed' || value.aggregateGate !== 'pnpm verify') {
+    failures.push('aggregate verification receipt is not a passed pnpm verify receipt');
+  }
+  const sourceCommit = stringValue(value.sourceCommit);
+  const sourceTree = stringValue(value.sourceTree);
+  if (!sourceCommit || !/^[a-f0-9]{40}$/u.test(sourceCommit))
+    failures.push('aggregate verification receipt has an invalid source commit');
+  if (!sourceTree || !/^[a-f0-9]{40}$/u.test(sourceTree))
+    failures.push('aggregate verification receipt has an invalid source tree');
+  if (sourceCommit && sourceTree) {
+    try {
+      if (git('rev-parse', `${sourceCommit}^{tree}`) !== sourceTree)
+        failures.push('aggregate verification receipt source commit/tree do not agree');
+    } catch {
+      failures.push(`aggregate verification source commit is not present: ${sourceCommit}`);
+    }
+  }
+  const lockDigest = value.lockfileSha256;
+  if (
+    typeof lockDigest !== 'string' ||
+    lockDigest !== sha256(readFileBytes(join(root, 'pnpm-lock.yaml')))
+  )
+    failures.push('aggregate verification receipt does not bind the current pnpm lockfile');
+  const verifyScript = scripts.verify;
+  if (
+    typeof verifyScript !== 'string' ||
+    value.aggregateScriptSha256 !== sha256(Buffer.from(verifyScript, 'utf8'))
+  ) {
+    failures.push('aggregate verification receipt does not bind the current verify script');
+  }
+  if (!Array.isArray(value.completedBeforeReceipt) || value.completedBeforeReceipt.length === 0)
+    failures.push('aggregate verification receipt has no completed gate list');
+  if (!Array.isArray(value.finalization) || value.finalization.length !== 3)
+    failures.push('aggregate verification receipt has an incomplete finalization contract');
+}
+
 function checkEvidenceCommand(
   command: string,
   scripts: Record<string, unknown>,
@@ -230,6 +303,10 @@ function checkEvidenceCommand(
   const match = /^pnpm\s+([A-Za-z0-9:_-]+)/u.exec(command);
   if (!match?.[1] || typeof scripts[match[1]] !== 'string')
     failures.push(`${owner}: evidence command is not a root package script: ${command}`);
+}
+
+function git(...args: string[]): string {
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).replace(/(?:\r?\n)+$/u, '');
 }
 
 function safeResolve(path: string, label: string): string | undefined {

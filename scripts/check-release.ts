@@ -25,6 +25,17 @@ if (!isRecord(manifest) || !Array.isArray(manifest.artifacts)) {
     failures.push(`release source commit is not present in the checkout: ${manifest.sourceCommit}`);
   if (!isCommit(manifest.sourceTree))
     failures.push('release manifest must record the source tree.');
+  else if (
+    isCommit(manifest.sourceCommit) &&
+    gitCommitTree(manifest.sourceCommit) !== manifest.sourceTree
+  ) {
+    failures.push('release manifest sourceCommit and sourceTree do not identify the same tree.');
+  }
+  if (isCommit(manifest.sourceTree) && !sourceTreeMatchesCheckedOutSource(manifest.sourceTree)) {
+    failures.push(
+      'release manifest is stale: checked-out source outside release/ differs from the recorded source tree.',
+    );
+  }
   if (!isRecord(manifest.externalGates)) {
     failures.push('release manifest must record external gates.');
   } else {
@@ -295,6 +306,39 @@ function gitCommitExists(commit: string): boolean {
   try {
     execFileSync('git', ['cat-file', '-e', `${commit}^{commit}`], { cwd: root, stdio: 'ignore' });
     return true;
+  } catch {
+    return false;
+  }
+}
+
+function gitCommitTree(commit: string): string | undefined {
+  try {
+    return execFileSync('git', ['rev-parse', `${commit}^{tree}`], {
+      cwd: root,
+      encoding: 'utf8',
+    }).replace(/(?:\r?\n)+$/u, '');
+  } catch {
+    return undefined;
+  }
+}
+
+function sourceTreeMatchesCheckedOutSource(sourceTree: string): boolean {
+  try {
+    execFileSync('git', ['diff', '--quiet', sourceTree, '--', '.', ':(exclude)release/**'], {
+      cwd: root,
+      stdio: 'ignore',
+    });
+    const status = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], {
+      cwd: root,
+      encoding: 'utf8',
+    });
+    return status
+      .split(/\r?\n/u)
+      .filter(Boolean)
+      .every((line) => {
+        const path = line.slice(3).trim().replace(/^"|"$/gu, '').replaceAll('\\', '/');
+        return path === 'release' || path.startsWith('release/');
+      });
   } catch {
     return false;
   }

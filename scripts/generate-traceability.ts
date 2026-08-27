@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
@@ -50,6 +52,7 @@ const packFiles = asPackFiles(manifest.files);
 const modules = await readModules();
 const releaseReady = await isReleaseReady();
 const formalSecurityReady = await isFormalSecurityReady();
+const aggregateReady = await isAggregateReady();
 
 const planFiles: TraceabilityEntry[] = [];
 for (const [index, file] of packFiles.entries()) {
@@ -61,6 +64,7 @@ for (const [index, file] of packFiles.entries()) {
     evidence,
     releaseReady,
     formalSecurityReady,
+    aggregateReady,
   );
   planFiles.push({
     id: `EOM-PLAN-${String(index + 1).padStart(3, '0')}`,
@@ -83,11 +87,11 @@ for (const [index, file] of packFiles.entries()) {
 }
 
 const atomicRequirements = [
-  aggregateModuleRequirement(),
-  ...modules.map((module, index) => moduleRequirement(module, index + 1)),
-  ...normativeRequirements(releaseReady, formalSecurityReady),
-  ...remediationRequirements(releaseReady),
-  ...releaseRequirements(releaseReady, formalSecurityReady),
+  aggregateModuleRequirement(aggregateReady),
+  ...modules.map((module, index) => moduleRequirement(module, index + 1, aggregateReady)),
+  ...normativeRequirements(releaseReady, formalSecurityReady, aggregateReady),
+  ...remediationRequirements(releaseReady, aggregateReady),
+  ...releaseRequirements(releaseReady, formalSecurityReady, aggregateReady),
 ];
 
 const document = {
@@ -258,17 +262,19 @@ function statusForPlan(
   evidence: { readonly paths: readonly string[]; readonly commands: readonly string[] },
   releaseReady: boolean,
   formalSecurityReady: boolean,
+  aggregateReady: boolean,
 ): TraceabilityEntry['status'] {
   if (classification === 'reference' || classification === 'implementation-guidance') {
     return 'not-applicable';
   }
   if (path === 'specification/IANA_REGISTRATION_PLAN.md') return 'blocked-external';
+  if (!aggregateReady) return 'open';
   if (path.startsWith('delivery/') && !releaseReady) return 'open';
   if (path === 'governance/SECURITY_POLICY_PLAN.md' && !formalSecurityReady) return 'open';
   return evidence.paths.length > 0 && evidence.commands.length > 0 ? 'verified-local' : 'open';
 }
 
-function aggregateModuleRequirement(): AtomicRequirement {
+function aggregateModuleRequirement(aggregateReady: boolean): AtomicRequirement {
   return {
     id: 'EOM-MOD-AGG-001',
     requirement:
@@ -280,11 +286,15 @@ function aggregateModuleRequirement(): AtomicRequirement {
     ],
     evidencePaths: ['modules/registry.json', 'scripts/check-modules.ts', 'tests/modules.test.ts'],
     evidenceCommands: ['pnpm module:check', 'pnpm conformance:profiles'],
-    status: 'verified-local',
+    status: aggregateReady ? 'verified-local' : 'open',
   };
 }
 
-function moduleRequirement(module: ModuleRecord, index: number): AtomicRequirement {
+function moduleRequirement(
+  module: ModuleRecord,
+  index: number,
+  aggregateReady: boolean,
+): AtomicRequirement {
   const name = stringValue(module.shortName) ?? `module-${index}`;
   const example = stringValue(module.example) ?? `examples/ecme-high/public/eom/${name}.json`;
   const schema = schemaPath(stringValue(module.schema));
@@ -307,13 +317,14 @@ function moduleRequirement(module: ModuleRecord, index: number): AtomicRequireme
     source: ['data-model/MODULE_REGISTRY.md', 'delivery/DEFINITION_OF_DONE.md'],
     evidencePaths,
     evidenceCommands: ['pnpm module:check', 'pnpm conformance:profiles'],
-    status: 'verified-local',
+    status: aggregateReady ? 'verified-local' : 'open',
   };
 }
 
 function normativeRequirements(
   releaseReady: boolean,
   formalSecurityReady: boolean,
+  aggregateReady: boolean,
 ): readonly AtomicRequirement[] {
   const definitions: readonly [string, string, readonly string[], readonly string[]][] = [
     [
@@ -456,13 +467,18 @@ function normativeRequirements(
     evidencePaths: source.slice(1),
     evidenceCommands,
     status:
-      (id === 'EOM-NORM-018' && !releaseReady) || (id === 'EOM-NORM-007' && !formalSecurityReady)
+      !aggregateReady ||
+      (id === 'EOM-NORM-018' && !releaseReady) ||
+      (id === 'EOM-NORM-007' && !formalSecurityReady)
         ? 'open'
         : 'verified-local',
   }));
 }
 
-function remediationRequirements(releaseReady: boolean): readonly AtomicRequirement[] {
+function remediationRequirements(
+  releaseReady: boolean,
+  aggregateReady: boolean,
+): readonly AtomicRequirement[] {
   const requirements: readonly [string, string, readonly string[], readonly string[]][] = [
     [
       'EOM-REM-001',
@@ -531,13 +547,14 @@ function remediationRequirements(releaseReady: boolean): readonly AtomicRequirem
     source: ['MASTER_CODEX_GOAL_PROMPT.txt'],
     evidencePaths,
     evidenceCommands,
-    status: id === 'EOM-REM-010' && !releaseReady ? 'open' : 'verified-local',
+    status: !aggregateReady || (id === 'EOM-REM-010' && !releaseReady) ? 'open' : 'verified-local',
   }));
 }
 
 function releaseRequirements(
   releaseReady: boolean,
   formalSecurityReady: boolean,
+  aggregateReady: boolean,
 ): readonly AtomicRequirement[] {
   return [
     {
@@ -545,9 +562,13 @@ function releaseRequirements(
       requirement:
         'Frozen install, build, typecheck, lint, tests, coverage, schemas, fixtures, docs, packages, security, and release checks pass through the aggregate gate.',
       source: ['delivery/RELEASE_CHECKLIST.md'],
-      evidencePaths: ['package.json', 'scripts/check-traceability.ts'],
+      evidencePaths: [
+        'package.json',
+        'scripts/check-traceability.ts',
+        'reports/verification/local-gates.json',
+      ],
       evidenceCommands: ['pnpm verify'],
-      status: releaseReady ? 'verified-local' : 'open',
+      status: aggregateReady && releaseReady ? 'verified-local' : 'open',
     },
     {
       id: 'EOM-REL-LOCAL-002',
@@ -561,16 +582,20 @@ function releaseRequirements(
         'scripts/check-action-pins.ts',
       ],
       evidenceCommands: ['pnpm actions:check'],
-      status: 'verified-local',
+      status: aggregateReady ? 'verified-local' : 'open',
     },
     {
       id: 'EOM-REL-LOCAL-003',
       requirement:
         'A formal post-remediation security scan has no unresolved critical, high, medium, low, or plan-conformance security finding.',
       source: ['architecture/THREAT_MODEL.md', 'governance/SECURITY_POLICY_PLAN.md'],
-      evidencePaths: ['reports/security-scan.md', 'scripts/security-check.ts'],
+      evidencePaths: [
+        'reports/security-scan.md',
+        'reports/security-scan.json',
+        'scripts/security-check.ts',
+      ],
       evidenceCommands: ['pnpm verify:security'],
-      status: formalSecurityReady ? 'verified-local' : 'open',
+      status: aggregateReady && formalSecurityReady ? 'verified-local' : 'open',
     },
     {
       id: 'EOM-REL-EXT-001',
@@ -642,7 +667,20 @@ async function isReleaseReady(): Promise<boolean> {
     const manifest = asRecord(
       JSON.parse(await readFile(join(root, 'release', 'manifest.json'), 'utf8')),
     );
-    return manifest.release === '1.0.0-rc.3';
+    if (
+      manifest.release !== '1.0.0-rc.3' ||
+      typeof manifest.sourceCommit !== 'string' ||
+      typeof manifest.sourceTree !== 'string' ||
+      !/^[a-f0-9]{40}$/u.test(manifest.sourceCommit) ||
+      !/^[a-f0-9]{40}$/u.test(manifest.sourceTree)
+    ) {
+      return false;
+    }
+    if (git('rev-parse', `${manifest.sourceCommit}^{tree}`) !== manifest.sourceTree) return false;
+    const receipt = await readJson(join(root, 'reports', 'verification', 'local-gates.json'));
+    if (!isRecord(receipt) || receipt.sourceCommit !== manifest.sourceCommit) return false;
+    if (receipt.sourceTree !== manifest.sourceTree || receipt.status !== 'passed') return false;
+    return sourceTreeMatchesWorkingSource(manifest.sourceTree);
   } catch {
     return false;
   }
@@ -650,11 +688,70 @@ async function isReleaseReady(): Promise<boolean> {
 
 async function isFormalSecurityReady(): Promise<boolean> {
   try {
-    const report = await readFile(join(root, 'reports', 'security-scan.md'), 'utf8');
-    return /Formal post-remediation status:\s*pass/iu.test(report);
+    const report = await readJson(join(root, 'reports', 'security-scan.json'));
+    const receipt = await readJson(join(root, 'reports', 'verification', 'local-gates.json'));
+    return (
+      isRecord(report) &&
+      report.version === 1 &&
+      report.status === 'pass' &&
+      report.unresolvedFindingCount === 0 &&
+      typeof report.targetCommit === 'string' &&
+      report.targetCommit === (isRecord(receipt) ? receipt.sourceCommit : undefined) &&
+      typeof report.targetTree === 'string' &&
+      report.targetTree === (isRecord(receipt) ? receipt.sourceTree : undefined)
+    );
   } catch {
     return false;
   }
+}
+
+async function isAggregateReady(): Promise<boolean> {
+  try {
+    const receipt = await readJson(join(root, 'reports', 'verification', 'local-gates.json'));
+    if (!isRecord(receipt) || receipt.version !== 1 || receipt.status !== 'passed') return false;
+    if (
+      typeof receipt.sourceCommit !== 'string' ||
+      typeof receipt.sourceTree !== 'string' ||
+      !/^[a-f0-9]{40}$/u.test(receipt.sourceCommit) ||
+      !/^[a-f0-9]{40}$/u.test(receipt.sourceTree)
+    )
+      return false;
+    if (git('rev-parse', `${receipt.sourceCommit}^{tree}`) !== receipt.sourceTree) return false;
+    const lockDigest = sha256(await readFile(join(root, 'pnpm-lock.yaml')));
+    if (receipt.lockfileSha256 !== lockDigest) return false;
+    const packageJson = asRecord(JSON.parse(await readFile(join(root, 'package.json'), 'utf8')));
+    const verifyScript = isRecord(packageJson.scripts) ? packageJson.scripts.verify : undefined;
+    return (
+      typeof verifyScript === 'string' &&
+      receipt.aggregateScriptSha256 === sha256(Buffer.from(verifyScript, 'utf8'))
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function readJson(path: string): Promise<unknown> {
+  return JSON.parse(await readFile(path, 'utf8')) as unknown;
+}
+
+function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
+  try {
+    execFileSync('git', ['diff', '--quiet', sourceTree, '--', '.', ':(exclude)release/**'], {
+      cwd: root,
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function git(...args: string[]): string {
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).replace(/(?:\r?\n)+$/u, '');
+}
+
+function sha256(bytes: Buffer): string {
+  return createHash('sha256').update(bytes).digest('hex');
 }
 
 function renderMatrix(document: {
