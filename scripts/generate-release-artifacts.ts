@@ -70,7 +70,7 @@ export async function prepareReleaseArtifacts(
     .split(/\r?\n/u)
     .filter(Boolean)
     .map((line) => line.slice(3).trim())
-    .filter((path) => path.length > 0 && !isReleasePath(path));
+    .filter((path) => path.length > 0 && !isReleasePath(path) && !isGeneratedEvidencePath(path));
   if (sourceChanges.length > 0) {
     throw new Error(
       `Release preparation requires a clean committed source revision outside release/. Commit source changes before generating artifacts: ${sourceChanges.join(', ')}`,
@@ -747,10 +747,19 @@ function runPnpm(
 
 function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
   try {
-    execFileSync('git', ['diff', '--quiet', sourceTree, '--', '.', ':(exclude)release/**'], {
-      cwd: root,
-      stdio: 'ignore',
-    });
+    execFileSync(
+      'git',
+      [
+        'diff',
+        '--quiet',
+        sourceTree,
+        '--',
+        '.',
+        ':(exclude)release/**',
+        ':(exclude)reports/verification/local-gates.json',
+      ],
+      { cwd: root, stdio: 'ignore' },
+    );
     return true;
   } catch {
     return false;
@@ -760,6 +769,12 @@ function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
 function isReleasePath(path: string): boolean {
   const normalized = path.replaceAll('\\', '/').replace(/^"|"$/gu, '');
   return normalized === 'release' || normalized.startsWith('release/');
+}
+
+function isGeneratedEvidencePath(path: string): boolean {
+  return (
+    path.replaceAll('\\', '/').replace(/^"|"$/gu, '') === 'reports/verification/local-gates.json'
+  );
 }
 
 async function exists(path: string): Promise<boolean> {

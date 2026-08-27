@@ -324,10 +324,19 @@ function gitCommitTree(commit: string): string | undefined {
 
 function sourceTreeMatchesCheckedOutSource(sourceTree: string): boolean {
   try {
-    execFileSync('git', ['diff', '--quiet', sourceTree, '--', '.', ':(exclude)release/**'], {
-      cwd: root,
-      stdio: 'ignore',
-    });
+    execFileSync(
+      'git',
+      [
+        'diff',
+        '--quiet',
+        sourceTree,
+        '--',
+        '.',
+        ':(exclude)release/**',
+        ':(exclude)reports/verification/local-gates.json',
+      ],
+      { cwd: root, stdio: 'ignore' },
+    );
     const status = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], {
       cwd: root,
       encoding: 'utf8',

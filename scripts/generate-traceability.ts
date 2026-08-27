@@ -743,10 +743,19 @@ async function readJson(path: string): Promise<unknown> {
 
 function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
   try {
-    execFileSync('git', ['diff', '--quiet', sourceTree, '--', '.', ':(exclude)release/**'], {
-      cwd: root,
-      stdio: 'ignore',
-    });
+    execFileSync(
+      'git',
+      [
+        'diff',
+        '--quiet',
+        sourceTree,
+        '--',
+        '.',
+        ':(exclude)release/**',
+        ':(exclude)reports/verification/local-gates.json',
+      ],
+      { cwd: root, stdio: 'ignore' },
+    );
     return true;
   } catch {
     return false;

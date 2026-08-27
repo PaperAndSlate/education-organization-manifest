@@ -20,7 +20,9 @@ stable publication or deployment is authorized.
       exact clean source commit.
 
 The executable `pnpm verify` gate is authoritative. Report prose cannot mark an unchecked item as
-passed.
+passed. `reports/verification/local-gates.json` is generated evidence bound to the clean source
+revision selected by the release manifest; it is the only source-tree exception allowed while the
+receipt is being recorded.
 
 ## External gates
 
