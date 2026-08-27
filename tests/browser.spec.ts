@@ -151,6 +151,35 @@ test('rejects detached signature lifetime removal in the browser engine', async 
   );
   expect(missingStatusResult.overall).toBe(false);
   expect(missingStatusResult.findings.join(' ')).toContain('status');
+
+  const expiredResource = {
+    ...resource,
+    expires: '2026-01-01T00:00:00Z',
+  };
+  const expiredResourceSignature = signDetached(expiredResource, {
+    privateKey,
+    keyId,
+    createdAt: '2025-01-01T00:00:00Z',
+  });
+  const expiredResourceResult = await page.evaluate(
+    async ({ resource, signature, keySet }) => {
+      const playground = (window as unknown as { __EOM_PLAYGROUND__: unknown })
+        .__EOM_PLAYGROUND__ as {
+        verifyDetachedSignature: (
+          value: unknown,
+          detachedSignature: unknown,
+          detachedKeySet: unknown,
+          options?: { now?: string },
+        ) => Promise<{ overall: boolean; findings: readonly string[] }>;
+      };
+      return playground.verifyDetachedSignature(resource, signature, keySet, {
+        now: '2027-01-02T00:00:00Z',
+      });
+    },
+    { resource: expiredResource, signature: expiredResourceSignature, keySet },
+  );
+  expect(expiredResourceResult.overall).toBe(false);
+  expect(expiredResourceResult.findings.join(' ')).toContain('resource');
 });
 
 test('keeps starter and uploaded content as text and rejects cross-origin service paths', async ({

@@ -201,6 +201,18 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
     Date.parse(signature.expires) < now.getTime()
   )
     findings.push('The detached signature has expired.');
+  const resourceExpires = isPlainObject(value) ? value.expires : undefined;
+  if (
+    resourceExpires !== undefined &&
+    (typeof resourceExpires !== 'string' || !validDate(resourceExpires))
+  )
+    findings.push('The signed resource expiry time is invalid.');
+  if (
+    typeof resourceExpires === 'string' &&
+    validDate(resourceExpires) &&
+    Date.parse(resourceExpires) < now.getTime()
+  )
+    findings.push('The signed resource has expired.');
   if (signature.contentType !== 'application/json')
     findings.push('The signature content type must be application/json.');
   if (typeof signature.subject === 'string' && signature.subject !== value?.id)
