@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
@@ -60,6 +60,126 @@ describe('EOM CLI command surface', () => {
         cwd: resolve('.'),
       }),
     ).rejects.toMatchObject({ code: 2 });
+  });
+
+  it('refuses to initialize through an existing source junction', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-cli-init-safety-'));
+    const external = await mkdtemp(join(tmpdir(), 'eom-cli-init-external-'));
+    try {
+      const project = join(root, 'project');
+      const source = join(project, 'source');
+      await mkdir(project);
+      try {
+        await symlink(external, source, 'junction');
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          (error.code === 'EPERM' || error.code === 'EACCES')
+        ) {
+          return;
+        }
+        throw error;
+      }
+      const tsx = resolve('node_modules/tsx/dist/cli.mjs');
+      const entry = resolve('packages/cli/src/index.ts');
+      await expect(
+        execFileAsync(
+          process.execPath,
+          [
+            tsx,
+            entry,
+            'init',
+            project,
+            '--template',
+            'minimal-school',
+            '--origin',
+            'https://safe.example',
+            '--force',
+          ],
+          { cwd: resolve('.') },
+        ),
+      ).rejects.toMatchObject({ code: 4 });
+      await expect(readFile(join(external, 'organization.yaml'), 'utf8')).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+      await rm(external, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses to treat an existing starter symlink as a safe skipped file', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-cli-init-file-link-'));
+    const external = await mkdtemp(join(tmpdir(), 'eom-cli-init-file-link-external-'));
+    try {
+      const project = join(root, 'project');
+      const externalConfig = join(external, 'eom.config.yaml');
+      await mkdir(project);
+      await writeFile(externalConfig, 'do-not-overwrite\n', 'utf8');
+      try {
+        await symlink(externalConfig, join(project, 'eom.config.yaml'), 'file');
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          (error.code === 'EPERM' || error.code === 'EACCES' || error.code === 'EINVAL')
+        ) {
+          return;
+        }
+        throw error;
+      }
+      const tsx = resolve('node_modules/tsx/dist/cli.mjs');
+      const entry = resolve('packages/cli/src/index.ts');
+      await expect(
+        execFileAsync(
+          process.execPath,
+          [tsx, entry, 'init', project, '--origin', 'https://safe.example', '--force'],
+          { cwd: resolve('.') },
+        ),
+      ).rejects.toMatchObject({ code: 4 });
+      await expect(readFile(externalConfig, 'utf8')).resolves.toBe('do-not-overwrite\n');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+      await rm(external, { recursive: true, force: true });
+    }
+  });
+
+  it('does not initialize a project through a symlinked parent', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-cli-init-parent-safety-'));
+    const external = await mkdtemp(join(tmpdir(), 'eom-cli-init-parent-external-'));
+    try {
+      const linkedParent = join(root, 'linked-parent');
+      try {
+        await symlink(external, linkedParent, 'junction');
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          (error.code === 'EPERM' || error.code === 'EACCES' || error.code === 'EINVAL')
+        ) {
+          return;
+        }
+        throw error;
+      }
+      const tsx = resolve('node_modules/tsx/dist/cli.mjs');
+      const entry = resolve('packages/cli/src/index.ts');
+      await expect(
+        execFileAsync(
+          process.execPath,
+          [tsx, entry, 'init', join(linkedParent, 'project'), '--origin', 'https://safe.example'],
+          { cwd: resolve('.') },
+        ),
+      ).rejects.toMatchObject({ code: 2 });
+      await expect(
+        readFile(join(external, 'project', 'eom.config.yaml'), 'utf8'),
+      ).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+      await rm(external, { recursive: true, force: true });
+    }
   });
 
   it('initializes a bounded district project and runs diff/migrate workflows', async () => {
@@ -123,6 +243,15 @@ describe('EOM CLI command surface', () => {
       expect(diff.stdout).toContain('"command": "diff"');
       expect(diff.stdout).toContain('"kind": "changed"');
 
+      const diffOutput = join(root, 'diff-report.json');
+      await writeFile(diffOutput, 'stale report\n', 'utf8');
+      await execFileAsync(
+        process.execPath,
+        [tsx, entry, 'diff', before, after, '--output', diffOutput],
+        { cwd: resolve('.') },
+      );
+      expect(await readFile(diffOutput, 'utf8')).toContain('"kind": "changed"');
+
       const legacy = join(root, 'legacy.json');
       const migrated = join(root, 'migrated.json');
       await writeFile(
@@ -151,6 +280,116 @@ describe('EOM CLI command surface', () => {
       });
     } finally {
       await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('does not let validation-only check output replace the configured publication', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-cli-check-safety-'));
+    try {
+      const project = join(root, 'project');
+      const tsx = resolve('node_modules/tsx/dist/cli.mjs');
+      const entry = resolve('packages/cli/src/index.ts');
+      await execFileAsync(
+        process.execPath,
+        [tsx, entry, 'init', project, '--origin', 'https://check.example'],
+        { cwd: resolve('.') },
+      );
+      await expect(
+        execFileAsync(
+          process.execPath,
+          [
+            tsx,
+            entry,
+            'check',
+            join(project, 'eom.config.yaml'),
+            '--output',
+            join(project, 'generated', 'public'),
+          ],
+          { cwd: resolve('.') },
+        ),
+      ).rejects.toMatchObject({ code: 2 });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps validation-only checks report-only even when an output path is supplied', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-cli-check-report-only-'));
+    try {
+      const project = join(root, 'project');
+      const output = join(project, 'check-output');
+      const tsx = resolve('node_modules/tsx/dist/cli.mjs');
+      const entry = resolve('packages/cli/src/index.ts');
+      await execFileAsync(
+        process.execPath,
+        [tsx, entry, 'init', project, '--origin', 'https://check-report-only.example'],
+        { cwd: resolve('.') },
+      );
+      const result = await execFileAsync(
+        process.execPath,
+        [tsx, entry, 'check', join(project, 'eom.config.yaml'), '--output', output, '--json'],
+        { cwd: resolve('.') },
+      );
+      const parsed = JSON.parse(result.stdout) as {
+        report?: { dryRun?: boolean; written?: boolean };
+      };
+      expect(parsed.report).toMatchObject({ dryRun: true, written: false });
+      await expect(stat(output)).rejects.toMatchObject({ code: 'ENOENT' });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('does not create report output directories through a symlink', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-cli-output-safety-'));
+    const external = await mkdtemp(join(tmpdir(), 'eom-cli-output-external-'));
+    try {
+      const link = join(root, 'linked-output');
+      try {
+        await symlink(external, link, 'junction');
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          (error.code === 'EPERM' || error.code === 'EACCES' || error.code === 'EINVAL')
+        ) {
+          return;
+        }
+        throw error;
+      }
+      const before = join(root, 'before.json');
+      const after = join(root, 'after.json');
+      await writeFile(
+        before,
+        JSON.stringify({
+          type: 'organization-profile',
+          id: 'https://example.test/id/a',
+          name: 'Before',
+        }),
+        'utf8',
+      );
+      await writeFile(
+        after,
+        JSON.stringify({
+          type: 'organization-profile',
+          id: 'https://example.test/id/a',
+          name: 'After',
+        }),
+        'utf8',
+      );
+      const tsx = resolve('node_modules/tsx/dist/cli.mjs');
+      const entry = resolve('packages/cli/src/index.ts');
+      await expect(
+        execFileAsync(
+          process.execPath,
+          [tsx, entry, 'diff', before, after, '--output', join(link, 'nested', 'report.json')],
+          { cwd: resolve('.') },
+        ),
+      ).rejects.toMatchObject({ code: 2 });
+      await expect(stat(join(external, 'nested'))).rejects.toMatchObject({ code: 'ENOENT' });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+      await rm(external, { recursive: true, force: true });
     }
   });
 

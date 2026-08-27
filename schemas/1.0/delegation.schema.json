@@ -3,7 +3,16 @@
   "$id": "https://paperandslate.org/schemas/eom/1.0/delegation.schema.json",
   "title": "EOM authority delegation",
   "type": "object",
-  "required": ["id", "delegate", "scope", "validFrom", "validUntil", "transitive", "status"],
+  "required": [
+    "type",
+    "id",
+    "delegate",
+    "scope",
+    "validFrom",
+    "validUntil",
+    "transitive",
+    "status"
+  ],
   "properties": {
     "type": { "const": "delegation" },
     "id": {

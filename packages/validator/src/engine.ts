@@ -1,6 +1,11 @@
 import { Ajv2020, type ErrorObject } from 'ajv/dist/2020.js';
 import * as addFormatsModule from 'ajv-formats';
-import { isJsonObject, type JsonValue } from '@paperandslate/eom-core';
+import {
+  isJsonObject,
+  stableJsonValue,
+  StrictJsonError,
+  type JsonValue,
+} from '@paperandslate/eom-core';
 import { readAllSchemas, schemaFileForType } from '@paperandslate/eom-schema';
 import { finding, hasErrors, type Finding, type ValidationResult } from './findings.js';
 import { semanticFindings } from './semantic.js';
@@ -49,7 +54,37 @@ export function validateDocument(
     );
     return { valid: false, structuralValid: false, semanticValid: false, findings };
   }
-  const type = typeof document.type === 'string' ? document.type : undefined;
+  let safeDocument: JsonValue;
+  try {
+    // Public validator APIs also accept runtime values. Normalize them through
+    // the same bounded JSON boundary as file/network inputs so sparse arrays,
+    // cycles, unsupported values, and non-plain objects cannot be silently
+    // accepted by AJV or skipped by semantic traversal.
+    safeDocument = stableJsonValue(document);
+  } catch (error) {
+    findings.push(
+      finding(
+        error instanceof StrictJsonError ? error.code : 'EOM_JSON_RUNTIME_INVALID',
+        'syntax',
+        error instanceof Error ? error.message : 'The runtime value is not valid strict JSON.',
+        { severity: 'error' },
+      ),
+    );
+    return { valid: false, structuralValid: false, semanticValid: false, findings };
+  }
+
+  if (!isJsonObject(safeDocument)) {
+    findings.push(
+      finding(
+        'EOM_DOCUMENT_OBJECT_REQUIRED',
+        'structural',
+        'The publication must be a JSON object.',
+      ),
+    );
+    return { valid: false, structuralValid: false, semanticValid: false, findings };
+  }
+
+  const type = typeof safeDocument.type === 'string' ? safeDocument.type : undefined;
   const schemaFile = options.schemaFile ?? (type ? schemaFileForType(type) : undefined);
   if (!schemaFile) {
     findings.push(
@@ -82,7 +117,7 @@ export function validateDocument(
         ? { valid: false, structuralValid: false, semanticValid: false, schema: schemaId, findings }
         : { valid: false, structuralValid: false, semanticValid: false, findings };
     }
-    valid = validator(document);
+    valid = validator(safeDocument);
     if (!valid) {
       for (const error of validator.errors ?? []) {
         findings.push(ajvFinding(error));
@@ -106,7 +141,7 @@ export function validateDocument(
   const structuralValid = valid;
   if (options.semantic !== false && structuralValid) {
     findings.push(
-      ...semanticFindings(document, options.now === undefined ? {} : { now: options.now }),
+      ...semanticFindings(safeDocument, options.now === undefined ? {} : { now: options.now }),
     );
   }
   const semanticValid = !findings.some(

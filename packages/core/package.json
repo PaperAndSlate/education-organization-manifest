@@ -24,6 +24,11 @@
       "types": "./dist/findings.d.ts",
       "import": "./dist/findings.js",
       "default": "./dist/findings.js"
+    },
+    "./time": {
+      "types": "./dist/time.d.ts",
+      "import": "./dist/time.js",
+      "default": "./dist/time.js"
     }
   },
   "files": [

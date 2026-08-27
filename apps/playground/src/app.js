@@ -1,5 +1,6 @@
 import {
   browserSchemaCatalog,
+  MAX_SOURCE_BYTES,
   parseBrowserSource,
   semanticDiffBrowser,
   validateBrowserDocument,
@@ -320,7 +321,13 @@ import {
       ...(typeof value.manifest === 'object' && value.manifest !== null
         ? { manifest: value.manifest }
         : {}),
+      ...(typeof value.authorityResource === 'object' && value.authorityResource !== null
+        ? { authorityResource: value.authorityResource }
+        : {}),
       ...(typeof value.finalUrl === 'string' ? { finalUrl: value.finalUrl } : {}),
+      ...(typeof value.observedRootUrl === 'string'
+        ? { observedRootUrl: value.observedRootUrl }
+        : {}),
       ...(typeof value.now === 'string' ? { now: value.now } : {}),
     });
     const message = document.createElement('p');
@@ -401,6 +408,47 @@ import {
     URL.revokeObjectURL(url);
   }
 
+  async function readBoundedJsonResponse(response) {
+    const declaredLength = Number(response.headers.get('content-length'));
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_SOURCE_BYTES)
+      throw new Error('Validation service response exceeds the 2 MiB safety limit.');
+    if (!response.body)
+      throw new Error('Validation service response body is unavailable for bounded reading.');
+
+    const reader = response.body.getReader();
+    const chunks = [];
+    let total = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > MAX_SOURCE_BYTES) {
+        await reader.cancel();
+        throw new Error('Validation service response exceeds the 2 MiB safety limit.');
+      }
+      chunks.push(value);
+    }
+
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    let text;
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch {
+      throw new Error('Validation service returned invalid UTF-8 JSON.');
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error('Validation service returned invalid JSON.');
+    }
+  }
+
   async function validateWithSameOriginService() {
     const status = document.querySelector('#url-validation-status');
     const serviceText = document.querySelector('#validation-service').value.trim();
@@ -428,7 +476,7 @@ import {
       const contentType = response.headers.get('content-type') ?? '';
       if (!contentType.toLowerCase().startsWith('application/json'))
         throw new Error('Validation service did not return JSON.');
-      const report = await response.json();
+      const report = await readBoundedJsonResponse(response);
       status.className = 'status good';
       status.textContent =
         'Remote validation completed. The response is displayed as untrusted report data only.';
@@ -625,6 +673,13 @@ import {
   document.querySelector('#file-input').addEventListener('change', async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (file.size > MAX_SOURCE_BYTES) {
+      localError('The selected file exceeds the 2 MiB safety limit.');
+      sourceField.value = '';
+      lastDocument = undefined;
+      event.target.value = '';
+      return;
+    }
     try {
       sourceField.value = await file.text();
       inputKind.value = /\.(?:yaml|yml)$/iu.test(file.name) ? 'yaml' : 'json';

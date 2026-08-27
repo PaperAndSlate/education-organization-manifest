@@ -1,29 +1,29 @@
 # EOM Release Checklist
 
-Status: RC3 local acceptance passed. RC1 and RC2 evidence remains preserved and superseded; no
-stable publication or deployment is authorized.
+Status: RC3 local acceptance is superseded and release preparation is blocked. The working tree
+contains uncommitted remediation changes, and the existing receipt/release packet does not bind to
+this source revision. RC1 and RC2 evidence remains preserved as historical evidence; no stable
+publication or deployment is authorized.
 
 ## Local gates
 
-- [x] clean frozen install from the release source revision;
-- [x] formatting, real lint, typecheck, unit/integration tests, and coverage;
-- [x] schema, vocabulary, module, ownership, fixture, and generated-drift checks;
-- [x] all conformance profiles, publisher/consumer/generator/validator behavior, and Ecme High;
-- [x] DNS-rebinding, redirect authority, parser, privacy, delegation, and signature regression tests;
-- [x] browser build, Playwright, accessibility, CSP, upload, and XSS checks;
-- [x] clean packed-package installation and runtime/type import smoke tests;
-- [x] exact lockfile-derived SBOM, license/dependency/security checks, and action-pin checks;
-- [x] deterministic dual-directory builds and reproducible release archives;
-- [x] traceability check covering all 194 planning files and atomic requirements;
-- [x] post-remediation formal Standard security scan with no unresolved findings;
-- [x] RC3 release manifest, checksums, provenance, migration notes, and pack manifests bound to the
+- [ ] clean frozen install from the final release source revision;
+- [ ] formatting, real lint, typecheck, unit/integration tests, and coverage;
+- [ ] schema, vocabulary, module, ownership, fixture, and generated-drift checks;
+- [ ] all conformance profiles, publisher/consumer/generator/validator behavior, and Ecme High;
+- [ ] DNS-rebinding, redirect authority, parser, privacy, delegation, and signature regression tests;
+- [ ] browser build, Playwright, accessibility, CSP, upload, and XSS checks;
+- [ ] clean packed-package installation and runtime/type import smoke tests;
+- [ ] exact lockfile-derived SBOM, license/dependency/security checks, and action-pin checks;
+- [ ] deterministic dual-directory builds and reproducible release archives;
+- [ ] traceability check covering all 194 planning files and atomic requirements;
+- [ ] post-remediation formal Standard security scan with no unresolved findings;
+- [ ] RC3 release manifest, checksums, provenance, migration notes, and pack manifests bound to the
       exact clean source commit.
 
-The executable `pnpm verify` gate is authoritative. The checks above are backed by the current
-receipt, release manifest, and traceability check; report prose is not verification evidence.
-`reports/verification/local-gates.json` is generated evidence bound to the clean source revision
-selected by the release manifest; it is the only source-tree exception allowed while the receipt is
-being recorded.
+The prior receipt and release packet are historical evidence only. A new `pnpm verify` receipt is
+authoritative only when its source commit/tree, lockfile, formal scan, and final traceability check
+all describe the same clean revision; report prose is not verification evidence.
 
 ## External gates
 

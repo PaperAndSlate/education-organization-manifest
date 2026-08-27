@@ -1,4 +1,4 @@
-import { isJsonObject, stringifyCanonical, type JsonValue } from './json.js';
+import { isJsonObject, stableJsonValue, type JsonValue } from './json.js';
 
 export type DiffChangeKind = 'added' | 'removed' | 'changed';
 
@@ -25,12 +25,20 @@ export interface SemanticDiffResult {
  * whether a change is acceptable for their profile and effective date.
  */
 export function semanticDiff(before: unknown, after: unknown): SemanticDiffResult {
+  // Normalize before traversing so direct callers cannot bypass the strict
+  // JSON depth, node-count, cycle, and runtime-value checks used by parsers.
+  const safeBefore = before === undefined ? undefined : stableJsonValue(before as JsonValue);
+  const safeAfter = after === undefined ? undefined : stableJsonValue(after as JsonValue);
   const changes: SemanticDiffChange[] = [];
-  compare(before, after, '', changes);
+  compare(safeBefore, safeAfter, '', changes);
   const sorted = changes.sort((left, right) => compareStrings(left.path, right.path));
   return {
-    ...(isJsonObject(before) && typeof before.type === 'string' ? { fromType: before.type } : {}),
-    ...(isJsonObject(after) && typeof after.type === 'string' ? { toType: after.type } : {}),
+    ...(isJsonObject(safeBefore) && typeof safeBefore.type === 'string'
+      ? { fromType: safeBefore.type }
+      : {}),
+    ...(isJsonObject(safeAfter) && typeof safeAfter.type === 'string'
+      ? { toType: safeAfter.type }
+      : {}),
     changes: sorted,
     breaking: sorted.some((change) => change.breaking),
     compatible: !sorted.some((change) => change.breaking),
@@ -125,11 +133,10 @@ function indexedById(value: readonly unknown[]): Map<string, unknown> | undefine
 }
 
 function sameJson(left: unknown, right: unknown): boolean {
-  try {
-    return stringifyCanonical(left as JsonValue) === stringifyCanonical(right as JsonValue);
-  } catch {
-    return JSON.stringify(left) === JSON.stringify(right);
-  }
+  // All non-primitive values have already been normalized and are compared by
+  // recursive branches above. This avoids an unsafe JSON.stringify fallback
+  // for cyclic or otherwise non-JSON runtime values.
+  return left === right;
 }
 
 function asJsonValue(value: unknown): JsonValue {

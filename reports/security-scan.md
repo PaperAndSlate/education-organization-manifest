@@ -1,7 +1,8 @@
-# Security scan evidence
+# Security scan evidence (superseded)
 
-Status: post-remediation formal scan passed for the exact reviewed RC3 candidate. This is local
-security evidence, not an external clearance or authorization to publish a stable release.
+Status: historical formal scan for an earlier RC3 candidate; superseded by the current five-finding
+pre-remediation audit and not valid evidence for the present working tree. This is local security
+evidence, not an external clearance or authorization to publish a stable release.
 
 The deterministic repository security gate can be run with:
 
@@ -13,9 +14,9 @@ It checks private-key material, credential-shaped tokens, committed environment 
 installers, workflow permissions, and the browser network/XSS boundary. Intentional invalid privacy
 fixtures remain test inputs and are not release data.
 
-## Current post-remediation status
+## Historical candidate status
 
-Formal post-remediation status: pass
+Formal status for the historical candidate: pass. It must not be used to close current findings.
 
 - Scan ID: `f8f6779b-8e79-4816-ba42-78970b521815`
 - Exact scanned revision: `8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38`
@@ -27,9 +28,9 @@ Formal post-remediation status: pass
   [`security-scan/findings.json`](security-scan/findings.json), and
   [`security-scan/coverage.json`](security-scan/coverage.json)
 
-The aggregate verification receipt repeats this scan ID, target commit, and target tree. The scan
-identity is exact without pretending that a commit can include a report whose contents depend on
-that same commit hash.
+The historical aggregate receipt repeated this scan ID, target commit, and target tree. The scan
+identity was exact for that candidate, but the present source tree has changed. A new scan must be
+bound to the final remediation commit before verification can pass.
 
 This local report does not claim an external penetration test, hosted CodeQL result, production
 deployment review, IANA registration, legal approval, independent interoperability, or adoption.

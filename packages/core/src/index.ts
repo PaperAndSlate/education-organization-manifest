@@ -5,3 +5,4 @@ export * from './fetch.js';
 export * from './diff.js';
 export * from './migrate.js';
 export * from './findings.js';
+export * from './time.js';

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync as readFileBytes } from 'node:fs';
-import { access, readFile } from 'node:fs/promises';
+import { lstat, readFile, realpath } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 
 const root = resolve(process.cwd());
@@ -103,6 +103,10 @@ for (const [index, value] of planEntries.entries()) {
   for (const path of evidencePaths) await checkEvidencePath(path, id ?? String(index));
   for (const command of evidenceCommands)
     checkEvidenceCommand(command, scripts, id ?? String(index));
+  if (status === 'verified-local') {
+    for (const command of evidenceCommands)
+      checkEvidenceExecution(command, verification, id ?? String(index));
+  }
   if (
     status === 'verified-local' &&
     (evidencePaths.length === 0 || evidenceCommands.length === 0)
@@ -153,6 +157,10 @@ for (const [index, value] of atomicEntries.entries()) {
   for (const path of evidencePaths) await checkEvidencePath(path, id ?? String(index));
   for (const command of evidenceCommands)
     checkEvidenceCommand(command, scripts, id ?? String(index));
+  if (status === 'verified-local') {
+    for (const command of evidenceCommands)
+      checkEvidenceExecution(command, verification, id ?? String(index));
+  }
   if (status === 'verified-local' && (evidencePaths.length === 0 || evidenceCommands.length === 0))
     failures.push(`${id ?? index}: verified-local requires executable evidence`);
   if (status === 'blocked-external' && (!stringValue(value.owner) || !stringValue(value.blocker)))
@@ -167,6 +175,14 @@ if (new Set(matrixIds).size !== matrixIds.length)
   failures.push('traceability matrix contains duplicate requirement IDs');
 if (!matrix.includes('EOM-MOD-AGG-001'))
   failures.push('traceability matrix must use EOM-MOD-AGG-001 for the module aggregate');
+const expectedMatrixIds = [...ids].sort();
+const actualMatrixIds = [...new Set(matrixIds)].sort();
+if (
+  expectedMatrixIds.length !== actualMatrixIds.length ||
+  expectedMatrixIds.some((id, index) => id !== actualMatrixIds[index])
+) {
+  failures.push('traceability matrix IDs do not exactly match the generated requirement IDs');
+}
 if (matrix.includes('RC2 manifest') || matrix.includes('Final Standard workbench scan'))
   failures.push('current traceability matrix contains superseded RC2/formal-scan claims');
 
@@ -193,6 +209,18 @@ function parseJson(text: string, path: string): Record<string, unknown> {
 
 async function readOptionalJson(path: string): Promise<unknown> {
   try {
+    const canonicalRoot = await realpath(root);
+    const canonicalPath = await realpath(path);
+    const canonicalRelative = relative(canonicalRoot, canonicalPath);
+    if (
+      canonicalRelative === '..' ||
+      canonicalRelative.startsWith(`..${'\\'}`) ||
+      canonicalRelative.startsWith('../')
+    ) {
+      throw new Error('path escapes the repository through a symbolic link');
+    }
+    const information = await lstat(path);
+    if (information.isSymbolicLink()) throw new Error('symbolic-link paths are not permitted');
     return JSON.parse(await readFile(path, 'utf8')) as unknown;
   } catch (error) {
     if (isNotFound(error)) return undefined;
@@ -229,11 +257,7 @@ function stringArray(value: unknown, label: string): readonly string[] {
 }
 
 async function checkEvidencePath(path: string, owner: string): Promise<void> {
-  const absolute = safeResolve(path, `${owner} evidence path`);
-  if (!absolute) return;
-  try {
-    await access(absolute);
-  } catch {
+  if (!(await repositoryPathIsBounded(path, `${owner} evidence path`))) {
     failures.push(`${owner}: missing evidence path ${path}`);
   }
 }
@@ -241,17 +265,35 @@ async function checkEvidencePath(path: string, owner: string): Promise<void> {
 async function checkSourcePath(path: string, owner: string): Promise<void> {
   const candidates = path.startsWith('plans/') ? [path] : [path, `plans/${path}`];
   for (const candidate of candidates) {
-    const absolute = safeResolve(candidate, `${owner} source path`);
-    if (!absolute) continue;
-    try {
-      await access(absolute);
-      return;
-    } catch {
-      // Plan-relative source references are accepted only after safe resolution
-      // confirms that they stay inside this repository.
-    }
+    if (await repositoryPathIsBounded(candidate, `${owner} source path`)) return;
   }
   failures.push(`${owner}: missing source path ${path}`);
+}
+
+async function repositoryPathIsBounded(path: string, label: string): Promise<boolean> {
+  const absolute = safeResolve(path, label);
+  if (!absolute) return false;
+  try {
+    const canonicalRoot = await realpath(root);
+    const canonicalPath = await realpath(absolute);
+    const canonicalRelative = relative(canonicalRoot, canonicalPath);
+    if (
+      canonicalRelative === '..' ||
+      canonicalRelative.startsWith(`..${'\\'}`) ||
+      canonicalRelative.startsWith('../')
+    ) {
+      failures.push(`${label}: path escapes the repository through a symbolic link`);
+      return false;
+    }
+    const information = await lstat(absolute);
+    if (information.isSymbolicLink()) {
+      failures.push(`${label}: symbolic-link paths are not valid repository evidence`);
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function checkVerificationReceipt(
@@ -314,6 +356,10 @@ async function checkVerificationReceipt(
       formalSecurityScan.targetTree
     ) {
       failures.push('aggregate verification receipt formal security scan target is inconsistent');
+    } else if (formalSecurityScan.targetTree !== sourceTree) {
+      failures.push(
+        'aggregate verification receipt formal security scan does not target the aggregate source tree',
+      );
     }
     const securityReport = await readOptionalJson(join(root, 'reports', 'security-scan.json'));
     if (!isRecord(securityReport)) {
@@ -337,6 +383,32 @@ function checkEvidenceCommand(
   const match = /^pnpm\s+([A-Za-z0-9:_-]+)/u.exec(command);
   if (!match?.[1] || typeof scripts[match[1]] !== 'string')
     failures.push(`${owner}: evidence command is not a root package script: ${command}`);
+}
+
+function checkEvidenceExecution(command: string, receipt: unknown, owner: string): void {
+  if (!isRecord(receipt) || receipt.status !== 'passed') {
+    failures.push(
+      `${owner}: verified-local evidence has no passed aggregate receipt for ${command}`,
+    );
+    return;
+  }
+  if (commandKey(command) === 'verify') return;
+  const completed = Array.isArray(receipt.completedBeforeReceipt)
+    ? receipt.completedBeforeReceipt
+        .filter(
+          (entry): entry is Record<string, unknown> =>
+            isRecord(entry) && entry.status === 'passed' && typeof entry.command === 'string',
+        )
+        .map((entry) => commandKey(entry.command as string))
+    : [];
+  if (!completed.includes(commandKey(command))) {
+    failures.push(`${owner}: evidence command was not recorded as passed: ${command}`);
+  }
+}
+
+function commandKey(command: string): string {
+  const match = /^pnpm\s+([A-Za-z0-9:_-]+)/u.exec(command.trim());
+  return match?.[1] ?? command.trim();
 }
 
 function git(...args: string[]): string {

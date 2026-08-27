@@ -12,7 +12,12 @@ import {
   type JsonObject,
   type JsonValue,
 } from '@paperandslate/eom-core';
-import { evaluateAuthority, type AuthorityResult } from '@paperandslate/eom-authority';
+import { parseDateTime } from '@paperandslate/eom-core/time';
+import {
+  evaluateAuthority,
+  resourceDescriptorMatchesDocument,
+  type AuthorityResult,
+} from '@paperandslate/eom-authority';
 import { finding, type Finding } from '@paperandslate/eom-core';
 
 export interface SignOptions {
@@ -61,7 +66,15 @@ export interface VerificationOptions {
   readonly now?: Date;
   readonly manifest?: unknown;
   readonly resource?: unknown;
+  /**
+   * The manifest descriptor used for authority evaluation. This is separate
+   * from `resource` because a fetched document may use a document/entity id
+   * while the descriptor carries the resource id constrained by delegation.
+   */
+  readonly authorityResource?: unknown;
   readonly finalUrl?: string;
+  /** The observed root-manifest URL, when the caller has transport context. */
+  readonly observedRootUrl?: string;
 }
 
 export interface SignatureVerificationResult {
@@ -101,6 +114,8 @@ const SPECIFICATION = 'https://paperandslate.org/spec/eom/1.0';
 const SIGNATURE_SCHEMA = 'https://paperandslate.org/schemas/eom/1.0/signature.schema.json';
 const KEY_SET_SCHEMA = 'https://paperandslate.org/schemas/eom/1.0/key-set.schema.json';
 const MAX_SIGNATURE_JSON_DEPTH = 128;
+const MAX_SIGNATURE_JSON_NODES = 100_000;
+const MAX_SIGNATURE_JSON_BYTES = 32 * 1024 * 1024;
 
 /** Canonicalize JSON using the EOM RFC 8785 JCS profile. */
 export function canonicalizeJson(value: unknown): string {
@@ -109,7 +124,14 @@ export function canonicalizeJson(value: unknown): string {
       'EOM_CANONICALIZATION_VALUE',
       'Only finite JSON values can be canonicalized.',
     );
-  return canonicalValue(value);
+  const canonical = canonicalValue(value);
+  if (Buffer.byteLength(canonical, 'utf8') > MAX_SIGNATURE_JSON_BYTES) {
+    throw new SignaturePolicyError(
+      'EOM_CANONICALIZATION_SIZE',
+      `Canonical JSON exceeds the ${MAX_SIGNATURE_JSON_BYTES}-byte safety limit.`,
+    );
+  }
+  return canonical;
 }
 
 export function canonicalizeJsonText(text: string, source = 'JSON input'): string {
@@ -121,11 +143,23 @@ export function contentDigest(value: unknown): string {
 }
 
 export function signDetached(value: unknown, options: SignOptions): DetachedSignatureRecord {
-  const subject = options.subject ?? stringAt(value, ['id']);
-  if (!subject || !isAbsoluteHttpsOrUri(subject)) {
+  const resourceId = stringAt(value, ['id']);
+  const subject = options.subject ?? resourceId;
+  if (
+    !resourceId ||
+    !isAbsoluteHttpsOrUri(resourceId) ||
+    !subject ||
+    !isAbsoluteHttpsOrUri(subject)
+  ) {
     throw new SignaturePolicyError(
       'EOM_SIGNATURE_SUBJECT_REQUIRED',
-      'A signed resource must have an absolute subject id.',
+      'A signed resource must have an absolute id.',
+    );
+  }
+  if (subject !== resourceId) {
+    throw new SignaturePolicyError(
+      'EOM_SIGNATURE_SUBJECT_MISMATCH',
+      'A detached signature subject must match the signed resource id.',
     );
   }
   if (!isAbsoluteHttpsOrUri(options.keyId)) {
@@ -166,6 +200,18 @@ export function signDetached(value: unknown, options: SignOptions): DetachedSign
   const digest = digestBytes(Buffer.from(payload, 'utf8'));
   const signatureId = options.signatureId ?? `${subject}#signature-${digest.slice(-16)}`;
   const canonical = options.canonical ?? `${subject}#signature`;
+  if (!isAbsoluteHttpsOrUri(signatureId)) {
+    throw new SignaturePolicyError(
+      'EOM_SIGNATURE_ID_REQUIRED',
+      'A detached signature id must be an absolute URI.',
+    );
+  }
+  if (!isHttpsUri(canonical)) {
+    throw new SignaturePolicyError(
+      'EOM_SIGNATURE_CANONICAL_REQUIRED',
+      'A detached signature canonical value must be an HTTPS URL.',
+    );
+  }
   return {
     $schema: SIGNATURE_SCHEMA,
     specification: SPECIFICATION,
@@ -224,8 +270,20 @@ export function verifyDetached(
   keySet: unknown,
   options: VerificationOptions = {},
 ): SignatureVerificationResult {
-  const now = options.now ?? new Date();
+  const candidateNow = options.now ?? new Date();
+  const evaluationTimeValid = isValidDate(candidateNow);
+  const now = evaluationTimeValid ? candidateNow : new Date(0);
   const findings: Finding[] = [];
+  if (!evaluationTimeValid) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_TIME_INVALID',
+        'security',
+        'Signature verification requires a valid evaluation time.',
+        { severity: 'error' },
+      ),
+    );
+  }
   let canonicalPayload: string | undefined;
   try {
     canonicalPayload = canonicalizeJson(value);
@@ -385,23 +443,78 @@ export function verifyDetached(
       ),
     );
   let authority: AuthorityResult | undefined;
-  const hasAuthorityInputs =
+  // `resource` is the signed document retained for compatibility.  It is not
+  // a substitute for the trusted descriptor copied from the root manifest:
+  // using the document itself here would let a caller manufacture an
+  // authority context that was never declared by the manifest.
+  const authorityResource = options.authorityResource;
+  const authorityContextRequested =
+    options.manifest !== undefined ||
+    options.resource !== undefined ||
+    options.authorityResource !== undefined ||
+    options.finalUrl !== undefined ||
+    options.observedRootUrl !== undefined;
+  const authorityContextComplete =
     options.manifest !== undefined &&
-    options.resource !== undefined &&
-    options.finalUrl !== undefined;
-  if (hasAuthorityInputs) {
-    authority = evaluateAuthority(options.manifest, options.resource, options.finalUrl, {
-      now,
-      ...(signatureValid && keyId ? { verifiedKeyId: keyId } : {}),
-    });
-    findings.push(...authority.findings);
+    typeof options.finalUrl === 'string' &&
+    options.finalUrl.length > 0 &&
+    typeof options.observedRootUrl === 'string' &&
+    options.observedRootUrl.length > 0 &&
+    authorityResource !== undefined;
+  let authorityContextValid = true;
+  let authorityDescriptorValid = true;
+  if (authorityContextRequested) {
+    if (!authorityContextComplete) {
+      authorityContextValid = false;
+      findings.push(
+        finding(
+          'EOM_AUTHORITY_CONTEXT_REQUIRED',
+          'security',
+          'Authority-aware signature verification requires a manifest, observed final URL, fetched resource descriptor, and observed root-manifest URL.',
+          { severity: 'error', pointer: '/manifest' },
+        ),
+      );
+    } else if (!resourceDescriptorMatchesDocument(authorityResource, value)) {
+      authorityDescriptorValid = false;
+      findings.push(
+        finding(
+          'EOM_AUTHORITY_DESCRIPTOR_MISMATCH',
+          'security',
+          'The signed resource does not match the manifest resource descriptor used for authority evaluation.',
+          { severity: 'error', pointer: '/authorityResource' },
+        ),
+      );
+    }
+    if (authorityContextComplete && options.manifest !== undefined && options.finalUrl) {
+      authority = evaluateAuthority(options.manifest, authorityResource, options.finalUrl, {
+        now,
+        ...(signatureValid && keyId ? { verifiedKeyId: keyId } : {}),
+        observedRootUrl: options.observedRootUrl,
+        requireObservedRoot: true,
+      });
+      findings.push(...authority.findings);
+    }
+    if (authorityResource === undefined && authorityContextRequested) {
+      authorityDescriptorValid = false;
+      findings.push(
+        finding(
+          'EOM_AUTHORITY_DESCRIPTOR_REQUIRED',
+          'security',
+          'Authority-aware signature verification requires the manifest resource descriptor that was fetched.',
+          { severity: 'error', pointer: '/authorityResource' },
+        ),
+      );
+    }
   }
-  const delegationScopeValid = authority?.accepted ?? 'not-evaluated';
+  const delegationScopeValid =
+    authority?.accepted ?? (authorityContextRequested ? false : 'not-evaluated');
   const rootAuthorityStatus = authority
     ? authority.accepted
       ? 'accepted'
       : 'rejected'
-    : 'not-evaluated';
+    : authorityContextRequested
+      ? 'rejected'
+      : 'not-evaluated';
   const overall =
     canonicalizationValid &&
     digestMatch &&
@@ -413,6 +526,9 @@ export function verifyDetached(
     subjectMatch &&
     resourceExpiryValid &&
     signatureExpiryValid &&
+    authorityContextValid &&
+    authorityDescriptorValid &&
+    evaluationTimeValid &&
     (authority === undefined || authority.accepted);
   const verifiedOverall = overall && keySetValid && keyRecordValid;
   return {
@@ -439,7 +555,20 @@ export function verifyUnsigned(
   value: unknown,
   options: { readonly now?: Date } = {},
 ): UnsignedVerificationResult {
+  const candidateNow = options.now ?? new Date();
+  const evaluationTimeValid = isValidDate(candidateNow);
+  const now = evaluationTimeValid ? candidateNow : new Date(0);
   const findings: Finding[] = [];
+  if (!evaluationTimeValid) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_TIME_INVALID',
+        'security',
+        'Unsigned verification requires a valid evaluation time.',
+        { severity: 'error' },
+      ),
+    );
+  }
   let canonicalizationValid = true;
   try {
     canonicalizeJson(value);
@@ -454,7 +583,7 @@ export function verifyUnsigned(
       ),
     );
   }
-  const resourceExpiryValid = isResourceCurrent(value, options.now ?? new Date());
+  const resourceExpiryValid = isResourceCurrent(value, now);
   if (!resourceExpiryValid)
     findings.push(
       finding(
@@ -475,7 +604,7 @@ export function verifyUnsigned(
     resourceExpiryValid,
     subjectMatch: 'not-applicable',
     unsigned: true,
-    overall: canonicalizationValid,
+    overall: canonicalizationValid && evaluationTimeValid,
     findings,
   };
 }
@@ -532,7 +661,7 @@ function validateProtectedHeader(
   findings: Finding[],
 ): boolean {
   let valid = true;
-  if (header.alg !== 'EdDSA') {
+  if (valueAt(header, ['alg']) !== 'EdDSA') {
     findings.push(
       finding(
         'EOM_SIGNATURE_ALGORITHM_UNSUPPORTED',
@@ -543,16 +672,18 @@ function validateProtectedHeader(
     );
     valid = false;
   }
+  const critical = arrayAt(header, ['crit']);
+  const metadataCandidate = valueAt(header, ['eom']);
   if (
-    header.b64 !== false ||
-    !Array.isArray(header.crit) ||
-    new Set(header.crit).size !== header.crit.length ||
-    header.crit.length !== 2 ||
-    !header.crit.includes('b64') ||
-    !header.crit.includes('eom') ||
-    !isJsonObject(header.eom) ||
-    header.eom.version !== '1.0' ||
-    header.eom.canonicalization !== 'RFC8785-JCS'
+    valueAt(header, ['b64']) !== false ||
+    !Array.isArray(valueAt(header, ['crit'])) ||
+    new Set(critical).size !== critical.length ||
+    critical.length !== 2 ||
+    !critical.includes('b64') ||
+    !critical.includes('eom') ||
+    !isJsonObject(metadataCandidate) ||
+    valueAt(metadataCandidate, ['version']) !== '1.0' ||
+    valueAt(metadataCandidate, ['canonicalization']) !== 'RFC8785-JCS'
   ) {
     findings.push(
       finding(
@@ -564,7 +695,7 @@ function validateProtectedHeader(
     );
     valid = false;
   }
-  const metadata = isJsonObject(header.eom) ? header.eom : undefined;
+  const metadata = isJsonObject(metadataCandidate) ? metadataCandidate : undefined;
   if (
     metadata &&
     Object.keys(metadata).some(
@@ -582,15 +713,16 @@ function validateProtectedHeader(
     valid = false;
   }
   const sidecarCreatedAt = stringAt(signature, ['createdAt']);
-  const sidecarExpires = stringAt(signature, ['expires']);
-  const metadataExpiresPresent = metadata !== undefined && 'expires' in metadata;
-  const sidecarExpiresPresent = isJsonObject(signature) && 'expires' in signature;
+  const sidecarExpiresPresent = isJsonObject(signature) && Object.hasOwn(signature, 'expires');
+  const sidecarExpires = sidecarExpiresPresent ? stringAt(signature, ['expires']) : undefined;
+  const metadataExpiresPresent = metadata !== undefined && Object.hasOwn(metadata, 'expires');
+  const metadataCreatedAt = stringAt(metadata, ['createdAt']);
   if (
     metadata === undefined ||
-    metadata.createdAt === undefined ||
-    metadata.createdAt !== sidecarCreatedAt ||
+    metadataCreatedAt === undefined ||
+    metadataCreatedAt !== sidecarCreatedAt ||
     metadataExpiresPresent !== sidecarExpiresPresent ||
-    (metadataExpiresPresent && metadata.expires !== sidecarExpires)
+    (metadataExpiresPresent && valueAt(metadata, ['expires']) !== sidecarExpires)
   ) {
     findings.push(
       finding(
@@ -606,7 +738,7 @@ function validateProtectedHeader(
   const sidecarAlgorithm = stringAt(signature, ['algorithm']);
   const sidecarCanonicalization = stringAt(signature, ['canonicalization']);
   const sidecarKeyId = stringAt(signature, ['keyId']);
-  if (header.cty !== contentType) {
+  if (valueAt(header, ['cty']) !== contentType) {
     findings.push(
       finding(
         'EOM_SIGNATURE_CONTENT_TYPE_BINDING',
@@ -617,7 +749,7 @@ function validateProtectedHeader(
     );
     valid = false;
   }
-  if (header.alg !== sidecarAlgorithm) {
+  if (valueAt(header, ['alg']) !== sidecarAlgorithm) {
     findings.push(
       finding(
         'EOM_SIGNATURE_ALGORITHM_BINDING',
@@ -628,7 +760,7 @@ function validateProtectedHeader(
     );
     valid = false;
   }
-  if (metadata && metadata.canonicalization !== sidecarCanonicalization) {
+  if (metadata && valueAt(metadata, ['canonicalization']) !== sidecarCanonicalization) {
     findings.push(
       finding(
         'EOM_SIGNATURE_CANONICALIZATION_BINDING',
@@ -639,8 +771,8 @@ function validateProtectedHeader(
     );
     valid = false;
   }
-  if (Array.isArray(header.crit)) {
-    for (const item of header.crit) {
+  if (Array.isArray(valueAt(header, ['crit']))) {
+    for (const item of critical) {
       if (item !== 'b64' && item !== 'eom') {
         findings.push(
           finding(
@@ -654,7 +786,11 @@ function validateProtectedHeader(
       }
     }
   }
-  if (typeof header.kid !== 'string' || header.kid !== keyId || header.kid !== sidecarKeyId) {
+  if (
+    typeof valueAt(header, ['kid']) !== 'string' ||
+    valueAt(header, ['kid']) !== keyId ||
+    valueAt(header, ['kid']) !== sidecarKeyId
+  ) {
     findings.push(
       finding(
         'EOM_SIGNATURE_KEY_BINDING',
@@ -782,9 +918,9 @@ function validateSignatureRecord(
     );
     valid = false;
   }
-  const rawExpires = valueAt(signature, ['expires']);
+  const hasExpires = isJsonObject(signature) && Object.hasOwn(signature, 'expires');
   const expires = stringAt(signature, ['expires']);
-  if (rawExpires !== undefined && (expires === undefined || !isDateTime(expires))) {
+  if (hasExpires && (expires === undefined || !isDateTime(expires))) {
     findings.push(
       finding(
         'EOM_SIGNATURE_PROFILE_INVALID',
@@ -939,9 +1075,8 @@ function validateKeySet(keySet: unknown, findings: Finding[]): boolean {
       valid = false;
     }
     for (const field of ['modified', 'expires'] as const) {
-      const rawValue = valueAt(keySet, [field]);
       const value = stringAt(keySet, [field]);
-      if (rawValue === undefined || (value !== undefined && isDateTime(value))) continue;
+      if (!Object.hasOwn(keySet, field) || (value !== undefined && isDateTime(value))) continue;
       findings.push(
         finding(
           'EOM_SIGNATURE_KEY_SET_INVALID',
@@ -1070,10 +1205,10 @@ function validateKeyRecord(record: unknown, findings: Finding[]): boolean {
   const publicJwk = valueAt(record, ['publicKeyJwk']);
   if (
     !isJsonObject(publicJwk) ||
-    publicJwk.kty !== 'OKP' ||
-    publicJwk.crv !== 'Ed25519' ||
-    typeof publicJwk.x !== 'string' ||
-    !/^[A-Za-z0-9_-]+$/u.test(publicJwk.x) ||
+    valueAt(publicJwk, ['kty']) !== 'OKP' ||
+    valueAt(publicJwk, ['crv']) !== 'Ed25519' ||
+    typeof valueAt(publicJwk, ['x']) !== 'string' ||
+    !/^[A-Za-z0-9_-]+$/u.test(stringAt(publicJwk, ['x']) ?? '') ||
     Object.keys(publicJwk).some((field) => !['kty', 'crv', 'x'].includes(field))
   ) {
     findings.push(
@@ -1106,7 +1241,7 @@ function validateKeyRecord(record: unknown, findings: Finding[]): boolean {
     ['validUntil', validUntil],
     ['revokedAt', revokedAt],
   ] as const) {
-    if (valueAt(record, [field]) !== undefined && (value === undefined || !isDateTime(value))) {
+    if (Object.hasOwn(record, field) && (value === undefined || !isDateTime(value))) {
       findings.push(
         finding(
           'EOM_SIGNATURE_KEY_SET_INVALID',
@@ -1142,9 +1277,9 @@ function publicKeyFromRecord(record: unknown): KeyObject {
   const jwk = valueAt(record, ['publicKeyJwk']);
   if (
     !isJsonObject(jwk) ||
-    jwk.kty !== 'OKP' ||
-    jwk.crv !== 'Ed25519' ||
-    typeof jwk.x !== 'string'
+    valueAt(jwk, ['kty']) !== 'OKP' ||
+    valueAt(jwk, ['crv']) !== 'Ed25519' ||
+    typeof valueAt(jwk, ['x']) !== 'string'
   ) {
     throw new SignaturePolicyError(
       'EOM_SIGNATURE_KEY_ALGORITHM',
@@ -1170,20 +1305,20 @@ function normalizePrivateKey(value: KeyObject | string | Uint8Array): KeyObject 
 }
 
 function isWithinKeyPeriod(record: unknown, now: Date): boolean {
+  const validFromPresent = isJsonObject(record) && Object.hasOwn(record, 'validFrom');
+  const validUntilPresent = isJsonObject(record) && Object.hasOwn(record, 'validUntil');
   const validFrom = stringAt(record, ['validFrom']);
   const validUntil = stringAt(record, ['validUntil']);
-  const from =
-    validFrom === undefined
-      ? undefined
-      : isDateTime(validFrom)
-        ? Date.parse(validFrom)
-        : Number.NaN;
-  const until =
-    validUntil === undefined
-      ? undefined
-      : isDateTime(validUntil)
-        ? Date.parse(validUntil)
-        : Number.NaN;
+  const from = !validFromPresent
+    ? undefined
+    : validFrom !== undefined && isDateTime(validFrom)
+      ? Date.parse(validFrom)
+      : Number.NaN;
+  const until = !validUntilPresent
+    ? undefined
+    : validUntil !== undefined && isDateTime(validUntil)
+      ? Date.parse(validUntil)
+      : Number.NaN;
   return (
     (from === undefined || (!Number.isNaN(from) && from <= now.getTime())) &&
     (until === undefined || (!Number.isNaN(until) && until >= now.getTime()))
@@ -1191,10 +1326,7 @@ function isWithinKeyPeriod(record: unknown, now: Date): boolean {
 }
 
 function isDateTime(value: string): boolean {
-  return (
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/u.test(value) &&
-    !Number.isNaN(Date.parse(value))
-  );
+  return parseDateTime(value) !== undefined;
 }
 
 function isPast(value: unknown, path: readonly string[], now: Date): boolean {
@@ -1203,8 +1335,9 @@ function isPast(value: unknown, path: readonly string[], now: Date): boolean {
 }
 
 function isResourceCurrent(value: unknown, now: Date): boolean {
+  const expiresPresent = isJsonObject(value) && Object.hasOwn(value, 'expires');
   const rawExpires = valueAt(value, ['expires']);
-  if (rawExpires === undefined) return true;
+  if (!expiresPresent) return true;
   return (
     typeof rawExpires === 'string' &&
     isDateTime(rawExpires) &&
@@ -1252,7 +1385,24 @@ function decodeUtf8(value: Uint8Array, source: string): string {
   }
 }
 
-function canonicalValue(value: JsonValue, depth = 0, visited = new WeakSet<object>()): string {
+interface JsonValidationState {
+  readonly visited: WeakSet<object>;
+  nodes: number;
+}
+
+function canonicalValue(
+  value: JsonValue,
+  depth = 0,
+  visited = new WeakSet<object>(),
+  state: JsonValidationState = { visited, nodes: 0 },
+): string {
+  state.nodes += 1;
+  if (state.nodes > MAX_SIGNATURE_JSON_NODES) {
+    throw new SignaturePolicyError(
+      'EOM_CANONICALIZATION_SIZE',
+      `JSON value exceeds the ${MAX_SIGNATURE_JSON_NODES}-node safety limit.`,
+    );
+  }
   if (depth > MAX_SIGNATURE_JSON_DEPTH) {
     throw new SignaturePolicyError(
       'EOM_CANONICALIZATION_DEPTH',
@@ -1273,9 +1423,10 @@ function canonicalValue(value: JsonValue, depth = 0, visited = new WeakSet<objec
     return JSON.stringify(Object.is(value, -0) ? 0 : value);
   }
   if (Array.isArray(value)) {
+    assertDenseArray(value);
     assertAcyclic(value, visited);
     try {
-      return `[${value.map((item) => canonicalValue(item, depth + 1, visited)).join(',')}]`;
+      return `[${value.map((item) => canonicalValue(item, depth + 1, visited, state)).join(',')}]`;
     } finally {
       visited.delete(value);
     }
@@ -1286,7 +1437,7 @@ function canonicalValue(value: JsonValue, depth = 0, visited = new WeakSet<objec
     return `{${entries
       .map((key) => {
         assertWellFormedUnicode(key);
-        return `${JSON.stringify(key)}:${canonicalValue(value[key] as JsonValue, depth + 1, visited)}`;
+        return `${JSON.stringify(key)}:${canonicalValue(value[key] as JsonValue, depth + 1, visited, state)}`;
       })
       .join(',')}}`;
   } finally {
@@ -1312,7 +1463,15 @@ function isJsonValue(
   value: unknown,
   depth = 0,
   visited = new WeakSet<object>(),
+  state: JsonValidationState = { visited, nodes: 0 },
 ): value is JsonValue {
+  state.nodes += 1;
+  if (state.nodes > MAX_SIGNATURE_JSON_NODES) {
+    throw new SignaturePolicyError(
+      'EOM_CANONICALIZATION_SIZE',
+      `JSON value exceeds the ${MAX_SIGNATURE_JSON_NODES}-node safety limit.`,
+    );
+  }
   if (depth > MAX_SIGNATURE_JSON_DEPTH)
     throw new SignaturePolicyError(
       'EOM_CANONICALIZATION_DEPTH',
@@ -1322,10 +1481,14 @@ function isJsonValue(
   if (typeof value === 'string') return true;
   if (typeof value === 'number') return Number.isFinite(value);
   if (Array.isArray(value)) {
+    assertDenseArray(value);
     if (visited.has(value)) return false;
     visited.add(value);
     try {
-      return value.every((item) => isJsonValue(item, depth + 1, visited));
+      for (let index = 0; index < value.length; index += 1) {
+        if (!isJsonValue(value[index], depth + 1, visited, state)) return false;
+      }
+      return true;
     } finally {
       visited.delete(value);
     }
@@ -1334,12 +1497,26 @@ function isJsonValue(
     if (visited.has(value)) return false;
     visited.add(value);
     try {
-      return Object.values(value).every((item) => isJsonValue(item, depth + 1, visited));
+      for (const item of Object.values(value)) {
+        if (!isJsonValue(item, depth + 1, visited, state)) return false;
+      }
+      return true;
     } finally {
       visited.delete(value);
     }
   }
   return false;
+}
+
+function assertDenseArray(value: readonly unknown[]): void {
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.hasOwn(value, index)) {
+      throw new SignaturePolicyError(
+        'EOM_CANONICALIZATION_VALUE',
+        'Sparse arrays are not valid JSON canonicalization input.',
+      );
+    }
+  }
 }
 
 function isWellFormedUnicode(value: string): boolean {
@@ -1387,7 +1564,7 @@ function stringAt(value: unknown, path: readonly string[]): string | undefined {
 function valueAt(value: unknown, path: readonly string[]): unknown {
   let current = value;
   for (const segment of path) {
-    if (!isJsonObject(current)) return undefined;
+    if (!isJsonObject(current) || !Object.hasOwn(current, segment)) return undefined;
     current = current[segment];
   }
   return current;
@@ -1421,14 +1598,25 @@ function isAbsoluteHttpsOrUri(value: string): boolean {
 }
 
 function toIso(value: Date | string): string {
-  if (value instanceof Date) return value.toISOString();
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime()))
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime()))
+      throw new SignaturePolicyError(
+        'EOM_SIGNATURE_TIME_INVALID',
+        'Signature creation time is invalid.',
+      );
+    return value.toISOString();
+  }
+  const timestamp = parseDateTime(value);
+  if (timestamp === undefined)
     throw new SignaturePolicyError(
       'EOM_SIGNATURE_TIME_INVALID',
       'Signature creation time is invalid.',
     );
-  return parsed.toISOString();
+  return new Date(timestamp).toISOString();
+}
+
+function isValidDate(value: unknown): value is Date {
+  return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
 function uniqueFindings(values: readonly Finding[]): readonly Finding[] {

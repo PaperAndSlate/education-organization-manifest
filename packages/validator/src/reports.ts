@@ -12,7 +12,42 @@ export function renderValidationReport(
   if (format === 'sarif') return `${JSON.stringify(toSarif(input), null, 2)}\n`;
   if (format === 'junit') return `${toJunit(input)}\n`;
   if (format === 'html') return `${toHtml(input)}\n`;
+  if (format === 'conformance') return `${stringifyCanonical(toConformance(input) as never)}\n`;
   return stringifyCanonical(input as never);
+}
+
+/** Convert an ordinary validation result into the public EOM report shape. */
+export function toConformance(input: ValidationReportInput): Record<string, unknown> {
+  const checks =
+    input.findings.length > 0
+      ? input.findings.map((item, index) => ({
+          id: `urn:eom:validator-check:${index + 1}`,
+          status:
+            item.severity === 'error' ? 'fail' : item.severity === 'warning' ? 'warn' : 'pass',
+          message: item.message,
+        }))
+      : [
+          {
+            id: 'urn:eom:validator-check:clean',
+            status: 'pass',
+            message: 'The input passed all validation checks.',
+          },
+        ];
+  return {
+    $schema: 'https://paperandslate.org/schemas/eom/1.0/conformance-report.schema.json',
+    specification: 'https://paperandslate.org/spec/eom/1.0',
+    version: '1.0',
+    id: 'urn:eom:validator-conformance-report',
+    type: 'conformance-report',
+    canonical: 'https://paperandslate.org/eom/reports/validator-conformance',
+    implementation: {
+      name: '@paperandslate/eom-validator',
+      version: '1.0.0-rc.3',
+    },
+    status: input.valid ? 'conforming' : 'non-conforming',
+    profile: 'https://paperandslate.org/spec/eom/1.0/profiles/validator',
+    checks,
+  };
 }
 
 function toSarif(input: ValidationReportInput): Record<string, unknown> {

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { open, readdir, stat } from 'node:fs/promises';
+import { lstat, open, readdir, realpath } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import {
   DEFAULT_FETCH_MAX_REDIRECTS,
@@ -8,10 +8,17 @@ import {
   fetchManifest,
   isJsonObject,
   parseStrictJson,
+  stringifyCanonical,
   type FetchOptions,
+  type FetchResponse,
   type JsonObject,
+  type JsonValue,
 } from '@paperandslate/eom-core';
-import { evaluateAuthority } from '@paperandslate/eom-authority';
+import {
+  evaluateAuthority,
+  resourceDescriptorMatchesDocument,
+  rootManifestOriginMatchesObserved,
+} from '@paperandslate/eom-authority';
 import { lintPublication } from '@paperandslate/eom-linter';
 import {
   finding,
@@ -140,6 +147,8 @@ export interface ConformanceOptions {
   readonly implementationSource?: string;
   readonly now?: Date;
   readonly mode?: 'fixture' | 'publisher' | 'consumer' | 'generator';
+  /** Expected fictional HTTPS origin represented by a loopback fixture publisher. */
+  readonly fixtureAuthorityOrigin?: string;
   readonly expected?: {
     readonly status?: ConformanceStatus;
     readonly checks?: Readonly<Record<string, ConformanceCheckStatus>>;
@@ -235,6 +244,20 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
   if (capture.depthLimitExceeded) {
     addCheck('capture-depth-limit', 'fail', 'The capture exceeded the configured depth limit.');
   }
+  if (capture.symlinkPaths.length > 0) {
+    addCheck(
+      'capture-symlink',
+      'fail',
+      `The capture contains symbolic-link or junction entries: ${capture.symlinkPaths.join(', ')}.`,
+    );
+  }
+  if (capture.symlinkLimitExceeded) {
+    addCheck(
+      'capture-symlink-limit',
+      'fail',
+      'The capture contains more symbolic-link entries than the reporting limit.',
+    );
+  }
 
   const parseable = files.filter((file) => {
     if (file.parseError) {
@@ -305,8 +328,10 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
             maxTotalBytes: positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024),
             maxDepth: nonNegativeLimit(options.maxDepth, 32),
           },
+          options.fixtureAuthorityOrigin,
         )
       : undefined;
+  for (const item of publisherGraph?.findings ?? []) observedFindingCodes.add(item.code);
 
   const manifests = parseable.filter((file) => file.document?.type === 'manifest');
   const distinctManifests = distinctByBytes(manifests);
@@ -401,17 +426,17 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
         const generated = await generatedMetadata(directory);
         addCheck(
           'generator-marker',
-          generated.marker ? 'pass' : 'fail',
-          generated.marker
-            ? 'The publication is marked as generator-owned.'
-            : 'Generated publications must contain .eom-generated.json.',
+          generated.marker === true ? 'pass' : 'fail',
+          generated.marker === true
+            ? 'The publication contains a valid generator-owned marker.'
+            : 'Generated publications must contain a valid .eom-generated.json marker.',
         );
         addCheck(
           'generator-reproducibility',
-          generated.reproducibility ? 'pass' : 'fail',
-          generated.reproducibility
-            ? 'A reproducibility report is present.'
-            : 'Generated publications must include a reproducibility report.',
+          generated.reproducibility === true ? 'pass' : 'fail',
+          generated.reproducibility === true
+            ? 'A valid deterministic reproducibility report is present.'
+            : 'Generated publications must include a valid deterministic reproducibility report.',
         );
       }
     }
@@ -499,13 +524,33 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
             ),
           );
         }
-        for (const authorityUrl of authorityUrls) {
+        const evaluationAuthorityUrls = authorityUrls.map((authorityUrl) => ({
+          authorityUrl,
+          evaluationUrl:
+            options.origin && isLoopbackPublisherOrigin(options.origin)
+              ? mapFixtureRootAuthorityUrl(manifest, options.origin, authorityUrl)
+              : authorityUrl,
+        }));
+        const observedRootUrl = observedRootUrlForManifest(
+          manifest,
+          options.origin,
+          publisherGraph,
+        );
+        for (const { evaluationUrl } of evaluationAuthorityUrls) {
           const authority = evaluateAuthority(
-            authorityManifestForObservedUrl(manifest, options.origin, resource.href, authorityUrl),
+            authorityManifestForObservedUrl(
+              manifest,
+              options.origin,
+              resource.href,
+              evaluationUrl,
+              options.fixtureAuthorityOrigin,
+            ),
             resource,
-            authorityUrl,
+            evaluationUrl,
             {
               now: options.now ?? new Date(),
+              ...(observedRootUrl ? { observedRootUrl } : {}),
+              requireObservedRoot: true,
             },
           );
           authorityFindings.push(...authority.findings);
@@ -561,6 +606,7 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
                 resource.subjects.includes(subjectId),
             )
           : undefined;
+      const observedRootUrl = observedRootUrlForManifest(manifest, options.origin, publisherGraph);
       const verification = verifyDetached(
         subjectFile.document,
         signatureFile.document,
@@ -575,11 +621,14 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
                   signedResourceUrl.href,
                   observedFetchFor(signedResourceUrl.href, publisherGraph)?.finalUrl ??
                     signedResourceUrl.href,
+                  options.fixtureAuthorityOrigin,
                 ),
                 resource: subjectFile.document,
+                authorityResource: signedResourceUrl,
                 finalUrl:
                   observedFetchFor(signedResourceUrl.href, publisherGraph)?.finalUrl ??
                   signedResourceUrl.href,
+                ...(observedRootUrl ? { observedRootUrl } : {}),
               }
             : {}),
         },
@@ -691,6 +740,7 @@ async function appendPublisherChecks(
     file?: PublicationFile,
   ) => void,
   graphLimits: FixtureGraphLimits,
+  fixtureAuthorityOrigin: string | undefined,
 ): Promise<FixtureGraphResult | undefined> {
   if (!origin) {
     addCheck('publisher-origin', 'fail', 'Publisher mode requires an origin.');
@@ -760,6 +810,7 @@ async function appendPublisherChecks(
           transport,
           now,
           graphLimits,
+          fixtureAuthorityOrigin,
         )
       : await validatePublicationUrl(origin, {
           fetchGraph: true,
@@ -805,6 +856,8 @@ interface PublicationFileRead {
   readonly fileLimitExceeded: boolean;
   readonly totalBytesExceeded: boolean;
   readonly depthLimitExceeded: boolean;
+  readonly symlinkPaths: readonly string[];
+  readonly symlinkLimitExceeded: boolean;
 }
 
 async function readPublicationFiles(
@@ -813,12 +866,30 @@ async function readPublicationFiles(
   maxTotalBytes: number,
   maxDepth: number,
 ): Promise<PublicationFileRead> {
-  const information = await stat(directory);
-  if (!information.isDirectory()) throw new Error(`${directory} is not a directory.`);
+  const information = await lstat(directory);
+  if (!information.isDirectory() || information.isSymbolicLink()) {
+    throw new Error(`${directory} is not a stable directory.`);
+  }
+  const expectedRealPath = await realpath(directory);
+  if (normalizeFsPath(expectedRealPath) !== normalizeFsPath(directory)) {
+    throw new Error(`${directory} must not traverse a symbolic link.`);
+  }
   const result: PublicationFile[] = [];
   let fileLimitExceeded = false;
   let totalBytesExceeded = false;
   let depthLimitExceeded = false;
+  const symlinkPaths: string[] = [];
+  let symlinkCount = 0;
+  let symlinkLimitExceeded = false;
+  const recordSymlink = (path: string): boolean => {
+    symlinkCount += 1;
+    if (symlinkCount > maxFiles) {
+      symlinkLimitExceeded = true;
+      return true;
+    }
+    symlinkPaths.push(relative(directory, path).replaceAll('\\', '/'));
+    return false;
+  };
   let totalBytes = 0;
   async function visit(current: string, depth: number): Promise<void> {
     if (fileLimitExceeded || totalBytesExceeded) return;
@@ -826,13 +897,19 @@ async function readPublicationFiles(
       depthLimitExceeded = true;
       return;
     }
+    await assertStableDirectory(current);
     const entries = (await readdir(current, { withFileTypes: true })).sort((left, right) =>
       compareStrings(left.name, right.name),
     );
     for (const entry of entries) {
       if (fileLimitExceeded || totalBytesExceeded) return;
       const absolutePath = join(current, entry.name);
-      if (entry.isDirectory()) {
+      const entryInformation = await lstat(absolutePath);
+      if (entryInformation.isSymbolicLink()) {
+        if (recordSymlink(absolutePath)) return;
+        continue;
+      }
+      if (entryInformation.isDirectory()) {
         if (depth >= maxDepth) {
           depthLimitExceeded = true;
           continue;
@@ -840,14 +917,21 @@ async function readPublicationFiles(
         await visit(absolutePath, depth + 1);
         continue;
       }
-      if (!entry.isFile()) continue;
+      if (!entryInformation.isFile()) continue;
       const relativePath = relative(directory, absolutePath).replaceAll('\\', '/');
       if (!isPublicationFile(relativePath)) continue;
       if (result.length >= maxFiles) {
         fileLimitExceeded = true;
         return;
       }
-      const fileInformation = await stat(absolutePath);
+      const fileInformation = await lstat(absolutePath);
+      if (!fileInformation.isFile() || fileInformation.isSymbolicLink()) {
+        if (fileInformation.isSymbolicLink()) {
+          if (recordSymlink(absolutePath)) return;
+          continue;
+        }
+        continue;
+      }
       if (totalBytes + fileInformation.size > maxTotalBytes) {
         totalBytesExceeded = true;
         return;
@@ -858,6 +942,10 @@ async function readPublicationFiles(
         bytes = await readBoundedFile(absolutePath, remainingBytes);
       } catch (error) {
         if (error instanceof BoundedFileError) {
+          if (error.symlink) {
+            if (recordSymlink(absolutePath)) return;
+            continue;
+          }
           totalBytesExceeded = true;
           return;
         }
@@ -890,17 +978,51 @@ async function readPublicationFiles(
     fileLimitExceeded,
     totalBytesExceeded,
     depthLimitExceeded,
+    symlinkPaths: symlinkPaths.sort(compareStrings),
+    symlinkLimitExceeded,
   };
 }
 
-class BoundedFileError extends Error {}
+class BoundedFileError extends Error {
+  public constructor(
+    message: string,
+    public readonly symlink = false,
+  ) {
+    super(message);
+    this.name = 'BoundedFileError';
+  }
+}
 
 async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> {
+  const linkInformation = await lstat(path);
+  if (!linkInformation.isFile() || linkInformation.isSymbolicLink()) {
+    throw new BoundedFileError(
+      'The capture file must be a stable regular file.',
+      linkInformation.isSymbolicLink(),
+    );
+  }
+  const expectedRealPath = await realpath(path);
+  if (normalizeFsPath(expectedRealPath) !== normalizeFsPath(path)) {
+    throw new BoundedFileError('The capture file must not traverse a symbolic link.', true);
+  }
   const handle = await open(path, 'r');
   try {
     const information = await handle.stat();
-    if (!information.isFile() || information.size > maxBytes) {
+    const identityChanged =
+      linkInformation.dev !== 0 &&
+      linkInformation.ino !== 0 &&
+      information.dev !== 0 &&
+      information.ino !== 0 &&
+      (information.dev !== linkInformation.dev || information.ino !== linkInformation.ino);
+    if (!information.isFile() || identityChanged || information.size > maxBytes) {
       throw new BoundedFileError('The capture file exceeds its byte limit.');
+    }
+    const currentRealPath = await realpath(path);
+    if (
+      normalizeFsPath(currentRealPath) !== normalizeFsPath(expectedRealPath) ||
+      normalizeFsPath(currentRealPath) !== normalizeFsPath(path)
+    ) {
+      throw new BoundedFileError('The capture file changed its filesystem identity.', true);
     }
     const chunks: Buffer[] = [];
     let total = 0;
@@ -920,6 +1042,22 @@ async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> 
 
 function compareStrings(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
+}
+
+async function assertStableDirectory(path: string): Promise<void> {
+  const information = await lstat(path);
+  if (!information.isDirectory() || information.isSymbolicLink()) {
+    throw new Error(`${path} is not a stable directory.`);
+  }
+  const actual = await realpath(path);
+  if (normalizeFsPath(actual) !== normalizeFsPath(path)) {
+    throw new Error(`${path} must not traverse a symbolic link.`);
+  }
+}
+
+function normalizeFsPath(value: string): string {
+  const resolved = resolve(value);
+  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 function decodeUtf8(bytes: Uint8Array, source: string): string {
@@ -963,20 +1101,49 @@ async function generatedMetadata(
   directory: string,
 ): Promise<{ marker: boolean; reproducibility: boolean }> {
   const candidates = [directory, join(directory, '..'), join(directory, '..', 'build')];
-  const has = async (name: string): Promise<boolean> => {
+  const read = async (name: string): Promise<JsonValue | null | undefined> => {
     for (const candidate of candidates) {
+      const path = join(candidate, name);
       try {
-        const information = await stat(join(candidate, name));
-        if (information.isFile()) return true;
-      } catch {
-        // Continue through the supported generated-output layouts.
+        const information = await lstat(path);
+        if (!information.isFile() || information.isSymbolicLink()) return null;
+        if (normalizeFsPath(await realpath(path)) !== normalizeFsPath(path)) return null;
+        return parseStrictJson(decodeUtf8(await readBoundedFile(path, 64 * 1024), path), path);
+      } catch (error) {
+        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+          // Continue only when this supported layout does not provide metadata.
+          continue;
+        }
+        // A present but unreadable or malformed nearest metadata file must not
+        // fall through to a less-specific parent marker.
+        return null;
       }
     }
-    return false;
+    return undefined;
   };
+  const marker = await read('.eom-generated.json');
+  const reproducibility = await read('reproducibility.json');
   return {
-    marker: await has('.eom-generated.json'),
-    reproducibility: await has('reproducibility.json'),
+    marker:
+      isJsonObject(marker) &&
+      marker.generator === 'eom' &&
+      marker.specification === 'https://paperandslate.org/spec/eom/1.0' &&
+      typeof marker.toolVersion === 'string' &&
+      marker.ownershipVersion === 1 &&
+      typeof marker.buildMode === 'string' &&
+      ['full', 'module', 'organization', 'changed-files'].includes(marker.buildMode) &&
+      typeof marker.projectIdentity === 'string' &&
+      typeof marker.configDigest === 'string' &&
+      /^[a-f0-9]{64}$/u.test(marker.configDigest) &&
+      isJsonObject(marker.selector),
+    reproducibility:
+      isJsonObject(reproducibility) &&
+      reproducibility.deterministic === true &&
+      reproducibility.canonicalJson === true &&
+      typeof reproducibility.fingerprint === 'string' &&
+      /^[a-f0-9]{64}$/u.test(reproducibility.fingerprint) &&
+      typeof reproducibility.inputFingerprint === 'string' &&
+      /^[a-f0-9]{64}$/u.test(reproducibility.inputFingerprint),
   };
 }
 
@@ -1084,6 +1251,7 @@ async function validateFixturePublisherGraph(
   transport: PublicationTransport | undefined,
   now: Date | undefined,
   limits: FixtureGraphLimits,
+  fixtureAuthorityOrigin: string | undefined,
 ): Promise<FixtureGraphResult> {
   const findings: Finding[] = [];
   const documents: Record<string, unknown> = {};
@@ -1093,6 +1261,14 @@ async function validateFixturePublisherGraph(
     readonly resource: JsonObject;
   }> = [];
   const queued = new Set<string>();
+  type FixtureCacheEntry = {
+    readonly finalUrl: string;
+    readonly document: unknown;
+    readonly bytes: number;
+    readonly redirects: FetchResponse['redirects'];
+    charged: boolean;
+  };
+  const cache = new Map<string, FixtureCacheEntry>();
   const files: string[] = [];
   const fetches: PublicationFetchRecord[] = [];
   let totalBytes = 0;
@@ -1106,9 +1282,44 @@ async function validateFixturePublisherGraph(
   let resourceLimit = false;
   let depthLimit = false;
   let totalBytesLimit = totalBytes > limits.maxTotalBytes;
-  const rootEnqueue = isJsonObject(root)
-    ? enqueueFixtureResources(root, 1, queue, queued, limits.maxDepth, limits.maxResources)
-    : { resourceLimitExceeded: false, depthLimitExceeded: false };
+  const observedRootUrl = `${publisherOrigin}/.well-known/educational-organization-manifest`;
+  const authorityObservedRootUrl = fixtureAuthorityOrigin
+    ? `${fixtureAuthorityOrigin.replace(/\/$/u, '')}/.well-known/educational-organization-manifest`
+    : observedRootUrl;
+  const fixtureRootAuthorityBound =
+    fixtureAuthorityOrigin !== undefined &&
+    rootManifestOriginMatchesObserved(root, fixtureAuthorityOrigin);
+  // Network fixtures are served from loopback HTTP, but authority decisions
+  // must still run against the fictional HTTPS origin represented by the
+  // fixture. Keeping that logical origin here prevents the test-only transport
+  // exception from weakening the production authority policy.
+  const observedRootManifest = root;
+  const rootIdentityBound =
+    fixtureAuthorityOrigin !== undefined &&
+    rootManifestOriginMatchesObserved(observedRootManifest, authorityObservedRootUrl);
+  if (fixtureAuthorityOrigin === undefined) {
+    findings.push(
+      finding(
+        'EOM_CONFORMANCE_FIXTURE_AUTHORITY_REQUIRED',
+        'security',
+        'Loopback publisher checks require an explicit expected fictional authority origin.',
+        { severity: 'error', resource: observedRootUrl },
+      ),
+    );
+  } else if (!fixtureRootAuthorityBound || !rootIdentityBound) {
+    findings.push(
+      finding(
+        'EOM_AUTHORITY_ROOT_ORIGIN_MISMATCH',
+        'security',
+        'The root manifest authority origin does not match the origin from which the manifest was observed.',
+        { severity: 'error', resource: observedRootUrl },
+      ),
+    );
+  }
+  const rootEnqueue =
+    isJsonObject(root) && rootIdentityBound
+      ? enqueueFixtureResources(root, 1, queue, queued, limits.maxDepth, limits.maxResources)
+      : { resourceLimitExceeded: false, depthLimitExceeded: false };
   resourceLimit ||= rootEnqueue.resourceLimitExceeded;
   depthLimit ||= rootEnqueue.depthLimitExceeded;
   if (totalBytesLimit) {
@@ -1127,19 +1338,58 @@ async function validateFixturePublisherGraph(
     fetched += 1;
     try {
       const localUrl = mapFixtureUrl(publisherOrigin, next.href);
-      const response = await (transport?.fetchEom ?? fetchEom)(localUrl, {
-        ...fetchOptions,
-        method: 'GET',
-      });
-      fetches.push({
-        declaredUrl: next.href,
-        requestedUrl: localUrl,
-        finalUrl: response.finalUrl,
-        redirects: response.redirects,
-        cached: false,
-      });
-      const responseBytes = Buffer.byteLength(response.body, 'utf8');
-      if (totalBytes + responseBytes > limits.maxTotalBytes) {
+      const requestKey = canonicalFixtureUrl(localUrl);
+      const cached = cache.get(requestKey);
+      let finalUrl: string;
+      let document: unknown;
+      let responseBytes: number;
+      let redirects: FetchResponse['redirects'];
+      let cachedResponse = false;
+      if (cached) {
+        finalUrl = cached.finalUrl;
+        document = cached.document;
+        responseBytes = cached.bytes;
+        redirects = cached.redirects;
+        cachedResponse = true;
+      } else {
+        const response = await (transport?.fetchEom ?? fetchEom)(localUrl, {
+          ...fetchOptions,
+          method: 'GET',
+        });
+        responseBytes = Buffer.byteLength(response.body, 'utf8');
+        finalUrl = response.finalUrl;
+        redirects = response.redirects;
+        cachedResponse = response.cached === true;
+        try {
+          document = parseStrictJson(response.body, response.finalUrl);
+        } catch (error) {
+          throw new EomFetchError(
+            'EOM_FETCH_JSON',
+            error instanceof Error ? error.message : 'The EOM response is not valid JSON.',
+            response.finalUrl,
+            response.redirects,
+          );
+        }
+        const entry: FixtureCacheEntry = {
+          finalUrl,
+          document,
+          bytes: responseBytes,
+          redirects,
+          charged: false,
+        };
+        cache.set(requestKey, entry);
+        cache.set(canonicalFixtureUrl(finalUrl), entry);
+      }
+      const cacheEntry = cached ?? cache.get(requestKey);
+      const needsByteCharge = cacheEntry?.charged !== true;
+      if (needsByteCharge && totalBytes + responseBytes > limits.maxTotalBytes) {
+        fetches.push({
+          declaredUrl: next.href,
+          requestedUrl: localUrl,
+          finalUrl,
+          redirects,
+          cached: cachedResponse,
+        });
         findings.push(
           finding(
             'EOM_GRAPH_TOTAL_BYTES',
@@ -1151,28 +1401,52 @@ async function validateFixturePublisherGraph(
         totalBytesLimit = true;
         continue;
       }
-      totalBytes += responseBytes;
-      const document = parseStrictJson(response.body, response.finalUrl);
-      documents[response.finalUrl] = document;
-      files.push(response.finalUrl);
+      if (needsByteCharge) {
+        totalBytes += responseBytes;
+        if (cacheEntry) cacheEntry.charged = true;
+      }
+      fetches.push({
+        declaredUrl: next.href,
+        requestedUrl: localUrl,
+        finalUrl,
+        redirects,
+        cached: cachedResponse,
+      });
+      documents[finalUrl] = document;
+      if (!files.includes(finalUrl)) files.push(finalUrl);
+      let authorityAccepted = resourceDescriptorMatchesDocument(next.resource, document);
+      if (!authorityAccepted) {
+        findings.push(
+          finding(
+            'EOM_AUTHORITY_DESCRIPTOR_MISMATCH',
+            'security',
+            'The fetched resource identity does not match the resource descriptor declared by the root manifest.',
+            {
+              severity: 'error',
+              resource: finalUrl,
+              related: [next.href, finalUrl],
+            },
+          ),
+        );
+      }
       const authorityUrls = uniqueUrls([
         next.href,
-        response.finalUrl,
-        ...response.redirects.flatMap((redirect) => [redirect.from, redirect.to]),
+        finalUrl,
+        ...redirects.flatMap((redirect) => [redirect.from, redirect.to]),
       ]);
       for (const authorityUrl of authorityUrls) {
-        const authority = evaluateAuthority(
-          authorityManifestForObservedUrl(root, publisherOrigin, next.href, authorityUrl),
-          next.resource,
-          authorityUrl,
-          now === undefined ? {} : { now },
-        );
+        const evaluationUrl = mapFixtureAuthorityUrl(publisherOrigin, next.href, authorityUrl);
+        const authority = evaluateAuthority(observedRootManifest, next.resource, evaluationUrl, {
+          ...(now === undefined ? {} : { now }),
+          observedRootUrl: authorityObservedRootUrl,
+        });
         if (!authority.accepted) {
+          authorityAccepted = false;
           findings.push(
             ...authority.findings.map((item) => ({
               ...item,
               resource: item.resource ?? authorityUrl,
-              related: [...(item.related ?? []), next.href, response.finalUrl].filter(
+              related: [...(item.related ?? []), next.href, finalUrl].filter(
                 (value, index, values) => values.indexOf(value) === index,
               ),
             })),
@@ -1186,7 +1460,7 @@ async function validateFixturePublisherGraph(
           resource: item.resource ?? next.href,
         })),
       );
-      if (isJsonObject(document)) {
+      if (authorityAccepted && isJsonObject(document)) {
         const enqueueResult = enqueueFixtureResources(
           document,
           next.depth + 1,
@@ -1269,7 +1543,11 @@ function enqueueFixtureResources(
     try {
       const url = new URL(resource.href);
       url.hash = '';
-      key = url.toString();
+      const resourceId = typeof resource.id === 'string' ? resource.id : '';
+      const resourceType = typeof resource.type === 'string' ? resource.type : '';
+      // Authority-bearing fields are part of descriptor identity. Do not let a
+      // same-URL descriptor suppress evaluation of a distinct subject or scope.
+      key = `${url.toString()}|${resourceId}|${resourceType}|${stringifyCanonical(resource)}`;
     } catch {
       continue;
     }
@@ -1293,6 +1571,38 @@ function mapFixtureUrl(publisherOrigin: string, href: string): string {
   return target.toString();
 }
 
+function canonicalFixtureUrl(value: string): string {
+  const url = new URL(value);
+  url.hash = '';
+  return url.toString();
+}
+
+function mapFixtureRootAuthorityUrl(root: unknown, publisherOrigin: string, value: string): string {
+  if (!isJsonObject(root) || !isJsonObject(root.scope)) return value;
+  const rootOrigin =
+    typeof root.scope.origin === 'string' ? urlOrigin(root.scope.origin) : undefined;
+  if (rootOrigin === undefined || urlOrigin(value) !== rootOrigin) return value;
+  return mapFixtureUrl(publisherOrigin, value);
+}
+
+function mapFixtureAuthorityUrl(
+  publisherOrigin: string,
+  declaredUrl: string,
+  observedUrl: string,
+): string {
+  if (urlOrigin(observedUrl) !== urlOrigin(publisherOrigin)) return observedUrl;
+  try {
+    const declared = new URL(declaredUrl);
+    const observed = new URL(observedUrl);
+    declared.pathname = observed.pathname;
+    declared.search = observed.search;
+    declared.hash = '';
+    return declared.toString();
+  } catch {
+    return observedUrl;
+  }
+}
+
 function observedFetchFor(
   declaredUrl: string,
   graph: FixtureGraphResult | undefined,
@@ -1300,6 +1610,19 @@ function observedFetchFor(
   return graph?.fetches.find(
     (fetch) => fetch.declaredUrl === declaredUrl || fetch.requestedUrl === declaredUrl,
   );
+}
+
+function observedRootUrlForManifest(
+  manifest: unknown,
+  publisherOrigin: string | undefined,
+  graph: FixtureGraphResult | undefined,
+): string | undefined {
+  if (graph !== undefined && publisherOrigin !== undefined) {
+    return `${publisherOrigin.replace(/\/$/u, '')}/.well-known/educational-organization-manifest`;
+  }
+  if (!isJsonObject(manifest)) return undefined;
+  if (typeof manifest.canonical === 'string') return manifest.canonical;
+  return typeof manifest.id === 'string' ? manifest.id : undefined;
 }
 
 function uniqueUrls(values: readonly string[]): readonly string[] {
@@ -1311,6 +1634,7 @@ function authorityManifestForObservedUrl(
   publisherOrigin: string | undefined,
   declaredUrl: string,
   observedUrl: string,
+  fixtureAuthorityOrigin?: string,
 ): unknown {
   if (!publisherOrigin || !isLoopbackPublisherOrigin(publisherOrigin) || !isJsonObject(manifest)) {
     return manifest;
@@ -1320,13 +1644,24 @@ function authorityManifestForObservedUrl(
   const scope = isJsonObject(manifest.scope) ? manifest.scope : {};
   const rootOrigin = typeof scope.origin === 'string' ? urlOrigin(scope.origin) : undefined;
   const fixtureOrigin = urlOrigin(publisherOrigin);
-  if (observedOrigin === fixtureOrigin && declaredOrigin === rootOrigin) {
-    return {
-      ...manifest,
-      scope: { ...scope, origin: publisherOrigin },
-    };
-  }
-  if (observedOrigin !== fixtureOrigin || declaredOrigin === undefined) return manifest;
+  const expectedRootOrigin = fixtureAuthorityOrigin ? urlOrigin(fixtureAuthorityOrigin) : undefined;
+  if (fixtureAuthorityOrigin === undefined) return manifest;
+  if (
+    observedOrigin !== fixtureOrigin ||
+    declaredOrigin === undefined ||
+    expectedRootOrigin === undefined ||
+    rootOrigin !== expectedRootOrigin ||
+    !rootManifestOriginMatchesObserved(manifest, fixtureAuthorityOrigin)
+  )
+    return manifest;
+  const mappedManifest = {
+    ...manifest,
+    scope: { ...scope, origin: publisherOrigin },
+    ...(typeof manifest.canonical === 'string'
+      ? { canonical: remapFixtureOrigin(manifest.canonical, publisherOrigin) }
+      : {}),
+  };
+  if (declaredOrigin === rootOrigin) return mappedManifest;
   const delegations = Array.isArray(manifest.delegations) ? manifest.delegations : [];
   let changed = false;
   const mappedDelegations = delegations.map((value) => {
@@ -1363,7 +1698,20 @@ function authorityManifestForObservedUrl(
       },
     };
   });
-  return changed ? { ...manifest, delegations: mappedDelegations } : manifest;
+  return changed ? { ...mappedManifest, delegations: mappedDelegations } : mappedManifest;
+}
+
+function remapFixtureOrigin(value: string, publisherOrigin: string): string {
+  try {
+    const source = new URL(value);
+    const target = new URL(publisherOrigin);
+    target.pathname = source.pathname;
+    target.search = source.search;
+    target.hash = '';
+    return target.toString();
+  } catch {
+    return value;
+  }
 }
 
 function urlOrigin(value: string): string | undefined {

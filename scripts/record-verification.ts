@@ -32,16 +32,14 @@ const dirtySourcePaths = git('status', '--porcelain=v1', '--untracked-files=all'
   .split(/\r?\n/u)
   .filter(Boolean)
   .map((line) => line.slice(3).trim().replace(/^"|"$/gu, '').replaceAll('\\', '/'))
-  .filter(
-    (path) => path !== 'reports/verification/local-gates.json' && !path.startsWith('release/'),
-  );
+  .filter((path) => !isGeneratedEvidencePath(path) && !path.startsWith('release/'));
 if (dirtySourcePaths.length > 0) {
   throw new Error(
     `Aggregate verification requires a clean committed source tree before recording evidence: ${dirtySourcePaths.join(', ')}`,
   );
 }
 
-const formalSecurityScan = await readFormalSecurityScan();
+const formalSecurityScan = await readFormalSecurityScan(sourceTree);
 const commands = verifyScript.split(' && ');
 const receipt = {
   version: 1,
@@ -102,7 +100,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-async function readFormalSecurityScan(): Promise<{
+async function readFormalSecurityScan(sourceTree: string): Promise<{
   readonly version: 1;
   readonly status: 'pass';
   readonly scanId: string;
@@ -135,6 +133,11 @@ async function readFormalSecurityScan(): Promise<{
   if (git('rev-parse', `${targetCommit}^{tree}`) !== targetTree) {
     throw new Error('Formal security scan targetCommit and targetTree do not agree.');
   }
+  if (targetTree !== sourceTree) {
+    throw new Error(
+      'Formal security scan must target the exact source tree used for aggregate verification.',
+    );
+  }
   return {
     version: 1,
     status: 'pass',
@@ -156,7 +159,7 @@ function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
         '--',
         '.',
         ':(exclude)release/**',
-        ':(exclude)reports/verification/local-gates.json',
+        ...generatedEvidencePathspecs(),
       ],
       { cwd: root, stdio: 'ignore' },
     );
@@ -168,4 +171,30 @@ function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
 
 function sha256(bytes: Buffer): string {
   return createHash('sha256').update(bytes).digest('hex');
+}
+
+function isGeneratedEvidencePath(path: string): boolean {
+  const normalized = path.replaceAll('\\', '/').replace(/^"|"$/gu, '');
+  return generatedEvidencePaths().some(
+    (candidate) => normalized === candidate || normalized.startsWith(`${candidate}/`),
+  );
+}
+
+function generatedEvidencePaths(): readonly string[] {
+  return [
+    'reports/remediation-audit.md',
+    'reports/release-checklist.md',
+    'reports/security-scan.md',
+    'reports/security-scan.json',
+    'reports/security-scan',
+    'reports/verification/local-gates.json',
+    'requirements/TRACEABILITY_MATRIX.md',
+    'requirements/plan-file-traceability.json',
+  ];
+}
+
+function generatedEvidencePathspecs(): readonly string[] {
+  return generatedEvidencePaths().map((path) =>
+    path === 'reports/security-scan' ? ':(exclude)reports/security-scan/**' : `:(exclude)${path}`,
+  );
 }

@@ -28,7 +28,7 @@
     },
     "scope": {
       "artifactsReviewed": [
-        "Final committed source revision 8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38",
+        "Historical source revision 8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38",
         "release/v1.0.0-rc.3"
       ],
       "context": "Complete EOM v1.0.0-rc.3 candidate in the paperandslate/well-known repository.",
@@ -39,13 +39,15 @@
       "limitations": [
         "External registration, legal/governance approval, independent pilots, deployment, and production adoption remain explicitly blocked."
       ],
-      "runtimeStatus": "Local deterministic build, test, package, release, and security checks completed for the final committed candidate.",
-      "summary": "Standard prompt-only security review of the final committed RC3 candidate after conformance, security, and evidence-binding remediation.",
+      "runtimeStatus": "Local deterministic build, test, package, release, and security checks completed for the historical candidate.",
+      "summary": "Historical Standard prompt-only security review of an earlier RC3 candidate after conformance, security, and evidence-binding remediation.",
       "validationMode": "standard prompt-only review"
     },
     "sealedAt": "2026-08-27T02:58:39.442981Z",
     "startedAt": "2026-08-27T02:55:32.526802Z",
     "status": "completed",
+    "historicalSuperseded": true,
+    "supersededBy": "A new post-remediation scan bound to the final clean remediation commit",
     "target": {
       "displayName": "well-known",
       "kind": "git_revision",

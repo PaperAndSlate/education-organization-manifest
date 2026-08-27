@@ -1,11 +1,45 @@
-import { finding, type Finding } from '@paperandslate/eom-validator';
+import { finding, type Finding } from '@paperandslate/eom-core';
+
+const MAX_PROVENANCE_RECORDS = 100_000;
 
 /** Lint embedded provenance records without treating provenance as a factual guarantee. */
 export function provenanceFindings(document: unknown): readonly Finding[] {
   if (!isRecord(document) || !Array.isArray(document.provenance)) return [];
+  const provenance = document.provenance as unknown[];
   const findings: Finding[] = [];
-  document.provenance.forEach((record, index) => {
-    if (!isRecord(record)) return;
+  if (!isDenseArray(provenance)) {
+    findings.push(
+      finding(
+        'EOM_LINT_SPARSE_ARRAY',
+        'security',
+        'The provenance value contains a sparse array that is not valid JSON.',
+        {
+          severity: 'error',
+          pointer: '/provenance',
+          help: 'Parse strict JSON or fill every provenance array index before linting.',
+        },
+      ),
+    );
+    return findings;
+  }
+  if (provenance.length > MAX_PROVENANCE_RECORDS) {
+    findings.push(
+      finding(
+        'EOM_LINT_RESOURCE_LIMIT',
+        'security',
+        `The provenance array exceeds the ${MAX_PROVENANCE_RECORDS}-record safety limit.`,
+        {
+          severity: 'error',
+          pointer: '/provenance',
+          help: 'Reduce the provenance input before linting.',
+        },
+      ),
+    );
+  }
+  const count = Math.min(provenance.length, MAX_PROVENANCE_RECORDS);
+  for (let index = 0; index < count; index += 1) {
+    const record = provenance[index];
+    if (!isRecord(record)) continue;
     const pointer = `/provenance/${index}`;
     const scope = typeof record.scope === 'string' ? record.scope : undefined;
     if (scope === 'field') {
@@ -22,7 +56,20 @@ export function provenanceFindings(document: unknown): readonly Finding[] {
             },
           ),
         );
+      } else if (!isDenseArray(pointers)) {
+        findings.push(
+          finding(
+            'EOM_LINT_SPARSE_ARRAY',
+            'security',
+            'Provenance targetPointers must be a dense array.',
+            {
+              pointer: `${pointer}/targetPointers`,
+              help: 'Provide every target pointer as an explicit array element.',
+            },
+          ),
+        );
       }
+      if (!isDenseArray(pointers)) continue;
       pointers.forEach((value, pointerIndex) => {
         if (typeof value !== 'string' || !isJsonPointer(value)) {
           findings.push(
@@ -69,7 +116,7 @@ export function provenanceFindings(document: unknown): readonly Finding[] {
         ),
       );
     }
-  });
+  }
   return findings;
 }
 
@@ -78,5 +125,15 @@ function isJsonPointer(value: string): boolean {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const prototype = Reflect.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function isDenseArray(value: unknown): value is readonly unknown[] {
+  if (!Array.isArray(value)) return false;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.hasOwn(value, index)) return false;
+  }
+  return true;
 }

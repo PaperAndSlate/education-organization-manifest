@@ -209,6 +209,32 @@ test('keeps starter and uploaded content as text and rejects cross-origin servic
     buffer: Buffer.from('{"type":"not-a-document"}', 'utf8'),
   });
   await expect(page.locator('#validation-status')).toContainText('uploaded.json loaded locally');
+
+  await page.locator('#file-input').setInputFiles({
+    name: 'oversized.json',
+    mimeType: 'application/json',
+    buffer: Buffer.alloc(2 * 1024 * 1024 + 1, 0x61),
+  });
+  await expect(page.locator('#validation-status')).toContainText(
+    'selected file exceeds the 2 MiB safety limit',
+  );
+  await expect(page.locator('#source')).toHaveValue('');
+});
+
+test('bounds same-origin validation service responses', async ({ page }) => {
+  await page.route('**/api/eom/validate', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: 'a'.repeat(2 * 1024 * 1024 + 1),
+    });
+  });
+  await page.locator('#validation-service').fill('/api/eom/validate');
+  await page.locator('#public-validation-url').fill('https://school.example');
+  await page.getByRole('button', { name: 'Run remote validation' }).click();
+  await expect(page.locator('#url-validation-status')).toContainText(
+    'Validation service response exceeds the 2 MiB safety limit.',
+  );
 });
 
 test('supports keyboard focus, reduced motion, zoom/reflow, and strict CSP', async ({ page }) => {

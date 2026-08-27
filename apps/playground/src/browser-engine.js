@@ -1,13 +1,15 @@
 import { parseDocument } from 'yaml';
 import { parseStrictJson } from '@paperandslate/eom-core/json';
-import { evaluateAuthority } from '@paperandslate/eom-authority';
+import { isValidDateTime } from '@paperandslate/eom-core/time';
+import { evaluateAuthority, resourceDescriptorMatchesDocument } from '@paperandslate/eom-authority';
 import { semanticFindings } from '../../../packages/validator/src/semantic.ts';
 import schemas from './generated-schemas.js';
 import { validatorsById } from './generated-validators.js';
 
 const SCHEMA_BASE = 'https://paperandslate.org/schemas/eom/1.0/';
-const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
+export const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
 const MAX_BROWSER_JSON_DEPTH = 128;
+const MAX_BROWSER_JSON_NODES = 100_000;
 const TYPE_TO_SCHEMA = {
   manifest: 'manifest.schema.json',
   resource: 'resource.schema.json',
@@ -46,8 +48,12 @@ export function browserSchemaCatalog() {
 }
 
 export function parseBrowserSource(text, kind) {
+  if (typeof text !== 'string') throw new Error('Browser input must be text.');
   if (!text.trim()) throw new Error('Enter a document before running a local check.');
-  if (new TextEncoder().encode(text).byteLength > MAX_SOURCE_BYTES) {
+  // Count UTF-8 bytes without first allocating an encoded copy of an
+  // attacker-controlled string. This accepts all inputs up to the actual
+  // limit (rather than rejecting safe ASCII at a conservative UTF-8 bound).
+  if (!withinUtf8Limit(text, MAX_SOURCE_BYTES)) {
     throw new Error('The browser input exceeds the 2 MiB safety limit.');
   }
   if (kind === 'json') return parseStrictJson(text, 'browser input');
@@ -70,6 +76,28 @@ export function parseBrowserSource(text, kind) {
   return value;
 }
 
+function withinUtf8Limit(value, limit) {
+  let bytes = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 0x7f) bytes += 1;
+    else if (code <= 0x7ff) bytes += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && index + 1 < value.length) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        bytes += 4;
+        index += 1;
+      } else {
+        bytes += 3;
+      }
+    } else {
+      bytes += 3;
+    }
+    if (bytes > limit) return false;
+  }
+  return true;
+}
+
 export function validateBrowserDocument(value, options = {}) {
   if (!isPlainObject(value)) {
     return result(false, false, false, [
@@ -81,7 +109,20 @@ export function validateBrowserDocument(value, options = {}) {
       ),
     ]);
   }
-  const type = typeof value.type === 'string' ? value.type : undefined;
+  try {
+    assertJsonSafe(value, 0);
+  } catch (error) {
+    return result(false, false, false, [
+      browserFinding(
+        'EOM_DOCUMENT_JSON_REQUIRED',
+        'structural',
+        error instanceof Error ? error.message : 'The publication must contain only JSON values.',
+        '/',
+      ),
+    ]);
+  }
+  const type =
+    Object.hasOwn(value, 'type') && typeof value.type === 'string' ? value.type : undefined;
   const file = type ? (TYPE_TO_SCHEMA[type] ?? `modules/${type}.schema.json`) : undefined;
   const schema = file ? schemas.find((item) => item.$id === `${SCHEMA_BASE}${file}`) : undefined;
   const findings = [];
@@ -157,8 +198,18 @@ export function semanticDiffBrowser(before, after) {
 
 export async function verifyDetachedBrowser(value, signature, keySet, options = {}) {
   const findings = [];
-  if (!isPlainObject(signature) || !isPlainObject(keySet)) {
+  if (!isPlainObject(value) || !isPlainObject(signature) || !isPlainObject(keySet)) {
     return { overall: false, findings: ['A signature and key-set object are required.'] };
+  }
+  try {
+    assertJsonSafe(value, 0);
+    assertJsonSafe(signature, 0);
+    assertJsonSafe(keySet, 0);
+  } catch (error) {
+    return {
+      overall: false,
+      findings: [error instanceof Error ? error.message : 'Inputs must contain only JSON values.'],
+    };
   }
   const now = options.now ? new Date(options.now) : new Date();
   if (Number.isNaN(now.getTime())) findings.push('The verification time is invalid.');
@@ -177,33 +228,56 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
     ['canonicalization', 'RFC8785-JCS'],
     ['detached', true],
   ]) {
-    if (signature[field] !== expected) findings.push(`The signature field ${field} is invalid.`);
+    if (!Object.hasOwn(signature, field) || signature[field] !== expected)
+      findings.push(`The signature field ${field} is invalid.`);
   }
-  if (typeof signature.id !== 'string' || !isAbsoluteUri(signature.id))
-    findings.push('The signature id must be an absolute URI.');
-  if (typeof signature.canonical !== 'string' || !isHttpsUri(signature.canonical))
-    findings.push('The signature canonical URL must be HTTPS.');
-  if (typeof signature.subject !== 'string' || !isAbsoluteUri(signature.subject))
-    findings.push('The signature subject must be an absolute URI.');
-  if (typeof signature.keyId !== 'string' || !isAbsoluteUri(signature.keyId))
-    findings.push('The signature key id must be an absolute URI.');
-  if (typeof signature.createdAt !== 'string' || !validDate(signature.createdAt))
-    findings.push('The signature creation time is invalid.');
   if (
-    typeof signature.expires !== 'undefined' &&
+    !Object.hasOwn(signature, 'id') ||
+    typeof signature.id !== 'string' ||
+    !isAbsoluteUri(signature.id)
+  )
+    findings.push('The signature id must be an absolute URI.');
+  if (
+    !Object.hasOwn(signature, 'canonical') ||
+    typeof signature.canonical !== 'string' ||
+    !isHttpsUri(signature.canonical)
+  )
+    findings.push('The signature canonical URL must be HTTPS.');
+  if (
+    !Object.hasOwn(signature, 'subject') ||
+    typeof signature.subject !== 'string' ||
+    !isAbsoluteUri(signature.subject)
+  )
+    findings.push('The signature subject must be an absolute URI.');
+  if (
+    !Object.hasOwn(signature, 'keyId') ||
+    typeof signature.keyId !== 'string' ||
+    !isAbsoluteUri(signature.keyId)
+  )
+    findings.push('The signature key id must be an absolute URI.');
+  if (
+    !Object.hasOwn(signature, 'createdAt') ||
+    typeof signature.createdAt !== 'string' ||
+    !validDate(signature.createdAt)
+  )
+    findings.push('The signature creation time is invalid.');
+  const signatureHasExpires = Object.hasOwn(signature, 'expires');
+  if (
+    signatureHasExpires &&
     (typeof signature.expires !== 'string' || !validDate(signature.expires))
   )
     findings.push('The signature expiry time is invalid.');
   if (
-    signature.expires !== undefined &&
+    signatureHasExpires &&
     typeof signature.expires === 'string' &&
     validDate(signature.expires) &&
     Date.parse(signature.expires) < now.getTime()
   )
     findings.push('The detached signature has expired.');
-  const resourceExpires = isPlainObject(value) ? value.expires : undefined;
+  const resourceExpiresPresent = Object.hasOwn(value, 'expires');
+  const resourceExpires = resourceExpiresPresent ? value.expires : undefined;
   if (
-    resourceExpires !== undefined &&
+    resourceExpiresPresent &&
     (typeof resourceExpires !== 'string' || !validDate(resourceExpires))
   )
     findings.push('The signed resource expiry time is invalid.');
@@ -213,58 +287,81 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
     Date.parse(resourceExpires) < now.getTime()
   )
     findings.push('The signed resource has expired.');
-  if (signature.contentType !== 'application/json')
+  if (!Object.hasOwn(signature, 'contentType') || signature.contentType !== 'application/json')
     findings.push('The signature content type must be application/json.');
-  if (typeof signature.subject === 'string' && signature.subject !== value?.id)
+  if (
+    typeof signature.subject === 'string' &&
+    (!Object.hasOwn(value, 'id') || signature.subject !== value.id)
+  )
     findings.push('The signature subject does not match the resource id.');
   if (
+    !Object.hasOwn(signature, 'payloadDigest') ||
     typeof signature.payloadDigest !== 'string' ||
     !/^sha-256=:[A-Za-z0-9+/]+={0,2}:$/u.test(signature.payloadDigest)
   )
     findings.push('The signature payload digest is missing or malformed.');
-  if (typeof signature.protected !== 'string' || !/^[A-Za-z0-9_-]+$/u.test(signature.protected))
+  if (
+    !Object.hasOwn(signature, 'protected') ||
+    typeof signature.protected !== 'string' ||
+    !/^[A-Za-z0-9_-]+$/u.test(signature.protected)
+  )
     findings.push('The protected header encoding is invalid.');
-  if (typeof signature.signature !== 'string' || !/^[A-Za-z0-9_-]+$/u.test(signature.signature))
+  if (
+    !Object.hasOwn(signature, 'signature') ||
+    typeof signature.signature !== 'string' ||
+    !/^[A-Za-z0-9_-]+$/u.test(signature.signature)
+  )
     findings.push('The signature encoding is invalid.');
   if (
+    !Object.hasOwn(signature, 'compact') ||
     typeof signature.compact !== 'string' ||
     signature.compact !== `${signature.protected}..${signature.signature}`
   )
     findings.push('The compact detached representation does not match the signature fields.');
-  const key = Array.isArray(keySet.keys)
-    ? keySet.keys.find((candidate) => isPlainObject(candidate) && candidate.kid === signature.keyId)
-    : undefined;
-  if (!isPlainObject(key) || !isPlainObject(key.publicKeyJwk))
+  const key =
+    Object.hasOwn(keySet, 'keys') && Array.isArray(keySet.keys)
+      ? keySet.keys.find(
+          (candidate) =>
+            isPlainObject(candidate) &&
+            Object.hasOwn(candidate, 'kid') &&
+            candidate.kid === signature.keyId,
+        )
+      : undefined;
+  if (
+    !isPlainObject(key) ||
+    !Object.hasOwn(key, 'publicKeyJwk') ||
+    !isPlainObject(key.publicKeyJwk)
+  )
     findings.push('The signature key is missing from the supplied key set.');
   if (isPlainObject(key)) {
-    if (key.status !== undefined && key.status !== 'active')
+    if (Object.hasOwn(key, 'status') && key.status !== 'active')
       findings.push('The signing key is not active.');
     if (
-      key.validFrom !== undefined &&
+      Object.hasOwn(key, 'validFrom') &&
       (typeof key.validFrom !== 'string' ||
         !validDate(key.validFrom) ||
         Date.parse(key.validFrom) > now.getTime())
     )
       findings.push('The signing key is not yet valid.');
     if (
-      key.validUntil !== undefined &&
+      Object.hasOwn(key, 'validUntil') &&
       (typeof key.validUntil !== 'string' ||
         !validDate(key.validUntil) ||
         Date.parse(key.validUntil) < now.getTime())
     )
       findings.push('The signing key has expired.');
     if (
-      key.revokedAt !== undefined &&
+      Object.hasOwn(key, 'revokedAt') &&
       typeof key.revokedAt === 'string' &&
       validDate(key.revokedAt) &&
       Date.parse(key.revokedAt) <= now.getTime()
     )
       findings.push('The signing key has been revoked.');
-    if (key.alg !== undefined && key.alg !== 'EdDSA')
+    if (Object.hasOwn(key, 'alg') && key.alg !== 'EdDSA')
       findings.push('The signing key does not allow EdDSA.');
     if (
-      key.validFrom !== undefined &&
-      key.validUntil !== undefined &&
+      Object.hasOwn(key, 'validFrom') &&
+      Object.hasOwn(key, 'validUntil') &&
       typeof key.validFrom === 'string' &&
       typeof key.validUntil === 'string' &&
       validDate(key.validFrom) &&
@@ -273,6 +370,9 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
     )
       findings.push('The signing key validity interval is invalid.');
     if (
+      !Object.hasOwn(key.publicKeyJwk, 'kty') ||
+      !Object.hasOwn(key.publicKeyJwk, 'crv') ||
+      !Object.hasOwn(key.publicKeyJwk, 'x') ||
       key.publicKeyJwk.kty !== 'OKP' ||
       key.publicKeyJwk.crv !== 'Ed25519' ||
       typeof key.publicKeyJwk.x !== 'string' ||
@@ -281,7 +381,7 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
       findings.push('The supplied key is not a public Ed25519 key.');
   }
   if (
-    keySet.expires !== undefined &&
+    Object.hasOwn(keySet, 'expires') &&
     typeof keySet.expires === 'string' &&
     validDate(keySet.expires) &&
     Date.parse(keySet.expires) < now.getTime()
@@ -312,11 +412,17 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
       if (!isPlainObject(decoded)) throw new Error('The protected header must be an object.');
       protectedHeader = decoded;
       if (
+        !Object.hasOwn(decoded, 'alg') ||
         decoded.alg !== 'EdDSA' ||
+        !Object.hasOwn(decoded, 'b64') ||
         decoded.b64 !== false ||
+        !Object.hasOwn(decoded, 'eom') ||
         !isPlainObject(decoded.eom) ||
+        !Object.hasOwn(decoded.eom, 'version') ||
         decoded.eom.version !== '1.0' ||
+        !Object.hasOwn(decoded.eom, 'canonicalization') ||
         decoded.eom.canonicalization !== 'RFC8785-JCS' ||
+        !Object.hasOwn(decoded, 'cty') ||
         decoded.cty !== 'application/json'
       )
         findings.push('The protected header does not declare the EOM detached profile.');
@@ -327,7 +433,7 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
         !decoded.crit.includes('eom')
       )
         findings.push('The protected header critical parameters are invalid.');
-      if (decoded.kid !== signature.keyId)
+      if (!Object.hasOwn(decoded, 'kid') || decoded.kid !== signature.keyId)
         findings.push('The protected header key id does not match the signature record.');
       const metadata = isPlainObject(decoded.eom) ? decoded.eom : undefined;
       if (
@@ -337,10 +443,11 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
         )
       )
         findings.push('The protected EOM lifetime object contains an unknown property.');
-      const metadataExpiresPresent = metadata !== undefined && 'expires' in metadata;
-      const sidecarExpiresPresent = 'expires' in signature;
+      const metadataExpiresPresent = metadata !== undefined && Object.hasOwn(metadata, 'expires');
+      const sidecarExpiresPresent = Object.hasOwn(signature, 'expires');
       if (
         metadata === undefined ||
+        !Object.hasOwn(metadata, 'createdAt') ||
         typeof metadata.createdAt !== 'string' ||
         metadata.createdAt !== signature.createdAt ||
         metadataExpiresPresent !== sidecarExpiresPresent ||
@@ -396,17 +503,58 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
       );
     }
   }
-  if (options.manifest !== undefined && options.finalUrl !== undefined) {
-    const authority = evaluateAuthority(
-      options.manifest,
-      options.resource ?? value,
-      options.finalUrl,
-      cryptographic && typeof signature.keyId === 'string'
-        ? { now, verifiedKeyId: signature.keyId }
-        : { now },
-    );
-    if (!authority.accepted) {
-      findings.push(...authority.findings.map((item) => `${item.code}: ${item.message}`));
+  // The signed document is not a trusted manifest descriptor.  Require the
+  // descriptor explicitly so browser verification cannot manufacture
+  // authority from the untrusted document itself.
+  const authorityResource = options.authorityResource;
+  const authorityContextRequested =
+    options.manifest !== undefined ||
+    options.resource !== undefined ||
+    options.authorityResource !== undefined ||
+    options.finalUrl !== undefined ||
+    options.observedRootUrl !== undefined;
+  const authorityContextComplete =
+    options.manifest !== undefined &&
+    typeof options.finalUrl === 'string' &&
+    options.finalUrl.length > 0 &&
+    typeof options.observedRootUrl === 'string' &&
+    options.observedRootUrl.length > 0 &&
+    authorityResource !== undefined;
+  if (authorityContextRequested) {
+    if (!authorityContextComplete) {
+      findings.push(
+        'EOM_AUTHORITY_CONTEXT_REQUIRED: Authority-aware signature verification requires a manifest, observed final URL, fetched resource descriptor, and observed root-manifest URL.',
+      );
+    } else {
+      if (!resourceDescriptorMatchesDocument(authorityResource, value)) {
+        findings.push(
+          'EOM_AUTHORITY_DESCRIPTOR_MISMATCH: The fetched resource does not match the declared manifest descriptor.',
+        );
+      }
+      const authority = evaluateAuthority(
+        options.manifest,
+        authorityResource,
+        options.finalUrl,
+        cryptographic && typeof signature.keyId === 'string'
+          ? {
+              now,
+              verifiedKeyId: signature.keyId,
+              requireObservedRoot: true,
+              ...(typeof options.observedRootUrl === 'string'
+                ? { observedRootUrl: options.observedRootUrl }
+                : {}),
+            }
+          : {
+              now,
+              requireObservedRoot: true,
+              ...(typeof options.observedRootUrl === 'string'
+                ? { observedRootUrl: options.observedRootUrl }
+                : {}),
+            },
+      );
+      if (!authority.accepted) {
+        findings.push(...authority.findings.map((item) => `${item.code}: ${item.message}`));
+      }
     }
   }
   return { overall: findings.length === 0 && cryptographic, findings };
@@ -455,7 +603,10 @@ function compareValue(before, after, path, changes, depth = 0) {
     changes.push({ kind: 'changed', path: path || '/' });
 }
 
-function canonicalJson(value, depth = 0, visited = new WeakSet()) {
+function canonicalJson(value, depth = 0, visited = new WeakSet(), state = { nodes: 0 }) {
+  state.nodes += 1;
+  if (state.nodes > MAX_BROWSER_JSON_NODES)
+    throw new Error(`JSON value exceeds the ${MAX_BROWSER_JSON_NODES}-node safety limit.`);
   if (depth > MAX_BROWSER_JSON_DEPTH)
     throw new Error(`JSON nesting exceeds the ${MAX_BROWSER_JSON_DEPTH}-level safety limit.`);
   if (value === null || typeof value === 'boolean') {
@@ -470,10 +621,11 @@ function canonicalJson(value, depth = 0, visited = new WeakSet()) {
     return JSON.stringify(Object.is(value, -0) ? 0 : value);
   }
   if (Array.isArray(value)) {
+    assertDenseArray(value);
     if (visited.has(value)) throw new Error('Cyclic values are not valid JSON.');
     visited.add(value);
     try {
-      return `[${value.map((item) => canonicalJson(item, depth + 1, visited)).join(',')}]`;
+      return `[${value.map((item) => canonicalJson(item, depth + 1, visited, state)).join(',')}]`;
     } finally {
       visited.delete(value);
     }
@@ -486,7 +638,7 @@ function canonicalJson(value, depth = 0, visited = new WeakSet()) {
         .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
         .map((key) => {
           assertWellFormedUnicode(key);
-          return `${JSON.stringify(key)}:${canonicalJson(value[key], depth + 1, visited)}`;
+          return `${JSON.stringify(key)}:${canonicalJson(value[key], depth + 1, visited, state)}`;
         })
         .join(',')}}`;
     } finally {
@@ -528,7 +680,7 @@ function appendSchemaErrors(value, type, findings) {
 }
 
 function appendKeySetFragmentErrors(keySet, findings) {
-  if (!Array.isArray(keySet.keys)) {
+  if (!Object.hasOwn(keySet, 'keys') || !Array.isArray(keySet.keys)) {
     findings.push('The verification key set must contain a keys array.');
     return;
   }
@@ -558,33 +710,40 @@ function appendKeySetFragmentErrors(keySet, findings) {
       if (!allowedFields.has(field))
         findings.push(`/keys/${index}/${escapePointer(field)} is unsupported.`);
     }
-    if (typeof key.kid !== 'string' || !isAbsoluteUri(key.kid))
+    if (!Object.hasOwn(key, 'kid') || typeof key.kid !== 'string' || !isAbsoluteUri(key.kid))
       findings.push(`/keys/${index}/kid must be an absolute URI.`);
     if (typeof key.kid === 'string') {
       if (seen.has(key.kid)) findings.push(`/keys/${index}/kid must be unique.`);
       seen.add(key.kid);
     }
-    if (key.kty !== 'OKP') findings.push(`/keys/${index}/kty must be OKP.`);
-    if (key.use !== 'sig') findings.push(`/keys/${index}/use must be sig.`);
-    if (key.alg !== 'EdDSA') findings.push(`/keys/${index}/alg must be EdDSA.`);
-    if (!['active', 'revoked', 'expired'].includes(key.status))
+    if (!Object.hasOwn(key, 'kty') || key.kty !== 'OKP')
+      findings.push(`/keys/${index}/kty must be OKP.`);
+    if (!Object.hasOwn(key, 'use') || key.use !== 'sig')
+      findings.push(`/keys/${index}/use must be sig.`);
+    if (!Object.hasOwn(key, 'alg') || key.alg !== 'EdDSA')
+      findings.push(`/keys/${index}/alg must be EdDSA.`);
+    if (!Object.hasOwn(key, 'status') || !['active', 'revoked', 'expired'].includes(key.status))
       findings.push(`/keys/${index}/status has an unsupported value.`);
-    if (!isPlainObject(key.publicKeyJwk)) {
+    if (!Object.hasOwn(key, 'publicKeyJwk') || !isPlainObject(key.publicKeyJwk)) {
       findings.push(`/keys/${index}/publicKeyJwk must be an object.`);
     } else {
       for (const field of Object.keys(key.publicKeyJwk)) {
         if (!['kty', 'crv', 'x'].includes(field))
           findings.push(`/keys/${index}/publicKeyJwk/${escapePointer(field)} is unsupported.`);
       }
-      if (key.publicKeyJwk.kty !== 'OKP')
+      if (!Object.hasOwn(key.publicKeyJwk, 'kty') || key.publicKeyJwk.kty !== 'OKP')
         findings.push(`/keys/${index}/publicKeyJwk/kty must be OKP.`);
-      if (key.publicKeyJwk.crv !== 'Ed25519')
+      if (!Object.hasOwn(key.publicKeyJwk, 'crv') || key.publicKeyJwk.crv !== 'Ed25519')
         findings.push(`/keys/${index}/publicKeyJwk/crv must be Ed25519.`);
-      if (typeof key.publicKeyJwk.x !== 'string' || !/^[A-Za-z0-9_-]+$/u.test(key.publicKeyJwk.x))
+      if (
+        !Object.hasOwn(key.publicKeyJwk, 'x') ||
+        typeof key.publicKeyJwk.x !== 'string' ||
+        !/^[A-Za-z0-9_-]+$/u.test(key.publicKeyJwk.x)
+      )
         findings.push(`/keys/${index}/publicKeyJwk/x must be base64url text.`);
     }
     for (const field of ['validFrom', 'validUntil', 'revokedAt']) {
-      if (key[field] !== undefined && (typeof key[field] !== 'string' || !validDate(key[field])))
+      if (Object.hasOwn(key, field) && (typeof key[field] !== 'string' || !validDate(key[field])))
         findings.push(`/keys/${index}/${field} must be a valid date-time.`);
     }
     if (
@@ -604,9 +763,13 @@ function isPlainObject(value) {
   return prototype === Object.prototype || prototype === null;
 }
 
-function assertJsonSafe(value, depth, visited = new WeakSet()) {
+function assertJsonSafe(value, depth, visited = new WeakSet(), state = { nodes: 0 }) {
+  state.nodes += 1;
+  if (state.nodes > MAX_BROWSER_JSON_NODES)
+    throw new Error(`The browser input exceeds the ${MAX_BROWSER_JSON_NODES}-node safety limit.`);
   if (depth > MAX_BROWSER_JSON_DEPTH)
     throw new Error(`The browser input exceeds the ${MAX_BROWSER_JSON_DEPTH}-level nesting limit.`);
+  if (value === undefined) throw new Error('Undefined values are not valid JSON publication data.');
   if (typeof value === 'string') assertWellFormedUnicode(value);
   if (typeof value === 'number' && !Number.isFinite(value))
     throw new Error('Non-finite numbers are not valid JSON.');
@@ -616,13 +779,26 @@ function assertJsonSafe(value, depth, visited = new WeakSet()) {
     if (visited.has(value)) throw new Error('Cyclic values are not valid JSON.');
     visited.add(value);
     try {
-      if (Array.isArray(value)) value.forEach((item) => assertJsonSafe(item, depth + 1, visited));
-      else if (isPlainObject(value))
-        Object.values(value).forEach((item) => assertJsonSafe(item, depth + 1, visited));
-      else throw new Error('Only JSON objects and arrays are supported.');
+      if (Array.isArray(value)) {
+        assertDenseArray(value);
+        for (let index = 0; index < value.length; index += 1) {
+          assertJsonSafe(value[index], depth + 1, visited, state);
+        }
+      } else if (isPlainObject(value)) {
+        Object.entries(value).forEach(([key, item]) => {
+          assertWellFormedUnicode(key);
+          assertJsonSafe(item, depth + 1, visited, state);
+        });
+      } else throw new Error('Only JSON objects and arrays are supported.');
     } finally {
       visited.delete(value);
     }
+  }
+}
+
+function assertDenseArray(value) {
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.hasOwn(value, index)) throw new Error('Sparse arrays are not valid JSON values.');
   }
 }
 
@@ -691,9 +867,5 @@ function isHttpsUri(value) {
 }
 
 function validDate(value) {
-  return (
-    typeof value === 'string' &&
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/u.test(value) &&
-    !Number.isNaN(Date.parse(value))
-  );
+  return isValidDateTime(value);
 }

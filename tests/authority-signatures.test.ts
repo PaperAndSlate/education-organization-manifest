@@ -66,7 +66,7 @@ describe('EOM delegated authority', () => {
     const resource = delegatedResource(
       'meal-menu-catalog',
       'https://ecme-high.example/eom/resource/meals',
-    );
+    ) as Record<string, unknown>;
     const now = new Date('2027-08-01T00:00:00Z');
     expect(
       evaluateAuthority(
@@ -125,6 +125,56 @@ describe('EOM delegated authority', () => {
     ).toBe(false);
   });
 
+  it('does not bypass an explicit delegation when the final URL remains on the root origin', () => {
+    const delegation = fixture('fixtures/delegation/vendor-meals.json');
+    const resource = {
+      ...(delegatedResource(
+        'meal-menu-catalog',
+        'https://ecme-high.example/eom/resource/meals',
+      ) as Record<string, unknown>),
+      authority: {
+        delegation: 'https://ecme-high.example/id/delegation/meal-provider',
+      },
+    };
+    const result = evaluateAuthority(
+      rootManifest(delegation),
+      resource,
+      'https://ecme-high.example/eom/meals.json',
+      {
+        now: new Date('2027-08-01T00:00:00Z'),
+        verifiedKeyId: 'https://ecme-high.example/eom/keys#not-approved',
+      },
+    );
+    expect(result.accepted).toBe(false);
+    expect(result.trustLabel).toBe('unverified-external');
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_DELEGATION_ORIGIN_OUT_OF_SCOPE' }),
+        expect.objectContaining({ code: 'EOM_DELEGATION_KEY_OUT_OF_SCOPE' }),
+      ]),
+    );
+  });
+
+  it('rejects a root manifest whose declared authority origin differs from its observed origin', () => {
+    const result = evaluateAuthority(
+      {
+        canonical: 'https://evil.example/.well-known/educational-organization-manifest',
+        scope: { origin: 'https://evil.example', paths: ['/'] },
+      },
+      delegatedResource('organization-profile', 'https://evil.example/eom/resource/organization'),
+      'https://evil.example/eom/organization.json',
+      {
+        observedRootUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      },
+    );
+    expect(result.accepted).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_ROOT_ORIGIN_MISMATCH' }),
+      ]),
+    );
+  });
+
   it('rejects malformed scope arrays instead of silently filtering their entries', () => {
     const resource = delegatedResource(
       'meal-menu-catalog',
@@ -173,6 +223,171 @@ describe('EOM delegated authority', () => {
     }
   });
 
+  it('rejects sparse runtime authority arrays instead of treating holes as omitted policy', () => {
+    const resource = delegatedResource(
+      'meal-menu-catalog',
+      'https://ecme-high.example/eom/resource/meals',
+    );
+    const sparsePaths: string[] = [];
+    sparsePaths.length = 1;
+    const sparseDelegations: unknown[] = [];
+    sparseDelegations.length = 1;
+    const result = evaluateAuthority(
+      {
+        scope: { origin: 'https://ecme-high.example', paths: sparsePaths },
+        delegations: sparseDelegations,
+      },
+      resource,
+      'https://ecme-high.example/eom/meals.json',
+    );
+    expect(result.accepted).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_DELEGATIONS_INVALID' }),
+        expect.objectContaining({ code: 'EOM_AUTHORITY_ROOT_SCOPE_INVALID' }),
+      ]),
+    );
+  });
+
+  it('fails closed for malformed direct authority inputs', () => {
+    const manifest = { scope: { origin: 'https://ecme-high.example', paths: ['/'] } };
+    const resource = delegatedResource(
+      'meal-menu-catalog',
+      'https://ecme-high.example/eom/resource/meals',
+    ) as Record<string, unknown>;
+
+    const insecureFinal = evaluateAuthority(
+      manifest,
+      resource,
+      'http://ecme-high.example/eom/meals.json',
+    );
+    expect(insecureFinal.accepted).toBe(false);
+    expect(insecureFinal.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_FINAL_URL_INVALID' }),
+      ]),
+    );
+
+    const insecureRoot = evaluateAuthority(
+      { scope: { origin: 'http://ecme-high.example', paths: ['/'] } },
+      resource,
+      'https://ecme-high.example/eom/meals.json',
+    );
+    expect(insecureRoot.accepted).toBe(false);
+    expect(insecureRoot.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_ROOT_ORIGIN_INVALID' }),
+      ]),
+    );
+
+    const malformedResource = evaluateAuthority(
+      manifest,
+      { type: 'meal-menu-catalog', id: 'relative-resource-id' },
+      'https://ecme-high.example/eom/meals.json',
+    );
+    expect(malformedResource.accepted).toBe(false);
+    expect(malformedResource.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_RESOURCE_IDENTITY_INVALID' }),
+      ]),
+    );
+
+    const malformedAuthority = evaluateAuthority(
+      manifest,
+      {
+        ...resource,
+        authority: { delegation: 42 },
+      },
+      'https://ecme-high.example/eom/meals.json',
+    );
+    expect(malformedAuthority.accepted).toBe(false);
+    expect(malformedAuthority.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_RESOURCE_AUTHORITY_INVALID' }),
+      ]),
+    );
+
+    const declaredOriginMismatch = evaluateAuthority(
+      manifest,
+      {
+        ...resource,
+        authority: {
+          delegation: 'https://ecme-high.example/id/delegation/meals',
+          origin: 'https://other.example',
+        },
+      },
+      'https://ecme-high.example/eom/meals.json',
+    );
+    expect(declaredOriginMismatch.accepted).toBe(false);
+    expect(declaredOriginMismatch.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_DECLARED_ORIGIN_MISMATCH' }),
+      ]),
+    );
+
+    const malformedDelegation = fixture('fixtures/delegation/vendor-meals.json') as Record<
+      string,
+      unknown
+    >;
+    const malformedDelegationResult = evaluateAuthority(
+      rootManifest({ ...malformedDelegation, id: 'relative-delegation-id' }),
+      resource,
+      'https://menus.vendor.example/customers/ecme-high/meals.json',
+      { now: new Date('2027-08-01T00:00:00Z') },
+    );
+    expect(malformedDelegationResult.accepted).toBe(false);
+    expect(malformedDelegationResult.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_DELEGATION_ID_INVALID' })]),
+    );
+
+    const undefinedPolicy = evaluateAuthority(
+      { scope: { origin: 'https://ecme-high.example', paths: ['/'] }, delegations: undefined },
+      { ...resource, authority: undefined },
+      'https://ecme-high.example/eom/meals.json',
+    );
+    expect(undefinedPolicy.accepted).toBe(false);
+    expect(undefinedPolicy.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_DELEGATIONS_INVALID' }),
+        expect.objectContaining({ code: 'EOM_AUTHORITY_RESOURCE_AUTHORITY_INVALID' }),
+      ]),
+    );
+  });
+
+  it('rejects invalid injected evaluation times instead of treating temporal policy as absent', () => {
+    const resource = delegatedResource(
+      'organization-profile',
+      'https://ecme-high.example/eom/resource/organization',
+    );
+    const result = evaluateAuthority(
+      { scope: { origin: 'https://ecme-high.example', paths: ['/'] } },
+      resource,
+      'https://ecme-high.example/eom/organization.json',
+      { now: new Date(Number.NaN) },
+    );
+    expect(result.accepted).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_AUTHORITY_TIME_INVALID' })]),
+    );
+  });
+
+  it('rejects an explicitly undefined delegation subject instead of treating it as omitted', () => {
+    const delegation = {
+      ...(fixture('fixtures/delegation/vendor-meals.json') as Record<string, unknown>),
+      subject: undefined,
+    };
+    const result = evaluateAuthority(
+      rootManifest(delegation),
+      delegatedResource('meal-menu-catalog', 'https://ecme-high.example/eom/resource/meals'),
+      'https://menus.vendor.example/customers/ecme-high/meals.json',
+      { now: new Date('2027-08-01T00:00:00Z') },
+    );
+    expect(result.accepted).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_DELEGATION_SUBJECT_INVALID' })]),
+    );
+  });
+
   it('rejects a delegated signature whose key is absent from the delegation allowlist', () => {
     const { privateKey, publicKey } = generateKeyPairSync('ed25519');
     const resource = delegatedResource(
@@ -183,6 +398,7 @@ describe('EOM delegated authority', () => {
     const signature = signDetached(resource, { privateKey, keyId });
     const keySet = { keys: [publicKeyRecord(publicKey, { keyId })] };
     const delegation = {
+      type: 'delegation',
       id: 'https://ecme-high.example/id/delegation/meals',
       delegate: 'https://menus.vendor.example/id/organization',
       scope: {
@@ -207,6 +423,148 @@ describe('EOM delegated authority', () => {
     expect(result.delegationScopeValid).toBe(false);
   });
 
+  it('fails closed when authority verification is missing transport context or descriptor binding', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = delegatedResource(
+      'meal-menu-catalog',
+      'https://ecme-high.example/eom/resource/meals',
+    ) as Record<string, unknown>;
+    const keyId = 'https://ecme-high.example/eom/keys#authority-context';
+    const signature = signDetached(resource, { privateKey, keyId });
+    const keySet = { keys: [publicKeyRecord(publicKey, { keyId })] };
+    const delegation = fixture('fixtures/delegation/vendor-meals.json');
+    const manifest = rootManifest(delegation);
+    const incomplete = verifyDetached(resource, signature, keySet, {
+      manifest,
+      resource,
+      finalUrl: 'https://menus.vendor.example/customers/ecme-high/meals.json',
+    });
+    expect(incomplete.overall).toBe(false);
+    expect(incomplete.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_AUTHORITY_CONTEXT_REQUIRED' })]),
+    );
+
+    const descriptor = {
+      id: 'https://ecme-high.example/eom/resource/meals',
+      type: 'meal-menu-catalog',
+      href: 'https://menus.vendor.example/customers/ecme-high/meals.json',
+      subjects: ['https://ecme-high.example/id/school'],
+    };
+    const tamperedDocument = {
+      ...resource,
+      id: 'https://ecme-high.example/eom/resource/other-meals',
+      canonical: 'https://menus.vendor.example/customers/ecme-high/other.json',
+    };
+    const tamperedSignature = signDetached(tamperedDocument, { privateKey, keyId });
+    const mismatch = verifyDetached(tamperedDocument, tamperedSignature, keySet, {
+      now: new Date('2027-08-01T00:00:00Z'),
+      manifest,
+      authorityResource: descriptor,
+      finalUrl: descriptor.href,
+      observedRootUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+    });
+    expect(mismatch.overall).toBe(false);
+    expect(mismatch.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_DESCRIPTOR_MISMATCH' }),
+      ]),
+    );
+
+    const descriptorOmitted = verifyDetached(resource, signature, keySet, {
+      now: new Date('2027-08-01T00:00:00Z'),
+      manifest,
+      resource,
+      finalUrl: descriptor.href,
+      observedRootUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+    });
+    expect(descriptorOmitted.overall).toBe(false);
+    expect(descriptorOmitted.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_DESCRIPTOR_REQUIRED' }),
+      ]),
+    );
+  });
+
+  it('evaluates signed delegation against the declared descriptor when the document id differs', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const keyId = 'https://ecme-high.example/eom/keys#organization-profile';
+    const descriptor = {
+      id: 'https://ecme-high.example/eom/resource/organization-profile',
+      type: 'organization-profile',
+      href: 'https://directory.vendor.example/ecme/organization.json',
+      subjects: ['https://ecme-high.example/id/school'],
+      authority: {
+        delegation: 'https://ecme-high.example/id/delegation/organization-profile',
+      },
+    };
+    const document = {
+      id: 'https://ecme-high.example/id/school',
+      type: 'organization-profile',
+      canonical: descriptor.href,
+      subjects: descriptor.subjects,
+      name: 'Ecme High',
+    };
+    const delegation = {
+      type: 'delegation',
+      id: 'https://ecme-high.example/id/delegation/organization-profile',
+      delegate: 'https://directory.vendor.example/id/organization',
+      scope: {
+        resourceTypes: ['organization-profile'],
+        resourceIds: [descriptor.id],
+        allowedOrigins: ['https://directory.vendor.example'],
+      },
+      keys: [keyId],
+      validFrom: '2027-01-01T00:00:00Z',
+      validUntil: '2028-01-01T00:00:00Z',
+      transitive: false,
+      status: 'active',
+      subject: 'https://ecme-high.example/id/school',
+    };
+    const signature = signDetached(document, {
+      privateKey,
+      keyId,
+      createdAt: '2027-08-01T00:00:00Z',
+    });
+    const result = verifyDetached(
+      document,
+      signature,
+      { keys: [publicKeyRecord(publicKey, { keyId })] },
+      {
+        now: new Date('2027-08-01T00:00:00Z'),
+        manifest: rootManifest(delegation),
+        resource: document,
+        authorityResource: descriptor,
+        finalUrl: descriptor.href,
+        observedRootUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      },
+    );
+    expect(result).toMatchObject({
+      overall: true,
+      delegationScopeValid: true,
+      authority: {
+        accepted: true,
+        resourceIdInScope: true,
+        keyScopeValid: true,
+        subjectValid: true,
+      },
+    });
+    const missingDelegation = evaluateAuthority(
+      rootManifest(delegation),
+      {
+        ...descriptor,
+        authority: { delegation: 'https://ecme-high.example/id/delegation/missing' },
+      },
+      descriptor.href,
+      { now: new Date('2027-08-01T00:00:00Z') },
+    );
+    expect(missingDelegation.accepted).toBe(false);
+    expect(missingDelegation.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_DELEGATION_REFERENCE_NOT_FOUND' }),
+      ]),
+    );
+  });
+
   it('rejects a manifest delegation whose subject does not match the resource subject', () => {
     const manifest = fixture('fixtures/valid/core/minimal-school-manifest.json') as Record<
       string,
@@ -214,6 +572,7 @@ describe('EOM delegated authority', () => {
     >;
     manifest.delegations = [
       {
+        type: 'delegation',
         id: 'https://ecme-high.example/id/delegation/meals',
         delegate: 'https://menus.vendor.example/id/organization',
         scope: {
@@ -261,6 +620,64 @@ describe('EOM delegated authority', () => {
       expect.arrayContaining([expect.objectContaining({ code: 'EOM_SCHEMA_REQUIRED' })]),
     );
   });
+
+  it('rejects calendar-invalid delegation timestamps in direct authority evaluation', () => {
+    const delegation = fixture('fixtures/delegation/vendor-meals.json') as Record<string, unknown>;
+    const result = evaluateAuthority(
+      rootManifest({ ...delegation, validFrom: '2027-02-30T00:00:00Z' }),
+      delegatedResource('meal-menu-catalog', 'https://ecme-high.example/eom/resource/meals'),
+      'https://menus.vendor.example/customers/ecme-high/meals.json',
+      { now: new Date('2027-08-01T00:00:00Z') },
+    );
+    expect(result.accepted).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_DELEGATION_DATE_INVALID' })]),
+    );
+  });
+
+  it('requires the delegation record type before authority evaluation can accept it', () => {
+    const delegation = fixture('fixtures/delegation/vendor-meals.json') as Record<string, unknown>;
+    delete delegation.type;
+    const result = validateDocument(delegation, {
+      schemaFile: 'delegation.schema.json',
+      now: new Date('2027-08-01T00:00:00Z'),
+    });
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_SCHEMA_REQUIRED' })]),
+    );
+    const authority = evaluateAuthority(
+      rootManifest(delegation),
+      delegatedResource('meal-menu-catalog', 'https://ecme-high.example/eom/resource/meals'),
+      'https://menus.vendor.example/customers/ecme-high/meals.json',
+      { now: new Date('2027-08-01T00:00:00Z') },
+    );
+    expect(authority.accepted).toBe(false);
+    expect(authority.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_DELEGATION_TYPE_INVALID' })]),
+    );
+  });
+
+  it('does not treat inherited manifest policy as declared authority', () => {
+    const inheritedManifest = Object.create({
+      scope: { origin: 'https://ecme-high.example', paths: ['/'] },
+    }) as Record<string, unknown>;
+    const resource = delegatedResource(
+      'meal-menu-catalog',
+      'https://ecme-high.example/eom/resource/meals',
+    );
+    const result = evaluateAuthority(
+      inheritedManifest,
+      resource,
+      'https://ecme-high.example/eom/meals.json',
+    );
+    expect(result.accepted).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_ROOT_ORIGIN_INVALID' }),
+      ]),
+    );
+  });
 });
 
 describe('EOM optional JCS and detached Ed25519 signatures', () => {
@@ -291,6 +708,104 @@ describe('EOM optional JCS and detached Ed25519 signatures', () => {
     });
     expect(result.resourceExpiryValid).toBe(false);
     expect(result.overall).toBe(false);
+  });
+
+  it('rejects a signing subject that does not match the resource id', () => {
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    let thrown: unknown;
+    try {
+      signDetached(resource, {
+        privateKey,
+        keyId: 'https://ecme-high.example/eom/keys#subject-mismatch',
+        subject: 'https://ecme-high.example/eom/other-resource',
+      });
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toMatchObject({ code: 'EOM_SIGNATURE_SUBJECT_MISMATCH' });
+  });
+
+  it('rejects invalid signature identifiers and canonical URLs at signing time', () => {
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    const keyId = 'https://ecme-high.example/eom/keys#signing-boundary';
+    expect(() =>
+      signDetached(resource, {
+        privateKey,
+        keyId,
+        signatureId: 'relative-signature-id',
+      }),
+    ).toThrow('A detached signature id must be an absolute URI.');
+    expect(() =>
+      signDetached(resource, {
+        privateKey,
+        keyId,
+        canonical: 'http://ecme-high.example/eom/signatures/resource',
+      }),
+    ).toThrow('A detached signature canonical value must be an HTTPS URL.');
+  });
+
+  it('rejects invalid Date instances with a typed signature policy error', () => {
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    let thrown: unknown;
+    try {
+      signDetached(resource, {
+        privateKey,
+        keyId: 'https://ecme-high.example/eom/keys#invalid-date',
+        createdAt: new Date(Number.NaN),
+      });
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toMatchObject({
+      name: 'SignaturePolicyError',
+      code: 'EOM_SIGNATURE_TIME_INVALID',
+    });
+  });
+
+  it('rejects calendar-invalid signature timestamps instead of normalizing them', () => {
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    expect(() =>
+      signDetached(resource, {
+        privateKey,
+        keyId: 'https://ecme-high.example/eom/keys#invalid-calendar-date',
+        createdAt: '2027-02-30T00:00:00Z',
+      }),
+    ).toThrow('Signature creation time is invalid.');
+  });
+
+  it('rejects an explicitly undefined expiry property instead of treating it as absent', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    const keyId = 'https://ecme-high.example/eom/keys#undefined-expiry';
+    const signature = signDetached(resource, { privateKey, keyId });
+    const malformed = { ...signature, expires: undefined };
+    const result = verifyDetached(resource, malformed, {
+      keys: [publicKeyRecord(publicKey, { keyId })],
+    });
+    expect(result.overall).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_SIGNATURE_PROFILE_INVALID' })]),
+    );
+  });
+
+  it('rejects invalid evaluation times for signed and unsigned verification', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    const keyId = 'https://ecme-high.example/eom/keys#invalid-verification-time';
+    const signature = signDetached(resource, { privateKey, keyId });
+    const keySet = { keys: [publicKeyRecord(publicKey, { keyId })] };
+    const signed = verifyDetached(resource, signature, keySet, {
+      now: new Date(Number.NaN),
+    });
+    expect(signed.overall).toBe(false);
+    expect(signed.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_SIGNATURE_TIME_INVALID' })]),
+    );
+    expect(verifyUnsigned(resource, { now: new Date(Number.NaN) }).overall).toBe(false);
   });
 
   it('signs, validates, and verifies a detached resource, including WebCrypto verification', async () => {
@@ -355,6 +870,9 @@ describe('EOM optional JCS and detached Ed25519 signatures', () => {
     expect(canonicalizeJsonText('{ "b": 2, "a": 1 }')).toBe('{"a":1,"b":2}');
     expect(() => canonicalizeJsonText('{"a":1,"a":2}')).toThrow();
     expect(() => canonicalizeJson('\ud800')).toThrow(/surrogate/u);
+    const sparse: unknown[] = [];
+    sparse.length = 1;
+    expect(() => canonicalizeJson(sparse)).toThrow(/Sparse arrays/iu);
     let nested: unknown = 0;
     for (let index = 0; index < 129; index += 1) nested = [nested];
     expect(() => canonicalizeJson(nested)).toThrow(/nesting exceeds the 128-level safety limit/iu);
@@ -486,6 +1004,22 @@ describe('EOM optional JCS and detached Ed25519 signatures', () => {
     });
     expect(malformed.overall).toBe(false);
     expect(malformed.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_SIGNATURE_KEY_SET_INVALID' })]),
+    );
+  });
+
+  it('rejects explicitly undefined key lifecycle fields instead of treating them as absent', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    const keyId = 'https://ecme-high.example/eom/keys#undefined-key-lifetime';
+    const signature = signDetached(resource, { privateKey, keyId });
+    const key = {
+      ...publicKeyRecord(publicKey, { keyId }),
+      validUntil: undefined,
+    };
+    const result = verifyDetached(resource, signature, { keys: [key] });
+    expect(result.overall).toBe(false);
+    expect(result.findings).toEqual(
       expect.arrayContaining([expect.objectContaining({ code: 'EOM_SIGNATURE_KEY_SET_INVALID' })]),
     );
   });

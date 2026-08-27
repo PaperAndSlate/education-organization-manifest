@@ -1,13 +1,17 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { access, readFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { lstat, readFile, realpath } from 'node:fs/promises';
+import { join, parse, relative, resolve } from 'node:path';
 import { isJsonObject, parseStrictJson } from '@paperandslate/eom-core';
 
 const root = resolve(process.cwd());
 const releaseRoot = join(root, 'release');
 const expectedRelease = '1.0.0-rc.3';
-const manifest = parseStrictJson(await readFile(join(releaseRoot, 'manifest.json'), 'utf8'));
+await assertSafeReleaseRoot();
+const manifest = parseStrictJson(
+  (await readReleaseFile(join(releaseRoot, 'manifest.json'))).toString('utf8'),
+  'release/manifest.json',
+);
 const failures: string[] = [];
 
 if (!isRecord(manifest) || !Array.isArray(manifest.artifacts)) {
@@ -86,7 +90,7 @@ if (!isRecord(manifest) || !Array.isArray(manifest.artifacts)) {
       continue;
     }
     try {
-      const bytes = await readFile(path);
+      const bytes = await readReleaseFile(path);
       if (bytes.length !== artifact.bytes) failures.push(`${artifact.path}: byte length changed`);
       if (sha256(bytes) !== artifact.sha256) failures.push(`${artifact.path}: SHA-256 changed`);
     } catch {
@@ -114,8 +118,9 @@ if (!isRecord(manifest) || !Array.isArray(manifest.artifacts)) {
 
 const historicalRoot = join(releaseRoot, 'v1.0.0-rc.1');
 try {
-  await access(join(historicalRoot, 'STATUS.md'));
-  const historicalStatus = await readFile(join(historicalRoot, 'STATUS.md'), 'utf8');
+  const historicalStatus = (await readReleaseFile(join(historicalRoot, 'STATUS.md'))).toString(
+    'utf8',
+  );
   if (!historicalStatus.includes('# EOM 1.0.0-rc.1'))
     failures.push('historical RC1 artifact does not contain its original status marker');
 } catch {
@@ -124,8 +129,9 @@ try {
 
 const historicalRc2Root = join(releaseRoot, 'v1.0.0-rc.2');
 try {
-  await access(join(historicalRc2Root, 'STATUS.md'));
-  const historicalStatus = await readFile(join(historicalRc2Root, 'STATUS.md'), 'utf8');
+  const historicalStatus = (await readReleaseFile(join(historicalRc2Root, 'STATUS.md'))).toString(
+    'utf8',
+  );
   if (!historicalStatus.includes('# EOM 1.0.0-rc.2'))
     failures.push('historical RC2 artifact does not contain its original status marker');
 } catch {
@@ -155,7 +161,7 @@ for (const line of checksums.trim().split(/\r?\n/u)) {
     continue;
   }
   try {
-    const checksumBytes = await readFile(absoluteChecksumPath);
+    const checksumBytes = await readReleaseFile(absoluteChecksumPath);
     if (sha256(checksumBytes) !== checksumHash)
       failures.push(`checksums.sha256: digest mismatch for ${checksumPath}`);
   } catch {
@@ -257,7 +263,7 @@ if (
         : undefined;
     if (!artifact) failures.push(`${name}: package tarball is absent from the release manifest.`);
     try {
-      const packedBytes = await readFile(join(releaseRoot, tarball));
+      const packedBytes = await readReleaseFile(join(releaseRoot, tarball));
       if (packedBytes.length !== bytes) failures.push(`${name}: packed byte length changed.`);
       if (sha256(packedBytes) !== digest) failures.push(`${name}: packed SHA-256 changed.`);
       if (
@@ -281,17 +287,43 @@ if (failures.length > 0) {
 }
 
 async function readText(name: string): Promise<string> {
-  return readFile(join(releaseRoot, name), 'utf8');
+  return (await readReleaseFile(join(releaseRoot, name))).toString('utf8');
 }
 
 function isWithin(parent: string, child: string): boolean {
-  const parentPath = resolve(parent);
-  const childPath = resolve(child);
-  return (
-    childPath === parentPath ||
-    childPath.startsWith(`${parentPath}\\`) ||
-    childPath.startsWith(`${parentPath}/`)
-  );
+  const parentPath = normalizeFsPath(parent);
+  const childPath = normalizeFsPath(child);
+  const suffix = relative(parentPath, childPath);
+  return suffix === '' || (!suffix.startsWith('..') && !parse(suffix).root);
+}
+
+async function assertSafeReleaseRoot(): Promise<void> {
+  const releaseInformation = await lstat(releaseRoot);
+  if (releaseInformation.isSymbolicLink() || !releaseInformation.isDirectory()) {
+    throw new Error('release/ must be a real directory, not a symlink or junction.');
+  }
+  const resolvedReleaseRoot = await realpath(releaseRoot);
+  if (normalizeFsPath(resolvedReleaseRoot) !== normalizeFsPath(releaseRoot)) {
+    throw new Error('release/ must not resolve through a symlink or junction.');
+  }
+}
+
+async function readReleaseFile(path: string): Promise<Buffer> {
+  const information = await lstat(path);
+  if (information.isSymbolicLink() || !information.isFile()) {
+    throw new Error(`Release evidence must contain regular files only: ${path}`);
+  }
+  const releaseDirectory = await realpath(releaseRoot);
+  const resolvedFile = await realpath(path);
+  if (!isWithin(releaseDirectory, resolvedFile)) {
+    throw new Error(`Release evidence escapes release/: ${path}`);
+  }
+  return readFile(path);
+}
+
+function normalizeFsPath(value: string): string {
+  const resolved = resolve(value);
+  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -333,7 +365,7 @@ function sourceTreeMatchesCheckedOutSource(sourceTree: string): boolean {
         '--',
         '.',
         ':(exclude)release/**',
-        ':(exclude)reports/verification/local-gates.json',
+        ...generatedEvidencePathspecs(),
       ],
       { cwd: root, stdio: 'ignore' },
     );
@@ -359,4 +391,17 @@ function sourceTreeMatchesCheckedOutSource(sourceTree: string): boolean {
 
 function sha256(bytes: Buffer): string {
   return createHash('sha256').update(bytes).digest('hex');
+}
+
+function generatedEvidencePathspecs(): readonly string[] {
+  return [
+    'reports/remediation-audit.md',
+    'reports/release-checklist.md',
+    'reports/security-scan.md',
+    'reports/security-scan.json',
+    'reports/security-scan/**',
+    'reports/verification/local-gates.json',
+    'requirements/TRACEABILITY_MATRIX.md',
+    'requirements/plan-file-traceability.json',
+  ].map((path) => `:(exclude)${path}`);
 }

@@ -60,6 +60,7 @@ await build({
   alias: {
     '@paperandslate/eom-core/ids': join(repository, 'packages', 'core', 'src', 'ids.ts'),
     '@paperandslate/eom-core/json': join(repository, 'packages', 'core', 'src', 'json.ts'),
+    '@paperandslate/eom-core/time': join(repository, 'packages', 'core', 'src', 'time.ts'),
   },
   outfile: join(output, 'app.js'),
   legalComments: 'none',

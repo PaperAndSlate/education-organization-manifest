@@ -10,7 +10,7 @@ goal:
   tranche: "Continuous execution of the complete EOM repository described by the approved planning pack until the full local outcome is complete and external gates are explicitly packaged as blocked where necessary."
   status: active
   oracle:
-    signal: "The remediation audit maps every implementable master-prompt and phase requirement to current repository artifacts and executable evidence; RC3 release, post-remediation security, and local aggregate verification are current; unavailable external gates remain explicitly blocked."
+    signal: "The current remediation audit must show that all locally implementable requirements and executable evidence pass for the same clean revision; until then RC3 release, post-remediation security, and local aggregate verification remain incomplete, while unavailable external gates remain explicitly blocked."
     cadence: "after each Worker package, at phase boundaries, and at final audit"
     final_proof: "A final Judge or PM receipt records full_outcome_complete: true and cites the traceability matrix, phase reports, verification output, generated-drift result, conformance result, and external-gate status."
   intake:

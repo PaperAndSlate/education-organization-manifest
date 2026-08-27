@@ -221,7 +221,7 @@ export type Delegation = Readonly<{
   readonly "subject"?: CommonAbsoluteUri;
   readonly "successor"?: CommonAbsoluteUri;
   readonly "transitive": false;
-  readonly "type"?: "delegation";
+  readonly "type": "delegation";
   readonly "validFrom": CommonDateTime;
   readonly "validUntil": CommonDateTime;
 }>;

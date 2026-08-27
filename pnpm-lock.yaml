@@ -203,9 +203,6 @@ importers:
       '@paperandslate/eom-core':
         specifier: workspace:*
         version: link:../core
-      '@paperandslate/eom-validator':
-        specifier: workspace:*
-        version: link:../validator
 
   packages/schema:
     dependencies:

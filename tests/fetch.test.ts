@@ -1,6 +1,6 @@
 import { createServer, type Server } from 'node:http';
 import { readFileSync } from 'node:fs';
-import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
@@ -18,6 +18,10 @@ describe('EOM hardened HTTP retrieval', () => {
 
   beforeAll(async () => {
     server = createServer((request, response) => {
+      if (request.url === '/cross-origin-root') {
+        response.writeHead(302, { location: 'https://example.com/other-root' }).end();
+        return;
+      }
       if (request.url === '/redirect') {
         response.writeHead(302, { location: '/final' }).end();
         return;
@@ -53,6 +57,9 @@ describe('EOM hardened HTTP retrieval', () => {
         response
           .writeHead(200, { 'content-type': 'application/json' })
           .end(Buffer.from([0xc3, 0x28]));
+        return;
+      }
+      if (request.url === '/timeout') {
         return;
       }
       response.writeHead(200, {
@@ -123,6 +130,16 @@ describe('EOM hardened HTTP retrieval', () => {
     ).rejects.toMatchObject({ code: 'EOM_FETCH_REDIRECT_SCHEME' });
   });
 
+  it('rejects a cross-origin root-manifest redirect before following it', async () => {
+    await expect(
+      fetchManifest(`${baseUrl}/cross-origin-root`, {
+        allowHttp: true,
+        allowPrivateHosts: true,
+        allowNonStandardPorts: true,
+      }),
+    ).rejects.toMatchObject({ code: 'EOM_FETCH_REDIRECT_ORIGIN' });
+  });
+
   it('detects redirect loops and enforces content and size limits', async () => {
     const local = {
       allowHttp: true,
@@ -147,6 +164,17 @@ describe('EOM hardened HTTP retrieval', () => {
     await expect(fetchEom(`${baseUrl}/invalid-utf8`, local)).rejects.toMatchObject({
       code: 'EOM_FETCH_JSON',
     });
+  });
+
+  it('fails immediately with a bounded timeout when a server never responds', async () => {
+    await expect(
+      fetchEom(`${baseUrl}/timeout`, {
+        allowHttp: true,
+        allowPrivateHosts: true,
+        allowNonStandardPorts: true,
+        timeoutMs: 25,
+      }),
+    ).rejects.toMatchObject({ code: 'EOM_FETCH_TIMEOUT' });
   });
 
   it('applies the publication maxBytes limit to the root URL request', async () => {
@@ -180,6 +208,18 @@ describe('EOM hardened HTTP retrieval', () => {
     expect(lookups).toBe(1);
   });
 
+  it('bounds DNS resolution with the same request timeout', async () => {
+    await expect(
+      fetchEom(`http://dns-timeout.invalid:${new URL(baseUrl).port}`, {
+        allowHttp: true,
+        allowPrivateHosts: true,
+        allowNonStandardPorts: true,
+        timeoutMs: 25,
+        dnsLookup: () => new Promise(() => undefined),
+      }),
+    ).rejects.toMatchObject({ code: 'EOM_FETCH_TIMEOUT' });
+  });
+
   it('does not trust a tampered cache response as an HTTP success', async () => {
     const cacheDirectory = await mkdtemp(join(tmpdir(), 'eom-fetch-cache-'));
     try {
@@ -202,6 +242,54 @@ describe('EOM hardened HTTP retrieval', () => {
       expect(response.document).toMatchObject({ type: 'manifest' });
     } finally {
       await rm(cacheDirectory, { recursive: true, force: true });
+    }
+  });
+
+  it('reports whether a successful response came from the bounded cache', async () => {
+    const cacheDirectory = await mkdtemp(join(tmpdir(), 'eom-fetch-cache-provenance-'));
+    try {
+      const local = {
+        allowHttp: true,
+        allowPrivateHosts: true,
+        allowNonStandardPorts: true,
+        cacheDirectory,
+      } as const;
+      const first = await fetchManifest(baseUrl, local);
+      const second = await fetchManifest(baseUrl, local);
+      expect(first.cached).toBe(false);
+      expect(second.cached).toBe(true);
+    } finally {
+      await rm(cacheDirectory, { recursive: true, force: true });
+    }
+  });
+
+  it('does not create cache directories through a symlink', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-fetch-cache-safety-'));
+    const external = await mkdtemp(join(tmpdir(), 'eom-fetch-cache-external-'));
+    try {
+      const link = join(root, 'linked-cache');
+      try {
+        await symlink(external, link, 'junction');
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          (error.code === 'EPERM' || error.code === 'EACCES' || error.code === 'EINVAL')
+        ) {
+          return;
+        }
+        throw error;
+      }
+      await fetchEom(`${baseUrl}/manifest`, {
+        allowHttp: true,
+        allowPrivateHosts: true,
+        allowNonStandardPorts: true,
+        cacheDirectory: join(link, 'nested'),
+      });
+      await expect(stat(join(external, 'nested'))).rejects.toMatchObject({ code: 'ENOENT' });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+      await rm(external, { recursive: true, force: true });
     }
   });
 });

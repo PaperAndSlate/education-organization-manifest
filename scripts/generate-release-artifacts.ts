@@ -4,14 +4,13 @@ import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { existsSync } from 'node:fs';
 import {
-  cp,
+  lstat,
   mkdir,
   mkdtemp,
   readFile,
   readdir,
   realpath,
   rm,
-  stat,
   writeFile,
 } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
@@ -81,6 +80,7 @@ export async function prepareReleaseArtifacts(
   buildWorkspacePackages();
   const generatedAt = new Date(sourceDateEpoch * 1000).toISOString();
   const candidateDirectory = join(targetRoot, `v${RELEASE_VERSION}`);
+  await assertReplaceableCandidateDirectory(candidateDirectory, targetRoot);
   await rm(candidateDirectory, { recursive: true, force: true });
   await mkdir(targetRoot, { recursive: true });
   await copyCandidateArtifacts(candidateDirectory, sourceCommit);
@@ -460,18 +460,13 @@ async function copyCandidateArtifacts(
     const sourcePath = join(root, source);
     if (!(await exists(sourcePath))) continue;
     const targetPath = join(candidateDirectory, target);
-    if (source === 'reports') {
-      for (const file of await walk(sourcePath)) {
-        const relativePath = relative(sourcePath, file).replaceAll('\\', '/');
-        if (relativePath === 'local' || relativePath.startsWith('local/')) continue;
-        const destination = join(targetPath, relativePath);
-        await mkdir(dirname(destination), { recursive: true });
-        await cp(file, destination);
-      }
-      continue;
-    }
-    await mkdir(dirname(targetPath), { recursive: true });
-    await cp(sourcePath, targetPath, { recursive: true });
+    await copyReleaseTree(
+      sourcePath,
+      targetPath,
+      source === 'reports'
+        ? (relativePath) => relativePath !== 'local' && !relativePath.startsWith('local/')
+        : undefined,
+    );
   }
   await writeFile(
     join(candidateDirectory, 'STATUS.md'),
@@ -488,6 +483,32 @@ async function copyCandidateArtifacts(
     ].join('\n'),
     'utf8',
   );
+  await writeFile(
+    join(candidateDirectory, RELEASE_MARKER),
+    stringifyCanonical({
+      version: 1,
+      generator: 'eom-release',
+      specification: SPECIFICATION,
+      purpose: 'release-candidate',
+      release: RELEASE_VERSION,
+      sourceCommit,
+    }),
+    'utf8',
+  );
+}
+
+async function copyReleaseTree(
+  sourcePath: string,
+  targetPath: string,
+  include?: (relativePath: string) => boolean,
+): Promise<void> {
+  for (const file of await walk(sourcePath)) {
+    const relativePath = relative(sourcePath, file).replaceAll('\\', '/');
+    if (include && !include(relativePath)) continue;
+    const destination = relativePath ? join(targetPath, relativePath) : targetPath;
+    await mkdir(dirname(destination), { recursive: true });
+    await writeFile(destination, await readReleaseInput(file));
+  }
 }
 
 async function sourceArchiveEntries(): Promise<ArchiveEntry[]> {
@@ -549,7 +570,7 @@ async function sourceArchiveEntries(): Promise<ArchiveEntry[]> {
     const relativePath = relative(root, path).replaceAll('\\', '/');
     entries.push({
       path: `educational-organization-manifest-${RELEASE_VERSION}/${relativePath}`,
-      bytes: await readFile(path),
+      bytes: await readReleaseInput(path),
     });
   }
   return entries;
@@ -570,7 +591,7 @@ async function directoryArchiveEntries(
   const entries: ArchiveEntry[] = [];
   for (const path of paths) {
     const relativePath = relative(root, path).replaceAll('\\', '/');
-    entries.push({ path: `${prefix}/${relativePath}`, bytes: await readFile(path) });
+    entries.push({ path: `${prefix}/${relativePath}`, bytes: await readReleaseInput(path) });
   }
   return entries;
 }
@@ -592,7 +613,7 @@ async function filesWithBytes(directory: string): Promise<ReleaseFile[]> {
   for (const path of paths) {
     files.push({
       relativePath: relative(directory, path).replaceAll('\\', '/'),
-      bytes: await readFile(path),
+      bytes: await readReleaseInput(path),
     });
   }
   return files.sort((left, right) => compareStrings(left.relativePath, right.relativePath));
@@ -614,16 +635,17 @@ async function readWorkspacePackageManifests(): Promise<readonly Record<string, 
       license?: string;
     };
     if (!value.name || !value.version) continue;
-    components.push({
+    const component: Record<string, unknown> = {
       type: 'library',
-      group: value.name.startsWith('@') ? value.name.split('/')[0]?.slice(1) : undefined,
       name: value.name.startsWith('@') ? value.name.split('/')[1] : value.name,
       version: value.version,
       scope: 'required',
       'bom-ref': `pkg:npm/${value.name}@${value.version}`,
       purl: `pkg:npm/${value.name}@${value.version}`,
-      licenses: value.license ? [{ license: { id: value.license } }] : undefined,
-    });
+    };
+    if (value.name.startsWith('@')) component.group = value.name.split('/')[0]?.slice(1);
+    if (value.license) component.licenses = [{ license: { id: value.license } }];
+    components.push(component);
   }
   return components.sort((left, right) => compareStrings(String(left.purl), String(right.purl)));
 }
@@ -648,15 +670,16 @@ async function readLockedExternalComponents(
     const parsed = parseLockPackageKey(key);
     if (!parsed || workspaceNames.has(parsed.name)) continue;
     const purl = `pkg:npm/${parsed.name}@${parsed.version}`;
-    components.set(purl, {
+    const component: Record<string, unknown> = {
       type: 'library',
-      group: parsed.name.startsWith('@') ? parsed.name.split('/')[0]?.slice(1) : undefined,
       name: parsed.name.startsWith('@') ? parsed.name.split('/')[1] : parsed.name,
       version: parsed.version,
       scope: 'required',
       'bom-ref': purl,
       purl,
-    });
+    };
+    if (parsed.name.startsWith('@')) component.group = parsed.name.split('/')[0]?.slice(1);
+    components.set(purl, component);
   }
   return [...components.values()].sort((left, right) =>
     compareStrings(String(left.purl), String(right.purl)),
@@ -756,7 +779,7 @@ function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
         '--',
         '.',
         ':(exclude)release/**',
-        ':(exclude)reports/verification/local-gates.json',
+        ...generatedEvidencePathspecs(),
       ],
       { cwd: root, stdio: 'ignore' },
     );
@@ -772,35 +795,70 @@ function isReleasePath(path: string): boolean {
 }
 
 function isGeneratedEvidencePath(path: string): boolean {
-  return (
-    path.replaceAll('\\', '/').replace(/^"|"$/gu, '') === 'reports/verification/local-gates.json'
+  const normalized = path.replaceAll('\\', '/').replace(/^"|"$/gu, '');
+  return generatedEvidencePaths().some(
+    (candidate) => normalized === candidate || normalized.startsWith(`${candidate}/`),
+  );
+}
+
+function generatedEvidencePaths(): readonly string[] {
+  return [
+    'reports/remediation-audit.md',
+    'reports/release-checklist.md',
+    'reports/security-scan.md',
+    'reports/security-scan.json',
+    'reports/security-scan',
+    'reports/verification/local-gates.json',
+    'requirements/TRACEABILITY_MATRIX.md',
+    'requirements/plan-file-traceability.json',
+  ];
+}
+
+function generatedEvidencePathspecs(): readonly string[] {
+  return generatedEvidencePaths().map((path) =>
+    path === 'reports/security-scan' ? ':(exclude)reports/security-scan/**' : `:(exclude)${path}`,
   );
 }
 
 async function exists(path: string): Promise<boolean> {
   try {
-    await stat(path);
+    await lstat(path);
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    if (isNotFound(error)) return false;
+    throw error;
   }
 }
 
 async function assertSafeReleaseOutputRoot(targetRoot: string): Promise<void> {
   const resolvedTarget = resolve(targetRoot);
+  const resolvedProjectRoot = resolve(root);
   const projectRoot = await existingRealPath(root);
-  const releaseDirectory = await existingRealPath(join(root, 'release'));
+  const resolvedReleaseDirectory = resolve(join(root, 'release'));
+  const releaseDirectory = await existingRealPath(resolvedReleaseDirectory);
   const temporaryDirectory = await existingRealPath(tmpdir());
   const target = await existingRealPath(resolvedTarget);
   const home = await existingRealPath(homedir());
   const currentDirectory = await existingRealPath(process.cwd());
 
   if (
+    normalizeFsPath(projectRoot) !== normalizeFsPath(resolvedProjectRoot) ||
+    normalizeFsPath(releaseDirectory) !== normalizeFsPath(resolvedReleaseDirectory)
+  ) {
+    throw new Error(
+      'Release preparation requires a real project and release directory, not a symlink or junction.',
+    );
+  }
+  if (normalizeFsPath(target) !== normalizeFsPath(resolvedTarget)) {
+    throw new Error(`Release output must not traverse a symlink or junction: ${resolvedTarget}`);
+  }
+
+  if (
     parse(target).root === target ||
-    target === home ||
-    target === currentDirectory ||
-    target === projectRoot ||
-    target === temporaryDirectory
+    normalizeFsPath(target) === normalizeFsPath(home) ||
+    normalizeFsPath(target) === normalizeFsPath(currentDirectory) ||
+    normalizeFsPath(target) === normalizeFsPath(projectRoot) ||
+    normalizeFsPath(target) === normalizeFsPath(temporaryDirectory)
   ) {
     throw new Error(`Refusing to use a protected release output root: ${resolvedTarget}`);
   }
@@ -816,7 +874,10 @@ async function assertSafeReleaseOutputRoot(targetRoot: string): Promise<void> {
   if (!isOutsideProject || isIsolatedTemporaryRoot) return;
 
   const configuredOutput = process.env.EOM_RELEASE_OUTPUT;
-  if (!configuredOutput || resolve(configuredOutput) !== resolvedTarget) {
+  if (
+    !configuredOutput ||
+    normalizeFsPath(resolve(configuredOutput)) !== normalizeFsPath(resolvedTarget)
+  ) {
     throw new Error(
       'External release output requires EOM_RELEASE_OUTPUT to explicitly name the target directory.',
     );
@@ -838,6 +899,52 @@ async function assertSafeReleaseOutputRoot(targetRoot: string): Promise<void> {
   ) {
     throw new Error(`The external release output marker ${markerPath} is not valid.`);
   }
+}
+
+async function assertReplaceableCandidateDirectory(
+  candidateDirectory: string,
+  outputRoot: string,
+): Promise<void> {
+  let information;
+  try {
+    information = await lstat(candidateDirectory);
+  } catch (error) {
+    if (isNotFound(error)) return;
+    throw error;
+  }
+  if (information.isSymbolicLink() || !information.isDirectory()) {
+    throw new Error(`Refusing to replace a non-directory release candidate: ${candidateDirectory}`);
+  }
+  const candidateReal = await realpath(candidateDirectory);
+  const outputReal = await existingRealPath(outputRoot);
+  if (!isWithin(outputReal, candidateReal)) {
+    throw new Error(`Release candidate escapes its output root: ${candidateDirectory}`);
+  }
+  const markerPath = join(candidateDirectory, RELEASE_MARKER);
+  if (await exists(markerPath)) {
+    let marker: unknown;
+    try {
+      marker = parseStrictJson((await readReleaseInput(markerPath)).toString('utf8'), markerPath);
+    } catch {
+      throw new Error(`The release candidate ownership marker ${markerPath} is invalid.`);
+    }
+    if (
+      !isJsonObject(marker) ||
+      marker.generator !== 'eom-release' ||
+      marker.specification !== SPECIFICATION ||
+      marker.purpose !== 'release-candidate' ||
+      marker.release !== RELEASE_VERSION
+    ) {
+      throw new Error(`The release candidate ownership marker ${markerPath} is not compatible.`);
+    }
+  } else {
+    const statusPath = join(candidateDirectory, 'STATUS.md');
+    const status = (await readReleaseInput(statusPath)).toString('utf8');
+    if (!status.startsWith(`# EOM ${RELEASE_VERSION}\n`)) {
+      throw new Error(`Refusing to replace an unmarked release candidate: ${candidateDirectory}`);
+    }
+  }
+  await walk(candidateDirectory);
 }
 
 async function existingRealPath(path: string): Promise<string> {
@@ -866,17 +973,50 @@ function isWithin(parent: string, child: string): boolean {
 }
 
 async function walk(directory: string): Promise<string[]> {
-  if (!(await exists(directory))) return [];
-  const information = await stat(directory);
+  let information;
+  try {
+    information = await lstat(directory);
+  } catch (error) {
+    if (isNotFound(error)) return [];
+    throw error;
+  }
+  if (information.isSymbolicLink()) {
+    throw new Error(`Release input must not contain a symlink or junction: ${directory}`);
+  }
   if (!information.isDirectory()) return [directory];
-  const entries = await readdir(directory, { withFileTypes: true });
+  const entries = (await readdir(directory, { withFileTypes: true })).sort((left, right) =>
+    compareStrings(left.name, right.name),
+  );
   const result: string[] = [];
   for (const entry of entries) {
     const path = join(directory, entry.name);
-    if (entry.isDirectory()) result.push(...(await walk(path)));
-    else if (entry.isFile()) result.push(path);
+    const child = await lstat(path);
+    if (child.isSymbolicLink()) {
+      throw new Error(`Release input must not contain a symlink or junction: ${path}`);
+    }
+    if (child.isDirectory()) result.push(...(await walk(path)));
+    else if (child.isFile()) result.push(path);
+    else throw new Error(`Release input contains a non-regular file: ${path}`);
   }
   return result;
+}
+
+function normalizeFsPath(value: string): string {
+  const resolved = resolve(value);
+  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
+}
+
+async function readReleaseInput(path: string): Promise<Buffer> {
+  const information = await lstat(path);
+  if (information.isSymbolicLink() || !information.isFile()) {
+    throw new Error(`Release input must be a regular file without symlink traversal: ${path}`);
+  }
+  const projectRoot = await existingRealPath(root);
+  const fileReal = await realpath(path);
+  if (!isWithin(projectRoot, fileReal)) {
+    throw new Error(`Release input escapes the project root: ${path}`);
+  }
+  return readFile(path);
 }
 
 const invokedFile = process.argv[1] ? resolve(process.argv[1]) : '';

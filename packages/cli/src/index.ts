@@ -1,18 +1,16 @@
+import { lstat, mkdir, mkdtemp, open, readdir, realpath, rename, rm, stat } from 'node:fs/promises';
 import {
-  access,
-  mkdir,
-  mkdtemp,
-  open,
-  readFile,
-  readdir,
-  rm,
-  stat,
-  writeFile,
-} from 'node:fs/promises';
-import { closeSync, existsSync, fstatSync, openSync, readSync } from 'node:fs';
+  closeSync,
+  existsSync,
+  fstatSync,
+  lstatSync,
+  openSync,
+  readSync,
+  realpathSync,
+} from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { homedir, tmpdir } from 'node:os';
-import { basename, dirname, join, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, parse, relative, resolve, sep } from 'node:path';
 import { Command, CommanderError } from 'commander';
 import { buildReviewReport, detectConflicts, type ReviewReport } from '@paperandslate/eom-agentic';
 import { mapInput, supportedAdapterFormats, type AdapterFormat } from '@paperandslate/eom-adapters';
@@ -205,7 +203,7 @@ export function createCli(): Command {
           ...(options.verifyDeterministic ? { verifyDeterministic: true } : {}),
         });
         if (options.report) {
-          await writeFile(resolve(options.report), stringifyCanonical(report as never), 'utf8');
+          await writeBuildReport(options.report, stringifyCanonical(report as never), report);
         }
         emit(
           {
@@ -235,7 +233,7 @@ export function createCli(): Command {
         const after = await readPublication(afterFile);
         const result = semanticDiff(before, after);
         if (options.output) {
-          await writeFile(resolve(options.output), stringifyCanonical(result as never), 'utf8');
+          await writeOutputFile(options.output, stringifyCanonical(result as never));
         }
         emit(
           {
@@ -266,7 +264,7 @@ export function createCli(): Command {
       ) => {
         const result = migrateDocument(await readPublication(file), options.from, options.to);
         if (options.output) {
-          await writeFile(resolve(options.output), stringifyCanonical(result.document), 'utf8');
+          await writeOutputFile(options.output, stringifyCanonical(result.document));
         }
         emit(
           {
@@ -348,11 +346,7 @@ export function createCli(): Command {
           ...(options.expires ? { expires: options.expires } : {}),
         });
         if (options.output) {
-          await writeFile(
-            resolve(options.output),
-            `${JSON.stringify(signature, null, 2)}\n`,
-            'utf8',
-          );
+          await writeOutputFile(options.output, `${JSON.stringify(signature, null, 2)}\n`);
         }
         emit(
           {
@@ -375,7 +369,12 @@ export function createCli(): Command {
     .requiredOption('--signature <file>', 'detached signature record')
     .requiredOption('--key-set <file>', 'public verification key-set resource')
     .option('--manifest <file>', 'root manifest for authority evaluation')
+    .option(
+      '--authority-resource <file>',
+      'declared manifest resource descriptor for authority evaluation',
+    )
     .option('--resource-url <url>', 'retrieved resource URL for authority evaluation')
+    .option('--observed-root-url <url>', 'observed root-manifest URL for origin binding')
     .option('--json', 'emit machine-readable JSON')
     .action(
       async (
@@ -384,18 +383,42 @@ export function createCli(): Command {
           signature: string;
           keySet: string;
           manifest?: string;
+          authorityResource?: string;
           resourceUrl?: string;
+          observedRootUrl?: string;
           json?: boolean;
         },
       ) => {
+        if (
+          (options.manifest === undefined) !== (options.resourceUrl === undefined) ||
+          (options.authorityResource !== undefined && options.manifest === undefined) ||
+          (options.observedRootUrl !== undefined && options.manifest === undefined) ||
+          (options.manifest !== undefined &&
+            (options.authorityResource === undefined || options.observedRootUrl === undefined))
+        ) {
+          throw new CliUsageError(
+            'Authority verification requires --manifest, --resource-url, --authority-resource, and --observed-root-url together; --authority-resource and --observed-root-url require --manifest.',
+          );
+        }
         const document = await readPublication(file);
         const signature = await readPublication(options.signature);
         const keySet = await readPublication(options.keySet);
         const manifest = options.manifest ? await readPublication(options.manifest) : undefined;
+        const authorityResource = options.authorityResource
+          ? await readPublication(options.authorityResource)
+          : undefined;
         const result = verifyDetached(document, signature, keySet, {
           ...(manifest === undefined || options.resourceUrl === undefined
             ? {}
-            : { manifest, resource: document, finalUrl: options.resourceUrl }),
+            : {
+                manifest,
+                resource: document,
+                finalUrl: options.resourceUrl,
+                ...(authorityResource === undefined ? {} : { authorityResource }),
+                ...(options.observedRootUrl === undefined
+                  ? {}
+                  : { observedRootUrl: options.observedRootUrl }),
+              }),
         });
         emit(
           { command: 'verify', file, summary: result as unknown as Record<string, unknown> },
@@ -446,8 +469,13 @@ export function createCli(): Command {
     .option('--profile <profile>', 'versioned conformance profile', 'publisher-core')
     .option('--implementation <name>', 'implementation name recorded in the report')
     .option('--implementation-version <version>', 'implementation version recorded in the report')
+    .option('--implementation-source <uri>', 'implementation source URI recorded in the report')
     .option('--mode <mode>', 'fixture, publisher, consumer, or generator execution mode')
     .option('--origin <origin>', 'publisher origin used by publisher mode')
+    .option(
+      '--fixture-authority-origin <origin>',
+      'fictional HTTPS origin represented by fixture files',
+    )
     .option('--max-files <count>', 'maximum captured files', parseNumberOption)
     .option('--max-total-bytes <bytes>', 'maximum captured bytes', parseNumberOption)
     .option('--max-depth <count>', 'maximum captured directory depth', parseNumberOption)
@@ -460,8 +488,10 @@ export function createCli(): Command {
           profile: string;
           implementation?: string;
           implementationVersion?: string;
+          implementationSource?: string;
           mode?: string;
           origin?: string;
+          fixtureAuthorityOrigin?: string;
           maxFiles?: number;
           maxTotalBytes?: number;
           maxDepth?: number;
@@ -492,13 +522,19 @@ export function createCli(): Command {
           ...(options.implementationVersion
             ? { implementationVersion: options.implementationVersion }
             : {}),
+          ...(options.implementationSource
+            ? { implementationSource: options.implementationSource }
+            : {}),
+          ...(options.fixtureAuthorityOrigin
+            ? { fixtureAuthorityOrigin: options.fixtureAuthorityOrigin }
+            : {}),
           ...(options.maxFiles === undefined ? {} : { maxFiles: options.maxFiles }),
           ...(options.maxTotalBytes === undefined ? {} : { maxTotalBytes: options.maxTotalBytes }),
           ...(options.maxDepth === undefined ? {} : { maxDepth: options.maxDepth }),
           fetch: deploymentFetchOptions(globalOptions),
         });
         if (options.output) {
-          await writeFile(resolve(options.output), stringifyCanonical(report as never), 'utf8');
+          await writeOutputFile(options.output, stringifyCanonical(report as never));
         }
         emit(
           {
@@ -796,7 +832,7 @@ export function createCli(): Command {
     .command('check')
     .argument('[target]', 'authoring config, local publication file, or publication directory')
     .option('--config <file>', 'authoring configuration file')
-    .option('--output <directory>', 'temporary output directory for a build check')
+    .option('--output <directory>', 'validation output path; report-only and never written')
     .option('--allow-external-output', 'allow an explicitly selected output outside the project')
     .option('--json', 'emit machine-readable JSON')
     .action(
@@ -814,16 +850,30 @@ export function createCli(): Command {
         if (isAuthoringConfigPath(selected)) {
           const config = await loadAuthoringConfig(selected);
           const configuredOutput = resolve(dirname(resolve(selected)), config.output.root);
-          const temporary = options.output
+          if (options.output) {
+            const configuredOutputReal = await existingRealPath(configuredOutput);
+            const requestedOutputReal = await existingRealPath(resolve(options.output));
+            if (
+              isPathWithin(configuredOutputReal, requestedOutputReal) ||
+              isPathWithin(requestedOutputReal, configuredOutputReal)
+            ) {
+              throw new CliUsageError(
+                'The validation-only check output must be separate from the configured publication directory.',
+              );
+            }
+          }
+          const temporaryRoot = options.output
             ? undefined
             : await mkdtemp(join(tmpdir(), 'eom-check-'));
-          const output = options.output ?? temporary;
+          const temporaryOutput = temporaryRoot ? join(temporaryRoot, 'public') : undefined;
+          const output = options.output ?? temporaryOutput;
           try {
             const report = await buildPublication({
               configFile: selected,
               ...(output ? { outputRoot: output } : {}),
-              ...(temporary ? { allowExternalOutput: true } : {}),
+              ...(temporaryRoot ? { allowExternalOutput: true } : {}),
               ...(options.allowExternalOutput ? { allowExternalOutput: true } : {}),
+              dryRun: true,
               ...(program.opts<GlobalOptions>().cacheDir
                 ? { cacheDirectory: program.opts<GlobalOptions>().cacheDir }
                 : {}),
@@ -838,7 +888,7 @@ export function createCli(): Command {
                   })
                 : undefined;
             const drift =
-              temporary && report.written && output
+              temporaryRoot && report.written && output
                 ? await compareGeneratedOutput(configuredOutput, output)
                 : undefined;
             const findings = [
@@ -877,7 +927,7 @@ export function createCli(): Command {
             );
             if (!valid) process.exitCode = 1;
           } finally {
-            if (temporary) await rm(temporary, { recursive: true, force: true });
+            if (temporaryRoot) await rm(temporaryRoot, { recursive: true, force: true });
           }
           return;
         }
@@ -921,10 +971,23 @@ export function createCli(): Command {
     .option('--timeout <milliseconds>', 'request timeout', parseNumberOption)
     .option('--max-bytes <bytes>', 'response byte limit', parseNumberOption)
     .option('--max-redirects <count>', 'redirect limit', parseNumberOption)
+    .option('--no-graph', 'retrieve only the root manifest')
+    .option('--max-resources <count>', 'maximum fetched graph resources', parseNumberOption)
+    .option('--max-depth <count>', 'maximum fetched graph depth', parseNumberOption)
+    .option('--max-total-bytes <bytes>', 'maximum combined graph response bytes', parseNumberOption)
     .action(
       async (
         originOrUrl: string,
-        options: { json?: boolean; timeout?: number; maxBytes?: number; maxRedirects?: number },
+        options: {
+          json?: boolean;
+          graph?: boolean;
+          timeout?: number;
+          maxBytes?: number;
+          maxRedirects?: number;
+          maxResources?: number;
+          maxDepth?: number;
+          maxTotalBytes?: number;
+        },
       ) => {
         try {
           const globalOptions = program.opts<GlobalOptions>();
@@ -935,41 +998,62 @@ export function createCli(): Command {
               originOrUrl,
             );
           }
-          const response = await fetchManifest(originOrUrl, {
-            ...(options.timeout === undefined
-              ? globalOptions.timeout === undefined
-                ? {}
-                : { timeoutMs: globalOptions.timeout }
-              : { timeoutMs: options.timeout }),
-            ...(options.maxBytes === undefined
-              ? globalOptions.maxBytes === undefined
-                ? {}
-                : { maxBytes: globalOptions.maxBytes }
-              : { maxBytes: options.maxBytes }),
-            ...(options.maxRedirects === undefined
-              ? globalOptions.maxRedirects === undefined
-                ? {}
-                : { maxRedirects: globalOptions.maxRedirects }
-              : { maxRedirects: options.maxRedirects }),
-            ...(globalOptions.cacheDir ? { cacheDirectory: globalOptions.cacheDir } : {}),
+          const publication = await validatePublicationUrl(originOrUrl, {
+            fetchGraph: options.graph !== false,
+            ...(options.maxResources === undefined ? {} : { maxResources: options.maxResources }),
+            ...(options.maxDepth === undefined ? {} : { maxDepth: options.maxDepth }),
+            ...(options.maxTotalBytes === undefined
+              ? {}
+              : { maxTotalBytes: options.maxTotalBytes }),
+            fetch: {
+              ...(options.timeout === undefined
+                ? globalOptions.timeout === undefined
+                  ? {}
+                  : { timeoutMs: globalOptions.timeout }
+                : { timeoutMs: options.timeout }),
+              ...(options.maxBytes === undefined
+                ? globalOptions.maxBytes === undefined
+                  ? {}
+                  : { maxBytes: globalOptions.maxBytes }
+                : { maxBytes: options.maxBytes }),
+              ...(options.maxRedirects === undefined
+                ? globalOptions.maxRedirects === undefined
+                  ? {}
+                  : { maxRedirects: globalOptions.maxRedirects }
+                : { maxRedirects: options.maxRedirects }),
+              ...(globalOptions.cacheDir ? { cacheDirectory: globalOptions.cacheDir } : {}),
+            },
           });
-          const result = validateDocument(response.document);
+          const rootFetch = publication.fetches[0];
+          const result: ValidationResult = {
+            valid: publication.valid,
+            structuralValid: publication.structuralValid,
+            semanticValid: publication.semanticValid,
+            findings: publication.findings,
+          };
           emit(
             {
               command: 'fetch',
               file: originOrUrl,
               result,
               summary: {
-                requestedUrl: response.requestedUrl,
-                finalUrl: response.finalUrl,
-                status: response.status,
-                redirects: response.redirects,
-                observedAt: response.observedAt,
+                requestedUrl: rootFetch?.requestedUrl,
+                finalUrl: rootFetch?.finalUrl,
+                redirects: rootFetch?.redirects ?? [],
+                files: publication.files,
+                fetches: publication.fetches,
+                graph: options.graph !== false,
               },
             },
             jsonOutput(program, options.json),
           );
-          if (!result.valid) process.exitCode = 1;
+          if (!result.valid) {
+            process.exitCode = publication.findings.some((item) =>
+              item.code.startsWith('EOM_FETCH_'),
+            )
+              ? 3
+              : 1;
+          }
         } catch (error) {
           const finding = fetchFinding(error);
           emit(
@@ -1389,10 +1473,223 @@ function lintDocuments(
 
 async function writeReport(content: string, output: string | undefined): Promise<void> {
   if (output) {
-    await writeFile(resolve(output), content, 'utf8');
+    await writeOutputFile(output, content);
     return;
   }
   process.stdout.write(content);
+}
+
+async function writeBuildReport(
+  output: string,
+  content: string,
+  report: BuildReport,
+): Promise<void> {
+  const target = resolve(output);
+  const outputRoot = resolve(report.outputRoot);
+  const protectedRoot = resolve(dirname(outputRoot));
+  const protectedRootReal = await existingRealPath(protectedRoot);
+  const home = await existingRealPath(homedir());
+  const cwd = await existingRealPath(process.cwd());
+  if (
+    protectedRootReal === parse(protectedRootReal).root ||
+    protectedRootReal === home ||
+    protectedRootReal === cwd ||
+    outputRoot === parse(outputRoot).root ||
+    outputRoot === home ||
+    outputRoot === cwd
+  ) {
+    throw new CliUsageError('Build reports cannot target a filesystem, home, or workspace root.');
+  }
+  if (isPathWithin(outputRoot, target)) {
+    throw new CliUsageError(
+      'Build reports must not be written inside the publication content directory.',
+    );
+  }
+  if (!isPathWithin(protectedRoot, target)) {
+    throw new CliUsageError(
+      'Build reports must be written inside the protected generated bundle containing the publication output.',
+    );
+  }
+  const protectedRealRoot = await ensureStableOutputDirectory(
+    protectedRoot,
+    'The generated report bundle must be a stable directory, not a symbolic link or junction.',
+  );
+  const targetParent = dirname(target);
+  const targetParentReal = await ensureStableOutputDirectory(
+    targetParent,
+    'Build report paths must not traverse symlinks or junctions.',
+  );
+  if (!isPathWithin(protectedRealRoot, targetParentReal)) {
+    throw new CliUsageError('Build report paths must not traverse symlinks or junctions.');
+  }
+  await writeOutputFile(join(targetParentReal, basename(target)), content);
+}
+
+async function writeOutputFile(output: string, content: string): Promise<void> {
+  const target = resolve(output);
+  const parent = dirname(target);
+  const stableParent = await ensureStableOutputDirectory(
+    parent,
+    'Output paths must not traverse symbolic links or junctions.',
+  );
+  const stableTarget = join(stableParent, basename(target));
+  try {
+    const information = await lstat(stableTarget);
+    if (information.isSymbolicLink() || !information.isFile()) {
+      throw new CliUsageError('The output target must be a regular file, not a link or directory.');
+    }
+  } catch (error) {
+    if (error instanceof CliUsageError || !isMissingPath(error)) throw error;
+  }
+  let temporaryDirectory: string | undefined;
+  try {
+    temporaryDirectory = await mkdtemp(join(stableParent, '.eom-output-'));
+    const temporary = join(temporaryDirectory, basename(target));
+    const handle = await open(temporary, 'wx');
+    try {
+      await handle.writeFile(content, 'utf8');
+    } finally {
+      await handle.close();
+    }
+    if (normalizeFsPath(await realpath(parent)) !== normalizeFsPath(stableParent)) {
+      throw new CliUsageError('Output paths changed during atomic replacement.');
+    }
+    await replaceOutputTarget(temporary, stableTarget, temporaryDirectory);
+  } finally {
+    if (
+      temporaryDirectory &&
+      (await realpath(parent).then(
+        (current) => normalizeFsPath(current) === normalizeFsPath(stableParent),
+        () => false,
+      ))
+    ) {
+      await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined);
+    }
+  }
+}
+
+/**
+ * Replace an existing regular output file on platforms whose rename operation
+ * does not overwrite a destination. The fallback moves the verified existing
+ * file into the same temporary directory, installs the new file, and restores
+ * the old file if installation fails.
+ */
+async function replaceOutputTarget(
+  temporary: string,
+  target: string,
+  temporaryDirectory: string,
+): Promise<void> {
+  try {
+    await rename(temporary, target);
+    return;
+  } catch (error) {
+    if (!isReplaceDestinationError(error)) throw error;
+  }
+
+  let existing: Awaited<ReturnType<typeof lstat>>;
+  try {
+    existing = await lstat(target);
+  } catch (error) {
+    if (isMissingPath(error)) {
+      await rename(temporary, target);
+      return;
+    }
+    throw error;
+  }
+  if (existing.isSymbolicLink() || !existing.isFile()) {
+    throw new CliUsageError('The output target must be a regular file, not a link or directory.');
+  }
+  const expectedRealPath = await realpath(target);
+  if (normalizeFsPath(expectedRealPath) !== normalizeFsPath(target)) {
+    throw new CliUsageError('The output target must not traverse a symbolic link.');
+  }
+  const backup = join(temporaryDirectory, '.eom-existing-output');
+  await rename(target, backup);
+  try {
+    await rename(temporary, target);
+  } catch (error) {
+    await rename(backup, target).catch(() => undefined);
+    throw error;
+  }
+  await rm(backup, { force: true });
+}
+
+function isReplaceDestinationError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    'code' in error &&
+    (error.code === 'EEXIST' || error.code === 'EPERM' || error.code === 'ENOTEMPTY')
+  );
+}
+
+/**
+ * Create missing output directories without allowing mkdir({ recursive: true })
+ * to follow a pre-existing symlink or junction. Each component is validated
+ * after creation, and subsequent writes use the resolved stable path.
+ */
+async function ensureStableOutputDirectory(path: string, message: string): Promise<string> {
+  const resolved = resolve(path);
+  const missing: string[] = [];
+  let current = resolved;
+  let stable: string | undefined;
+
+  for (;;) {
+    try {
+      const information = await lstat(current);
+      if (!information.isDirectory() || information.isSymbolicLink()) {
+        throw new CliUsageError(message);
+      }
+      stable = await realpath(current);
+      if (normalizeFsPath(stable) !== normalizeFsPath(current)) {
+        throw new CliUsageError(message);
+      }
+      break;
+    } catch (error) {
+      if (!isMissingPath(error)) throw error;
+      const parent = dirname(current);
+      if (parent === current) throw new CliUsageError(message);
+      missing.push(current);
+      current = parent;
+    }
+  }
+
+  for (const missingPath of missing.reverse()) {
+    const child = join(stable, basename(missingPath));
+    try {
+      await mkdir(child);
+    } catch (error) {
+      if (!isAlreadyExistsPath(error)) throw error;
+    }
+    const information = await lstat(child);
+    if (!information.isDirectory() || information.isSymbolicLink()) {
+      throw new CliUsageError(message);
+    }
+    const actual = await realpath(child);
+    if (normalizeFsPath(actual) !== normalizeFsPath(child)) {
+      throw new CliUsageError(message);
+    }
+    stable = actual;
+  }
+  return stable;
+}
+
+async function existingRealPath(path: string): Promise<string> {
+  try {
+    return await realpath(path);
+  } catch (error) {
+    if (!isMissingPath(error)) throw error;
+    const parent = dirname(path);
+    if (parent === path) return resolve(path);
+    return join(await existingRealPath(parent), path.slice(parent.length + 1));
+  }
+}
+
+function isPathWithin(parent: string, child: string): boolean {
+  const relativePath = relative(normalizeFsPath(parent), normalizeFsPath(child));
+  return (
+    relativePath === '' ||
+    (relativePath !== '..' && !relativePath.startsWith(`..${sep}`) && !isAbsolute(relativePath))
+  );
 }
 
 interface GeneratedOutputComparison {
@@ -1408,14 +1705,14 @@ async function compareGeneratedOutput(
 ): Promise<GeneratedOutputComparison> {
   let information;
   try {
-    information = await stat(configuredOutput);
+    information = await lstat(configuredOutput);
   } catch (error) {
     if (isMissingPath(error)) {
       return { valid: true, status: 'not-present', differences: [] };
     }
     throw error;
   }
-  if (!information.isDirectory()) {
+  if (!information.isDirectory() || information.isSymbolicLink()) {
     return {
       valid: false,
       status: 'unmarked',
@@ -1429,10 +1726,42 @@ async function compareGeneratedOutput(
       },
     };
   }
+  try {
+    if (normalizeFsPath(await realpath(configuredOutput)) !== normalizeFsPath(configuredOutput)) {
+      return {
+        valid: false,
+        status: 'unmarked',
+        differences: [configuredOutput],
+        finding: {
+          code: 'EOM_GENERATED_DRIFT',
+          category: 'quality',
+          severity: 'error',
+          message: 'The configured generated output must not traverse symbolic links or junctions.',
+          resource: configuredOutput,
+        },
+      };
+    }
+  } catch {
+    return {
+      valid: false,
+      status: 'unmarked',
+      differences: [configuredOutput],
+      finding: {
+        code: 'EOM_GENERATED_DRIFT',
+        category: 'quality',
+        severity: 'error',
+        message: 'The configured generated output could not be resolved safely.',
+        resource: configuredOutput,
+      },
+    };
+  }
   let marker: unknown;
   try {
     marker = parseStrictJson(
-      await readFile(join(configuredOutput, '.eom-generated.json'), 'utf8'),
+      decodeUtf8(
+        await readBoundedFile(join(configuredOutput, '.eom-generated.json')),
+        join(configuredOutput, '.eom-generated.json'),
+      ),
       join(configuredOutput, '.eom-generated.json'),
     );
   } catch {
@@ -1497,6 +1826,10 @@ async function compareGeneratedOutput(
 async function comparableFiles(directory: string): Promise<Map<string, Buffer>> {
   const result = new Map<string, Buffer>();
   async function visit(current: string): Promise<void> {
+    await assertStableDirectoryPath(
+      current,
+      'Generated output comparison paths must not traverse symbolic links or junctions.',
+    );
     const entries = (await readdir(current, { withFileTypes: true })).sort((left, right) =>
       compareStrings(left.name, right.name),
     );
@@ -1506,7 +1839,7 @@ async function comparableFiles(directory: string): Promise<Map<string, Buffer>> 
       if (entry.isDirectory()) {
         await visit(path);
       } else if (entry.isFile()) {
-        result.set(relativePath, await readFile(path));
+        result.set(relativePath, await readBoundedFile(path));
       }
     }
   }
@@ -1516,6 +1849,10 @@ async function comparableFiles(directory: string): Promise<Map<string, Buffer>> 
 
 function isMissingPath(error: unknown): boolean {
   return error instanceof Error && 'code' in error && error.code === 'ENOENT';
+}
+
+function isAlreadyExistsPath(error: unknown): boolean {
+  return error instanceof Error && 'code' in error && error.code === 'EEXIST';
 }
 
 function isAuthoringConfigPath(value: string): boolean {
@@ -1722,6 +2059,20 @@ async function initProject(
   }
   const origin = validateInitOrigin(options.origin);
   const target = resolve(directory);
+  let targetExists = false;
+  try {
+    const targetInformation = await lstat(target);
+    targetExists = true;
+    if (!targetInformation.isDirectory() || targetInformation.isSymbolicLink()) {
+      throw new Error('The init target must be a regular directory, not a link or file.');
+    }
+    await assertStableDirectoryPath(
+      target,
+      'The init target must not traverse symbolic links or junctions.',
+    );
+  } catch (error) {
+    if (!isMissingPath(error)) throw error;
+  }
   let existing: readonly string[] = [];
   try {
     existing = (await readdir(target)).sort();
@@ -1758,7 +2109,35 @@ async function initProject(
       `Refusing to initialize non-empty directory ${target}; use --force only for starter files.`,
     );
   }
-  await mkdir(join(target, 'source', 'modules'), { recursive: true });
+  if (!targetExists) {
+    await ensureStableOutputDirectory(
+      target,
+      'The init target must not traverse symbolic links or junctions.',
+    );
+  }
+  await assertStableDirectoryPath(
+    target,
+    'The init target must not traverse symbolic links or junctions.',
+  );
+  const sourceDirectory = join(target, 'source');
+  try {
+    await assertStableDirectoryPath(
+      sourceDirectory,
+      'The init source directory must not traverse symbolic links or junctions.',
+    );
+  } catch (error) {
+    if (!isMissingPath(error)) throw error;
+    await mkdir(sourceDirectory);
+    await assertStableDirectoryPath(
+      sourceDirectory,
+      'The init source directory must not traverse symbolic links or junctions.',
+    );
+  }
+  const modulesDirectory = join(sourceDirectory, 'modules');
+  await ensureStableOutputDirectory(
+    modulesDirectory,
+    'The init source directory must not traverse symbolic links or junctions.',
+  );
   const name = templateName(options.template, basename(target));
   const organizationType = options.template === 'district' ? 'district' : 'secondary-school';
   const organizationIdSegment = options.template === 'district' ? 'district' : 'school';
@@ -1830,11 +2209,10 @@ async function initProject(
   const skipped: string[] = [];
   for (const file of starterFiles) {
     const path = join(target, file);
-    try {
-      await access(path);
+    const result = await writeNewInitFile(path, files[file] ?? '');
+    if (result === 'skipped') {
       skipped.push(file);
-    } catch {
-      await writeFile(path, files[file] ?? '', 'utf8');
+    } else {
       written.push(file);
     }
   }
@@ -1882,6 +2260,59 @@ function templateName(template: string, fallback: string): string {
 
 function yamlQuote(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
+}
+
+async function assertStableDirectoryPath(path: string, message: string): Promise<string> {
+  const resolved = resolve(path);
+  const information = await lstat(resolved);
+  if (!information.isDirectory() || information.isSymbolicLink()) throw new Error(message);
+  const actual = await realpath(resolved);
+  if (normalizeFsPath(actual) !== normalizeFsPath(resolved)) throw new Error(message);
+  return actual;
+}
+
+async function writeNewInitFile(path: string, content: string): Promise<'written' | 'skipped'> {
+  const parent = dirname(resolve(path));
+  const stableParent = await assertStableDirectoryPath(
+    parent,
+    'The init file parent must not traverse symbolic links or junctions.',
+  );
+  const stableTarget = join(stableParent, basename(path));
+  try {
+    const information = await lstat(stableTarget);
+    if (information.isSymbolicLink() || !information.isFile()) {
+      throw new Error('The init starter path must be a regular file, not a link or directory.');
+    }
+    return 'skipped';
+  } catch (error) {
+    if (!isMissingPath(error)) throw error;
+  }
+  let handle: Awaited<ReturnType<typeof open>> | undefined;
+  try {
+    handle = await open(stableTarget, 'wx');
+    await handle.writeFile(content, 'utf8');
+    const information = await handle.stat();
+    if (!information.isFile()) throw new Error('The initialized file is not a regular file.');
+    if (normalizeFsPath(await realpath(parent)) !== normalizeFsPath(stableParent)) {
+      throw new Error('The init file parent changed during creation.');
+    }
+    const current = await lstat(stableTarget);
+    if (!current.isFile() || current.isSymbolicLink()) {
+      throw new Error('The initialized file changed during creation.');
+    }
+    return 'written';
+  } catch (error) {
+    if (isAlreadyExistsPath(error)) {
+      const information = await lstat(stableTarget);
+      if (information.isSymbolicLink() || !information.isFile()) {
+        throw new Error('The init starter path must be a regular file, not a link or directory.');
+      }
+      return 'skipped';
+    }
+    throw error;
+  } finally {
+    await handle?.close();
+  }
 }
 
 async function readAdapterInput(file: string, format: AdapterFormat): Promise<unknown> {
@@ -2129,12 +2560,34 @@ async function readStdin(): Promise<Buffer> {
 
 async function readBoundedFile(file: string): Promise<Buffer> {
   const path = resolve(file);
+  const linkInformation = await lstat(path);
+  if (!linkInformation.isFile() || linkInformation.isSymbolicLink()) {
+    throw new CliInputError(`${file} must be a stable regular file.`);
+  }
+  const expectedRealPath = await realpath(path);
+  if (normalizeFsPath(expectedRealPath) !== normalizeFsPath(path)) {
+    throw new CliInputError(`${file} must not traverse a symbolic link.`);
+  }
   const handle = await open(path, 'r');
   try {
     const information = await handle.stat();
-    if (!information.isFile()) throw new CliInputError(`${file} must be a regular file.`);
+    const identityChanged =
+      linkInformation.dev !== 0 &&
+      linkInformation.ino !== 0 &&
+      information.dev !== 0 &&
+      information.ino !== 0 &&
+      (information.dev !== linkInformation.dev || information.ino !== linkInformation.ino);
+    if (!information.isFile() || identityChanged)
+      throw new CliInputError(`${file} must be a stable regular file.`);
     if (information.size > MAX_CLI_INPUT_BYTES) {
       throw new CliInputError(`${file} exceeds the ${MAX_CLI_INPUT_BYTES}-byte CLI input limit.`);
+    }
+    const currentRealPath = await realpath(path);
+    if (
+      normalizeFsPath(currentRealPath) !== normalizeFsPath(expectedRealPath) ||
+      normalizeFsPath(currentRealPath) !== normalizeFsPath(path)
+    ) {
+      throw new CliInputError(`${file} changed its filesystem identity.`);
     }
     const chunks: Buffer[] = [];
     let total = 0;
@@ -2155,12 +2608,34 @@ async function readBoundedFile(file: string): Promise<Buffer> {
 }
 
 function readBoundedFileSync(path: string, limit: number, label: string): Buffer {
+  const linkInformation = lstatSync(path);
+  if (!linkInformation.isFile() || linkInformation.isSymbolicLink()) {
+    throw new CliInputError(`${label} must be a stable regular file.`);
+  }
+  const expectedRealPath = realpathSync(path);
+  if (normalizeFsPath(expectedRealPath) !== normalizeFsPath(path)) {
+    throw new CliInputError(`${label} must not traverse a symbolic link.`);
+  }
   const descriptor = openSync(path, 'r');
   try {
     const information = fstatSync(descriptor);
-    if (!information.isFile()) throw new CliInputError(`${label} must be a regular file.`);
+    const identityChanged =
+      linkInformation.dev !== 0 &&
+      linkInformation.ino !== 0 &&
+      information.dev !== 0 &&
+      information.ino !== 0 &&
+      (information.dev !== linkInformation.dev || information.ino !== linkInformation.ino);
+    if (!information.isFile() || identityChanged)
+      throw new CliInputError(`${label} must be a stable regular file.`);
     if (information.size > limit) {
       throw new CliInputError(`${label} exceeds the ${limit}-byte CLI input limit.`);
+    }
+    const currentRealPath = realpathSync(path);
+    if (
+      normalizeFsPath(currentRealPath) !== normalizeFsPath(expectedRealPath) ||
+      normalizeFsPath(currentRealPath) !== normalizeFsPath(path)
+    ) {
+      throw new CliInputError(`${label} changed its filesystem identity.`);
     }
     const chunks: Buffer[] = [];
     let total = 0;
@@ -2177,6 +2652,11 @@ function readBoundedFileSync(path: string, limit: number, label: string): Buffer
   } finally {
     closeSync(descriptor);
   }
+}
+
+function normalizeFsPath(value: string): string {
+  const resolved = resolve(value);
+  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 async function readTextInput(file: string): Promise<string> {

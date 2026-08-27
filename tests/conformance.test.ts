@@ -1,5 +1,5 @@
 import { generateKeyPairSync } from 'node:crypto';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -78,6 +78,58 @@ describe('EOM offline conformance testkit', () => {
           check.id.includes('/expected-finding-EOM_PUBLICATION_DUPLICATE_ID'),
         )?.status,
       ).toBe('pass');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects malformed generator metadata instead of treating filenames as evidence', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-conformance-generator-metadata-'));
+    try {
+      const capture = join(root, 'public');
+      await cp(resolve('examples/ecme-high/public'), capture, { recursive: true });
+      await writeFile(
+        join(root, '.eom-generated.json'),
+        JSON.stringify({
+          generator: 'eom',
+          specification: 'https://paperandslate.org/spec/eom/1.0',
+          toolVersion: '1.0.0-rc.3',
+          ownershipVersion: 1,
+          buildMode: 'full',
+          projectIdentity: 'fixture',
+          configDigest: '0'.repeat(64),
+          selector: {},
+        }) + '\n',
+        'utf8',
+      );
+      await writeFile(join(capture, '.eom-generated.json'), '{"generator":"not-eom"}\n', 'utf8');
+      await writeFile(
+        join(root, 'reproducibility.json'),
+        JSON.stringify({
+          deterministic: true,
+          canonicalJson: true,
+          fingerprint: '0'.repeat(64),
+          inputFingerprint: '0'.repeat(64),
+        }) + '\n',
+        'utf8',
+      );
+      await writeFile(
+        join(capture, 'reproducibility.json'),
+        '{"deterministic":false,"canonicalJson":true}\n',
+        'utf8',
+      );
+      const report = await runConformance({
+        directory: capture,
+        profile: 'generator',
+        expected: { status: 'non-conforming' },
+      });
+      expect(report.status).toBe('non-conforming');
+      expect(report.checks.find((check) => check.id.includes('/generator-marker'))?.status).toBe(
+        'fail',
+      );
+      expect(
+        report.checks.find((check) => check.id.includes('/generator-reproducibility'))?.status,
+      ).toBe('fail');
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -210,6 +262,7 @@ describe('EOM offline conformance testkit', () => {
         directory: resolve('examples/ecme-high/public'),
         origin: publisher.origin,
         mode: 'publisher',
+        fixtureAuthorityOrigin: 'https://ecme-high.example',
         fetch: {
           allowHttp: true,
           allowPrivateHosts: true,
@@ -229,6 +282,100 @@ describe('EOM offline conformance testkit', () => {
       expect(publisher.requests.some((request) => request.method === 'HEAD')).toBe(true);
     } finally {
       await publisher.close();
+    }
+  });
+
+  it('evaluates every descriptor when multiple publisher entries share one URL', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'eom-conformance-descriptor-collision-'));
+    try {
+      await mkdir(join(directory, '.well-known'), { recursive: true });
+      await mkdir(join(directory, 'eom'), { recursive: true });
+      const manifest = structuredClone(
+        parseStrictJson(
+          await readFile(resolve('fixtures/valid/core/minimal-school-manifest.json'), 'utf8'),
+          'minimal-school-manifest.json',
+        ),
+      ) as Record<string, unknown>;
+      const [organization] = (manifest.resources as Array<Record<string, unknown>>).filter(
+        (resource) => resource.type === 'organization-profile',
+      );
+      if (!organization) throw new Error('The fixture must contain an organization descriptor.');
+      manifest.capabilities = [];
+      manifest.resources = [
+        organization,
+        {
+          ...organization,
+          subjects: ['https://ecme-high.example/id/another-school'],
+        },
+      ];
+      await writeFile(
+        join(directory, '.well-known', 'educational-organization-manifest'),
+        stringifyCanonical(manifest as never),
+        'utf8',
+      );
+      await writeFile(
+        join(directory, 'eom', 'organization.json'),
+        await readFile(resolve('fixtures/valid/core/minimal-school-organization.json'), 'utf8'),
+        'utf8',
+      );
+      const publisher = await startFixturePublisher({ directory });
+      try {
+        const report = await runConformance({
+          directory,
+          origin: publisher.origin,
+          mode: 'publisher',
+          fixtureAuthorityOrigin: 'https://ecme-high.example',
+          fetch: {
+            allowHttp: true,
+            allowPrivateHosts: true,
+            allowNonStandardPorts: true,
+          },
+          expected: {
+            findingCodes: ['EOM_AUTHORITY_DESCRIPTOR_MISMATCH'],
+          },
+        });
+        expect(report.status).toBe('non-conforming');
+        expect(report.checks.find((check) => check.id.includes('/publisher-graph'))?.status).toBe(
+          'fail',
+        );
+      } finally {
+        await publisher.close();
+      }
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('reports symlink entries in captured publications instead of skipping them', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'eom-conformance-capture-symlink-'));
+    const outside = await mkdtemp(join(tmpdir(), 'eom-conformance-capture-target-'));
+    try {
+      await writeFile(
+        join(directory, 'manifest.json'),
+        await readFile(resolve('fixtures/valid/core/minimal-school-manifest.json'), 'utf8'),
+        'utf8',
+      );
+      await writeFile(join(outside, 'outside.json'), '{}\n', 'utf8');
+      try {
+        await symlink(join(outside, 'outside.json'), join(directory, 'linked.json'));
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          ['EPERM', 'EACCES', 'EINVAL'].includes(String(error.code))
+        ) {
+          return;
+        }
+        throw error;
+      }
+      const report = await runConformance({ directory });
+      expect(report.status).toBe('non-conforming');
+      expect(report.checks.find((check) => check.id.includes('/capture-symlink'))?.status).toBe(
+        'fail',
+      );
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+      await rm(outside, { recursive: true, force: true });
     }
   });
 });

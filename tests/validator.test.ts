@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -10,6 +10,7 @@ import {
 } from '@paperandslate/eom-core';
 import {
   publicationSetFindings,
+  renderValidationReport,
   validateDocument,
   validatePublicationDirectory,
   validatePublicationUrl,
@@ -22,6 +23,29 @@ function fixture(path: string): unknown {
 }
 
 describe('EOM structural and semantic validation', () => {
+  it('renders the conformance report format as a schema-valid conformance report', () => {
+    const report = parseStrictJson(
+      renderValidationReport(
+        {
+          valid: true,
+          structuralValid: true,
+          semanticValid: true,
+          findings: [],
+        },
+        'conformance',
+      ),
+    );
+    expect(report).toMatchObject({
+      type: 'conformance-report',
+      status: 'conforming',
+      profile: 'https://paperandslate.org/spec/eom/1.0/profiles/validator',
+    });
+    expect(
+      validateDocument(report, { schemaFile: 'conformance-report.schema.json', semantic: false })
+        .valid,
+    ).toBe(true);
+  });
+
   it('accepts the minimal manifest fixture', () => {
     const result = validateDocument(fixture('fixtures/valid/core/minimal-school-manifest.json'), {
       now: new Date('2026-01-01T00:00:00Z'),
@@ -71,6 +95,27 @@ describe('EOM structural and semantic validation', () => {
     ).toBe(true);
   });
 
+  it('rejects sparse and cyclic runtime values before schema or semantic traversal', () => {
+    const sparse = [] as unknown[];
+    sparse.length = 1;
+    const sparseResult = validateDocument({
+      type: 'manifest',
+      resources: sparse,
+    });
+    expect(sparseResult.valid).toBe(false);
+    expect(sparseResult.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_JSON_UNSUPPORTED_VALUE' })]),
+    );
+
+    const cyclic: Record<string, unknown> = { type: 'manifest' };
+    cyclic.self = cyclic;
+    const cyclicResult = validateDocument(cyclic);
+    expect(cyclicResult.valid).toBe(false);
+    expect(cyclicResult.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_JSON_CYCLE' })]),
+    );
+  });
+
   it('accepts a cross-origin resource only inside an active delegation scope', () => {
     const manifest = fixture('fixtures/valid/core/minimal-school-manifest.json') as Record<
       string,
@@ -83,6 +128,7 @@ describe('EOM structural and semantic validation', () => {
     };
     manifest.delegations = [
       {
+        type: 'delegation',
         id: 'https://ecme-high.example/id/delegation/vendor-organization',
         delegate: 'https://vendor.example',
         scope: {
@@ -242,6 +288,244 @@ describe('EOM structural and semantic validation', () => {
     );
   });
 
+  it('reports malformed fetched resource JSON as a fetch finding', async () => {
+    const manifest = structuredClone(
+      fixture('fixtures/valid/core/minimal-school-manifest.json'),
+    ) as Record<string, unknown>;
+    manifest.capabilities = [];
+    const resource = (manifest.resources as Array<Record<string, unknown>>)[0]!;
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      transport: {
+        fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+        fetchEom: (url: string): Promise<FetchResponse> =>
+          Promise.resolve({
+            requestedUrl: url,
+            finalUrl: resource.href as string,
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+            contentType: 'application/json',
+            body: '{',
+            redirects: [],
+            observedAt: '2027-08-01T00:00:00.000Z',
+          }),
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_FETCH_JSON', resource: resource.href }),
+      ]),
+    );
+  });
+
+  it('records final URL and redirects when the graph byte budget stops a fetch', async () => {
+    const manifest = structuredClone(
+      fixture('fixtures/valid/core/minimal-school-manifest.json'),
+    ) as Record<string, unknown>;
+    manifest.capabilities = [];
+    const resource = (manifest.resources as Array<Record<string, unknown>>)[0]!;
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    const redirectTarget = 'https://ecme-high.example/eom/organization-final.json';
+    const resourceBody = JSON.stringify({
+      type: 'organization-profile',
+      id: 'https://ecme-high.example/id/organization',
+      name: 'x'.repeat(256),
+    });
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      maxTotalBytes: Buffer.byteLength(rootResponse.body, 'utf8') + 1,
+      transport: {
+        fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+        fetchEom: (url: string): Promise<FetchResponse> =>
+          Promise.resolve({
+            requestedUrl: url,
+            finalUrl: redirectTarget,
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+            contentType: 'application/json',
+            body: resourceBody,
+            redirects: [
+              {
+                from: url,
+                to: redirectTarget,
+                status: 302,
+                crossOrigin: false,
+              },
+            ],
+            observedAt: '2027-08-01T00:00:00.000Z',
+          }),
+      },
+    });
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_GRAPH_TOTAL_BYTES' })]),
+    );
+    expect(result.fetches).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          declaredUrl: resource.href,
+          finalUrl: redirectTarget,
+          redirects: [
+            expect.objectContaining({
+              from: resource.href,
+              to: redirectTarget,
+            }),
+          ],
+        }),
+      ]),
+    );
+  });
+
+  it('does not charge an in-run cache hit twice against the graph byte budget', async () => {
+    const manifest = structuredClone(
+      fixture('fixtures/valid/core/minimal-school-manifest.json'),
+    ) as Record<string, unknown>;
+    manifest.capabilities = [];
+    const resources = manifest.resources as Array<Record<string, unknown>>;
+    const firstResource = resources[0]!;
+    resources.splice(
+      0,
+      resources.length,
+      {
+        ...firstResource,
+        id: 'https://ecme-high.example/eom/resource/organization-first',
+      },
+      {
+        ...firstResource,
+        id: 'https://ecme-high.example/eom/resource/organization-second',
+      },
+    );
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    const resourceDocument = fixture('fixtures/valid/core/minimal-school-organization.json');
+    const resourceBody = JSON.stringify(resourceDocument);
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      maxTotalBytes:
+        Buffer.byteLength(rootResponse.body, 'utf8') + Buffer.byteLength(resourceBody, 'utf8'),
+      transport: {
+        fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+        fetchEom: (url: string): Promise<FetchResponse> =>
+          Promise.resolve({
+            requestedUrl: url,
+            finalUrl: firstResource.href as string,
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+            contentType: 'application/json',
+            body: resourceBody,
+            redirects: [],
+            observedAt: '2027-08-01T00:00:00.000Z',
+          }),
+      },
+    });
+    expect(result.findings.some((item) => item.code === 'EOM_GRAPH_TOTAL_BYTES')).toBe(false);
+  });
+
+  it('reports URL graph depth exhaustion instead of silently truncating descendants', async () => {
+    const manifest = structuredClone(
+      fixture('fixtures/valid/core/minimal-school-manifest.json'),
+    ) as Record<string, unknown>;
+    manifest.capabilities = [];
+    const firstResource = {
+      id: 'https://ecme-high.example/eom/resource/one',
+      type: 'manifest',
+      href: 'https://ecme-high.example/eom/one.json',
+      mediaType: 'application/json',
+      version: '1.0',
+      subjects: ['https://ecme-high.example/eom/resource/one'],
+    };
+    manifest.resources = [firstResource];
+    const secondResource = {
+      id: 'https://ecme-high.example/eom/resource/two',
+      type: 'manifest',
+      href: 'https://ecme-high.example/eom/two.json',
+      mediaType: 'application/json',
+      version: '1.0',
+      subjects: ['https://ecme-high.example/eom/resource/two'],
+    };
+    const firstDocument = {
+      $schema: 'https://paperandslate.org/schemas/eom/1.0/manifest.schema.json',
+      specification: 'https://paperandslate.org/spec/eom/1.0',
+      version: '1.0',
+      id: firstResource.id,
+      type: 'manifest',
+      canonical: firstResource.href,
+      publisher: {
+        id: 'https://ecme-high.example/id/publisher',
+        name: 'Ecme High School',
+        type: 'school',
+        website: 'https://ecme-high.example/',
+      },
+      scope: { origin: 'https://ecme-high.example', paths: ['/'] },
+      organizations: [],
+      capabilities: [],
+      resources: [secondResource],
+    };
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    let fetchedSecond = false;
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      maxDepth: 1,
+      transport: {
+        fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+        fetchEom: (url: string): Promise<FetchResponse> => {
+          if (url === secondResource.href) fetchedSecond = true;
+          return Promise.resolve({
+            requestedUrl: url,
+            finalUrl: firstResource.href,
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+            contentType: 'application/json',
+            body: JSON.stringify(firstDocument),
+            redirects: [],
+            observedAt: '2027-08-01T00:00:00.000Z',
+          });
+        },
+      },
+    });
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_GRAPH_DEPTH_LIMIT' })]),
+    );
+    expect(fetchedSecond).toBe(false);
+  });
+
   it('rejects a cross-origin redirect while discovering the root manifest', async () => {
     const manifest = fixture('fixtures/valid/core/minimal-school-manifest.json');
     const rootResponse: ManifestFetchResponse = {
@@ -274,6 +558,51 @@ describe('EOM structural and semantic validation', () => {
     expect(result.findings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ code: 'EOM_AUTHORITY_ROOT_REDIRECT_ORIGIN' }),
+      ]),
+    );
+  });
+
+  it('evaluates a resource descriptor that points back to the already fetched root', async () => {
+    const manifest = structuredClone(
+      fixture('fixtures/valid/core/minimal-school-manifest.json'),
+    ) as Record<string, unknown>;
+    manifest.capabilities = [];
+    manifest.resources = [
+      {
+        id: manifest.id,
+        type: 'manifest',
+        href: manifest.canonical,
+        mediaType: 'application/json',
+        version: '1.0',
+        subjects: ['https://ecme-high.example/id/not-the-school'],
+      },
+    ];
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    let fetchedResource = false;
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      transport: {
+        fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+        fetchEom: (): Promise<FetchResponse> => {
+          fetchedResource = true;
+          return Promise.reject(new Error('the root cache should satisfy this descriptor'));
+        },
+      },
+    });
+    expect(fetchedResource).toBe(false);
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_DESCRIPTOR_MISMATCH' }),
       ]),
     );
   });
@@ -334,6 +663,38 @@ describe('EOM structural and semantic validation', () => {
     }
   });
 
+  it('reports publication symlinks instead of silently omitting them', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'eom-publication-symlink-'));
+    const outsideDirectory = await mkdtemp(join(tmpdir(), 'eom-publication-symlink-target-'));
+    const outsideFile = join(outsideDirectory, 'resource.json');
+    const linkedFile = join(directory, 'resource.json');
+    try {
+      await writeFile(outsideFile, '{}', 'utf8');
+      try {
+        await symlink(outsideFile, linkedFile, 'file');
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          (error.code === 'EACCES' || error.code === 'EPERM' || error.code === 'EINVAL')
+        ) {
+          return;
+        }
+        throw error;
+      }
+      const result = await validatePublicationDirectory(directory);
+      expect(result.valid).toBe(false);
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ code: 'EOM_GRAPH_SYMLINK', resource: 'resource.json' }),
+        ]),
+      );
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+      await rm(outsideDirectory, { recursive: true, force: true });
+    }
+  });
+
   it('rejects a delegated resource outside the allowed path prefix', () => {
     const manifest = fixture('fixtures/valid/core/minimal-school-manifest.json') as Record<
       string,
@@ -346,6 +707,7 @@ describe('EOM structural and semantic validation', () => {
     };
     manifest.delegations = [
       {
+        type: 'delegation',
         id: 'https://ecme-high.example/id/delegation/vendor-organization',
         delegate: 'https://vendor.example',
         scope: {

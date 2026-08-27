@@ -11,7 +11,7 @@
     "httpsUri": {
       "type": "string",
       "format": "uri",
-      "pattern": "^https://[^\\s/#?]+(?:[/?#][^\\s]*)?$"
+      "pattern": "^https://[^\\s@/#?]+(?:[/?#][^\\s]*)?$"
     },
     "bcp47": {
       "type": "string",

@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rename, rm, symlink, writeFile } from 'node:fs/promises';
 import { generateKeyPairSync } from 'node:crypto';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -18,6 +18,51 @@ describe('EOM deterministic authoring generator', () => {
     expect(() => parseAuthoringText('name: &shared one\ncopy: *shared\n', 'alias.yaml')).toThrow(
       /alias/iu,
     );
+  });
+
+  it('rejects source-tree symlinks instead of silently omitting configured inputs', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-generator-source-symlink-'));
+    try {
+      const source = join(root, 'source');
+      await mkdir(source, { recursive: true });
+      await writeFile(
+        join(root, 'eom.config.yaml'),
+        [
+          'project: { name: Symlink Source, protocolVersion: "1.0", defaultLanguage: en-US }',
+          'publisher: { origin: https://symlink-source.example, manifestPath: /.well-known/educational-organization-manifest }',
+          'source: { root: source, modules: { organization: [organization.yaml] } }',
+          'output: { root: generated/public }',
+          '',
+        ].join('\n'),
+      );
+      const outside = join(root, 'outside-organization.yaml');
+      await writeFile(
+        outside,
+        'id: https://symlink-source.example/id/school\ntype: school\nname: Symlink Source\n',
+      );
+      try {
+        await symlink(outside, join(source, 'organization.yaml'), 'file');
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          'code' in error &&
+          (error.code === 'EACCES' || error.code === 'EPERM' || error.code === 'EINVAL')
+        ) {
+          return;
+        }
+        throw error;
+      }
+      const report = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: join(root, 'generated', 'public'),
+      });
+      expect(report.valid).toBe(false);
+      expect(report.findings).toEqual(
+        expect.arrayContaining([expect.objectContaining({ code: 'EOM_GENERATOR_INPUT_SYMLINK' })]),
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it('builds a small YAML project into valid canonical resources and reports', async () => {
@@ -40,8 +85,12 @@ describe('EOM deterministic authoring generator', () => {
           '  modules:',
           '    organization:',
           '      - organization.yaml',
+          '    departments:',
+          '      - departments.yaml',
           '    courses:',
           '      - courses/*.yaml',
+          '    programs:',
+          '      - programs.yaml',
           'output:',
           '  root: generated/public',
           'validation:',
@@ -82,6 +131,8 @@ describe('EOM deterministic authoring generator', () => {
           '',
         ].join('\n'),
       );
+      await writeFile(join(source, 'departments.yaml'), 'items: []\n');
+      await writeFile(join(source, 'programs.yaml'), 'items: []\n');
 
       const first = await buildPublication({
         configFile: join(root, 'eom.config.yaml'),
@@ -97,6 +148,24 @@ describe('EOM deterministic authoring generator', () => {
       expect(first.privacy).toMatchObject({ status: 'clear', acknowledgements: [] });
       expect(first.conflicts).toEqual([]);
 
+      const changedOutput = join(root, 'generated-changed', 'public');
+      const changed = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: changedOutput,
+        mode: 'changed-files',
+        changedFiles: ['source/courses/intro.yaml'],
+        now: new Date('2027-01-02T00:00:00Z'),
+      });
+      expect(changed.valid, JSON.stringify(changed.findings)).toBe(true);
+      expect(changed.written).toBe(true);
+      expect(changed.partial).toMatchObject({
+        mode: 'changed-files',
+        changedFiles: ['source/courses/intro.yaml'],
+        selectedModules: ['courses', 'departments', 'organization', 'programs'],
+        dependencyClosure: ['courses', 'departments', 'organization', 'programs'],
+        completePublication: false,
+      });
+
       const manifest = parseStrictJson(
         await readFile(join(output, '.well-known', 'educational-organization-manifest'), 'utf8'),
       );
@@ -109,6 +178,22 @@ describe('EOM deterministic authoring generator', () => {
         'courses/intro.yaml',
       );
 
+      if (process.platform !== 'win32') {
+        const caseSensitiveChanged = await buildPublication({
+          configFile: join(root, 'eom.config.yaml'),
+          outputRoot: join(root, 'generated-case-sensitive', 'public'),
+          mode: 'changed-files',
+          changedFiles: ['source/COURSES/intro.yaml'],
+          now: new Date('2027-01-02T00:00:00Z'),
+        });
+        expect(caseSensitiveChanged.valid).toBe(false);
+        expect(caseSensitiveChanged.findings).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ code: 'EOM_GENERATOR_CHANGED_FILE_NOT_FOUND' }),
+          ]),
+        );
+      }
+
       const omittedPartialOutput = await buildPublication({
         configFile: join(root, 'eom.config.yaml'),
         module: 'courses',
@@ -117,6 +202,29 @@ describe('EOM deterministic authoring generator', () => {
       expect(omittedPartialOutput.valid).toBe(false);
       expect(
         omittedPartialOutput.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE'),
+      ).toBe(true);
+
+      const dryRunOmittedPartial = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        module: 'courses',
+        dryRun: true,
+        now: new Date('2027-01-02T00:00:00Z'),
+      });
+      expect(dryRunOmittedPartial.valid).toBe(false);
+      expect(
+        dryRunOmittedPartial.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE'),
+      ).toBe(true);
+
+      const dryRunFullOutput = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: output,
+        module: 'courses',
+        dryRun: true,
+        now: new Date('2027-01-02T00:00:00Z'),
+      });
+      expect(dryRunFullOutput.valid).toBe(false);
+      expect(
+        dryRunFullOutput.findings.some((item) => item.code === 'EOM_GENERATOR_OUTPUT_UNSAFE'),
       ).toBe(true);
 
       const secondOutput = join(root, 'generated-second', 'public');
@@ -179,6 +287,50 @@ describe('EOM deterministic authoring generator', () => {
       expect(report.valid).toBe(false);
       expect(report.written).toBe(false);
       expect(report.findings.some((item) => item.code === 'EOM_GENERATOR_DUPLICATE_ID')).toBe(true);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('cannot disable prohibited privacy-field enforcement through generator config', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'eom-generator-privacy-policy-'));
+    try {
+      await writeFile(
+        join(root, 'eom.config.yaml'),
+        [
+          'project: { name: Privacy Policy, protocolVersion: "1.0", defaultLanguage: en-US }',
+          'publisher: { origin: https://privacy-policy.example, manifestPath: /.well-known/educational-organization-manifest }',
+          'source: { root: source, modules: { organization: [organization.yaml] } }',
+          'output: { root: generated/public }',
+          'validation: { privacyLint: false }',
+          'signing: { enabled: false }',
+          '',
+        ].join('\n'),
+      );
+      await mkdir(join(root, 'source'), { recursive: true });
+      await writeFile(
+        join(root, 'source', 'organization.yaml'),
+        [
+          'id: https://privacy-policy.example/id/school',
+          'type: school',
+          'name: Privacy Policy',
+          'extensions:',
+          '  "https://privacy-policy.example/extensions/example":',
+          '    student: must-not-publish',
+          '',
+        ].join('\n'),
+      );
+      const report = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: join(root, 'generated', 'public'),
+      });
+      expect(report.valid).toBe(false);
+      expect(report.written).toBe(false);
+      expect(report.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ code: 'EOM_PRIVACY_PROHIBITED_FIELD', severity: 'error' }),
+        ]),
+      );
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -316,7 +468,9 @@ describe('EOM deterministic authoring generator', () => {
           '  modules:',
           '    organization: [organizations.yaml]',
           '    contacts: [contacts.yaml]',
+          '    departments: [departments.yaml]',
           '    courses: [courses.yaml]',
+          '    jobs: [jobs.yaml]',
           'output: { root: generated/public }',
           'signing: { enabled: false }',
           '',
@@ -361,6 +515,44 @@ describe('EOM deterministic authoring generator', () => {
           '    type: course',
           '    name: Course B',
           `    provider: ${organizationB}`,
+          '    dualCreditPartners:',
+          `      - ${organizationA}`,
+          `      - ${organizationB}`,
+          '    subjects:',
+          '      - https://paperandslate.org/vocabularies/eom/subjects/1.0/mathematics',
+          '      - https://paperandslate.org/vocabularies/eom/subjects/1.0/science',
+          '',
+        ].join('\n'),
+      );
+      await writeFile(
+        join(root, 'source', 'jobs.yaml'),
+        [
+          'items:',
+          '  - id: https://network.example/id/job/a',
+          '    type: job-posting',
+          '    name: Job A',
+          `    hiringOrganization: { id: ${organizationA} }`,
+          '    applicationUrl: https://network.example/jobs/a/apply',
+          '    postedAt: 2026-08-01T00:00:00Z',
+          '  - id: https://network.example/id/job/b',
+          '    type: job-posting',
+          '    name: Job B',
+          `    hiringOrganization: { id: ${organizationB} }`,
+          '    applicationUrl: https://network.example/jobs/b/apply',
+          '    postedAt: 2026-08-01T00:00:00Z',
+          '',
+        ].join('\n'),
+      );
+      await writeFile(
+        join(root, 'source', 'departments.yaml'),
+        [
+          'items:',
+          '  - id: https://network.example/id/department/a',
+          '    name: Department A',
+          `    parentOrganization: ${organizationA}`,
+          '  - id: https://network.example/id/department/b',
+          '    name: Department B',
+          `    parentOrganization: ${organizationB}`,
           '',
         ].join('\n'),
       );
@@ -379,12 +571,42 @@ describe('EOM deterministic authoring generator', () => {
         await readFile(join(selectedOutput, 'contacts.json'), 'utf8'),
       );
       const courses = parseStrictJson(await readFile(join(selectedOutput, 'courses.json'), 'utf8'));
+      const jobs = parseStrictJson(await readFile(join(selectedOutput, 'jobs.json'), 'utf8'));
+      const departments = parseStrictJson(
+        await readFile(join(selectedOutput, 'departments.json'), 'utf8'),
+      );
+      const filteredCourses = parseStrictJson(
+        await readFile(join(selectedOutput, 'courses.json'), 'utf8'),
+      );
       expect(JSON.stringify(organization)).toContain(organizationB);
       expect(JSON.stringify(organization)).not.toContain(organizationA);
       expect(JSON.stringify(contacts)).toContain('contact/b');
       expect(JSON.stringify(contacts)).not.toContain('contact/a');
       expect(JSON.stringify(courses)).toContain('course/b');
       expect(JSON.stringify(courses)).not.toContain('course/a');
+      expect(JSON.stringify(jobs)).toContain('job/b');
+      expect(JSON.stringify(jobs)).not.toContain('job/a');
+      expect(JSON.stringify(departments)).toContain('department/b');
+      expect(JSON.stringify(departments)).not.toContain('department/a');
+      expect(JSON.stringify(filteredCourses)).toContain(organizationB);
+      expect(JSON.stringify(filteredCourses)).not.toContain(organizationA);
+      expect(JSON.stringify(filteredCourses)).toContain('mathematics');
+      expect(JSON.stringify(filteredCourses)).toContain('science');
+      const manifest = parseStrictJson(
+        await readFile(
+          join(
+            root,
+            'generated',
+            'selected',
+            'public',
+            '.well-known',
+            'educational-organization-manifest',
+          ),
+          'utf8',
+        ),
+      );
+      if (!isJsonObject(manifest)) throw new Error('Generated manifest must be an object.');
+      expect(manifest.publisher).toMatchObject({ id: organizationB });
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -554,7 +776,7 @@ describe('EOM deterministic authoring generator', () => {
         [
           'project: { name: Selector Safety, protocolVersion: "1.0", defaultLanguage: en-US }',
           'publisher: { origin: https://selector-safety.example, manifestPath: /.well-known/educational-organization-manifest }',
-          'source: { root: source, modules: { organization: [organization.yaml], courses: [courses.yaml] } }',
+          'source: { root: source, modules: { organization: [organization.yaml], departments: [departments.yaml], programs: [programs.yaml], courses: [courses.yaml] } }',
           'output: { root: generated/public }',
           'signing: { enabled: false }',
           '',
@@ -569,6 +791,8 @@ describe('EOM deterministic authoring generator', () => {
         join(root, 'source', 'courses.yaml'),
         'id: https://selector-safety.example/id/course/one\ntype: course\nname: One\nprovider: https://selector-safety.example/id/school\n',
       );
+      await writeFile(join(root, 'source', 'departments.yaml'), 'items: []\n');
+      await writeFile(join(root, 'source', 'programs.yaml'), 'items: []\n');
       const output = join(root, 'partial', 'public');
       const first = await buildPublication({
         configFile,

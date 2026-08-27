@@ -6,11 +6,16 @@ export type StrictJsonErrorCode =
   | 'EOM_JSON_DUPLICATE_KEY'
   | 'EOM_JSON_PARSE'
   | 'EOM_JSON_UNICODE'
+  | 'EOM_JSON_NONFINITE_NUMBER'
+  | 'EOM_JSON_UNSUPPORTED_VALUE'
   | 'EOM_JSON_INPUT_TOO_LARGE'
-  | 'EOM_JSON_DEPTH';
+  | 'EOM_JSON_DEPTH'
+  | 'EOM_JSON_CYCLE';
 
 export const MAX_STRICT_JSON_BYTES = 32 * 1024 * 1024;
 export const MAX_STRICT_JSON_DEPTH = 128;
+/** Maximum number of runtime JSON values canonicalization will traverse. */
+export const MAX_STABLE_JSON_NODES = 100_000;
 
 export class StrictJsonError extends Error {
   public constructor(
@@ -26,6 +31,7 @@ export class StrictJsonError extends Error {
 class DuplicateKeyScanner {
   private index = 0;
   private depth = 0;
+  private nodes = 0;
 
   public constructor(
     private readonly text: string,
@@ -42,6 +48,14 @@ class DuplicateKeyScanner {
   }
 
   private value(): void {
+    this.nodes += 1;
+    if (this.nodes > MAX_STABLE_JSON_NODES) {
+      throw new StrictJsonError(
+        `JSON value exceeds the ${MAX_STABLE_JSON_NODES}-node safety limit.`,
+        this.source,
+        'EOM_JSON_INPUT_TOO_LARGE',
+      );
+    }
     this.skipWhitespace();
     const character = this.text[this.index];
     if (character === '{') {
@@ -231,6 +245,13 @@ export function parseStrictJson(text: string, source?: string): JsonValue {
 }
 
 function assertWellFormedUnicode(value: unknown, source?: string): void {
+  if (typeof value === 'number' && !Number.isFinite(value)) {
+    throw new StrictJsonError(
+      'JSON contains a non-finite number.',
+      source,
+      'EOM_JSON_NONFINITE_NUMBER',
+    );
+  }
   if (typeof value === 'string') {
     for (let index = 0; index < value.length; index += 1) {
       const code = value.charCodeAt(index);
@@ -274,23 +295,121 @@ export function isJsonObject(value: unknown): value is JsonObject {
   return prototype === Object.prototype || prototype === null;
 }
 
+interface StableJsonState {
+  readonly ancestors: WeakSet<object>;
+  nodes: number;
+}
+
 export function stableJsonValue(value: JsonValue): JsonValue {
-  if (Array.isArray(value)) {
-    return value.map(stableJsonValue);
+  return stableJsonValueInternal(value, { ancestors: new WeakSet<object>(), nodes: 0 }, 0);
+}
+
+function stableJsonValueInternal(value: unknown, state: StableJsonState, depth: number): JsonValue {
+  state.nodes += 1;
+  if (state.nodes > MAX_STABLE_JSON_NODES) {
+    throw new StrictJsonError(
+      `JSON value exceeds the ${MAX_STABLE_JSON_NODES}-node safety limit.`,
+      undefined,
+      'EOM_JSON_INPUT_TOO_LARGE',
+    );
   }
-  if (!isJsonObject(value)) {
-    return value;
+  const candidate = value;
+  if (
+    candidate === undefined ||
+    typeof candidate === 'function' ||
+    typeof candidate === 'symbol' ||
+    typeof candidate === 'bigint'
+  ) {
+    throw new StrictJsonError(
+      'JSON contains a value that cannot be represented in strict JSON.',
+      undefined,
+      'EOM_JSON_UNSUPPORTED_VALUE',
+    );
   }
-  // Use a null-prototype object so JSON data keys such as "__proto__" remain
-  // data properties instead of invoking Object.prototype's legacy setter.
-  const sorted: JsonObject = Object.create(null) as JsonObject;
-  for (const key of Object.keys(value).sort(compareJsonKeys)) {
-    const child = value[key];
-    if (child !== undefined) {
-      sorted[key] = stableJsonValue(child);
+  if (typeof candidate === 'number' && !Number.isFinite(candidate)) {
+    throw new StrictJsonError(
+      'JSON contains a non-finite number.',
+      undefined,
+      'EOM_JSON_NONFINITE_NUMBER',
+    );
+  }
+  if (typeof candidate === 'string') {
+    assertWellFormedUnicode(candidate);
+    return candidate;
+  }
+  if (Array.isArray(candidate)) {
+    return withStableContainer(candidate, state, depth, () => {
+      const dense: JsonValue[] = [];
+      for (let index = 0; index < candidate.length; index += 1) {
+        if (!Object.hasOwn(candidate, index)) {
+          throw new StrictJsonError(
+            'JSON contains a sparse array with a missing element.',
+            undefined,
+            'EOM_JSON_UNSUPPORTED_VALUE',
+          );
+        }
+        dense.push(stableJsonValueInternal(candidate[index], state, depth + 1));
+      }
+      return dense;
+    });
+  }
+  if (candidate === null || typeof candidate === 'boolean' || typeof candidate === 'number') {
+    return candidate;
+  }
+  if (!isJsonObject(candidate)) {
+    throw new StrictJsonError(
+      'JSON contains a non-plain object that cannot be represented in strict JSON.',
+      undefined,
+      'EOM_JSON_UNSUPPORTED_VALUE',
+    );
+  }
+  return withStableContainer(candidate, state, depth, () => {
+    // Define properties explicitly so JSON data keys such as "__proto__" remain
+    // data properties instead of invoking Object.prototype's legacy setter.
+    const sorted: JsonObject = {};
+    for (const key of Object.keys(candidate).sort(compareJsonKeys)) {
+      assertWellFormedUnicode(key);
+      const child = candidate[key];
+      if (child === undefined) {
+        throw new StrictJsonError(
+          'JSON contains an undefined object property.',
+          undefined,
+          'EOM_JSON_UNSUPPORTED_VALUE',
+        );
+      }
+      Object.defineProperty(sorted, key, {
+        configurable: true,
+        enumerable: true,
+        value: stableJsonValueInternal(child, state, depth + 1),
+        writable: true,
+      });
     }
+    return sorted;
+  });
+}
+
+function withStableContainer<T extends JsonValue>(
+  value: object,
+  state: StableJsonState,
+  depth: number,
+  callback: () => T,
+): T {
+  if (depth + 1 > MAX_STRICT_JSON_DEPTH) {
+    throw new StrictJsonError(
+      `JSON nesting exceeds the ${MAX_STRICT_JSON_DEPTH}-level safety limit.`,
+      undefined,
+      'EOM_JSON_DEPTH',
+    );
   }
-  return sorted;
+  if (state.ancestors.has(value)) {
+    throw new StrictJsonError('JSON contains a cyclic runtime value.', undefined, 'EOM_JSON_CYCLE');
+  }
+  state.ancestors.add(value);
+  try {
+    return callback();
+  } finally {
+    state.ancestors.delete(value);
+  }
 }
 
 /** Compare JSON object keys by UTF-16 code units, independent of host locale. */
@@ -301,5 +420,13 @@ function compareJsonKeys(left: string, right: string): number {
 }
 
 export function stringifyCanonical(value: JsonValue): string {
-  return `${JSON.stringify(stableJsonValue(value), null, 2)}\n`;
+  const serialized = JSON.stringify(stableJsonValue(value), null, 2);
+  if (new TextEncoder().encode(serialized).byteLength > MAX_STRICT_JSON_BYTES) {
+    throw new StrictJsonError(
+      `JSON output exceeds the ${MAX_STRICT_JSON_BYTES}-byte safety limit.`,
+      undefined,
+      'EOM_JSON_INPUT_TOO_LARGE',
+    );
+  }
+  return `${serialized}\n`;
 }

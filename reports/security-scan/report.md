@@ -1,8 +1,10 @@
-# Security Review: well-known
+# Historical Security Review: well-known
 
 ## Scope
 
-Standard prompt-only security review of the final committed RC3 candidate after conformance, security, and evidence-binding remediation.
+Historical Standard prompt-only security review of an earlier RC3 candidate after conformance,
+security, and evidence-binding remediation. This artifact is preserved for audit history and is
+superseded for current acceptance.
 
 - Scan mode: repository
 - Target kind: git_revision
@@ -11,9 +13,9 @@ Standard prompt-only security review of the final committed RC3 candidate after 
 - Inventory strategy: repository
 - Included paths: .
 - Excluded paths: none
-- Runtime or test status: Local deterministic build, test, package, release, and security checks completed for the final committed candidate.
-- Artifacts reviewed: Final committed source revision 8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38, release/v1.0.0-rc.3
-- Scan context: Complete EOM v1.0.0-rc.3 candidate in the paperandslate/well-known repository.
+- Runtime or test status: Local deterministic build, test, package, release, and security checks completed for the historical candidate.
+- Artifacts reviewed: Historical source revision 8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38, release/v1.0.0-rc.3
+- Scan context: Historical EOM v1.0.0-rc.3 candidate in the paperandslate/well-known repository.
 
 Limitations and exclusions:
 - External registration, legal/governance approval, independent pilots, deployment, and production adoption remain explicitly blocked.

@@ -571,22 +571,35 @@ function prerequisiteCycles(graph: ReadonlyMap<string, readonly string[]>): read
   const cycles: string[][] = [];
   const visiting = new Set<string>();
   const visited = new Set<string>();
-  const stack: string[] = [];
-  const walk = (node: string): void => {
-    if (visiting.has(node)) {
-      const start = stack.indexOf(node);
-      if (start >= 0) cycles.push([...stack.slice(start), node]);
-      return;
+  for (const start of graph.keys()) {
+    if (visited.has(start)) continue;
+    const path: string[] = [start];
+    const frames: Array<{ readonly node: string; index: number }> = [{ node: start, index: 0 }];
+    visiting.add(start);
+    while (frames.length > 0) {
+      const frame = frames[frames.length - 1]!;
+      const prerequisites = graph.get(frame.node) ?? [];
+      if (frame.index >= prerequisites.length) {
+        frames.pop();
+        path.pop();
+        visiting.delete(frame.node);
+        visited.add(frame.node);
+        continue;
+      }
+      const prerequisite = prerequisites[frame.index];
+      frame.index += 1;
+      if (prerequisite === undefined) continue;
+      if (visiting.has(prerequisite)) {
+        const cycleStart = path.indexOf(prerequisite);
+        if (cycleStart >= 0) cycles.push([...path.slice(cycleStart), prerequisite]);
+        continue;
+      }
+      if (visited.has(prerequisite)) continue;
+      visiting.add(prerequisite);
+      path.push(prerequisite);
+      frames.push({ node: prerequisite, index: 0 });
     }
-    if (visited.has(node)) return;
-    visiting.add(node);
-    stack.push(node);
-    for (const prerequisite of graph.get(node) ?? []) walk(prerequisite);
-    stack.pop();
-    visiting.delete(node);
-    visited.add(node);
-  };
-  for (const node of graph.keys()) walk(node);
+  }
   return cycles;
 }
 
@@ -1106,7 +1119,9 @@ function parseDate(value: unknown): Date | undefined {
 }
 
 function isRecord(value: unknown): value is UnknownRecord {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const prototype = Reflect.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }
 
 function stringValue(value: unknown): string | undefined {

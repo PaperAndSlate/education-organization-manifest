@@ -51,6 +51,8 @@ import {
 const SPECIFICATION = 'https://paperandslate.org/spec/eom/1.0';
 const MANIFEST_SCHEMA = 'https://paperandslate.org/schemas/eom/1.0/manifest.schema.json';
 const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
+const MAX_SOURCE_TREE_DEPTH = 128;
+const MAX_GENERATOR_JSON_NODES = 100_000;
 const DEFAULT_OUTPUT_MAX_BYTES = 256 * 1024;
 const GENERATED_MARKER = '.eom-generated.json';
 const GENERATED_OWNERSHIP_VERSION = 1;
@@ -522,8 +524,16 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
   try {
     try {
       assertBuildSelectors(mode, options);
-      assertApprovedSourcePath(sourceRoot);
-      await assertSafeOutputRoot(outputRoot, configDirectory, sourceRoot, config, options, mode);
+      assertApprovedGeneratorSourcePath(sourceRoot);
+      await assertSafeOutputRoot(
+        outputRoot,
+        configDirectory,
+        sourceRoot,
+        config,
+        options,
+        mode,
+        configDigest,
+      );
       if (mode !== 'full') {
         await assertPartialOutputTarget(
           outputRoot,
@@ -807,6 +817,25 @@ function createModeReport(
   const omittedResources = MODULES.filter((module) => !selectedModules.includes(module.key)).map(
     (module) => module.resourceType,
   );
+  const dependencyClosure = new Set<string>();
+  addModuleDependencies('organization', dependencyClosure);
+  if (mode === 'module' && options.module !== undefined) {
+    const selectedModule = moduleDefinition(options.module);
+    if (selectedModule) addModuleDependencies(selectedModule.key, dependencyClosure);
+  } else if (mode === 'changed-files') {
+    const requested = new Set(
+      (options.changedFiles ?? []).map((file) =>
+        normalizeFsPath(resolve(dirname(options.configFile), file)),
+      ),
+    );
+    for (const source of selectedSources) {
+      if (requested.has(normalizeFsPath(source.file)))
+        addModuleDependencies(source.module.key, dependencyClosure);
+    }
+  } else {
+    for (const source of selectedSources)
+      addModuleDependencies(source.module.key, dependencyClosure);
+  }
   return {
     mode,
     ...(options.module ? { module: options.module } : {}),
@@ -814,7 +843,7 @@ function createModeReport(
     ...(changedFiles ? { changedFiles } : {}),
     selectedInputs,
     selectedModules,
-    dependencyClosure: selectedModules,
+    dependencyClosure: [...dependencyClosure].sort(compareStrings),
     omittedModules,
     omittedResources,
     destinationKind:
@@ -845,6 +874,37 @@ function inferBuildMode(options: BuildOptions): BuildMode {
 }
 
 function assertBuildSelectors(mode: BuildMode, options: BuildOptions): void {
+  if (!['full', 'module', 'organization', 'changed-files'].includes(mode)) {
+    throw new GeneratorInputError(`Unknown build mode ${String(mode)}.`, [
+      generatorFinding(
+        'EOM_GENERATOR_BUILD_MODE_INVALID',
+        'Build mode must be full, module, organization, or changed-files.',
+        String(mode),
+      ),
+    ]);
+  }
+  if (
+    options.changedFiles !== undefined &&
+    (!isDenseArray(options.changedFiles) ||
+      !options.changedFiles.every((value) => typeof value === 'string' && value.length > 0))
+  ) {
+    throw new GeneratorInputError('Changed-file selectors must be non-empty path strings.', [
+      generatorFinding(
+        'EOM_GENERATOR_CHANGED_FILES_INVALID',
+        'Every changed-files selector must be a non-empty path string.',
+      ),
+    ]);
+  }
+  if (options.module !== undefined && typeof options.module !== 'string') {
+    throw new GeneratorInputError('The module selector must be a string.', [
+      generatorFinding('EOM_GENERATOR_MODULE_INVALID', 'Pass a registered module name.'),
+    ]);
+  }
+  if (options.organization !== undefined && typeof options.organization !== 'string') {
+    throw new GeneratorInputError('The organization selector must be a string.', [
+      generatorFinding('EOM_GENERATOR_ORGANIZATION_INVALID', 'Pass an organization URI.'),
+    ]);
+  }
   if (mode === 'full' && (options.module || options.organization || options.changedFiles?.length)) {
     throw new GeneratorInputError('The full build mode cannot include partial-build selectors.', [
       generatorFinding(
@@ -926,9 +986,9 @@ function selectBuildSources(
     addModuleDependencies(module.key, selectedKeys);
   } else {
     const requested = new Set(
-      (changedFiles ?? []).map((file) => resolve(configDirectory, file).toLowerCase()),
+      (changedFiles ?? []).map((file) => normalizeFsPath(resolve(configDirectory, file))),
     );
-    const changedSources = sources.filter((source) => requested.has(source.file.toLowerCase()));
+    const changedSources = sources.filter((source) => requested.has(normalizeFsPath(source.file)));
     if (changedSources.length === 0) {
       throw new GeneratorInputError('No changed source paths were discovered.', [
         generatorFinding(
@@ -939,6 +999,23 @@ function selectBuildSources(
       ]);
     }
     for (const source of changedSources) addModuleDependencies(source.module.key, selectedKeys);
+  }
+  const availableModules = new Set(sources.map((source) => source.module.key));
+  const missingDependencies = [...selectedKeys]
+    .filter((moduleKey) => !availableModules.has(moduleKey))
+    .sort(compareStrings);
+  if (missingDependencies.length > 0) {
+    throw new GeneratorInputError(
+      'The selected build is missing one or more required dependency source modules.',
+      [
+        generatorFinding(
+          'EOM_GENERATOR_DEPENDENCY_MISSING',
+          'Every selected dependency must have a discovered source module before a partial build can be materialized.',
+          missingDependencies.join(', '),
+          missingDependencies,
+        ),
+      ],
+    );
   }
   const filtered = sources.filter(
     (source) => source.module.key === 'organization' || selectedKeys.has(source.module.key),
@@ -1009,6 +1086,7 @@ async function discoverSources(
       for (const file of files) {
         const normalized = resolve(file);
         if (normalized === resolve(configFile)) continue;
+        assertApprovedGeneratorSourcePath(await realpath(normalized));
         if (kind !== 'overlay') {
           const previous = claimedFiles.get(normalized);
           if (previous && previous !== module.key) {
@@ -1075,8 +1153,16 @@ async function readCachedAuthoringValue(
     .update(`1.0.0-rc.3\0${SPECIFICATION}\0${configDigest}\0${sourceDigest}`)
     .digest('hex');
   const directory = resolve(cacheDirectory);
-  const cachePath = join(directory, `.eom-source-${cacheKey}.json`);
+  const sourceValueDigest = sha256Text(stringifyCanonical(sourceValue as JsonValue));
+  let stableDirectory: string | undefined;
   try {
+    stableDirectory = await realpath(directory);
+    if (normalizeFsPath(stableDirectory) !== normalizeFsPath(directory)) return sourceValue;
+    const directoryInformation = await lstat(stableDirectory);
+    if (!directoryInformation.isDirectory() || directoryInformation.isSymbolicLink()) {
+      return sourceValue;
+    }
+    const cachePath = join(stableDirectory, `.eom-source-${cacheKey}.json`);
     const cacheStat = await stat(cachePath);
     const maxCacheBytes = Math.min(16 * 1024 * 1024, Math.max(maxBytes * 4, 1024 * 1024));
     if (cacheStat.size > maxCacheBytes) throw new Error('The source cache entry is too large.');
@@ -1091,6 +1177,7 @@ async function readCachedAuthoringValue(
       cached.cacheVersion === '1' &&
       cached.sourceDigest === sourceDigest &&
       cached.configDigest === configDigest &&
+      cached.valueDigest === sourceValueDigest &&
       Object.hasOwn(cached, 'value') &&
       Buffer.byteLength(JSON.stringify(cached.value) ?? '', 'utf8') <= maxCacheBytes
     ) {
@@ -1102,36 +1189,86 @@ async function readCachedAuthoringValue(
   }
 
   const value = sourceValue;
+  let temporaryDirectory: string | undefined;
   try {
-    await mkdir(directory, { recursive: true });
-    const temporary = `${cachePath}.${process.pid}.tmp`;
-    await writeFile(
-      temporary,
-      stringifyCanonical({
-        cacheVersion: '1',
-        sourceDigest,
-        configDigest,
-        value: value as JsonValue,
-      }),
-      'utf8',
-    );
-    await rename(temporary, cachePath);
-    const entries = (await readdir(directory, { withFileTypes: true }))
+    const stableCacheDirectory = await ensureStableCacheDirectory(directory);
+    if (stableCacheDirectory === undefined) return value;
+    stableDirectory = stableCacheDirectory;
+    const cachePath = join(stableCacheDirectory, `.eom-source-${cacheKey}.json`);
+    const existingEntries = (await readdir(stableCacheDirectory, { withFileTypes: true }))
       .filter((entry) => entry.isFile() && entry.name.startsWith('.eom-source-'))
-      .map((entry) => join(directory, entry.name));
-    if (entries.length > 256) {
-      const dated = await Promise.all(
-        entries.map(async (entry) => ({ entry, modified: (await stat(entry)).mtimeMs })),
-      );
-      dated.sort((left, right) => left.modified - right.modified);
-      await Promise.all(
-        dated.slice(0, entries.length - 256).map((entry) => rm(entry.entry, { force: true })),
-      );
+      .map((entry) => entry.name);
+    if (
+      existingEntries.length >= 256 &&
+      !existingEntries.includes(`.eom-source-${cacheKey}.json`)
+    ) {
+      return value;
     }
+    temporaryDirectory = await mkdtemp(join(stableCacheDirectory, '.eom-source-tmp-'));
+    const temporary = join(temporaryDirectory, 'entry.json');
+    const cacheText = stringifyCanonical({
+      cacheVersion: '1',
+      sourceDigest,
+      configDigest,
+      valueDigest: sourceValueDigest,
+      value: value as JsonValue,
+    });
+    const temporaryHandle = await open(temporary, 'wx');
+    try {
+      await temporaryHandle.writeFile(cacheText, 'utf8');
+    } finally {
+      await temporaryHandle.close();
+    }
+    if (normalizeFsPath(await realpath(directory)) !== normalizeFsPath(stableDirectory)) {
+      return value;
+    }
+    await rename(temporary, cachePath);
   } catch {
     // Source parsing remains authoritative when an optional cache cannot be written.
+  } finally {
+    if (temporaryDirectory !== undefined) {
+      await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined);
+    }
   }
   return value;
+}
+
+async function ensureStableCacheDirectory(path: string): Promise<string | undefined> {
+  const resolved = resolve(path);
+  const missing: string[] = [];
+  let current = resolved;
+  let stable: string | undefined;
+
+  for (;;) {
+    try {
+      const information = await lstat(current);
+      if (!information.isDirectory() || information.isSymbolicLink()) return undefined;
+      stable = await realpath(current);
+      if (normalizeFsPath(stable) !== normalizeFsPath(current)) return undefined;
+      break;
+    } catch (error) {
+      if (!isNotFound(error)) throw error;
+      const parent = dirname(current);
+      if (parent === current) return undefined;
+      missing.push(current);
+      current = parent;
+    }
+  }
+
+  for (const missingPath of missing.reverse()) {
+    const child = join(stable, basename(missingPath));
+    try {
+      await mkdir(child);
+    } catch (error) {
+      if (!isAlreadyExists(error)) throw error;
+    }
+    const information = await lstat(child);
+    if (!information.isDirectory() || information.isSymbolicLink()) return undefined;
+    const actual = await realpath(child);
+    if (normalizeFsPath(actual) !== normalizeFsPath(child)) return undefined;
+    stable = actual;
+  }
+  return stable;
 }
 
 async function readBoundedFile(file: string, maxBytes: number): Promise<Buffer> {
@@ -1141,6 +1278,16 @@ async function readBoundedFile(file: string, maxBytes: number): Promise<Buffer> 
       generatorFinding(
         'EOM_GENERATOR_INPUT_INVALID',
         'Authoring input must not be a symbolic link or non-regular file.',
+        file,
+      ),
+    ]);
+  }
+  const expectedRealPath = await realpath(file);
+  if (normalizeFsPath(expectedRealPath) !== normalizeFsPath(file)) {
+    throw new GeneratorInputError('Authoring input must not traverse a symbolic link.', [
+      generatorFinding(
+        'EOM_GENERATOR_INPUT_INVALID',
+        'Authoring input must not traverse a symbolic link or junction.',
         file,
       ),
     ]);
@@ -1159,6 +1306,19 @@ async function readBoundedFile(file: string, maxBytes: number): Promise<Buffer> 
         generatorFinding(
           'EOM_GENERATOR_INPUT_INVALID',
           'Authoring input changed while it was being read.',
+          file,
+        ),
+      ]);
+    }
+    const currentRealPath = await realpath(file);
+    if (
+      normalizeFsPath(currentRealPath) !== normalizeFsPath(expectedRealPath) ||
+      normalizeFsPath(currentRealPath) !== normalizeFsPath(file)
+    ) {
+      throw new GeneratorInputError('Authoring input changed its filesystem identity.', [
+        generatorFinding(
+          'EOM_GENERATOR_INPUT_INVALID',
+          'Authoring input changed its filesystem identity while it was being read.',
           file,
         ),
       ]);
@@ -1195,10 +1355,12 @@ async function assertSafeOutputRoot(
   config: EomConfig,
   options: BuildOptions,
   mode: BuildMode,
+  configDigest: string,
 ): Promise<void> {
   await assertNoSymlinkEscape(outputRoot);
   const configRealDirectory = await realpath(configDirectory);
   const resolvedSourceRoot = await realpath(sourceRoot);
+  assertApprovedGeneratorSourcePath(resolvedSourceRoot);
   const projectRoot = await realpath(
     sourceRoot === configDirectory ? dirname(configRealDirectory) : configRealDirectory,
   );
@@ -1210,8 +1372,18 @@ async function assertSafeOutputRoot(
   const buildRealPath = await existingRealPath(buildCandidate);
   const home = await existingRealPath(homedir());
   const cwd = await existingRealPath(process.cwd());
+  const normalizedOutput = normalizeFsPath(outputRealPath);
+  const normalizedBuild = normalizeFsPath(buildRealPath);
+  const normalizedRoot = normalizeFsPath(parse(outputRealPath).root);
+  const normalizedHome = normalizeFsPath(home);
+  const normalizedCwd = normalizeFsPath(cwd);
+  const normalizedProject = normalizeFsPath(projectRoot);
+  const normalizedConfig = normalizeFsPath(configRealDirectory);
+  const normalizedSource = normalizeFsPath(resolvedSourceRoot);
+  const isNormalizedWithin = (parent: string, child: string): boolean =>
+    isWithin(normalizeFsPath(parent), normalizeFsPath(child));
 
-  if (outputRealPath === buildRealPath) {
+  if (normalizedOutput === normalizedBuild) {
     throw unsafeOutputError(
       outputRoot,
       'The publication output and protected build-report directory must be distinct.',
@@ -1219,53 +1391,66 @@ async function assertSafeOutputRoot(
   }
 
   if (
-    parse(outputRealPath).root === outputRealPath ||
-    outputRealPath === home ||
-    outputRealPath === cwd
+    normalizedRoot === normalizedOutput ||
+    normalizedOutput === normalizedHome ||
+    normalizedOutput === normalizedCwd
   ) {
     throw unsafeOutputError(outputRoot, 'The output directory is a protected filesystem root.');
   }
   if (
-    outputRealPath === projectRoot ||
-    outputRealPath === configRealDirectory ||
-    outputRealPath === resolvedSourceRoot ||
-    isWithin(resolvedSourceRoot, outputRealPath) ||
-    isWithin(outputRealPath, resolvedSourceRoot) ||
-    isWithin(outputRealPath, configRealDirectory)
+    normalizedOutput === normalizedProject ||
+    normalizedOutput === normalizedConfig ||
+    normalizedOutput === normalizedSource ||
+    isNormalizedWithin(resolvedSourceRoot, outputRealPath) ||
+    isNormalizedWithin(outputRealPath, resolvedSourceRoot) ||
+    isNormalizedWithin(outputRealPath, configRealDirectory)
   ) {
     throw unsafeOutputError(
       outputRoot,
       'The output directory must not replace, contain, or sit inside the authoring project inputs.',
     );
   }
-  if (resolvedSourceRoot !== configRealDirectory && !isWithin(projectRoot, resolvedSourceRoot)) {
+  if (
+    normalizedSource !== normalizedConfig &&
+    !isNormalizedWithin(projectRoot, resolvedSourceRoot)
+  ) {
     throw unsafeOutputError(
       sourceRoot,
       'The source directory must be a real descendant of the authoring project; symlink escapes are not allowed.',
     );
   }
-  if (buildRealPath === resolvedSourceRoot || isWithin(resolvedSourceRoot, buildRealPath)) {
+  if (
+    normalizedBuild === normalizedSource ||
+    isNormalizedWithin(resolvedSourceRoot, buildRealPath)
+  ) {
     throw unsafeOutputError(
       buildCandidate,
       'The build-report directory must not sit inside the source root.',
     );
   }
-  if (options.allowExternalOutput !== true && !isWithin(projectRoot, outputRealPath)) {
+  if (options.allowExternalOutput !== true && !isNormalizedWithin(projectRoot, outputRealPath)) {
     throw unsafeOutputError(
       outputRoot,
       'The output directory must be inside the authoring project unless external output is explicitly enabled.',
     );
   }
-  if (options.allowExternalOutput !== true && !isWithin(projectRoot, buildRealPath)) {
+  if (options.allowExternalOutput !== true && !isNormalizedWithin(projectRoot, buildRealPath)) {
     throw unsafeOutputError(
       buildCandidate,
       'The build-report directory must be inside the authoring project unless external output is explicitly enabled.',
     );
   }
 
+  // A dry-run performs all source/configuration validation but has no
+  // replacement transaction. Requiring an ownership marker here would turn a
+  // report-only check into an accidental prerequisite for a prior publication.
+  if (options.dryRun === true) return;
+
   const expectedMarker = {
     buildMode: mode,
     projectIdentity: projectIdentity(config),
+    configDigest,
+    publisherOrigin: config.publisher.origin,
     selector: selectorFor(mode, options),
   };
   await assertReplaceableDirectory(outputCandidate, outputRoot, expectedMarker);
@@ -1280,7 +1465,16 @@ async function assertPartialOutputTarget(
   mode: Exclude<BuildMode, 'full'>,
   options: BuildOptions,
 ): Promise<void> {
-  if ((await existingRealPath(outputRoot)) === (await existingRealPath(configuredFullOutput))) {
+  if (options.outputRoot === undefined) {
+    throw unsafeOutputError(
+      outputRoot,
+      'Partial builds require an explicit output distinct from the configured full publication root.',
+    );
+  }
+  if (
+    normalizeFsPath(await existingRealPath(outputRoot)) ===
+    normalizeFsPath(await existingRealPath(configuredFullOutput))
+  ) {
     throw unsafeOutputError(
       outputRoot,
       'Partial builds require an explicit output distinct from the configured full publication root.',
@@ -1346,7 +1540,7 @@ function generatedMarker(
   publisherOrigin: string | undefined,
   root: JsonObject,
 ): JsonObject {
-  const organizations = Array.isArray(root.organizations) ? root.organizations : [];
+  const organizations = isDenseArray(root.organizations) ? root.organizations : [];
   const firstOrganization = organizations.find(isJsonObject);
   const organization =
     report.partial?.organization ??
@@ -1373,6 +1567,8 @@ function generatedMarker(
 interface ReplacementMarkerExpectation {
   readonly buildMode: BuildMode;
   readonly projectIdentity: string;
+  readonly configDigest?: string;
+  readonly publisherOrigin?: string;
   readonly selector: JsonObject;
 }
 
@@ -1456,6 +1652,9 @@ async function assertReplaceableDirectory(
     (expected !== undefined &&
       (marker.projectIdentity !== expected.projectIdentity ||
         marker.buildMode !== expected.buildMode ||
+        (expected.configDigest !== undefined && marker.configDigest !== expected.configDigest) ||
+        (expected.publisherOrigin !== undefined &&
+          marker.publisherOrigin !== expected.publisherOrigin) ||
         !isJsonObject(marker.selector) ||
         stringifyCanonical(marker.selector) !== stringifyCanonical(expected.selector)))
   ) {
@@ -1534,7 +1733,8 @@ async function assertNoSymlinkEscape(path: string): Promise<void> {
 }
 
 function normalizeFsPath(value: string): string {
-  return resolve(value).replaceAll('/', '\\').toLowerCase();
+  const resolved = resolve(value);
+  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 async function matchingFiles(root: string, pattern: string): Promise<readonly string[]> {
@@ -1548,14 +1748,34 @@ async function matchingFiles(root: string, pattern: string): Promise<readonly st
     );
 }
 
-async function walkFiles(directory: string): Promise<readonly string[]> {
+async function walkFiles(directory: string, depth = 0): Promise<readonly string[]> {
+  if (depth > MAX_SOURCE_TREE_DEPTH) {
+    throw new GeneratorInputError('Authoring source tree exceeds the safety depth limit.', [
+      generatorFinding(
+        'EOM_GENERATOR_INPUT_DEPTH',
+        `Authoring source trees may not exceed ${MAX_SOURCE_TREE_DEPTH} directory levels.`,
+        directory,
+      ),
+    ]);
+  }
+  await assertNoSymlinkEscape(directory);
   const entries = await readdir(directory, { withFileTypes: true });
   const files: string[] = [];
   for (const entry of entries) {
     const path = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await walkFiles(path)));
-    } else if (entry.isFile()) {
+    const information = await lstat(path);
+    if (information.isSymbolicLink()) {
+      throw new GeneratorInputError('Authoring inputs must not contain symbolic links.', [
+        generatorFinding(
+          'EOM_GENERATOR_INPUT_SYMLINK',
+          'Source and generated trees must not contain symbolic links or junctions.',
+          path,
+        ),
+      ]);
+    }
+    if (information.isDirectory()) {
+      files.push(...(await walkFiles(path, depth + 1)));
+    } else if (information.isFile()) {
       files.push(path);
     }
   }
@@ -1843,8 +2063,16 @@ function itemBelongsToOrganization(item: JsonObject, organizationId: string): bo
     'organizationRef',
     'owner',
     'provider',
+    'hiringOrganization',
+    'parentOrganization',
+    'operator',
   ] as const;
-  const collectionFields = ['organizations', 'organizationsServed'] as const;
+  const collectionFields = [
+    'organizations',
+    'organizationsServed',
+    'dualCreditPartners',
+    'partnerOrganizations',
+  ] as const;
   let declaredReference = false;
   let matchedReference = false;
   for (const field of singularFields) {
@@ -2191,6 +2419,7 @@ function normalizeModuleItem(
     'provider',
     'organization',
     'department',
+    'hiringOrganization',
     'parentOrganization',
     'parentDepartment',
     'operator',
@@ -2356,7 +2585,7 @@ function buildManifest(
       config.publisher.origin +
       (config.publisher.manifestPath || '/.well-known/educational-organization-manifest'),
     publisher: {
-      id: config.publisher.organizationId ?? organizationId,
+      id: organizationId,
       name: organizationName,
       type: organizationType,
       website: config.publisher.origin + '/',
@@ -2495,11 +2724,20 @@ function validateAndLint(
   for (const [name, document] of Object.entries(documents)) {
     const result = validateDocument(document, { now });
     findings.push(...result.findings.map((item) => ({ ...item, resource: name })));
-    if (config.validation?.privacyLint !== false) {
-      findings.push(
-        ...lintPublication(document, { now }).map((item) => ({ ...item, resource: name })),
-      );
-    }
+    const lintFindings = lintPublication(document, { now });
+    findings.push(
+      ...lintFindings
+        // Security/privacy errors are policy failures and cannot be disabled by
+        // a quality-lint configuration switch. Advisory findings may still be
+        // omitted when the compatibility option explicitly disables linting.
+        .filter(
+          (item) =>
+            config.validation?.privacyLint !== false ||
+            (item.severity === 'error' &&
+              (item.category === 'privacy' || item.category === 'security')),
+        )
+        .map((item) => ({ ...item, resource: name })),
+    );
   }
   findings.push(
     ...publicationSetFindings(documents, { now }).map((item) => ({
@@ -2544,8 +2782,21 @@ async function writePublication(
   mode: BuildMode,
 ): Promise<string> {
   const parent = dirname(outputRoot);
-  await mkdir(parent, { recursive: true });
-  const temporary = await mkdtemp(join(parent, '.eom-public-'));
+  // Create missing parent components one at a time and retain the resolved
+  // directory identity. A recursive mkdir on the lexical path can follow a
+  // symlink or junction that appears between the safety check and the first
+  // temporary write.
+  const stableParent = await ensureStableCacheDirectory(parent);
+  if (stableParent === undefined) {
+    throw unsafeOutputError(
+      parent,
+      'Generator output paths must not traverse symbolic links or junctions.',
+    );
+  }
+  await assertNoSymlinkEscape(stableParent);
+  const publicationTarget = join(stableParent, basename(outputRoot));
+  const buildTarget = join(stableParent, basename(buildDirectoryForOutput(outputRoot, mode)));
+  const temporary = await mkdtemp(join(stableParent, '.eom-public-'));
   const publisherOrigin = isJsonObject(root.scope) ? stringValue(root.scope.origin) : undefined;
   try {
     const wellKnown = join(temporary, '.well-known');
@@ -2574,8 +2825,7 @@ async function writePublication(
       compareStrings(textValue(left.path), textValue(right.path)),
     );
     const fingerprint = sha256Text(jsonText(outputEntries, true));
-    const buildDirectory = buildDirectoryForOutput(outputRoot, mode);
-    const buildTemporary = await mkdtemp(join(parent, '.eom-build-'));
+    const buildTemporary = await mkdtemp(join(stableParent, '.eom-build-'));
     try {
       await writeJson(
         join(buildTemporary, 'input-manifest.json'),
@@ -2671,18 +2921,24 @@ async function writePublication(
         },
         true,
       );
-      await replacePublicationPair(temporary, outputRoot, buildTemporary, buildDirectory, {
+      await replacePublicationPair(temporary, publicationTarget, buildTemporary, buildTarget, {
         buildMode: mode,
         projectIdentity: projectIdentity(config),
+        configDigest: report.configDigest,
+        ...(publisherOrigin ? { publisherOrigin } : {}),
         selector: selectorForReport(report, mode),
       });
     } catch (error) {
-      await rm(buildTemporary, { recursive: true, force: true });
+      if (await isStableReplacementParent(stableParent, stableParent)) {
+        await rm(buildTemporary, { recursive: true, force: true });
+      }
       throw error;
     }
     return fingerprint;
   } catch (error) {
-    await rm(temporary, { recursive: true, force: true });
+    if (await isStableReplacementParent(stableParent, stableParent)) {
+      await rm(temporary, { recursive: true, force: true });
+    }
     throw error;
   }
 }
@@ -2709,8 +2965,9 @@ async function replacePublicationPair(
   const expectedParent = await realpath(parent);
   const lockPath = join(parent, '.eom-replace.lock');
   let lockAcquired = false;
+  let lockIdentity: DirectoryIdentity | undefined;
   try {
-    await initializeReplacementLock(lockPath, parent);
+    lockIdentity = await initializeReplacementLock(lockPath, parent);
     lockAcquired = true;
   } catch (error) {
     if (isAlreadyExists(error)) {
@@ -2724,12 +2981,16 @@ async function replacePublicationPair(
         );
         const pid = isJsonObject(owner) && typeof owner.pid === 'number' ? owner.pid : undefined;
         if (pid !== undefined && Number.isInteger(pid) && !isProcessAlive(pid)) {
-          const lockInformation = await lstat(lockPath);
-          if (!lockInformation.isDirectory() || lockInformation.isSymbolicLink()) {
-            throw unsafeOutputError(parent, 'The generator replacement lock is not a directory.');
+          const staleLockIdentity = await directoryIdentity(lockPath, parent);
+          if (staleLockIdentity === undefined) {
+            throw unsafeOutputError(parent, 'The generator replacement lock disappeared.');
           }
+          // Recheck the directory identity immediately before cleanup so an
+          // owner replacement cannot cause this process to remove a newer
+          // generator's lock after the owner file was read.
+          await assertDirectoryIdentity(lockPath, staleLockIdentity, parent);
           await rm(lockPath, { recursive: true, force: true });
-          await initializeReplacementLock(lockPath, parent);
+          lockIdentity = await initializeReplacementLock(lockPath, parent);
           lockAcquired = true;
         }
       } catch (ownerError) {
@@ -2758,7 +3019,7 @@ async function replacePublicationPair(
   try {
     await recoverPendingReplacementTransactions(parent, expectedParent);
   } catch (error) {
-    await rm(lockPath, { recursive: true, force: true }).catch(() => undefined);
+    await removeOwnedReplacementLock(lockPath, parent, expectedParent, lockIdentity);
     throw error;
   }
   let transaction: string | undefined;
@@ -2766,6 +3027,8 @@ async function replacePublicationPair(
   let movedBuild = false;
   let installedPublication = false;
   let installedBuild = false;
+  let installedPublicationIdentity: DirectoryIdentity | undefined;
+  let installedBuildIdentity: DirectoryIdentity | undefined;
   let preserveTransaction = false;
   try {
     await assertStableReplacementParent(parent, expectedParent);
@@ -2813,11 +3076,25 @@ async function replacePublicationPair(
     await assertStableReplacementParent(parent, expectedParent);
     await rename(buildTemporary, buildTarget);
     installedBuild = true;
+    installedBuildIdentity = await directoryIdentity(buildTarget, buildTarget);
+    if (installedBuildIdentity === undefined) {
+      throw new ReplacementIntegrityError(
+        buildTarget,
+        'The generated build report disappeared during installation; the transaction was preserved for recovery.',
+      );
+    }
     journal = { ...journal, status: 'build-installed' };
     await writeReplacementJournal(transaction, journal);
     await assertStableReplacementParent(parent, expectedParent);
     await rename(publicationTemporary, publicationTarget);
     installedPublication = true;
+    installedPublicationIdentity = await directoryIdentity(publicationTarget, publicationTarget);
+    if (installedPublicationIdentity === undefined) {
+      throw new ReplacementIntegrityError(
+        publicationTarget,
+        'The generated publication disappeared during installation; the transaction was preserved for recovery.',
+      );
+    }
     journal = { ...journal, status: 'publication-installed' };
     await writeReplacementJournal(transaction, journal);
     await assertStableReplacementParent(parent, expectedParent);
@@ -2834,24 +3111,57 @@ async function replacePublicationPair(
       const publicationBackup = join(transaction, 'publication.previous');
       const buildBackup = join(transaction, 'build.previous');
       if (installedPublication) {
-        await rm(publicationTarget, { recursive: true, force: true }).catch(() => undefined);
+        try {
+          await assertDirectoryIdentity(
+            publicationTarget,
+            installedPublicationIdentity,
+            publicationTarget,
+          );
+          await rm(publicationTarget, { recursive: true, force: true });
+        } catch {
+          preserveTransaction = true;
+        }
       }
       if (installedBuild) {
-        await rm(buildTarget, { recursive: true, force: true }).catch(() => undefined);
+        try {
+          await assertDirectoryIdentity(buildTarget, installedBuildIdentity, buildTarget);
+          await rm(buildTarget, { recursive: true, force: true });
+        } catch {
+          preserveTransaction = true;
+        }
       }
-      if (movedBuild) {
+      if (!preserveTransaction && movedBuild) {
         await rename(buildBackup, buildTarget).catch(() => undefined);
       }
-      if (movedPublication) {
+      if (!preserveTransaction && movedPublication) {
         await rename(publicationBackup, publicationTarget).catch(() => undefined);
       }
-      await rm(transaction, { recursive: true, force: true }).catch(() => undefined);
+      if (!preserveTransaction) {
+        await rm(transaction, { recursive: true, force: true }).catch(() => undefined);
+      }
     }
     throw error;
   } finally {
-    if (lockAcquired && (await isStableReplacementParent(parent, expectedParent))) {
-      await rm(lockPath, { recursive: true, force: true }).catch(() => undefined);
-    }
+    if (lockAcquired)
+      await removeOwnedReplacementLock(lockPath, parent, expectedParent, lockIdentity);
+  }
+}
+
+async function removeOwnedReplacementLock(
+  lockPath: string,
+  parent: string,
+  expectedParent: string,
+  identity: DirectoryIdentity | undefined,
+): Promise<void> {
+  if (identity === undefined || !(await isStableReplacementParent(parent, expectedParent))) {
+    return;
+  }
+  try {
+    await assertDirectoryIdentity(lockPath, identity, parent);
+    await rm(lockPath, { recursive: true, force: true });
+  } catch {
+    // If ownership or parent identity changed, leave the lock in place rather
+    // than risking removal of another generator's lock.
   }
 }
 
@@ -2866,11 +3176,15 @@ async function initializeReplacementLock(
     if (identity === undefined) {
       throw unsafeOutputError(parent, 'The generator replacement lock disappeared during setup.');
     }
-    await writeFile(
-      join(lockPath, 'owner.json'),
-      JSON.stringify({ generator: 'eom', pid: process.pid, startedAt: new Date().toISOString() }),
-      'utf8',
-    );
+    const ownerHandle = await open(join(lockPath, 'owner.json'), 'wx');
+    try {
+      await ownerHandle.writeFile(
+        JSON.stringify({ generator: 'eom', pid: process.pid, startedAt: new Date().toISOString() }),
+        'utf8',
+      );
+    } finally {
+      await ownerHandle.close();
+    }
     return identity;
   } catch (error) {
     if (identity !== undefined) {
@@ -2892,7 +3206,12 @@ async function writeReplacementJournal(
 ): Promise<void> {
   const journalPath = join(transaction, 'journal.json');
   const temporary = join(transaction, 'journal.tmp');
-  await writeFile(temporary, jsonText(journal, true), 'utf8');
+  const temporaryHandle = await open(temporary, 'wx');
+  try {
+    await temporaryHandle.writeFile(jsonText(journal, true), 'utf8');
+  } finally {
+    await temporaryHandle.close();
+  }
   await rename(temporary, journalPath);
 }
 
@@ -2940,7 +3259,12 @@ async function recoverPendingReplacementTransactions(
       await rm(transaction, { recursive: true, force: true });
       continue;
     }
-    await rollbackPendingTarget(publicationTarget, publicationBackup, expected, false);
+    await rollbackPendingTarget(
+      publicationTarget,
+      publicationBackup,
+      expected,
+      journal.status === 'publication-installed',
+    );
     await rollbackPendingTarget(
       buildTarget,
       buildBackup,
@@ -2991,6 +3315,8 @@ async function readReplacementJournal(transaction: string): Promise<ReplacementJ
     typeof expected.buildMode !== 'string' ||
     !['full', 'module', 'organization', 'changed-files'].includes(expected.buildMode) ||
     typeof expected.projectIdentity !== 'string' ||
+    (expected.configDigest !== undefined && typeof expected.configDigest !== 'string') ||
+    (expected.publisherOrigin !== undefined && typeof expected.publisherOrigin !== 'string') ||
     !isJsonObject(expected.selector)
   ) {
     throw unsafeOutputError(transaction, 'The generator recovery journal is invalid.');
@@ -3005,6 +3331,10 @@ async function readReplacementJournal(transaction: string): Promise<ReplacementJ
     expected: {
       buildMode: expected.buildMode as BuildMode,
       projectIdentity: expected.projectIdentity,
+      ...(typeof expected.configDigest === 'string' ? { configDigest: expected.configDigest } : {}),
+      ...(typeof expected.publisherOrigin === 'string'
+        ? { publisherOrigin: expected.publisherOrigin }
+        : {}),
       selector: expected.selector,
     },
   };
@@ -3038,14 +3368,16 @@ async function rollbackPendingTarget(
     await assertReplaceableDirectory(backup, backup, expected);
     if (targetIdentity !== undefined) {
       await assertReplaceableDirectory(target, target, expected);
-      await rm(target, { recursive: true, force: true });
     }
+    await assertDirectoryIdentity(target, targetIdentity, target);
+    if (targetIdentity !== undefined) await rm(target, { recursive: true, force: true });
     await rename(backup, target);
     await assertMovedDirectoryIdentity(target, backupIdentity, target);
     return;
   }
   if (removeUnbackedTarget && targetIdentity !== undefined) {
     await assertReplaceableDirectory(target, target, expected);
+    await assertDirectoryIdentity(target, targetIdentity, target);
     await rm(target, { recursive: true, force: true });
   }
 }
@@ -3068,6 +3400,7 @@ async function isStableReplacementParent(
   expectedRealPath: string,
 ): Promise<boolean> {
   try {
+    await assertNoSymlinkEscape(parent);
     return normalizeFsPath(await realpath(parent)) === normalizeFsPath(expectedRealPath);
   } catch {
     return false;
@@ -3124,7 +3457,7 @@ function fileNameForResource(type: string): string {
 }
 
 function normalizeKey(value: string): string {
-  return value.replace(/[-_\\s]/gu, '').toLowerCase();
+  return value.replace(/[-_\s]+/gu, '').toLowerCase();
 }
 
 function normalizePath(value: string): string {
@@ -3159,7 +3492,27 @@ function asJsonObject(value: unknown, label: string): JsonObject {
   return value;
 }
 
-function assertJsonSafe(value: unknown, source: string, depth: number): asserts value is JsonValue {
+interface GeneratorJsonSafetyState {
+  readonly ancestors: WeakSet<object>;
+  nodes: number;
+}
+
+function assertJsonSafe(
+  value: unknown,
+  source: string,
+  depth: number,
+  state: GeneratorJsonSafetyState = { ancestors: new WeakSet<object>(), nodes: 0 },
+): asserts value is JsonValue {
+  state.nodes += 1;
+  if (state.nodes > MAX_GENERATOR_JSON_NODES) {
+    throw new GeneratorInputError('Authoring input exceeds the JSON node safety limit.', [
+      generatorFinding(
+        'EOM_GENERATOR_RESOURCE_LIMIT',
+        `Authoring input exceeds the ${MAX_GENERATOR_JSON_NODES}-node safety limit.`,
+        source,
+      ),
+    ]);
+  }
   if (depth > 64) {
     throw new GeneratorInputError('Authoring nesting exceeds the safety limit.', [
       generatorFinding('EOM_GENERATOR_NESTING_LIMIT', 'Authoring nesting is too deep.', source),
@@ -3182,32 +3535,66 @@ function assertJsonSafe(value: unknown, source: string, depth: number): asserts 
     }
     return;
   }
-  if (Array.isArray(value)) {
-    for (const item of value) assertJsonSafe(item, source, depth + 1);
-    return;
+  if (typeof value !== 'object') {
+    throw new GeneratorInputError('Authoring input contains a non-JSON value.', [
+      generatorFinding(
+        'EOM_GENERATOR_NON_JSON_VALUE',
+        'Only JSON-compatible YAML values are allowed.',
+        source,
+      ),
+    ]);
   }
-  if (typeof value === 'object') {
-    for (const [key, child] of Object.entries(value)) {
-      if (!isWellFormedUnicode(key)) {
-        throw new GeneratorInputError('Authoring input contains invalid Unicode.', [
+  if (state.ancestors.has(value)) {
+    throw new GeneratorInputError('Authoring input contains a cyclic runtime value.', [
+      generatorFinding(
+        'EOM_GENERATOR_CYCLE',
+        'Authoring input must be an acyclic JSON-compatible value.',
+        source,
+      ),
+    ]);
+  }
+  state.ancestors.add(value);
+  try {
+    if (Array.isArray(value)) {
+      if (!isDenseArray(value)) {
+        throw new GeneratorInputError('Authoring input contains a sparse array.', [
           generatorFinding(
-            'EOM_GENERATOR_UNICODE_INVALID',
-            'Unpaired UTF-16 surrogates are not valid publication text.',
-            source + '/' + key,
+            'EOM_GENERATOR_SPARSE_ARRAY',
+            'Authoring arrays must contain an explicit value at every index.',
+            source,
           ),
         ]);
       }
-      assertJsonSafe(child, source + '/' + key, depth + 1);
+      for (let index = 0; index < value.length; index += 1) {
+        assertJsonSafe(value[index], `${source}/${index}`, depth + 1, state);
+      }
+      return;
     }
-    return;
+    if (isJsonObject(value)) {
+      for (const [key, child] of Object.entries(value)) {
+        if (!isWellFormedUnicode(key)) {
+          throw new GeneratorInputError('Authoring input contains invalid Unicode.', [
+            generatorFinding(
+              'EOM_GENERATOR_UNICODE_INVALID',
+              'Unpaired UTF-16 surrogates are not valid publication text.',
+              source + '/' + key,
+            ),
+          ]);
+        }
+        assertJsonSafe(child, source + '/' + key, depth + 1, state);
+      }
+      return;
+    }
+    throw new GeneratorInputError('Authoring input contains a non-JSON value.', [
+      generatorFinding(
+        'EOM_GENERATOR_NON_JSON_VALUE',
+        'Only JSON-compatible YAML values are allowed.',
+        source,
+      ),
+    ]);
+  } finally {
+    state.ancestors.delete(value);
   }
-  throw new GeneratorInputError('Authoring input contains a non-JSON value.', [
-    generatorFinding(
-      'EOM_GENERATOR_NON_JSON_VALUE',
-      'Only JSON-compatible YAML values are allowed.',
-      source,
-    ),
-  ]);
 }
 
 function isWellFormedUnicode(value: string): boolean {
@@ -3231,9 +3618,34 @@ function jsonText(value: unknown, prettyPrint: boolean): string {
   return prettyPrint ? stringifyCanonical(jsonValue) : JSON.stringify(jsonValue) + '\n';
 }
 
+function isDenseArray(value: unknown): value is readonly unknown[] {
+  if (!Array.isArray(value)) return false;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.hasOwn(value, index)) return false;
+  }
+  return true;
+}
+
 function asJsonValue(value: unknown, label: string): JsonValue {
   assertJsonSafe(value, label, 0);
   return value;
+}
+
+function assertApprovedGeneratorSourcePath(value: string): void {
+  try {
+    assertApprovedSourcePath(value);
+  } catch (error) {
+    if (error instanceof CandidatePolicyError) {
+      throw new GeneratorInputError(error.message, [
+        generatorFinding(
+          'EOM_CANDIDATE_SOURCE_BLOCKED',
+          'Candidate workspace paths cannot be used as publication generator inputs.',
+          value,
+        ),
+      ]);
+    }
+    throw error;
+  }
 }
 
 function generatorFinding(

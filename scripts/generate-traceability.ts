@@ -652,7 +652,7 @@ function releaseRequirements(
       source: ['specification/IANA_REGISTRATION_PLAN.md', 'website/MAIN_WEBSITE_COPY.md'],
       evidencePaths: ['docs/project-status.md', 'reports/external-gates.md'],
       evidenceCommands: ['pnpm release:check'],
-      status: 'verified-local',
+      status: aggregateReady && releaseReady ? 'verified-local' : 'open',
       owner: 'release authority',
       blocker:
         'Deployment and adoption are intentionally not authorized by this release candidate.',
@@ -721,7 +721,8 @@ async function isFormalSecurityReady(): Promise<boolean> {
       recordedScan.targetCommit === report.targetCommit &&
       recordedScan.targetTree === report.targetTree &&
       recordedScan.unresolvedFindingCount === 0 &&
-      git('rev-parse', `${report.targetCommit}^{tree}`) === report.targetTree
+      git('rev-parse', `${report.targetCommit}^{tree}`) === report.targetTree &&
+      sourceTreeMatchesWorkingSource(report.targetTree)
     );
   } catch {
     return false;
@@ -746,7 +747,10 @@ async function isAggregateReady(): Promise<boolean> {
     const verifyScript = isRecord(packageJson.scripts) ? packageJson.scripts.verify : undefined;
     return (
       typeof verifyScript === 'string' &&
-      receipt.aggregateScriptSha256 === sha256(Buffer.from(verifyScript, 'utf8'))
+      receipt.aggregateScriptSha256 === sha256(Buffer.from(verifyScript, 'utf8')) &&
+      sourceTreeMatchesWorkingSource(receipt.sourceTree) &&
+      isRecord(receipt.formalSecurityScan) &&
+      receipt.formalSecurityScan.targetTree === receipt.sourceTree
     );
   } catch {
     return false;
@@ -768,11 +772,21 @@ function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
         '--',
         '.',
         ':(exclude)release/**',
-        ':(exclude)reports/verification/local-gates.json',
+        ...generatedEvidencePathspecs(),
       ],
       { cwd: root, stdio: 'ignore' },
     );
-    return true;
+    const status = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], {
+      cwd: root,
+      encoding: 'utf8',
+    });
+    return status
+      .split(/\r?\n/u)
+      .filter(Boolean)
+      .every((line) => {
+        const path = line.slice(3).trim().replace(/^"|"$/gu, '').replaceAll('\\', '/');
+        return path === 'release' || path.startsWith('release/') || isGeneratedEvidencePath(path);
+      });
   } catch {
     return false;
   }
@@ -784,6 +798,32 @@ function git(...args: string[]): string {
 
 function sha256(bytes: Buffer): string {
   return createHash('sha256').update(bytes).digest('hex');
+}
+
+function generatedEvidencePathspecs(): readonly string[] {
+  return generatedEvidencePaths().map((path) =>
+    path === 'reports/security-scan' ? ':(exclude)reports/security-scan/**' : `:(exclude)${path}`,
+  );
+}
+
+function isGeneratedEvidencePath(path: string): boolean {
+  const normalized = path.replaceAll('\\', '/').replace(/^"|"$/gu, '');
+  return generatedEvidencePaths().some(
+    (candidate) => normalized === candidate || normalized.startsWith(`${candidate}/`),
+  );
+}
+
+function generatedEvidencePaths(): readonly string[] {
+  return [
+    'reports/remediation-audit.md',
+    'reports/release-checklist.md',
+    'reports/security-scan.md',
+    'reports/security-scan.json',
+    'reports/security-scan',
+    'reports/verification/local-gates.json',
+    'requirements/TRACEABILITY_MATRIX.md',
+    'requirements/plan-file-traceability.json',
+  ];
 }
 
 function renderMatrix(document: {

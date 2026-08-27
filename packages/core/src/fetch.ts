@@ -1,11 +1,11 @@
 import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
-import { lstat, mkdir, open, readdir, rename, stat, unlink, writeFile } from 'node:fs/promises';
-import { request as httpRequest } from 'node:http';
+import { lstat, mkdir, mkdtemp, open, readdir, realpath, rename, rm, stat } from 'node:fs/promises';
+import { request as httpRequest, type ClientRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
-import { join, resolve } from 'node:path';
-import { isPrivateOrLocalHostname } from './ids.js';
+import { basename, join, resolve } from 'node:path';
+import { isBlockedIp, isPrivateOrLocalHostname } from './ids.js';
 import { parseStrictJson, type JsonValue } from './json.js';
 
 export const EOM_DISCOVERY_PATH = '/.well-known/educational-organization-manifest';
@@ -24,6 +24,7 @@ export type EomFetchErrorCode =
   | 'EOM_FETCH_REDIRECT_LIMIT'
   | 'EOM_FETCH_REDIRECT_LOOP'
   | 'EOM_FETCH_REDIRECT_SCHEME'
+  | 'EOM_FETCH_REDIRECT_ORIGIN'
   | 'EOM_FETCH_REDIRECT_LOCATION'
   | 'EOM_FETCH_CONTENT_TYPE'
   | 'EOM_FETCH_CONTENT_ENCODING'
@@ -52,6 +53,8 @@ export interface FetchOptions {
   readonly allowNonStandardPorts?: boolean;
   /** Test-only resolver injection used to exercise DNS-rebinding defenses. */
   readonly dnsLookup?: FetchDnsLookup;
+  /** Restrict every redirect to the origin of the initial request. */
+  readonly sameOriginRedirectsOnly?: boolean;
 }
 
 export type FetchDnsLookup = (hostname: string) => Promise<readonly { readonly address: string }[]>;
@@ -72,6 +75,8 @@ export interface FetchResponse {
   readonly body: string;
   readonly redirects: readonly RedirectHop[];
   readonly observedAt: string;
+  /** Whether this response was served from the bounded HTTP cache. */
+  readonly cached?: boolean;
 }
 
 export interface ManifestFetchResponse extends FetchResponse {
@@ -151,18 +156,35 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
   let current = requestedUrl;
 
   for (;;) {
-    const address = await assertSafeTarget(current, options, redirects);
+    const address = await assertSafeTarget(current, options, redirects, timeoutMs);
     if (current === requestedUrl) {
       const cached = await readCachedResponse(cacheKey, requestedUrl, options, maxBytes);
       if (cached && cached.redirects.length <= maxRedirects) {
+        if (
+          options.sameOriginRedirectsOnly === true &&
+          (cached.redirects.some((hop) => hop.crossOrigin) ||
+            new URL(cached.finalUrl).origin !== new URL(requestedUrl).origin)
+        ) {
+          throw new EomFetchError(
+            'EOM_FETCH_REDIRECT_ORIGIN',
+            'The redirect chain leaves the initial request origin.',
+            cached.finalUrl,
+            cached.redirects,
+          );
+        }
         // Cached responses must still revalidate the current and final DNS answers so the
         // cache cannot bypass the SSRF/rebinding policy.
-        await assertSafeTarget(cached.finalUrl, options, redirects);
+        await assertSafeTarget(cached.finalUrl, options, redirects, timeoutMs);
         for (const hop of cached.redirects) {
-          await assertSafeTarget(hop.from, options, redirects);
-          await assertSafeTarget(hop.to, options, redirects);
+          await assertSafeTarget(hop.from, options, redirects, timeoutMs);
+          await assertSafeTarget(hop.to, options, redirects, timeoutMs);
         }
-        return { ...cached, requestedUrl, observedAt: new Date().toISOString() };
+        return {
+          ...cached,
+          requestedUrl,
+          observedAt: new Date().toISOString(),
+          cached: true,
+        };
       }
     }
     const response = await request(current, address, options, timeoutMs, maxBytes, redirects);
@@ -202,12 +224,21 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
           redirects,
         );
       }
-      redirects.push({
+      const redirect: RedirectHop = {
         from: current,
         to: next,
         status: response.status,
         crossOrigin: new URL(current).origin !== new URL(next).origin,
-      });
+      };
+      if (options.sameOriginRedirectsOnly === true && redirect.crossOrigin) {
+        throw new EomFetchError(
+          'EOM_FETCH_REDIRECT_ORIGIN',
+          'The redirect chain leaves the initial request origin.',
+          next,
+          [...redirects, redirect],
+        );
+      }
+      redirects.push(redirect);
       visited.add(key);
       current = next;
       continue;
@@ -252,6 +283,7 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
       body,
       redirects,
       observedAt: new Date().toISOString(),
+      cached: false,
     };
     await writeCachedResponse(cacheKey, result, options);
     return result;
@@ -269,7 +301,22 @@ export async function fetchManifest(
     options.allowHttp === true && /^http:\/\//iu.test(originOrUrl)
       ? discoveredUrl.replace(/^https:/iu, 'http:')
       : discoveredUrl;
-  const response = await fetchEom(requestUrl, options);
+  const response = await fetchEom(requestUrl, {
+    ...options,
+    sameOriginRedirectsOnly: true,
+  });
+  const discoveredOrigin = new URL(requestUrl).origin;
+  const rootRedirectCrossesOrigin =
+    response.redirects.some((hop) => hop.crossOrigin) ||
+    new URL(response.finalUrl).origin !== discoveredOrigin;
+  if (rootRedirectCrossesOrigin) {
+    throw new EomFetchError(
+      'EOM_FETCH_REDIRECT_ORIGIN',
+      'The root manifest must remain on the discovered origin until a trusted manifest authorizes another origin.',
+      response.finalUrl,
+      response.redirects,
+    );
+  }
   let document: JsonValue;
   try {
     document = parseStrictJson(response.body, response.finalUrl);
@@ -288,6 +335,7 @@ async function assertSafeTarget(
   value: string,
   options: FetchOptions,
   redirects: readonly RedirectHop[],
+  timeoutMs: number,
 ): Promise<string> {
   let parsed: URL;
   try {
@@ -350,8 +398,15 @@ async function assertSafeTarget(
   }
   let addresses: readonly { address: string }[];
   try {
-    addresses = await (options.dnsLookup ?? defaultDnsLookup)(hostname);
+    addresses = await withTimeout(
+      (options.dnsLookup ?? defaultDnsLookup)(hostname),
+      timeoutMs,
+      options.signal,
+      value,
+      redirects,
+    );
   } catch (error) {
+    if (error instanceof EomFetchError) throw error;
     throw new EomFetchError(
       'EOM_FETCH_DNS',
       error instanceof Error ? `DNS lookup failed: ${error.message}` : 'DNS lookup failed.',
@@ -396,7 +451,30 @@ async function request(
       let timedOut = false;
       const chunks: Buffer[] = [];
       let total = 0;
-      const request = requestFunction(
+      const state: {
+        timer?: ReturnType<typeof setTimeout>;
+        abort?: () => void;
+        request?: ClientRequest;
+      } = {};
+      const cleanup = (): void => {
+        if (state.timer !== undefined) clearTimeout(state.timer);
+        if (state.abort !== undefined) options.signal?.removeEventListener('abort', state.abort);
+      };
+      const timeoutError = (): EomFetchError =>
+        new EomFetchError(
+          'EOM_FETCH_TIMEOUT',
+          'The EOM request timed out or was cancelled.',
+          url,
+          redirects,
+        );
+      const fail = (error: Error): void => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        state.request?.destroy();
+        reject(error);
+      };
+      const activeRequest = requestFunction(
         {
           protocol: parsed.protocol,
           hostname: address,
@@ -425,9 +503,7 @@ async function request(
             Number.isFinite(Number(advertisedLength)) &&
             Number(advertisedLength) > maxBytes
           ) {
-            settled = true;
-            request.destroy();
-            reject(
+            fail(
               new EomFetchError(
                 'EOM_FETCH_TOO_LARGE',
                 'The response exceeds the configured byte limit.',
@@ -442,9 +518,7 @@ async function request(
             const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
             total += buffer.length;
             if (total > maxBytes) {
-              settled = true;
-              request.destroy();
-              reject(
+              fail(
                 new EomFetchError(
                   'EOM_FETCH_TOO_LARGE',
                   'The response exceeds the configured byte limit.',
@@ -460,6 +534,7 @@ async function request(
           response.on('end', () => {
             if (settled) return;
             settled = true;
+            cleanup();
             resolve({
               status: response.statusCode ?? 0,
               headers,
@@ -467,46 +542,35 @@ async function request(
             });
           });
           response.on('error', (error) => {
-            if (settled) return;
-            settled = true;
-            reject(error);
+            fail(error);
           });
           response.on('aborted', () => {
-            if (settled) return;
-            settled = true;
-            reject(new Error('The response was aborted before completion.'));
+            fail(new Error('The response was aborted before completion.'));
           });
         },
       );
-      const timer = setTimeout(() => {
+      state.request = activeRequest;
+      state.timer = setTimeout(() => {
         timedOut = true;
-        request.destroy();
+        fail(timeoutError());
       }, timeoutMs);
-      const abort = (): void => {
-        request.destroy();
+      state.abort = (): void => {
+        fail(timeoutError());
       };
-      options.signal?.addEventListener('abort', abort, { once: true });
-      request.on('error', (error) => {
-        clearTimeout(timer);
-        options.signal?.removeEventListener('abort', abort);
+      options.signal?.addEventListener('abort', state.abort, { once: true });
+      activeRequest.on('error', (error) => {
         if (settled) return;
-        settled = true;
-        reject(
-          timedOut || options.signal?.aborted
-            ? new EomFetchError(
-                'EOM_FETCH_TIMEOUT',
-                'The EOM request timed out or was cancelled.',
-                url,
-                redirects,
-              )
-            : error,
-        );
+        fail(timedOut || options.signal?.aborted ? timeoutError() : error);
       });
-      request.on('close', () => {
-        clearTimeout(timer);
-        options.signal?.removeEventListener('abort', abort);
+      activeRequest.on('close', () => {
+        if (!settled)
+          fail(new Error('The request closed before a complete response was received.'));
       });
-      request.end();
+      if (options.signal?.aborted) {
+        state.abort();
+      } else if (!settled) {
+        activeRequest.end();
+      }
     },
   ).catch((error) => {
     if (error instanceof EomFetchError) throw error;
@@ -520,6 +584,70 @@ async function request(
   return new Response(options.method === 'HEAD' ? null : new Uint8Array(body.body), {
     status: body.status,
     headers: body.headers,
+  });
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  signal: AbortSignal | undefined,
+  url: string,
+  redirects: readonly RedirectHop[],
+): Promise<T> {
+  if (signal?.aborted) {
+    throw new EomFetchError(
+      'EOM_FETCH_TIMEOUT',
+      'The EOM request was cancelled before DNS resolution completed.',
+      url,
+      redirects,
+    );
+  }
+  return await new Promise<T>((resolvePromise, rejectPromise) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      signal?.removeEventListener('abort', abort);
+      rejectPromise(
+        new EomFetchError(
+          'EOM_FETCH_TIMEOUT',
+          'The EOM request timed out during DNS resolution.',
+          url,
+          redirects,
+        ),
+      );
+    }, timeoutMs);
+    const abort = (): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', abort);
+      rejectPromise(
+        new EomFetchError(
+          'EOM_FETCH_TIMEOUT',
+          'The EOM request was cancelled during DNS resolution.',
+          url,
+          redirects,
+        ),
+      );
+    };
+    signal?.addEventListener('abort', abort, { once: true });
+    promise.then(
+      (value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        signal?.removeEventListener('abort', abort);
+        resolvePromise(value);
+      },
+      (error: unknown) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        signal?.removeEventListener('abort', abort);
+        rejectPromise(error instanceof Error ? error : new Error('DNS resolution failed.'));
+      },
+    );
   });
 }
 
@@ -662,8 +790,14 @@ async function readCachedResponse(
   maxBytes: number,
 ): Promise<FetchResponse | undefined> {
   if (!options.cacheDirectory) return undefined;
-  const path = join(httpCacheDirectory(options), `${key}.json`);
   try {
+    const directory = httpCacheDirectory(options);
+    const stableDirectory = await realpath(directory);
+    if (normalizeFsPath(stableDirectory) !== normalizeFsPath(directory)) return undefined;
+    const directoryInformation = await lstat(stableDirectory);
+    if (!directoryInformation.isDirectory() || directoryInformation.isSymbolicLink())
+      return undefined;
+    const path = join(stableDirectory, `${key}.json`);
     const information = await stat(path);
     const maxAge = boundedNonNegative(
       options.cacheMaxAgeMs ?? DEFAULT_FETCH_CACHE_MAX_AGE_MS,
@@ -678,6 +812,18 @@ async function readCachedResponse(
     );
     if (!isRecord(parsed)) return undefined;
     const value = parsed as Partial<FetchResponse> & { cacheIntegrity?: unknown };
+    const allowedFields = new Set([
+      'requestedUrl',
+      'finalUrl',
+      'status',
+      'headers',
+      'contentType',
+      'body',
+      'redirects',
+      'observedAt',
+      'cacheIntegrity',
+    ]);
+    if (Object.keys(value).some((field) => !allowedFields.has(field))) return undefined;
     const headers = value.headers;
     const contentType =
       typeof value.contentType === 'string'
@@ -685,6 +831,13 @@ async function readCachedResponse(
         : isRecordOfStrings(headers)
           ? headers['content-type']
           : undefined;
+    if (
+      (value.contentType !== undefined && typeof value.contentType !== 'string') ||
+      typeof value.status !== 'number' ||
+      !isRedirectChainValid(value.requestedUrl, value.finalUrl, value.redirects)
+    ) {
+      return undefined;
+    }
     if (
       typeof value.requestedUrl !== 'string' ||
       canonicalUrl(value.requestedUrl) !== canonicalUrl(requestedUrl) ||
@@ -704,12 +857,21 @@ async function readCachedResponse(
       value.redirects.some((hop) => !isRedirectHop(hop)) ||
       typeof value.observedAt !== 'string' ||
       value.cacheIntegrity !==
-        `sha256:${createHash('sha256').update(value.body, 'utf8').digest('hex')}`
+        cacheIntegrityFor({
+          requestedUrl: value.requestedUrl,
+          finalUrl: value.finalUrl,
+          status: value.status,
+          headers,
+          ...(typeof value.contentType === 'string' ? { contentType: value.contentType } : {}),
+          body: value.body,
+          redirects: value.redirects,
+          observedAt: value.observedAt,
+        })
     ) {
       return undefined;
     }
-    const { cacheIntegrity: _cacheIntegrity, ...cachedResponse } = value;
-    return cachedResponse as FetchResponse;
+    const { cacheIntegrity: _cacheIntegrity, cached: _cached, ...cachedResponse } = value;
+    return { ...(cachedResponse as FetchResponse), cached: true };
   } catch {
     return undefined;
   }
@@ -719,6 +881,10 @@ async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> 
   const linkInformation = await lstat(path);
   if (!linkInformation.isFile() || linkInformation.isSymbolicLink()) {
     throw new Error('cache entry is not a regular file');
+  }
+  const expectedRealPath = await realpath(path);
+  if (normalizeFsPath(expectedRealPath) !== normalizeFsPath(path)) {
+    throw new Error('cache entry traverses a symbolic link');
   }
   const handle = await open(path, 'r');
   try {
@@ -731,6 +897,13 @@ async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> 
       (information.dev !== linkInformation.dev || information.ino !== linkInformation.ino);
     if (!information.isFile() || information.size > maxBytes || identityChanged)
       throw new Error('cache entry is not a stable regular file within the byte limit');
+    const currentRealPath = await realpath(path);
+    if (
+      normalizeFsPath(currentRealPath) !== normalizeFsPath(expectedRealPath) ||
+      normalizeFsPath(currentRealPath) !== normalizeFsPath(path)
+    ) {
+      throw new Error('cache entry changed its filesystem identity');
+    }
     const chunks: Buffer[] = [];
     let total = 0;
     for (;;) {
@@ -753,38 +926,68 @@ async function writeCachedResponse(
   options: FetchOptions,
 ): Promise<void> {
   if (!options.cacheDirectory) return;
+  let temporaryDirectory: string | undefined;
+  let stableDirectory: string | undefined;
   try {
     const directory = httpCacheDirectory(options);
-    await mkdir(directory, { recursive: true });
+    // Cache writes are an optimization and must never use recursive mkdir on
+    // a path that traverses a symlink/junction. Create missing components one
+    // at a time beneath a verified real directory and fail closed otherwise.
+    const resolvedDirectory = await ensureStableCacheDirectory(directory);
+    stableDirectory = resolvedDirectory;
+    if (resolvedDirectory === undefined) return;
     const maxEntries = boundedPositive(
       options.cacheMaxEntries ?? DEFAULT_FETCH_CACHE_MAX_ENTRIES,
       DEFAULT_FETCH_CACHE_MAX_ENTRIES,
     );
-    const entries = (await readdir(directory, { withFileTypes: true }))
+    const entries = (await readdir(resolvedDirectory, { withFileTypes: true }))
       .filter((entry) => entry.isFile() && /^[a-f0-9]{64}\.json$/u.test(entry.name))
-      .map((entry) => join(directory, entry.name));
-    if (entries.length >= maxEntries) {
-      const dated = await Promise.all(
-        entries.map(async (entry) => ({ entry, modified: (await stat(entry)).mtimeMs })),
+      .map((entry) => join(resolvedDirectory, entry.name));
+    const path = join(resolvedDirectory, `${key}.json`);
+    // Cache eviction is deliberately non-destructive.  Once the bounded
+    // cache is full, skip new keys rather than deleting paths that may have
+    // changed identity between enumeration and removal.
+    if (entries.length >= maxEntries && !entries.includes(path)) return;
+    if (!(await isStableCacheDirectory(resolvedDirectory))) return;
+    temporaryDirectory = await mkdtemp(join(resolvedDirectory, '.eom-cache-'));
+    const temporary = join(temporaryDirectory, `${key}.json`);
+    const temporaryHandle = await open(temporary, 'wx');
+    try {
+      // Cache provenance is transport metadata, not part of the cached
+      // representation. A network response is written as cacheable content;
+      // the next read marks it as cached explicitly.
+      const { cached: _cached, ...cacheableResponse } = response;
+      await temporaryHandle.writeFile(
+        JSON.stringify({
+          ...cacheableResponse,
+          cacheIntegrity: cacheIntegrityFor(response),
+        }),
+        'utf8',
       );
-      dated.sort((left, right) => left.modified - right.modified);
-      for (const item of dated.slice(0, Math.max(1, entries.length - maxEntries + 1))) {
-        await unlink(item.entry).catch(() => undefined);
-      }
+    } finally {
+      await temporaryHandle.close();
     }
-    const path = join(directory, `${key}.json`);
-    const temporary = `${path}.${process.pid}.tmp`;
-    await writeFile(
-      temporary,
-      JSON.stringify({
-        ...response,
-        cacheIntegrity: `sha256:${createHash('sha256').update(response.body, 'utf8').digest('hex')}`,
-      }),
-      'utf8',
-    );
+    if (!(await isStableCacheDirectory(resolvedDirectory))) return;
     await rename(temporary, path);
   } catch {
     // A cache is an optimization. Network retrieval remains authoritative when it cannot be written.
+  } finally {
+    if (temporaryDirectory && stableDirectory && (await isStableCacheDirectory(stableDirectory))) {
+      await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined);
+    }
+  }
+}
+
+async function isStableCacheDirectory(directory: string): Promise<boolean> {
+  try {
+    const information = await lstat(directory);
+    return (
+      information.isDirectory() &&
+      !information.isSymbolicLink() &&
+      normalizeFsPath(await realpath(directory)) === normalizeFsPath(directory)
+    );
+  } catch {
+    return false;
   }
 }
 
@@ -793,8 +996,65 @@ function httpCacheDirectory(options: FetchOptions): string {
   return join(resolve(options.cacheDirectory), 'http');
 }
 
+async function ensureStableCacheDirectory(path: string): Promise<string | undefined> {
+  const resolved = resolve(path);
+  const missing: string[] = [];
+  let current = resolved;
+  let stable: string | undefined;
+
+  for (;;) {
+    try {
+      const information = await lstat(current);
+      if (!information.isDirectory() || information.isSymbolicLink()) return undefined;
+      stable = await realpath(current);
+      if (normalizeFsPath(stable) !== normalizeFsPath(current)) return undefined;
+      break;
+    } catch (error) {
+      if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+      const parent = resolve(current, '..');
+      if (parent === current) return undefined;
+      missing.push(current);
+      current = parent;
+    }
+  }
+
+  for (const missingPath of missing.reverse()) {
+    const child = join(stable, basename(missingPath));
+    try {
+      await mkdir(child);
+    } catch (error) {
+      if (!(error instanceof Error && 'code' in error && error.code === 'EEXIST')) throw error;
+    }
+    const information = await lstat(child);
+    if (!information.isDirectory() || information.isSymbolicLink()) return undefined;
+    const actual = await realpath(child);
+    if (normalizeFsPath(actual) !== normalizeFsPath(child)) return undefined;
+    stable = actual;
+  }
+  return stable;
+}
+
+function normalizeFsPath(value: string): string {
+  const resolved = resolve(value);
+  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
+}
+
 function cacheKeyFor(url: string, method: string): string {
   return createHash('sha256').update(`${method}\0${url}`).digest('hex');
+}
+
+function cacheIntegrityFor(response: FetchResponse): string {
+  const payload = JSON.stringify({
+    requestedUrl: response.requestedUrl,
+    finalUrl: response.finalUrl,
+    status: response.status,
+    headers: response.headers,
+    ...(response.contentType === undefined ? {} : { contentType: response.contentType }),
+    body: response.body,
+    redirects: response.redirects,
+    observedAt: response.observedAt,
+  });
+  return `sha256:${createHash('sha256').update(payload, 'utf8').digest('hex')}`;
 }
 
 function isRecordOfStrings(value: unknown): value is Record<string, string> {
@@ -811,106 +1071,47 @@ function isRedirectHop(value: unknown): value is RedirectHop {
   );
 }
 
+function isRedirectChainValid(
+  requestedUrl: unknown,
+  finalUrl: unknown,
+  redirects: unknown,
+): redirects is readonly RedirectHop[] {
+  if (
+    typeof requestedUrl !== 'string' ||
+    typeof finalUrl !== 'string' ||
+    !Array.isArray(redirects) ||
+    !redirects.every((hop) => isRedirectHop(hop))
+  ) {
+    return false;
+  }
+  try {
+    let current = canonicalUrl(requestedUrl);
+    const visited = new Set([current]);
+    for (const hop of redirects) {
+      if (canonicalUrl(hop.from) !== current || !isRedirectStatus(hop.status)) return false;
+      const from = new URL(hop.from);
+      const to = new URL(hop.to);
+      if (
+        !['http:', 'https:'].includes(from.protocol) ||
+        !['http:', 'https:'].includes(to.protocol) ||
+        from.username ||
+        from.password ||
+        to.username ||
+        to.password ||
+        hop.crossOrigin !== (from.origin !== to.origin)
+      ) {
+        return false;
+      }
+      current = canonicalUrl(hop.to);
+      if (visited.has(current)) return false;
+      visited.add(current);
+    }
+    return current === canonicalUrl(finalUrl);
+  } catch {
+    return false;
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isBlockedIp(value: string): boolean {
-  if (value.includes(':')) return isBlockedIpv6(value);
-  const parts = value.split('.').map(Number);
-  if (
-    parts.length !== 4 ||
-    parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)
-  ) {
-    return true;
-  }
-  const [a, b, c] = parts;
-  if (a === undefined || b === undefined || c === undefined) return true;
-  return (
-    a === 0 ||
-    a === 10 ||
-    a === 127 ||
-    (a === 100 && b >= 64 && b <= 127) ||
-    (a === 169 && b === 254) ||
-    (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && (b === 0 || b === 2 || b === 168)) ||
-    (a === 198 && b >= 18 && b <= 19) ||
-    (a === 198 && b === 51 && c === 100) ||
-    (a === 203 && b === 0 && c === 113) ||
-    a >= 224
-  );
-}
-
-function isBlockedIpv6(value: string): boolean {
-  const parsed = parseIpv6(value);
-  if (parsed === undefined || parsed === 0n || parsed === 1n) return true;
-  const mappedPrefix = hasIpv6Prefix(parsed, '00000000000000000000ffff', 96);
-  if (mappedPrefix) {
-    const mapped = Number(parsed & 0xffffffffn);
-    return isBlockedIp(
-      `${mapped >>> 24}.${(mapped >>> 16) & 0xff}.${(mapped >>> 8) & 0xff}.${mapped & 0xff}`,
-    );
-  }
-  return (
-    hasIpv6Prefix(parsed, 'fc', 7) ||
-    hasIpv6Prefix(parsed, 'fe80', 10) ||
-    hasIpv6Prefix(parsed, 'ff', 8) ||
-    hasIpv6Prefix(parsed, '20010db8', 32) ||
-    hasIpv6Prefix(parsed, '20010000', 32) ||
-    hasIpv6Prefix(parsed, '200100020000', 48) ||
-    hasIpv6Prefix(parsed, '2001001', 28) ||
-    hasIpv6Prefix(parsed, '0100000000000000', 64) ||
-    hasIpv6Prefix(parsed, '0064ff9b0000000000000000', 96) ||
-    hasIpv6Prefix(parsed, '3fff0', 20) ||
-    hasIpv6Prefix(parsed, '000000000000000000000000', 96)
-  );
-}
-
-function parseIpv6(value: string): bigint | undefined {
-  const normalized = value.toLowerCase();
-  if (!normalized || normalized.includes('%')) return undefined;
-  const separator = normalized.indexOf('::');
-  if (separator !== normalized.lastIndexOf('::')) return undefined;
-  const leftText = separator < 0 ? normalized : normalized.slice(0, separator);
-  const rightText = separator < 0 ? '' : normalized.slice(separator + 2);
-  const left = ipv6Groups(leftText);
-  const right = ipv6Groups(rightText);
-  if (left === undefined || right === undefined) return undefined;
-  const count = left.length + right.length;
-  if (separator < 0 ? count !== 8 : count >= 8) return undefined;
-  const groups =
-    separator < 0
-      ? [...left]
-      : [...left, ...Array.from({ length: 8 - count }, () => '0'), ...right];
-  return groups.reduce((result, group) => (result << 16n) | BigInt(`0x${group}`), 0n);
-}
-
-function ipv6Groups(value: string): string[] | undefined {
-  if (!value) return [];
-  const parts = value.split(':');
-  const result: string[] = [];
-  for (const [index, part] of parts.entries()) {
-    if (part.includes('.')) {
-      if (index !== parts.length - 1) return undefined;
-      const octets = part.split('.').map(Number);
-      if (
-        octets.length !== 4 ||
-        octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)
-      ) {
-        return undefined;
-      }
-      result.push(((octets[0] ?? 0) * 256 + (octets[1] ?? 0)).toString(16));
-      result.push(((octets[2] ?? 0) * 256 + (octets[3] ?? 0)).toString(16));
-    } else {
-      if (!/^[0-9a-f]{1,4}$/u.test(part)) return undefined;
-      result.push(part);
-    }
-  }
-  return result;
-}
-
-function hasIpv6Prefix(value: bigint, prefixHex: string, bits: number): boolean {
-  const prefixWidth = BigInt(prefixHex.length * 4);
-  const prefix = BigInt(`0x${prefixHex}`) >> (prefixWidth - BigInt(bits));
-  return value >> BigInt(128 - bits) === prefix;
 }
