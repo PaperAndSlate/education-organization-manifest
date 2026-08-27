@@ -199,5 +199,9 @@ describe('EOM interoperability mappings', () => {
     const depthLimited = mapInput('json-feed-rss-atom', nested, { maxDepth: 1 });
     expect(depthLimited.quarantined).toBe(true);
     expect(depthLimited.findings[0]?.code).toBe('EOM_ADAPTER_DEPTH_LIMIT');
+
+    const shared = { title: 'Shared metadata' };
+    const dag = mapInput('json-feed-rss-atom', { first: shared, second: shared });
+    expect(dag.findings.some((item) => item.code === 'EOM_ADAPTER_CYCLE')).toBe(false);
   });
 });

@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   parseStrictJson,
@@ -9,6 +11,7 @@ import {
 import {
   publicationSetFindings,
   validateDocument,
+  validatePublicationDirectory,
   validatePublicationUrl,
 } from '@paperandslate/eom-validator';
 
@@ -303,6 +306,32 @@ describe('EOM structural and semantic validation', () => {
     expect(result.findings).toEqual(
       expect.arrayContaining([expect.objectContaining({ code: 'EOM_RESOURCE_URL_INVALID' })]),
     );
+  });
+
+  it('bounds local publication reads before allocating oversized files', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'eom-validator-bounded-'));
+    try {
+      await writeFile(
+        join(directory, 'oversized.json'),
+        JSON.stringify({ type: 'organization-profile', name: 'x'.repeat(256) }),
+        'utf8',
+      );
+      const result = await validatePublicationDirectory(directory, {
+        maxBytes: 64,
+        maxTotalBytes: 1024,
+      });
+      expect(result.valid).toBe(false);
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            code: 'EOM_GRAPH_FILE_BYTES',
+            resource: 'oversized.json',
+          }),
+        ]),
+      );
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   it('rejects a delegated resource outside the allowed path prefix', () => {

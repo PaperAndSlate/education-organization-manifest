@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { open, readdir, stat } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import {
   EomFetchError,
@@ -92,7 +92,33 @@ export async function validatePublicationDirectory(
   for (const path of paths.slice(0, maxFiles)) {
     const name = relative(root, path).replaceAll('\\', '/');
     try {
-      const bytes = await readFile(path);
+      const information = await stat(path);
+      if (!information.isFile()) {
+        throw new Error('The publication entry is not a regular file.');
+      }
+      if (totalBytes + information.size > maxTotalBytes) {
+        findings.push(
+          finding(
+            'EOM_GRAPH_TOTAL_BYTES',
+            'transport',
+            `The publication exceeds the configured ${maxTotalBytes}-byte total limit.`,
+            { resource: name, severity: 'error' },
+          ),
+        );
+        break;
+      }
+      if (information.size > maxBytes) {
+        findings.push(
+          finding(
+            'EOM_GRAPH_FILE_BYTES',
+            'transport',
+            `The publication file exceeds the configured ${maxBytes}-byte limit.`,
+            { resource: name, severity: 'error' },
+          ),
+        );
+        continue;
+      }
+      const bytes = await readBoundedFile(path, maxBytes);
       totalBytes += bytes.byteLength;
       if (totalBytes > maxTotalBytes) {
         findings.push(
@@ -105,7 +131,14 @@ export async function validatePublicationDirectory(
         );
         break;
       }
-      if (bytes.byteLength > maxBytes) {
+      const document = parseStrictJson(decodeUtf8(bytes, path), path);
+      documents[name] = document;
+      const result = validateDocument(document, options);
+      findings.push(
+        ...result.findings.map((item) => ({ ...item, resource: item.resource ?? name })),
+      );
+    } catch (error) {
+      if (error instanceof BoundedFileError) {
         findings.push(
           finding(
             'EOM_GRAPH_FILE_BYTES',
@@ -116,13 +149,6 @@ export async function validatePublicationDirectory(
         );
         continue;
       }
-      const document = parseStrictJson(decodeUtf8(bytes, path), path);
-      documents[name] = document;
-      const result = validateDocument(document, options);
-      findings.push(
-        ...result.findings.map((item) => ({ ...item, resource: item.resource ?? name })),
-      );
-    } catch (error) {
       findings.push(
         finding(
           'EOM_JSON_PARSE',
@@ -142,6 +168,33 @@ export async function validatePublicationDirectory(
     })),
   );
   return publicationResult(documents, files, findings);
+}
+
+class BoundedFileError extends Error {}
+
+async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> {
+  const handle = await open(path, 'r');
+  try {
+    const information = await handle.stat();
+    if (!information.isFile() || information.size > maxBytes) {
+      throw new BoundedFileError('The publication file exceeds its byte limit.');
+    }
+    const chunks: Buffer[] = [];
+    let total = 0;
+    for (;;) {
+      const chunk = Buffer.allocUnsafe(Math.min(64 * 1024, maxBytes - total + 1));
+      const { bytesRead } = await handle.read(chunk, 0, chunk.length, null);
+      if (bytesRead === 0) break;
+      total += bytesRead;
+      if (total > maxBytes) {
+        throw new BoundedFileError('The publication file exceeds its byte limit.');
+      }
+      chunks.push(chunk.subarray(0, bytesRead));
+    }
+    return Buffer.concat(chunks, total);
+  } finally {
+    await handle.close();
+  }
 }
 
 /** Retrieve and validate a public manifest and its declared resource graph. */

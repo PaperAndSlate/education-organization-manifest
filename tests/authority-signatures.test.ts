@@ -125,6 +125,54 @@ describe('EOM delegated authority', () => {
     ).toBe(false);
   });
 
+  it('rejects malformed scope arrays instead of silently filtering their entries', () => {
+    const resource = delegatedResource(
+      'meal-menu-catalog',
+      'https://ecme-high.example/eom/resource/meals',
+    );
+    const rootScopeResult = evaluateAuthority(
+      {
+        scope: {
+          origin: 'https://ecme-high.example',
+          paths: ['/'],
+          excludedPaths: ['/private', 42],
+        },
+      },
+      resource,
+      'https://ecme-high.example/eom/meals.json',
+    );
+    expect(rootScopeResult.accepted).toBe(false);
+    expect(rootScopeResult.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_AUTHORITY_ROOT_SCOPE_INVALID' }),
+      ]),
+    );
+
+    const base = fixture('fixtures/delegation/vendor-meals.json') as Record<string, unknown>;
+    const baseScope = base.scope as Record<string, unknown>;
+    for (const [key, value] of [
+      ['resourceTypes', ['meal-menu-catalog', 42]],
+      ['resourceIds', ['https://ecme-high.example/eom/resource/meals', 42]],
+      ['allowedOrigins', ['https://menus.vendor.example', 42]],
+      ['allowedPathPrefixes', ['/customers/ecme-high', 42]],
+    ] as const) {
+      const delegation = {
+        ...base,
+        scope: { ...baseScope, [key]: value },
+      };
+      const result = evaluateAuthority(
+        rootManifest(delegation),
+        resource,
+        'https://menus.vendor.example/customers/ecme-high/meals.json',
+        { now: new Date('2027-08-01T00:00:00Z') },
+      );
+      expect(result.accepted, key).toBe(false);
+      expect(result.findings, key).toEqual(
+        expect.arrayContaining([expect.objectContaining({ code: 'EOM_DELEGATION_SCOPE_INVALID' })]),
+      );
+    }
+  });
+
   it('rejects a delegated signature whose key is absent from the delegation allowlist', () => {
     const { privateKey, publicKey } = generateKeyPairSync('ed25519');
     const resource = delegatedResource(

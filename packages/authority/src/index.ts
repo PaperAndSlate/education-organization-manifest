@@ -64,7 +64,7 @@ export function evaluateAuthority(
         new Set(paths).size === paths.length)) &&
     (rawExcludedPaths === undefined ||
       (Array.isArray(rawExcludedPaths) &&
-        excludedPaths.every((path) => path.startsWith('/')) &&
+        rawExcludedPaths.every((path) => isString(path) && path.startsWith('/')) &&
         new Set(excludedPaths).size === excludedPaths.length));
   const rootPathInScope =
     rootOrigin !== undefined &&
@@ -310,22 +310,26 @@ function evaluateDelegation(
     ) &&
     (rawTypeScope === undefined ||
       (Array.isArray(rawTypeScope) &&
+        rawTypeScope.every(isString) &&
         typeScope.length > 0 &&
         typeScope.every((value) => value.length > 0) &&
         new Set(typeScope).size === typeScope.length)) &&
     (rawIdScope === undefined ||
       (Array.isArray(rawIdScope) &&
+        rawIdScope.every(isString) &&
         idScope.length > 0 &&
         idScope.every((value) => isAbsoluteUri(value)) &&
         new Set(idScope).size === idScope.length)) &&
     (rawOriginScope === undefined ||
       (Array.isArray(rawOriginScope) &&
+        rawOriginScope.every(isString) &&
         allowedOrigins.length > 0 &&
         allowedOrigins.every((value) => isHttpsUri(value)) &&
         new Set(allowedOrigins.map((value) => normalizeOrigin(value))).size ===
           allowedOrigins.length)) &&
     (rawPathScope === undefined ||
       (Array.isArray(rawPathScope) &&
+        rawPathScope.every(isString) &&
         prefixes.length > 0 &&
         prefixes.every((value) => value.startsWith('/')) &&
         new Set(prefixes).size === prefixes.length));

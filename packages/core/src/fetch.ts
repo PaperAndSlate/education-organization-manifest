@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
-import { mkdir, open, readdir, rename, stat, unlink, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, open, readdir, rename, stat, unlink, writeFile } from 'node:fs/promises';
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
@@ -716,11 +716,21 @@ async function readCachedResponse(
 }
 
 async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> {
+  const linkInformation = await lstat(path);
+  if (!linkInformation.isFile() || linkInformation.isSymbolicLink()) {
+    throw new Error('cache entry is not a regular file');
+  }
   const handle = await open(path, 'r');
   try {
     const information = await handle.stat();
-    if (!information.isFile() || information.size > maxBytes)
-      throw new Error('cache entry too large');
+    const identityChanged =
+      linkInformation.dev !== 0 &&
+      linkInformation.ino !== 0 &&
+      information.dev !== 0 &&
+      information.ino !== 0 &&
+      (information.dev !== linkInformation.dev || information.ino !== linkInformation.ino);
+    if (!information.isFile() || information.size > maxBytes || identityChanged)
+      throw new Error('cache entry is not a stable regular file within the byte limit');
     const chunks: Buffer[] = [];
     let total = 0;
     for (;;) {

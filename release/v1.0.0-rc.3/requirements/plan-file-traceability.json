@@ -17,9 +17,7 @@
         "docs/project-status.md",
         "requirements/plan-file-traceability.json"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "open"
     },
     {
@@ -33,9 +31,7 @@
         "docs/project-status.md",
         "requirements/plan-file-traceability.json"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "open"
     },
     {
@@ -49,9 +45,7 @@
         "docs/project-status.md",
         "requirements/plan-file-traceability.json"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "open"
     },
     {
@@ -64,9 +58,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "open"
     },
     {
@@ -79,9 +71,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "open"
     },
     {
@@ -94,9 +84,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "open"
     },
     {
@@ -109,9 +97,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "open"
     },
     {
@@ -124,9 +110,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -139,9 +123,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -253,9 +235,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -268,9 +248,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -283,9 +261,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -298,9 +274,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -313,9 +287,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -328,9 +300,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -343,9 +313,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -358,9 +326,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -373,9 +339,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -388,9 +352,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -403,9 +365,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -418,9 +378,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -433,9 +391,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -448,9 +404,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -463,9 +417,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -478,9 +430,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -493,9 +443,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -508,9 +456,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -523,9 +469,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -538,9 +482,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -553,9 +495,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -568,9 +508,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -583,9 +521,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -598,9 +534,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -613,9 +547,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -628,9 +560,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -643,9 +573,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -658,9 +586,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -673,9 +599,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -688,9 +612,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -703,9 +625,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -718,9 +638,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -733,9 +651,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -748,9 +664,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -763,9 +677,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -778,9 +690,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -793,9 +703,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -808,9 +716,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -823,9 +729,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -838,9 +742,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -854,11 +756,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -872,11 +770,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -890,11 +784,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -908,11 +798,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -926,11 +812,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -944,11 +826,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -962,11 +840,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -980,11 +854,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -998,11 +868,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -1016,11 +882,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -1034,11 +896,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -1052,11 +910,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -1070,11 +924,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -1088,11 +938,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -1106,11 +952,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -1124,11 +966,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -1142,11 +980,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -1160,11 +994,7 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -1178,10 +1008,7 @@
         "scripts/check-traceability.ts",
         "package.json"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check",
-        "pnpm verify"
-      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
       "status": "open"
     },
     {
@@ -1195,10 +1022,7 @@
         "scripts/check-traceability.ts",
         "package.json"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check",
-        "pnpm verify"
-      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
       "status": "open"
     },
     {
@@ -1212,10 +1036,7 @@
         "scripts/check-traceability.ts",
         "package.json"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check",
-        "pnpm verify"
-      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
       "status": "open"
     },
     {
@@ -1229,10 +1050,7 @@
         "scripts/check-traceability.ts",
         "package.json"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check",
-        "pnpm verify"
-      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
       "status": "open"
     },
     {
@@ -1246,10 +1064,7 @@
         "scripts/check-traceability.ts",
         "package.json"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check",
-        "pnpm verify"
-      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
       "status": "open"
     },
     {
@@ -1263,10 +1078,7 @@
         "scripts/check-traceability.ts",
         "package.json"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check",
-        "pnpm verify"
-      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
       "status": "open"
     },
     {
@@ -1279,9 +1091,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -1294,9 +1104,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -1309,9 +1117,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -1324,9 +1130,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -1339,9 +1143,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -1354,9 +1156,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -1369,9 +1169,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -2040,15 +1838,8 @@
       "planSha256": "b2a25c10d140e5d50efb92766df09127b923fca8c525f8507b819e967e7d946f",
       "classification": "normative",
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/ADR_PROCESS.md; prose alone cannot establish completion.",
-      "evidencePaths": [
-        "GOVERNANCE.md",
-        "CONTRIBUTING.md",
-        "scripts/lint.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm policy:check",
-        "pnpm license:check"
-      ],
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
       "status": "open"
     },
     {
@@ -2057,15 +1848,8 @@
       "planSha256": "d6daa8826bf9e3f43fc5acf1bc537973ed96937335666f1143a68170de32ae1b",
       "classification": "normative",
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/CONFORMANCE_MARK_POLICY.md; prose alone cannot establish completion.",
-      "evidencePaths": [
-        "GOVERNANCE.md",
-        "CONTRIBUTING.md",
-        "scripts/lint.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm policy:check",
-        "pnpm license:check"
-      ],
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
       "status": "open"
     },
     {
@@ -2074,15 +1858,8 @@
       "planSha256": "5aac5c547a1a1d1a5cc5795a268f0eb77aaae9fe3a3a49e6d35e36b997c4bdd5",
       "classification": "normative",
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/CONTRIBUTING_PLAN.md; prose alone cannot establish completion.",
-      "evidencePaths": [
-        "GOVERNANCE.md",
-        "CONTRIBUTING.md",
-        "scripts/lint.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm policy:check",
-        "pnpm license:check"
-      ],
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
       "status": "open"
     },
     {
@@ -2091,15 +1868,8 @@
       "planSha256": "e04b6664fa91ce5aa546bf7e7501d47bd563d2bae0f4b4fdedb1454866713d51",
       "classification": "normative",
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/GOVERNANCE.md; prose alone cannot establish completion.",
-      "evidencePaths": [
-        "GOVERNANCE.md",
-        "CONTRIBUTING.md",
-        "scripts/lint.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm policy:check",
-        "pnpm license:check"
-      ],
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
       "status": "open"
     },
     {
@@ -2108,15 +1878,8 @@
       "planSha256": "ef21f03ec00de8aaaefc1966e25420806c661b2b474c6af41d731c3d73d8a43b",
       "classification": "normative",
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/LICENSE_AND_IP_PLAN.md; prose alone cannot establish completion.",
-      "evidencePaths": [
-        "GOVERNANCE.md",
-        "CONTRIBUTING.md",
-        "scripts/lint.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm policy:check",
-        "pnpm license:check"
-      ],
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
       "status": "open"
     },
     {
@@ -2125,15 +1888,8 @@
       "planSha256": "3c25bd8ca18672ead5257c656ececa2430de42bc090c82f76715460de80633f0",
       "classification": "normative",
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/MAINTAINERS_AND_SUCCESSION.md; prose alone cannot establish completion.",
-      "evidencePaths": [
-        "GOVERNANCE.md",
-        "CONTRIBUTING.md",
-        "scripts/lint.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm policy:check",
-        "pnpm license:check"
-      ],
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
       "status": "open"
     },
     {
@@ -2142,15 +1898,8 @@
       "planSha256": "d743a359f7d60ce669a7194860588dc107e7dfbbebc443ac6277a44e2557aee7",
       "classification": "normative",
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/RFC_PROCESS.md; prose alone cannot establish completion.",
-      "evidencePaths": [
-        "GOVERNANCE.md",
-        "CONTRIBUTING.md",
-        "scripts/lint.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm policy:check",
-        "pnpm license:check"
-      ],
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
       "status": "open"
     },
     {
@@ -2159,15 +1908,8 @@
       "planSha256": "19869c933819ab82d6180061510c5eba162bb8b99427e076d3c535f35cd009fd",
       "classification": "normative",
       "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/SECURITY_POLICY_PLAN.md; prose alone cannot establish completion.",
-      "evidencePaths": [
-        "GOVERNANCE.md",
-        "CONTRIBUTING.md",
-        "scripts/lint.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm policy:check",
-        "pnpm license:check"
-      ],
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
       "status": "open"
     },
     {
@@ -2181,10 +1923,7 @@
         "packages/adapters/src/index.ts",
         "tests/mappings.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm verify:security"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
       "status": "open"
     },
     {
@@ -2198,10 +1937,7 @@
         "packages/adapters/src/index.ts",
         "tests/mappings.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm verify:security"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
       "status": "open"
     },
     {
@@ -2215,10 +1951,7 @@
         "packages/adapters/src/index.ts",
         "tests/mappings.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm verify:security"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
       "status": "open"
     },
     {
@@ -2232,10 +1965,7 @@
         "packages/adapters/src/index.ts",
         "tests/mappings.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm verify:security"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
       "status": "open"
     },
     {
@@ -2249,10 +1979,7 @@
         "packages/adapters/src/index.ts",
         "tests/mappings.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm verify:security"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
       "status": "open"
     },
     {
@@ -2265,9 +1992,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -2280,9 +2005,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -2295,9 +2018,7 @@
         "requirements/plan-file-traceability.json",
         "requirements/TRACEABILITY_MATRIX.md"
       ],
-      "evidenceCommands": [
-        "pnpm traceability:check"
-      ],
+      "evidenceCommands": ["pnpm traceability:check"],
       "status": "not-applicable"
     },
     {
@@ -2311,9 +2032,7 @@
         "docs/governance/ownership-and-review.md",
         "scripts/check-ownership.ts"
       ],
-      "evidenceCommands": [
-        "pnpm ownership:check"
-      ],
+      "evidenceCommands": ["pnpm ownership:check"],
       "status": "open"
     },
     {
@@ -2327,9 +2046,7 @@
         "docs/governance/ownership-and-review.md",
         "scripts/check-ownership.ts"
       ],
-      "evidenceCommands": [
-        "pnpm ownership:check"
-      ],
+      "evidenceCommands": ["pnpm ownership:check"],
       "status": "open"
     },
     {
@@ -2343,9 +2060,7 @@
         "docs/governance/ownership-and-review.md",
         "scripts/check-ownership.ts"
       ],
-      "evidenceCommands": [
-        "pnpm ownership:check"
-      ],
+      "evidenceCommands": ["pnpm ownership:check"],
       "status": "open"
     },
     {
@@ -2359,9 +2074,7 @@
         "docs/governance/ownership-and-review.md",
         "scripts/check-ownership.ts"
       ],
-      "evidenceCommands": [
-        "pnpm ownership:check"
-      ],
+      "evidenceCommands": ["pnpm ownership:check"],
       "status": "open"
     },
     {
@@ -2386,10 +2099,7 @@
         "packages/validator/src/semantic.ts",
         "tests/validator.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -2403,10 +2113,7 @@
         "packages/core/src/fetch.ts",
         "tests/fetch.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm verify:security"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
       "status": "open"
     },
     {
@@ -2415,13 +2122,8 @@
       "planSha256": "20bc6197508e37edd1b9d24650f16d7e9531dca9dab9c7c81343ae6579513168",
       "classification": "normative",
       "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/IANA_REGISTRATION_PLAN.md; prose alone cannot establish completion.",
-      "evidencePaths": [
-        "release/registration/status.json",
-        "reports/external-gates.md"
-      ],
-      "evidenceCommands": [
-        "pnpm release:check"
-      ],
+      "evidencePaths": ["release/registration/status.json", "reports/external-gates.md"],
+      "evidenceCommands": ["pnpm release:check"],
       "status": "blocked-external",
       "notes": "This planning item records an external gate; local checks must not close it."
     },
@@ -2436,10 +2138,7 @@
         "packages/validator/src/semantic.ts",
         "tests/validator.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -2453,10 +2152,7 @@
         "packages/validator/src/semantic.ts",
         "tests/validator.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -2470,10 +2166,7 @@
         "packages/authority/src/index.ts",
         "tests/authority-signatures.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm ownership:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm ownership:check"],
       "status": "open"
     },
     {
@@ -2487,10 +2180,7 @@
         "packages/validator/src/semantic.ts",
         "tests/validator.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -2504,10 +2194,7 @@
         "packages/validator/src/semantic.ts",
         "tests/validator.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -2521,10 +2208,7 @@
         "packages/validator/src/semantic.ts",
         "tests/validator.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -2538,10 +2222,7 @@
         "packages/validator/src/semantic.ts",
         "tests/validator.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -2555,10 +2236,7 @@
         "packages/validator/src/semantic.ts",
         "tests/validator.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -2572,10 +2250,7 @@
         "packages/signatures/src/index.ts",
         "tests/authority-signatures.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -2589,10 +2264,7 @@
         "packages/validator/src/semantic.ts",
         "tests/validator.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -2731,19 +2403,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-001",
       "requirement": "The organization module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/organization-profile.schema.json",
@@ -2756,19 +2422,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-002",
       "requirement": "The campuses module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/campus-catalog.schema.json",
@@ -2781,19 +2441,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-003",
       "requirement": "The departments module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/department-catalog.schema.json",
@@ -2806,19 +2460,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-004",
       "requirement": "The staff module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/staff-directory.schema.json",
@@ -2831,19 +2479,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-005",
       "requirement": "The contacts module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/contact-directory.schema.json",
@@ -2856,19 +2498,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-006",
       "requirement": "The courses module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/course-catalog.schema.json",
@@ -2881,19 +2517,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-007",
       "requirement": "The offerings module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/course-offering-catalog.schema.json",
@@ -2906,19 +2536,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-008",
       "requirement": "The programs module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/program-catalog.schema.json",
@@ -2931,19 +2555,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-009",
       "requirement": "The calendar module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/academic-calendar.schema.json",
@@ -2956,19 +2574,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-010",
       "requirement": "The events module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/event-catalog.schema.json",
@@ -2981,19 +2593,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-011",
       "requirement": "The facilities module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/facility-catalog.schema.json",
@@ -3006,19 +2612,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-012",
       "requirement": "The services module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/service-catalog.schema.json",
@@ -3031,19 +2631,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-013",
       "requirement": "The policies module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/policy-catalog.schema.json",
@@ -3056,19 +2650,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-014",
       "requirement": "The admissions module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/admissions-profile.schema.json",
@@ -3081,19 +2669,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-015",
       "requirement": "The sports module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/sports-catalog.schema.json",
@@ -3106,19 +2688,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-016",
       "requirement": "The transportation module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/transportation-catalog.schema.json",
@@ -3131,19 +2707,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-017",
       "requirement": "The meals module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/meal-menu-catalog.schema.json",
@@ -3156,19 +2726,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-018",
       "requirement": "The clubs module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/club-catalog.schema.json",
@@ -3181,19 +2745,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-019",
       "requirement": "The jobs module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/job-catalog.schema.json",
@@ -3206,19 +2764,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-020",
       "requirement": "The news module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/news-feed.schema.json",
@@ -3231,19 +2783,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-021",
       "requirement": "The statistics module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/statistics-profile.schema.json",
@@ -3256,19 +2802,13 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-MOD-022",
       "requirement": "The apis module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
-      "source": [
-        "data-model/MODULE_REGISTRY.md",
-        "delivery/DEFINITION_OF_DONE.md"
-      ],
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
       "evidencePaths": [
         "modules/registry.json",
         "schemas/1.0/modules/api-reference.schema.json",
@@ -3281,28 +2821,15 @@
         "scripts/check-modules.ts",
         "tests/modules.test.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-NORM-001",
       "requirement": "HTTPS discovery, redirect, content-type, cache, CORS, DNS binding, and resource limits are bounded and observable.",
-      "source": [
-        "spec/1.0/http-discovery.md",
-        "packages/core/src/fetch.ts",
-        "tests/fetch.test.ts"
-      ],
-      "evidencePaths": [
-        "packages/core/src/fetch.ts",
-        "tests/fetch.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm verify:security"
-      ],
+      "source": ["spec/1.0/http-discovery.md", "packages/core/src/fetch.ts", "tests/fetch.test.ts"],
+      "evidencePaths": ["packages/core/src/fetch.ts", "tests/fetch.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
       "status": "open"
     },
     {
@@ -3313,49 +2840,24 @@
         "schemas/1.0/manifest.schema.json",
         "tests/validator.test.ts"
       ],
-      "evidencePaths": [
-        "schemas/1.0/manifest.schema.json",
-        "tests/validator.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm test"
-      ],
+      "evidencePaths": ["schemas/1.0/manifest.schema.json", "tests/validator.test.ts"],
+      "evidenceCommands": ["pnpm schema:check", "pnpm test"],
       "status": "open"
     },
     {
       "id": "EOM-NORM-003",
       "requirement": "Identifiers, origins, paths, canonical URLs, and references are absolute and scope-safe.",
-      "source": [
-        "spec/1.0/protocol.md",
-        "packages/core/src/ids.ts",
-        "tests/validator.test.ts"
-      ],
-      "evidencePaths": [
-        "packages/core/src/ids.ts",
-        "tests/validator.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test"
-      ],
+      "source": ["spec/1.0/protocol.md", "packages/core/src/ids.ts", "tests/validator.test.ts"],
+      "evidencePaths": ["packages/core/src/ids.ts", "tests/validator.test.ts"],
+      "evidenceCommands": ["pnpm test"],
       "status": "open"
     },
     {
       "id": "EOM-NORM-004",
       "requirement": "Resource envelopes, capabilities, indexes, lifecycle, and module relationships are structurally valid.",
-      "source": [
-        "schemas/1.0/catalog.json",
-        "scripts/check-schemas.ts",
-        "tests/modules.test.ts"
-      ],
-      "evidencePaths": [
-        "scripts/check-schemas.ts",
-        "tests/modules.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm module:check"
-      ],
+      "source": ["schemas/1.0/catalog.json", "scripts/check-schemas.ts", "tests/modules.test.ts"],
+      "evidencePaths": ["scripts/check-schemas.ts", "tests/modules.test.ts"],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check"],
       "status": "open"
     },
     {
@@ -3366,13 +2868,8 @@
         "packages/core/src/localized.ts",
         "tests/core.test.ts"
       ],
-      "evidencePaths": [
-        "packages/core/src/localized.ts",
-        "tests/core.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test"
-      ],
+      "evidencePaths": ["packages/core/src/localized.ts", "tests/core.test.ts"],
+      "evidenceCommands": ["pnpm test"],
       "status": "open"
     },
     {
@@ -3383,13 +2880,8 @@
         "packages/validator/src/semantic.ts",
         "tests/validator.test.ts"
       ],
-      "evidencePaths": [
-        "packages/validator/src/semantic.ts",
-        "tests/validator.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test"
-      ],
+      "evidencePaths": ["packages/validator/src/semantic.ts", "tests/validator.test.ts"],
+      "evidenceCommands": ["pnpm test"],
       "status": "open"
     },
     {
@@ -3400,14 +2892,8 @@
         "packages/linter/src/index.ts",
         "scripts/security-check.ts"
       ],
-      "evidencePaths": [
-        "packages/linter/src/index.ts",
-        "scripts/security-check.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm verify:security",
-        "pnpm test"
-      ],
+      "evidencePaths": ["packages/linter/src/index.ts", "scripts/security-check.ts"],
+      "evidenceCommands": ["pnpm verify:security", "pnpm test"],
       "status": "open"
     },
     {
@@ -3418,13 +2904,8 @@
         "packages/agentic/src/index.ts",
         "tests/agentic.test.ts"
       ],
-      "evidencePaths": [
-        "packages/agentic/src/index.ts",
-        "tests/agentic.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test"
-      ],
+      "evidencePaths": ["packages/agentic/src/index.ts", "tests/agentic.test.ts"],
+      "evidenceCommands": ["pnpm test"],
       "status": "open"
     },
     {
@@ -3435,14 +2916,8 @@
         "packages/authority/src/index.ts",
         "tests/authority-signatures.test.ts"
       ],
-      "evidencePaths": [
-        "packages/authority/src/index.ts",
-        "tests/authority-signatures.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm ownership:check"
-      ],
+      "evidencePaths": ["packages/authority/src/index.ts", "tests/authority-signatures.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm ownership:check"],
       "status": "open"
     },
     {
@@ -3453,14 +2928,8 @@
         "packages/signatures/src/index.ts",
         "tests/authority-signatures.test.ts"
       ],
-      "evidencePaths": [
-        "packages/signatures/src/index.ts",
-        "tests/authority-signatures.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm schema:check"
-      ],
+      "evidencePaths": ["packages/signatures/src/index.ts", "tests/authority-signatures.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
       "status": "open"
     },
     {
@@ -3471,14 +2940,8 @@
         "schemas/1.0/catalog.json",
         "vocabularies/registry.json"
       ],
-      "evidencePaths": [
-        "schemas/1.0/catalog.json",
-        "vocabularies/registry.json"
-      ],
-      "evidenceCommands": [
-        "pnpm schema:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidencePaths": ["schemas/1.0/catalog.json", "vocabularies/registry.json"],
+      "evidenceCommands": ["pnpm schema:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
@@ -3489,14 +2952,8 @@
         "packages/generator/src/index.ts",
         "tests/generator.test.ts"
       ],
-      "evidencePaths": [
-        "packages/generator/src/index.ts",
-        "tests/generator.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm verify:determinism"
-      ],
+      "evidencePaths": ["packages/generator/src/index.ts", "tests/generator.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm verify:determinism"],
       "status": "open"
     },
     {
@@ -3507,31 +2964,16 @@
         "packages/validator/src/reports.ts",
         "tests/validator.test.ts"
       ],
-      "evidencePaths": [
-        "packages/validator/src/reports.ts",
-        "tests/validator.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test"
-      ],
+      "evidencePaths": ["packages/validator/src/reports.ts", "tests/validator.test.ts"],
+      "evidenceCommands": ["pnpm test"],
       "status": "open"
     },
     {
       "id": "EOM-NORM-014",
       "requirement": "CLI commands and global operational limits have stable behavior and usage exit codes.",
-      "source": [
-        "spec/1.0/cli.md",
-        "packages/cli/src/index.ts",
-        "tests/cli.test.ts"
-      ],
-      "evidencePaths": [
-        "packages/cli/src/index.ts",
-        "tests/cli.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm typecheck"
-      ],
+      "source": ["spec/1.0/cli.md", "packages/cli/src/index.ts", "tests/cli.test.ts"],
+      "evidencePaths": ["packages/cli/src/index.ts", "tests/cli.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm typecheck"],
       "status": "open"
     },
     {
@@ -3542,13 +2984,8 @@
         "mappings/registry.json",
         "tests/mappings.test.ts"
       ],
-      "evidencePaths": [
-        "mappings/registry.json",
-        "tests/mappings.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test"
-      ],
+      "evidencePaths": ["mappings/registry.json", "tests/mappings.test.ts"],
+      "evidenceCommands": ["pnpm test"],
       "status": "open"
     },
     {
@@ -3559,14 +2996,8 @@
         "conformance/registry.json",
         "scripts/run-conformance-profiles.ts"
       ],
-      "evidencePaths": [
-        "conformance/registry.json",
-        "scripts/run-conformance-profiles.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm conformance:check",
-        "pnpm conformance:profiles"
-      ],
+      "evidencePaths": ["conformance/registry.json", "scripts/run-conformance-profiles.ts"],
+      "evidenceCommands": ["pnpm conformance:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
@@ -3577,14 +3008,8 @@
         "apps/playground/src/browser-engine.js",
         "tests/browser.spec.ts"
       ],
-      "evidencePaths": [
-        "apps/playground/src/browser-engine.js",
-        "tests/browser.spec.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test:browser",
-        "pnpm docs:check"
-      ],
+      "evidencePaths": ["apps/playground/src/browser-engine.js", "tests/browser.spec.ts"],
+      "evidenceCommands": ["pnpm test:browser", "pnpm docs:check"],
       "status": "open"
     },
     {
@@ -3595,232 +3020,143 @@
         "scripts/check-release.ts",
         "scripts/check-release-reproducibility.ts"
       ],
-      "evidencePaths": [
-        "scripts/check-release.ts",
-        "scripts/check-release-reproducibility.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm release:check",
-        "pnpm verify:release-reproducibility"
-      ],
+      "evidencePaths": ["scripts/check-release.ts", "scripts/check-release-reproducibility.ts"],
+      "evidenceCommands": ["pnpm release:check", "pnpm verify:release-reproducibility"],
       "status": "open"
     },
     {
       "id": "EOM-REM-001",
       "requirement": "Published packages resolve only compiled files and bundled schema assets.",
-      "source": [
-        "MASTER_CODEX_GOAL_PROMPT.txt"
-      ],
-      "evidencePaths": [
-        "scripts/check-packages.ts",
-        "packages/schema/package.json"
-      ],
-      "evidenceCommands": [
-        "pnpm packages:check"
-      ],
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["scripts/check-packages.ts", "packages/schema/package.json"],
+      "evidenceCommands": ["pnpm packages:check"],
       "status": "open"
     },
     {
       "id": "EOM-REM-002",
       "requirement": "Generator output replacement is confined to compatible marked roots and selectors.",
-      "source": [
-        "MASTER_CODEX_GOAL_PROMPT.txt"
-      ],
-      "evidencePaths": [
-        "packages/generator/src/index.ts",
-        "tests/generator.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test"
-      ],
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["packages/generator/src/index.ts", "tests/generator.test.ts"],
+      "evidenceCommands": ["pnpm test"],
       "status": "open"
     },
     {
       "id": "EOM-REM-003",
       "requirement": "Network connections cannot be redirected to a private address after DNS validation.",
-      "source": [
-        "MASTER_CODEX_GOAL_PROMPT.txt"
-      ],
-      "evidencePaths": [
-        "packages/core/src/fetch.ts",
-        "tests/fetch.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test"
-      ],
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["packages/core/src/fetch.ts", "tests/fetch.test.ts"],
+      "evidenceCommands": ["pnpm test"],
       "status": "open"
     },
     {
       "id": "EOM-REM-004",
       "requirement": "All module registry and vocabulary records are schema-validated and versioned.",
-      "source": [
-        "MASTER_CODEX_GOAL_PROMPT.txt"
-      ],
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": [
         "modules/registry.json",
         "vocabularies/registry.json",
         "scripts/check-modules.ts"
       ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm vocabulary:check"
-      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm vocabulary:check"],
       "status": "open"
     },
     {
       "id": "EOM-REM-005",
       "requirement": "Every v1 module has dedicated valid, invalid, privacy, security, extension, and conformance evidence.",
-      "source": [
-        "MASTER_CODEX_GOAL_PROMPT.txt"
-      ],
-      "evidencePaths": [
-        "scripts/check-modules.ts",
-        "fixtures/modules"
-      ],
-      "evidenceCommands": [
-        "pnpm module:check",
-        "pnpm conformance:profiles"
-      ],
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["scripts/check-modules.ts", "fixtures/modules"],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-REM-006",
       "requirement": "CLI, migration, diff, graph, and report interfaces match the planning contract.",
-      "source": [
-        "MASTER_CODEX_GOAL_PROMPT.txt"
-      ],
-      "evidencePaths": [
-        "packages/cli/src/index.ts",
-        "tests/cli.test.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test",
-        "pnpm typecheck"
-      ],
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["packages/cli/src/index.ts", "tests/cli.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm typecheck"],
       "status": "open"
     },
     {
       "id": "EOM-REM-007",
       "requirement": "Conformance roles test publisher, consumer, generator, validator, delegation, and signature behavior.",
-      "source": [
-        "MASTER_CODEX_GOAL_PROMPT.txt"
-      ],
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": [
         "packages/testkit/src/index.ts",
         "fixtures/conformance/expected/profiles.json"
       ],
-      "evidenceCommands": [
-        "pnpm conformance:profiles"
-      ],
+      "evidenceCommands": ["pnpm conformance:profiles"],
       "status": "open"
     },
     {
       "id": "EOM-REM-008",
       "requirement": "Browser validation shares the real validator and has automated accessibility coverage.",
-      "source": [
-        "MASTER_CODEX_GOAL_PROMPT.txt"
-      ],
-      "evidencePaths": [
-        "apps/playground/src/browser-engine.js",
-        "tests/browser.spec.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm test:browser"
-      ],
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["apps/playground/src/browser-engine.js", "tests/browser.spec.ts"],
+      "evidenceCommands": ["pnpm test:browser"],
       "status": "open"
     },
     {
       "id": "EOM-REM-009",
       "requirement": "CI runs real lint, CodeQL/dependency/secret checks, drift, packaging, and cross-platform gates.",
-      "source": [
-        "MASTER_CODEX_GOAL_PROMPT.txt"
-      ],
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
       "evidencePaths": [
         ".github/workflows/ci.yml",
         ".github/workflows/codeql.yml",
         "scripts/check-action-pins.ts"
       ],
-      "evidenceCommands": [
-        "pnpm actions:check",
-        "pnpm lint"
-      ],
+      "evidenceCommands": ["pnpm actions:check", "pnpm lint"],
       "status": "open"
     },
     {
       "id": "EOM-REM-010",
       "requirement": "Release artifacts are exact, reproducible, source-revision-bound, and status-honest.",
-      "source": [
-        "MASTER_CODEX_GOAL_PROMPT.txt"
-      ],
-      "evidencePaths": [
-        "scripts/generate-release-artifacts.ts",
-        "scripts/check-release.ts"
-      ],
-      "evidenceCommands": [
-        "pnpm release:check",
-        "pnpm verify:release-reproducibility"
-      ],
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["scripts/generate-release-artifacts.ts", "scripts/check-release.ts"],
+      "evidenceCommands": ["pnpm release:check", "pnpm verify:release-reproducibility"],
       "status": "open"
     },
     {
       "id": "EOM-REL-LOCAL-001",
       "requirement": "Frozen install, build, typecheck, lint, tests, coverage, schemas, fixtures, docs, packages, security, and release checks pass through the aggregate gate.",
-      "source": [
-        "delivery/RELEASE_CHECKLIST.md"
-      ],
+      "source": ["delivery/RELEASE_CHECKLIST.md"],
       "evidencePaths": [
         "package.json",
         "scripts/check-traceability.ts",
         "reports/verification/local-gates.json"
       ],
-      "evidenceCommands": [
-        "pnpm verify"
-      ],
+      "evidenceCommands": ["pnpm verify"],
       "status": "open"
     },
     {
       "id": "EOM-REL-LOCAL-002",
       "requirement": "Cross-platform CI, CodeQL, dependency review, secret scanning, REUSE, and automated dependency maintenance are configured and pinned.",
-      "source": [
-        "architecture/CI_CD_AND_RELEASE.md"
-      ],
+      "source": ["architecture/CI_CD_AND_RELEASE.md"],
       "evidencePaths": [
         ".github/workflows/ci.yml",
         ".github/workflows/security.yml",
         ".github/dependabot.yml",
         "scripts/check-action-pins.ts"
       ],
-      "evidenceCommands": [
-        "pnpm actions:check"
-      ],
+      "evidenceCommands": ["pnpm actions:check"],
       "status": "open"
     },
     {
       "id": "EOM-REL-LOCAL-003",
       "requirement": "A formal post-remediation security scan has no unresolved critical, high, medium, low, or plan-conformance security finding.",
-      "source": [
-        "architecture/THREAT_MODEL.md",
-        "governance/SECURITY_POLICY_PLAN.md"
-      ],
+      "source": ["architecture/THREAT_MODEL.md", "governance/SECURITY_POLICY_PLAN.md"],
       "evidencePaths": [
         "reports/security-scan.md",
         "reports/security-scan.json",
         "scripts/security-check.ts"
       ],
-      "evidenceCommands": [
-        "pnpm verify:security"
-      ],
+      "evidenceCommands": ["pnpm verify:security"],
       "status": "open"
     },
     {
       "id": "EOM-REL-EXT-001",
       "requirement": "The proposed well-known suffix is registered or its current status is rechecked and recorded by the responsible external owner.",
-      "source": [
-        "specification/IANA_REGISTRATION_PLAN.md"
-      ],
-      "evidencePaths": [
-        "release/registration/status.json"
-      ],
+      "source": ["specification/IANA_REGISTRATION_PLAN.md"],
+      "evidencePaths": ["release/registration/status.json"],
       "evidenceCommands": [],
       "status": "blocked-external",
       "owner": "registration owner",
@@ -3829,13 +3165,8 @@
     {
       "id": "EOM-REL-EXT-002",
       "requirement": "Independent publisher and consumer interoperability exchange evidence is supplied.",
-      "source": [
-        "adoption/CONSUMER_PATTERNS.md",
-        "interoperability/ONE_ROSTER_CASE_QTI_LTI.md"
-      ],
-      "evidencePaths": [
-        "release/pilot/README.md"
-      ],
+      "source": ["adoption/CONSUMER_PATTERNS.md", "interoperability/ONE_ROSTER_CASE_QTI_LTI.md"],
+      "evidencePaths": ["release/pilot/README.md"],
       "evidenceCommands": [],
       "status": "blocked-external",
       "owner": "pilot coordinator",
@@ -3844,13 +3175,8 @@
     {
       "id": "EOM-REL-EXT-003",
       "requirement": "Legal/licensing review and stable governance approval are recorded.",
-      "source": [
-        "governance/LICENSE_AND_IP_PLAN.md",
-        "governance/GOVERNANCE.md"
-      ],
-      "evidencePaths": [
-        "reports/external-gates.md"
-      ],
+      "source": ["governance/LICENSE_AND_IP_PLAN.md", "governance/GOVERNANCE.md"],
+      "evidencePaths": ["reports/external-gates.md"],
       "evidenceCommands": [],
       "status": "blocked-external",
       "owner": "legal/release owner and maintainers",
@@ -3859,17 +3185,9 @@
     {
       "id": "EOM-REL-EXT-004",
       "requirement": "Production deployment, adoption, certification, and factual endorsement remain explicitly unclaimed.",
-      "source": [
-        "specification/IANA_REGISTRATION_PLAN.md",
-        "website/MAIN_WEBSITE_COPY.md"
-      ],
-      "evidencePaths": [
-        "docs/project-status.md",
-        "reports/external-gates.md"
-      ],
-      "evidenceCommands": [
-        "pnpm release:check"
-      ],
+      "source": ["specification/IANA_REGISTRATION_PLAN.md", "website/MAIN_WEBSITE_COPY.md"],
+      "evidencePaths": ["docs/project-status.md", "reports/external-gates.md"],
+      "evidenceCommands": ["pnpm release:check"],
       "status": "verified-local",
       "owner": "release authority",
       "blocker": "Deployment and adoption are intentionally not authorized by this release candidate."

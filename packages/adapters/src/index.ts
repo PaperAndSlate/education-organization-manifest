@@ -1149,42 +1149,40 @@ function inspectInputLimits(input: unknown, options: AdapterOptions): readonly F
     HARD_ADAPTER_MAX_NODES,
   );
   const findings: Finding[] = [];
-  const pending: Array<{ value: unknown; depth: number; pointer: string }> = [
-    { value: input, depth: 0, pointer: '' },
-  ];
-  const visited = new WeakSet<object>();
+  const active = new WeakSet<object>();
+  const encoder = new TextEncoder();
   let bytes = 0;
   let items = 0;
   let nodes = 0;
-  while (pending.length > 0) {
-    const current = pending.pop()!;
-    if (current.depth > maxDepth) {
+
+  const visit = (value: unknown, depth: number, pointer: string): void => {
+    if (findings.length > 0) return;
+    if (depth > maxDepth) {
       findings.push(
         finding(
           'EOM_ADAPTER_DEPTH_LIMIT',
           'transport',
           `Adapter input exceeds the configured ${maxDepth}-level depth limit.`,
-          { severity: 'error', pointer: current.pointer || '/' },
+          { severity: 'error', pointer: pointer || '/' },
         ),
       );
-      break;
+      return;
     }
-    const value = current.value;
     if (typeof value === 'string') {
-      bytes += new TextEncoder().encode(value).byteLength;
+      bytes += encoder.encode(value).byteLength;
     } else if (value !== null && typeof value === 'object') {
-      if (visited.has(value)) {
+      if (active.has(value)) {
         findings.push(
           finding(
             'EOM_ADAPTER_CYCLE',
             'syntax',
             'Adapter input must not contain cyclic object references.',
-            { severity: 'error', pointer: current.pointer || '/' },
+            { severity: 'error', pointer: pointer || '/' },
           ),
         );
-        break;
+        return;
       }
-      visited.add(value);
+      active.add(value);
       nodes += 1;
       if (nodes > maxNodes) {
         findings.push(
@@ -1192,10 +1190,11 @@ function inspectInputLimits(input: unknown, options: AdapterOptions): readonly F
             'EOM_ADAPTER_NODE_LIMIT',
             'transport',
             `Adapter input exceeds the configured ${maxNodes}-node limit.`,
-            { severity: 'error', pointer: current.pointer || '/' },
+            { severity: 'error', pointer: pointer || '/' },
           ),
         );
-        break;
+        active.delete(value);
+        return;
       }
       if (Array.isArray(value)) {
         items += value.length;
@@ -1205,17 +1204,15 @@ function inspectInputLimits(input: unknown, options: AdapterOptions): readonly F
               'EOM_ADAPTER_ITEM_LIMIT',
               'transport',
               `Adapter input exceeds the configured ${maxItems}-item limit.`,
-              { severity: 'error', pointer: current.pointer || '/' },
+              { severity: 'error', pointer: pointer || '/' },
             ),
           );
-          break;
+          active.delete(value);
+          return;
         }
-        for (let index = value.length - 1; index >= 0; index -= 1) {
-          pending.push({
-            value: value[index],
-            depth: current.depth + 1,
-            pointer: `${current.pointer}/${index}`,
-          });
+        for (let index = 0; index < value.length; index += 1) {
+          visit(value[index], depth + 1, `${pointer}/${index}`);
+          if (findings.length > 0) break;
         }
       } else if (isJsonObject(value)) {
         const entries = Object.entries(value);
@@ -1226,18 +1223,16 @@ function inspectInputLimits(input: unknown, options: AdapterOptions): readonly F
               'EOM_ADAPTER_ITEM_LIMIT',
               'transport',
               `Adapter input exceeds the configured ${maxItems}-item limit.`,
-              { severity: 'error', pointer: current.pointer || '/' },
+              { severity: 'error', pointer: pointer || '/' },
             ),
           );
-          break;
+          active.delete(value);
+          return;
         }
-        for (const [key, child] of entries.reverse()) {
-          bytes += new TextEncoder().encode(key).byteLength;
-          pending.push({
-            value: child,
-            depth: current.depth + 1,
-            pointer: `${current.pointer}/${escapePointer(key)}`,
-          });
+        for (const [key, child] of entries) {
+          bytes += encoder.encode(key).byteLength;
+          visit(child, depth + 1, `${pointer}/${escapePointer(key)}`);
+          if (findings.length > 0) break;
         }
       } else {
         findings.push(
@@ -1245,11 +1240,12 @@ function inspectInputLimits(input: unknown, options: AdapterOptions): readonly F
             'EOM_ADAPTER_INPUT_INVALID',
             'syntax',
             'Adapter input must contain only JSON-compatible objects and arrays.',
-            { severity: 'error', pointer: current.pointer || '/' },
+            { severity: 'error', pointer: pointer || '/' },
           ),
         );
-        break;
       }
+      active.delete(value);
+      if (findings.length > 0) return;
     }
     if (bytes > maxBytes) {
       findings.push(
@@ -1257,12 +1253,13 @@ function inspectInputLimits(input: unknown, options: AdapterOptions): readonly F
           'EOM_ADAPTER_BYTES_LIMIT',
           'transport',
           `Adapter input exceeds the configured ${maxBytes}-byte limit.`,
-          { severity: 'error', pointer: current.pointer || '/' },
+          { severity: 'error', pointer: pointer || '/' },
         ),
       );
-      break;
     }
-  }
+  };
+
+  visit(input, 0, '');
   return findings;
 }
 
