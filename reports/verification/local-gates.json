@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "status": "passed",
+  "aggregateGate": "pnpm verify",
+  "sourceCommit": "3f73304164c2bd9a950317bac9a8f35f88d29b20",
+  "sourceTree": "1c0bcffd5b34023b6d515f4d82e0dbd51f2a6a8a",
+  "lockfileSha256": "6189b85d4df6839209c12bd5db79fe042477277dc69d09eef7432add96ce7db1",
+  "aggregateScriptSha256": "c2493eb74a8d17361be1e38742e94b6ae55bf5533675395bfc997853b9e15062",
+  "formalSecurityScan": {
+    "version": 1,
+    "status": "pass",
+    "scanId": "75beb51b-8b00-4da6-8ca0-867474d910c5",
+    "targetCommit": "eabcab722ddc09d96b0af0cf04c8e837d51ee7a1",
+    "targetTree": "1e9822b90ba64d6f98800136555c78bdfdd9d235",
+    "unresolvedFindingCount": 0
+  },
+  "completedBeforeReceipt": [
+    {
+      "command": "pnpm format:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm prompts:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm build",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm schema:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm vocabulary:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm module:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm ownership:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm fixtures:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm conformance:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm actions:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm generate:drift",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm typecheck",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm test -- --runInBand",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm test:coverage",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm test:browser",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm lint",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm policy:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm verify:security",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm license:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm dependency:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm audit:prod",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm packages:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm conformance",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm conformance:profiles",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm verify:determinism",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm verify:examples",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm docs:build",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm docs:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm release:check",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm verify:release-reproducibility",
+      "status": "passed"
+    }
+  ],
+  "finalization": [
+    {
+      "command": "pnpm verify:record",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm generate:traceability",
+      "status": "executed-after-record"
+    },
+    {
+      "command": "pnpm traceability:check",
+      "status": "required-next"
+    }
+  ],
+  "policy": "This receipt is written only by the final segment of pnpm verify; traceability:check remains the final pass/fail decision."
+}
