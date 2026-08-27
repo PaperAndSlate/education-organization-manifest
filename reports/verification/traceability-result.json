@@ -2,14 +2,14 @@
   "version": 1,
   "status": "passed",
   "command": "pnpm traceability:check",
-  "validationMode": "release-bound",
+  "validationMode": "hosted-structure",
   "repositoryRevision": {
-    "commit": "6df650ee174903475c4b77570293da661aea0563",
-    "tree": "dd712d83fbddcba4733758e2c6c70b5de01c8e28"
+    "commit": "596dec206a0742c897a63dd4c141961f1774edba",
+    "tree": "e380cb9fdac0af3fa99b323f977e698be2db87e4"
   },
   "invocationRevision": {
-    "commit": "6df650ee174903475c4b77570293da661aea0563",
-    "tree": "dd712d83fbddcba4733758e2c6c70b5de01c8e28"
+    "commit": "596dec206a0742c897a63dd4c141961f1774edba",
+    "tree": "e380cb9fdac0af3fa99b323f977e698be2db87e4"
   },
   "evidencePolicy": "This generated result records the exact repository revision checked by pnpm traceability:check. A passed result is valid only for its recorded revision, source tree, and validation mode; report prose is not evidence.",
   "sourceRevision": {
