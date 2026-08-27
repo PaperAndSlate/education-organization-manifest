@@ -1,7 +1,7 @@
 # Security scan evidence
 
-Status: post-remediation formal scan pending. This file is intentionally not a zero-finding or
-release-clearance claim.
+Status: post-remediation formal scan passed for the exact reviewed RC3 candidate. This is local
+security evidence, not an external clearance or authorization to publish a stable release.
 
 The deterministic repository security gate can be run with:
 
@@ -15,12 +15,22 @@ fixtures remain test inputs and are not release data.
 
 ## Current post-remediation status
 
-Formal post-remediation status: pending
+Formal post-remediation status: pass
 
-The post-remediation Standard scan must run against the final clean RC3 source commit after all
-local tests pass. The result must identify the exact commit, coverage, scan ID, every finding and
-its disposition, and must contain no unresolved critical, high, medium, low, or plan-conformance
-security defect before RC3 is considered locally ready.
+- Scan ID: `75beb51b-8b00-4da6-8ca0-867474d910c5`
+- Exact scanned revision: `eabcab722ddc09d96b0af0cf04c8e837d51ee7a1`
+- Exact scanned tree: `1e9822b90ba64d6f98800136555c78bdfdd9d235`
+- Coverage: complete repository review
+- Reportable findings: 0
+- Unresolved critical/high/medium/low findings: 0
+- Canonical evidence: [`security-scan/scan-manifest.json`](security-scan/scan-manifest.json),
+  [`security-scan/findings.json`](security-scan/findings.json), and
+  [`security-scan/coverage.json`](security-scan/coverage.json)
+
+The aggregate verification receipt records the later clean source revision that carries this
+durable evidence and repeats the scan ID, target commit, and target tree. The scan identity is
+therefore exact without pretending that a commit can include a report whose contents depend on
+that same commit hash.
 
 This local report does not claim an external penetration test, hosted CodeQL result, production
 deployment review, IANA registration, legal approval, independent interoperability, or adoption.

@@ -690,15 +690,22 @@ async function isFormalSecurityReady(): Promise<boolean> {
   try {
     const report = await readJson(join(root, 'reports', 'security-scan.json'));
     const receipt = await readJson(join(root, 'reports', 'verification', 'local-gates.json'));
+    const recordedScan = isRecord(receipt) ? receipt.formalSecurityScan : undefined;
     return (
       isRecord(report) &&
       report.version === 1 &&
       report.status === 'pass' &&
       report.unresolvedFindingCount === 0 &&
       typeof report.targetCommit === 'string' &&
-      report.targetCommit === (isRecord(receipt) ? receipt.sourceCommit : undefined) &&
       typeof report.targetTree === 'string' &&
-      report.targetTree === (isRecord(receipt) ? receipt.sourceTree : undefined)
+      isRecord(recordedScan) &&
+      recordedScan.version === 1 &&
+      recordedScan.status === 'pass' &&
+      recordedScan.scanId === report.scanId &&
+      recordedScan.targetCommit === report.targetCommit &&
+      recordedScan.targetTree === report.targetTree &&
+      recordedScan.unresolvedFindingCount === 0 &&
+      git('rev-parse', `${report.targetCommit}^{tree}`) === report.targetTree
     );
   } catch {
     return false;

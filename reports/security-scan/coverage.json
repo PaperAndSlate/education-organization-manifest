@@ -1,0 +1,112 @@
+{
+  "completeness": "complete",
+  "deferred": [],
+  "documentType": "codex-security.coverage",
+  "excludePaths": [],
+  "explicitExclusions": [
+    {
+      "id": "iana-registration",
+      "label": "IANA registration",
+      "pattern": "IANA registration",
+      "reason": "External governance action; no local evidence can authorize completion.",
+      "status": "blocked"
+    },
+    {
+      "id": "independent-interoperability",
+      "label": "Independent interoperability pilots",
+      "pattern": "independent interoperability",
+      "reason": "Requires external implementers and independently controlled test evidence.",
+      "status": "blocked"
+    },
+    {
+      "id": "legal-governance-approval",
+      "label": "Legal and governance approval",
+      "pattern": "legal governance approval",
+      "reason": "Requires external approvers.",
+      "status": "blocked"
+    },
+    {
+      "id": "deployment-production-adoption",
+      "label": "Deployment and production adoption",
+      "pattern": "deployment production adoption",
+      "reason": "Operational/external gate outside this repository.",
+      "status": "blocked"
+    }
+  ],
+  "includePaths": [
+    "."
+  ],
+  "inventoryStrategy": "repository",
+  "mode": "repository",
+  "openQuestions": [],
+  "scanId": "75beb51b-8b00-4da6-8ca0-867474d910c5",
+  "schemaVersion": "1.0",
+  "surfaces": [
+    {
+      "disposition": "no_issue_found",
+      "id": "transport",
+      "label": "DNS-bound HTTPS transport, redirects, cache, and resource budgets",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "authority",
+      "label": "Root/delegated authority, scope, subject, time, revocation, and key allowlists",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "signatures",
+      "label": "Detached signatures, protected lifetime metadata, and verified key binding",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "generator",
+      "label": "Safe full/partial/organization/changed-files generation and atomic replacement",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "validator",
+      "label": "Publication graph validation, final-URL authority, and bounded local inputs",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "packages",
+      "label": "Compiled package exports, packed installation, and package-local assets",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "cli-browser",
+      "label": "CLI, browser engine, adapter, and conformance behavior",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "traceability",
+      "label": "194-file planning-pack mapping, executable evidence, and completion-claim controls",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "release",
+      "label": "RC3 release artifacts, provenance, reproducibility, and clean-tree enforcement",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "ci",
+      "label": "CI action pinning, dependency/security policy, licensing, and quality gates",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "privacy",
+      "label": "Privacy, retention, accessibility, and documentation surfaces",
+      "receiptRefs": []
+    }
+  ]
+}

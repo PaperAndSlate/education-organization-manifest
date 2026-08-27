@@ -1,0 +1,90 @@
+{
+  "documentType": "codex-security.scan-manifest",
+  "scan": {
+    "artifacts": [
+      {
+        "mediaType": "application/json",
+        "path": "findings.json",
+        "sha256": "9e11353fdeb28c068acbcffb76d51d6a9dc7caab5bc03ad68232bc359749b5a3"
+      },
+      {
+        "mediaType": "application/json",
+        "path": "coverage.json",
+        "sha256": "599a0f78fe87d5885a853d79c471b2674b83d68e06e150af6a06d90605fe1795"
+      }
+    ],
+    "completedAt": "2026-08-27T02:07:11.126249Z",
+    "coverageRef": "coverage.json",
+    "findingsRef": "findings.json",
+    "id": "75beb51b-8b00-4da6-8ca0-867474d910c5",
+    "preservedSources": {
+      "checkpoints/bbe72c95d63b578983b8ea3b79d5d265546c71746f5fff9f01536f4a999f7741.json": "bbe72c95d63b578983b8ea3b79d5d265546c71746f5fff9f01536f4a999f7741",
+      "checkpoints/fb761cd49b5057aed785aa310c18692b3f9bf3007de8091d7a7a1270d01a8cff.json": "5eb8785f6313c8b619773c13631a8880af6a7fe8806fd8dccf5bb978fd4d3a28"
+    },
+    "producer": {
+      "name": "codex-security-plugin",
+      "version": "0.1.22"
+    },
+    "scope": {
+      "artifactsReviewed": [
+        "Committed source revision eabcab722ddc09d96b0af0cf04c8e837d51ee7a1",
+        "release/v1.0.0-rc.3"
+      ],
+      "context": "Complete EOM v1.0.0-rc.3 candidate in the paperandslate/well-known repository.",
+      "excludePaths": [],
+      "includePaths": ["."],
+      "limitations": [
+        "External registration, legal/governance approval, independent pilots, deployment, and production adoption remain explicitly blocked."
+      ],
+      "runtimeStatus": "Local deterministic build, test, package, release, and security checks completed for the committed candidate.",
+      "summary": "Standard prompt-only security review of the complete committed RC3 candidate after remediation.",
+      "validationMode": "standard prompt-only review"
+    },
+    "sealedAt": "2026-08-27T02:07:11.126249Z",
+    "startedAt": "2026-08-27T02:03:25.625191Z",
+    "status": "completed",
+    "target": {
+      "displayName": "well-known",
+      "kind": "git_revision",
+      "revision": "eabcab722ddc09d96b0af0cf04c8e837d51ee7a1",
+      "targetId": "target_sha256_7c22d80eb592711a4a29f0237589139f73e10edfd120e36f9c6ca5a99a48f88d"
+    },
+    "threatModel": {
+      "assets": [
+        "Published EOM manifests and resource graphs",
+        "Delegation and signature authority decisions",
+        "Generated publication and release artifacts",
+        "Consumer validator and browser-facing behavior",
+        "Traceability and release provenance"
+      ],
+      "assumptions": [
+        "TLS certificate hostname verification remains required for HTTPS transport.",
+        "Cryptographic verification uses trusted configured public keys.",
+        "External governance and operational gates are not represented as locally completed."
+      ],
+      "attackerCapabilities": [
+        "Control or vary DNS answers and redirect destinations.",
+        "Provide malformed, oversized, cyclic, stale, or symlinked local inputs and cache entries.",
+        "Attempt unsafe partial output replacement or marker reuse.",
+        "Modify delegation, subject, key, timestamp, signature, vocabulary, and manifest metadata.",
+        "Exploit package boundaries, browser inputs, or stale completion evidence."
+      ],
+      "securityObjectives": [
+        "Prevent SSRF, DNS rebinding, unauthorized graph traversal, and scope bypass.",
+        "Fail closed on malformed, expired, revoked, mismatched, or unbounded inputs.",
+        "Prevent destructive or cross-project generated-output replacement.",
+        "Bind signatures, release evidence, and completion claims to verifiable inputs and revisions."
+      ],
+      "summary": "The public publication graph, generator, validator, signing flow, package distribution, and release evidence must remain safe when inputs, DNS, redirects, cache contents, signatures, manifests, and generated output are attacker-influenced.",
+      "trustBoundaries": [
+        "Authoring filesystem to generator",
+        "DNS/network transport to fetched publication graph",
+        "Declared resource metadata to observed final URL",
+        "Delegated authority to signed resource",
+        "Workspace source revision to packed/released artifacts",
+        "Browser or CLI user input to validator and report output"
+      ]
+    }
+  },
+  "schemaVersion": "1.0"
+}

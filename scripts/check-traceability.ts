@@ -63,7 +63,7 @@ for (const [index, value] of manifestFiles.entries()) {
 const ids = new Set<string>();
 const planPaths = new Set<string>();
 const scripts = isRecord(packageJson.scripts) ? packageJson.scripts : {};
-if (verification) checkVerificationReceipt(verification, scripts);
+if (verification) await checkVerificationReceipt(verification, scripts);
 for (const [index, value] of planEntries.entries()) {
   if (!isRecord(value)) {
     failures.push(`traceability plan entry ${index} is not an object`);
@@ -254,7 +254,10 @@ async function checkSourcePath(path: string, owner: string): Promise<void> {
   failures.push(`${owner}: missing source path ${path}`);
 }
 
-function checkVerificationReceipt(value: unknown, scripts: Record<string, unknown>): void {
+async function checkVerificationReceipt(
+  value: unknown,
+  scripts: Record<string, unknown>,
+): Promise<void> {
   if (!isRecord(value)) {
     failures.push('aggregate verification receipt must be a JSON object');
     return;
@@ -293,6 +296,37 @@ function checkVerificationReceipt(value: unknown, scripts: Record<string, unknow
     failures.push('aggregate verification receipt has no completed gate list');
   if (!Array.isArray(value.finalization) || value.finalization.length !== 3)
     failures.push('aggregate verification receipt has an incomplete finalization contract');
+  const formalSecurityScan = value.formalSecurityScan;
+  if (!isRecord(formalSecurityScan)) {
+    failures.push('aggregate verification receipt does not record the formal security scan');
+  } else {
+    if (
+      formalSecurityScan.version !== 1 ||
+      formalSecurityScan.status !== 'pass' ||
+      typeof formalSecurityScan.scanId !== 'string' ||
+      typeof formalSecurityScan.targetCommit !== 'string' ||
+      typeof formalSecurityScan.targetTree !== 'string' ||
+      formalSecurityScan.unresolvedFindingCount !== 0
+    ) {
+      failures.push('aggregate verification receipt has an invalid formal security scan record');
+    } else if (
+      git('rev-parse', `${formalSecurityScan.targetCommit}^{tree}`) !==
+      formalSecurityScan.targetTree
+    ) {
+      failures.push('aggregate verification receipt formal security scan target is inconsistent');
+    }
+    const securityReport = await readOptionalJson(join(root, 'reports', 'security-scan.json'));
+    if (!isRecord(securityReport)) {
+      failures.push('formal security scan report is missing');
+    } else if (
+      securityReport.scanId !== formalSecurityScan.scanId ||
+      securityReport.targetCommit !== formalSecurityScan.targetCommit ||
+      securityReport.targetTree !== formalSecurityScan.targetTree ||
+      securityReport.unresolvedFindingCount !== 0
+    ) {
+      failures.push('formal security scan report does not match the aggregate receipt');
+    }
+  }
 }
 
 function checkEvidenceCommand(

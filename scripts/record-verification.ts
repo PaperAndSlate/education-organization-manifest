@@ -41,6 +41,7 @@ if (dirtySourcePaths.length > 0) {
   );
 }
 
+const formalSecurityScan = await readFormalSecurityScan();
 const commands = verifyScript.split(' && ');
 const receipt = {
   version: 1,
@@ -50,6 +51,7 @@ const receipt = {
   sourceTree,
   lockfileSha256: sha256(await readFile(lockfilePath)),
   aggregateScriptSha256: sha256(Buffer.from(verifyScript, 'utf8')),
+  formalSecurityScan,
   completedBeforeReceipt: commands.slice(0, -3).map((command) => ({ command, status: 'passed' })),
   finalization: [
     { command: 'pnpm verify:record', status: 'passed' },
@@ -92,8 +94,55 @@ function git(...args: string[]): string {
   return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).replace(/(?:\r?\n)+$/u, '');
 }
 
-function isCommit(value: string): boolean {
-  return /^[a-f0-9]{40}$/u.test(value);
+function isCommit(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{40}$/u.test(value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+async function readFormalSecurityScan(): Promise<{
+  readonly version: 1;
+  readonly status: 'pass';
+  readonly scanId: string;
+  readonly targetCommit: string;
+  readonly targetTree: string;
+  readonly unresolvedFindingCount: 0;
+}> {
+  let value: unknown;
+  try {
+    value = JSON.parse(
+      await readFile(join(root, 'reports', 'security-scan.json'), 'utf8'),
+    ) as unknown;
+  } catch {
+    throw new Error('Aggregate verification requires reports/security-scan.json.');
+  }
+  if (!isRecord(value)) throw new Error('reports/security-scan.json must contain an object.');
+  const scanId = value.scanId;
+  const targetCommit = typeof value.targetCommit === 'string' ? value.targetCommit : undefined;
+  const targetTree = typeof value.targetTree === 'string' ? value.targetTree : undefined;
+  if (
+    value.version !== 1 ||
+    value.status !== 'pass' ||
+    typeof scanId !== 'string' ||
+    !isCommit(targetCommit) ||
+    !isCommit(targetTree) ||
+    value.unresolvedFindingCount !== 0
+  ) {
+    throw new Error('reports/security-scan.json is not a passed, zero-finding formal scan report.');
+  }
+  if (git('rev-parse', `${targetCommit}^{tree}`) !== targetTree) {
+    throw new Error('Formal security scan targetCommit and targetTree do not agree.');
+  }
+  return {
+    version: 1,
+    status: 'pass',
+    scanId,
+    targetCommit,
+    targetTree,
+    unresolvedFindingCount: 0,
+  };
 }
 
 function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
