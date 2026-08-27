@@ -269,7 +269,9 @@ function assertWellFormedUnicode(value: unknown, source?: string): void {
 }
 
 export function isJsonObject(value: unknown): value is JsonObject {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const prototype = Reflect.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }
 
 export function stableJsonValue(value: JsonValue): JsonValue {
@@ -279,7 +281,9 @@ export function stableJsonValue(value: JsonValue): JsonValue {
   if (!isJsonObject(value)) {
     return value;
   }
-  const sorted: JsonObject = {};
+  // Use a null-prototype object so JSON data keys such as "__proto__" remain
+  // data properties instead of invoking Object.prototype's legacy setter.
+  const sorted: JsonObject = Object.create(null) as JsonObject;
   for (const key of Object.keys(value).sort(compareJsonKeys)) {
     const child = value[key];
     if (child !== undefined) {

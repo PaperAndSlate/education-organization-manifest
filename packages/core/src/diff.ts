@@ -63,7 +63,12 @@ function compare(
   if (isJsonObject(before) && isJsonObject(after)) {
     const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
     for (const key of [...keys].sort(compareStrings)) {
-      compare(before[key], after[key], `${path}/${escapePointer(key)}`, changes);
+      const beforeHasKey = Object.hasOwn(before, key);
+      const afterHasKey = Object.hasOwn(after, key);
+      const childPath = `${path}/${escapePointer(key)}`;
+      if (!beforeHasKey) compare(undefined, after[key], childPath, changes);
+      else if (!afterHasKey) compare(before[key], undefined, childPath, changes);
+      else compare(before[key], after[key], childPath, changes);
     }
     return;
   }
@@ -132,7 +137,7 @@ function asJsonValue(value: unknown): JsonValue {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (Array.isArray(value)) return value.map(asJsonValue);
   if (isJsonObject(value)) {
-    const result: Record<string, JsonValue> = {};
+    const result: Record<string, JsonValue> = Object.create(null) as Record<string, JsonValue>;
     for (const [key, child] of Object.entries(value)) result[key] = asJsonValue(child);
     return result;
   }

@@ -162,6 +162,12 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
   }
   const now = options.now ? new Date(options.now) : new Date();
   if (Number.isNaN(now.getTime())) findings.push('The verification time is invalid.');
+  appendSchemaErrors(signature, 'signature', findings);
+  if (Object.keys(keySet).some((field) => field !== 'keys')) {
+    appendSchemaErrors(keySet, 'key-set', findings);
+  } else {
+    appendKeySetFragmentErrors(keySet, findings);
+  }
   for (const [field, expected] of [
     ['$schema', 'https://paperandslate.org/schemas/eom/1.0/signature.schema.json'],
     ['specification', 'https://paperandslate.org/spec/eom/1.0'],
@@ -189,7 +195,8 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
   )
     findings.push('The signature expiry time is invalid.');
   if (
-    signature.expires &&
+    signature.expires !== undefined &&
+    typeof signature.expires === 'string' &&
     validDate(signature.expires) &&
     Date.parse(signature.expires) < now.getTime()
   )
@@ -244,6 +251,16 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
     if (key.alg !== undefined && key.alg !== 'EdDSA')
       findings.push('The signing key does not allow EdDSA.');
     if (
+      key.validFrom !== undefined &&
+      key.validUntil !== undefined &&
+      typeof key.validFrom === 'string' &&
+      typeof key.validUntil === 'string' &&
+      validDate(key.validFrom) &&
+      validDate(key.validUntil) &&
+      Date.parse(key.validFrom) >= Date.parse(key.validUntil)
+    )
+      findings.push('The signing key validity interval is invalid.');
+    if (
       key.publicKeyJwk.kty !== 'OKP' ||
       key.publicKeyJwk.crv !== 'Ed25519' ||
       typeof key.publicKeyJwk.x !== 'string' ||
@@ -251,6 +268,13 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
     )
       findings.push('The supplied key is not a public Ed25519 key.');
   }
+  if (
+    keySet.expires !== undefined &&
+    typeof keySet.expires === 'string' &&
+    validDate(keySet.expires) &&
+    Date.parse(keySet.expires) < now.getTime()
+  )
+    findings.push('The verification key set has expired.');
   let payload;
   try {
     payload = canonicalJson(value);
@@ -294,6 +318,13 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
       if (decoded.kid !== signature.keyId)
         findings.push('The protected header key id does not match the signature record.');
       const metadata = isPlainObject(decoded.eom) ? decoded.eom : undefined;
+      if (
+        metadata &&
+        Object.keys(metadata).some(
+          (field) => !['version', 'canonicalization', 'createdAt', 'expires'].includes(field),
+        )
+      )
+        findings.push('The protected EOM lifetime object contains an unknown property.');
       const metadataExpiresPresent = metadata !== undefined && 'expires' in metadata;
       const sidecarExpiresPresent = 'expires' in signature;
       if (
@@ -402,8 +433,8 @@ function compareValue(before, after, path, changes, depth = 0) {
     const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
     for (const key of [...keys].sort()) {
       const childPath = `${path}/${escapePointer(key)}`;
-      if (!(key in before)) changes.push({ kind: 'added', path: childPath });
-      else if (!(key in after)) changes.push({ kind: 'removed', path: childPath });
+      if (!Object.hasOwn(before, key)) changes.push({ kind: 'added', path: childPath });
+      else if (!Object.hasOwn(after, key)) changes.push({ kind: 'removed', path: childPath });
       else compareValue(before[key], after[key], childPath, changes, depth + 1);
     }
     return;
@@ -466,8 +497,99 @@ function browserFinding(code, category, message, pointer, severity = 'error') {
   return { code, category, severity, message, pointer };
 }
 
+function appendSchemaErrors(value, type, findings) {
+  const file = TYPE_TO_SCHEMA[type];
+  const schema = schemas.find((item) => item.$id === `${SCHEMA_BASE}${file}`);
+  const validator = schema ? validatorsById[schema.$id] : undefined;
+  if (!validator) {
+    findings.push(`The bundled ${type} schema is unavailable.`);
+    return;
+  }
+  if (validator(value)) return;
+  for (const error of validator.errors ?? []) {
+    let pointer = error.instancePath || '/';
+    if (error.keyword === 'required' && typeof error.params?.missingProperty === 'string') {
+      pointer = `${pointer}/${escapePointer(error.params.missingProperty)}`;
+    }
+    findings.push(`${pointer} ${error.keyword}${error.message ? `: ${error.message}` : ''}`);
+  }
+}
+
+function appendKeySetFragmentErrors(keySet, findings) {
+  if (!Array.isArray(keySet.keys)) {
+    findings.push('The verification key set must contain a keys array.');
+    return;
+  }
+  const allowedFields = new Set([
+    'kid',
+    'kty',
+    'use',
+    'alg',
+    'purpose',
+    'owner',
+    'scope',
+    'status',
+    'publicKeyJwk',
+    'validFrom',
+    'validUntil',
+    'revokedAt',
+    'successor',
+    'provenance',
+  ]);
+  const seen = new Set();
+  for (const [index, key] of keySet.keys.entries()) {
+    if (!isPlainObject(key)) {
+      findings.push(`/keys/${index} must be an object.`);
+      continue;
+    }
+    for (const field of Object.keys(key)) {
+      if (!allowedFields.has(field))
+        findings.push(`/keys/${index}/${escapePointer(field)} is unsupported.`);
+    }
+    if (typeof key.kid !== 'string' || !isAbsoluteUri(key.kid))
+      findings.push(`/keys/${index}/kid must be an absolute URI.`);
+    if (typeof key.kid === 'string') {
+      if (seen.has(key.kid)) findings.push(`/keys/${index}/kid must be unique.`);
+      seen.add(key.kid);
+    }
+    if (key.kty !== 'OKP') findings.push(`/keys/${index}/kty must be OKP.`);
+    if (key.use !== 'sig') findings.push(`/keys/${index}/use must be sig.`);
+    if (key.alg !== 'EdDSA') findings.push(`/keys/${index}/alg must be EdDSA.`);
+    if (!['active', 'revoked', 'expired'].includes(key.status))
+      findings.push(`/keys/${index}/status has an unsupported value.`);
+    if (!isPlainObject(key.publicKeyJwk)) {
+      findings.push(`/keys/${index}/publicKeyJwk must be an object.`);
+    } else {
+      for (const field of Object.keys(key.publicKeyJwk)) {
+        if (!['kty', 'crv', 'x'].includes(field))
+          findings.push(`/keys/${index}/publicKeyJwk/${escapePointer(field)} is unsupported.`);
+      }
+      if (key.publicKeyJwk.kty !== 'OKP')
+        findings.push(`/keys/${index}/publicKeyJwk/kty must be OKP.`);
+      if (key.publicKeyJwk.crv !== 'Ed25519')
+        findings.push(`/keys/${index}/publicKeyJwk/crv must be Ed25519.`);
+      if (typeof key.publicKeyJwk.x !== 'string' || !/^[A-Za-z0-9_-]+$/u.test(key.publicKeyJwk.x))
+        findings.push(`/keys/${index}/publicKeyJwk/x must be base64url text.`);
+    }
+    for (const field of ['validFrom', 'validUntil', 'revokedAt']) {
+      if (key[field] !== undefined && (typeof key[field] !== 'string' || !validDate(key[field])))
+        findings.push(`/keys/${index}/${field} must be a valid date-time.`);
+    }
+    if (
+      typeof key.validFrom === 'string' &&
+      typeof key.validUntil === 'string' &&
+      validDate(key.validFrom) &&
+      validDate(key.validUntil) &&
+      Date.parse(key.validFrom) >= Date.parse(key.validUntil)
+    )
+      findings.push(`/keys/${index}/validUntil must be later than validFrom.`);
+  }
+}
+
 function isPlainObject(value) {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }
 
 function assertJsonSafe(value, depth, visited = new WeakSet()) {
@@ -557,5 +679,9 @@ function isHttpsUri(value) {
 }
 
 function validDate(value) {
-  return typeof value === 'string' && !Number.isNaN(Date.parse(value));
+  return (
+    typeof value === 'string' &&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/u.test(value) &&
+    !Number.isNaN(Date.parse(value))
+  );
 }

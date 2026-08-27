@@ -23,6 +23,14 @@ export interface AdapterOptions {
   readonly sourceId?: string;
   readonly observedAt?: string;
   readonly targetResourceId?: string;
+  /** Maximum UTF-8 input size accepted by a direct adapter call. */
+  readonly maxBytes?: number;
+  /** Maximum object/array nesting accepted by a direct adapter call. */
+  readonly maxDepth?: number;
+  /** Maximum total array items accepted by a direct adapter call. */
+  readonly maxItems?: number;
+  /** Maximum object/array nodes accepted by a direct adapter call. */
+  readonly maxNodes?: number;
 }
 
 export interface AdapterLossReport {
@@ -205,6 +213,15 @@ const definitions: readonly AdapterDefinition[] = [
 const prohibitedInputKey =
   /(?:student|pupil|enrollment|grade|attendance|discipline|iep|504|sen|medical|safeguard|accommodation|password|secret|token|credential|private.?key|api.?key)/iu;
 
+const DEFAULT_ADAPTER_MAX_BYTES = 8 * 1024 * 1024;
+const DEFAULT_ADAPTER_MAX_DEPTH = 64;
+const DEFAULT_ADAPTER_MAX_ITEMS = 10_000;
+const DEFAULT_ADAPTER_MAX_NODES = 50_000;
+const HARD_ADAPTER_MAX_BYTES = 32 * 1024 * 1024;
+const HARD_ADAPTER_MAX_DEPTH = 128;
+const HARD_ADAPTER_MAX_ITEMS = 100_000;
+const HARD_ADAPTER_MAX_NODES = 200_000;
+
 export function adapterDefinitions(): readonly AdapterDefinition[] {
   return definitions;
 }
@@ -220,6 +237,8 @@ export function mapInput(
 ): AdapterResult {
   const definitionValue = definitions.find((item) => item.format === format);
   if (!definitionValue) return rejectedResult(format, 'Unknown adapter format.');
+  const limitFindings = inspectInputLimits(input, options);
+  if (limitFindings.length > 0) return limitedResult(definitionValue, limitFindings);
   const privacyFindings = inspectInputPrivacy(input);
   if (privacyFindings.length > 0) {
     return {
@@ -255,6 +274,8 @@ export function mapInput(
 
 export function schemaOrgToEom(input: unknown, options: AdapterOptions = {}): AdapterResult {
   const definitionValue = definitions[0]!;
+  const limitFindings = inspectInputLimits(input, options);
+  if (limitFindings.length > 0) return limitedResult(definitionValue, limitFindings);
   const source = firstRecord(input);
   if (!source)
     return rejectedResult(
@@ -310,21 +331,27 @@ export function schemaOrgToEom(input: unknown, options: AdapterOptions = {}): Ad
   });
 }
 
-export function exportInput(format: AdapterFormat, input: unknown): AdapterExportResult {
+export function exportInput(
+  format: AdapterFormat,
+  input: unknown,
+  options: AdapterOptions = {},
+): AdapterExportResult {
   switch (format) {
     case 'schema-org-jsonld':
-      return eomToSchemaOrg(input);
+      return eomToSchemaOrg(input, options);
     case 'ceds-json':
-      return eomToCeds(input);
+      return eomToCeds(input, options);
     case 'icalendar':
-      return eomToCalendar(input);
+      return eomToCalendar(input, options);
     default:
       return rejectedExport(format, 'This preview adapter is import-only.');
   }
 }
 
-export function eomToSchemaOrg(input: unknown): AdapterExportResult {
+export function eomToSchemaOrg(input: unknown, options: AdapterOptions = {}): AdapterExportResult {
   const definitionValue = definitions.find((item) => item.format === 'schema-org-jsonld')!;
+  const limitFindings = inspectInputLimits(input, options);
+  if (limitFindings.length > 0) return limitedExportResult(definitionValue, limitFindings);
   const source = firstRecord(input);
   if (!source)
     return rejectedExport('schema-org-jsonld', 'EOM export input must contain an object.');
@@ -383,8 +410,10 @@ export function eomToSchemaOrg(input: unknown): AdapterExportResult {
   };
 }
 
-export function eomToCeds(input: unknown): AdapterExportResult {
+export function eomToCeds(input: unknown, options: AdapterOptions = {}): AdapterExportResult {
   const definitionValue = definitions.find((item) => item.format === 'ceds-json')!;
+  const limitFindings = inspectInputLimits(input, options);
+  if (limitFindings.length > 0) return limitedExportResult(definitionValue, limitFindings);
   const source = firstRecord(input);
   if (!source) return rejectedExport('ceds-json', 'EOM export input must contain an object.');
   const externalIdentifier = identifierValue(source);
@@ -417,14 +446,30 @@ export function eomToCeds(input: unknown): AdapterExportResult {
   };
 }
 
-export function eomToCalendar(input: unknown): AdapterExportResult {
+export function eomToCalendar(input: unknown, options: AdapterOptions = {}): AdapterExportResult {
   const definitionValue = definitions.find((item) => item.format === 'icalendar')!;
+  const limitFindings = inspectInputLimits(input, options);
+  if (limitFindings.length > 0) return limitedExportResult(definitionValue, limitFindings);
   const source = firstRecord(input);
   if (!source) return rejectedExport('icalendar', 'EOM export input must contain an object.');
   const uid = firstString(source, ['id']);
   const summary = stringFromLocalized(source.name) ?? stringFromLocalized(source.title);
   if (!uid || !summary)
     return rejectedExport('icalendar', 'EOM event export requires id and name/title.');
+  const description = stringFromLocalized(source.description);
+  const start = firstString(source, ['start']);
+  const end = firstString(source, ['end']);
+  const location = firstString(source, ['location']);
+  const url = firstString(source, ['url', 'canonical']);
+  const textValues = [uid, summary, description, location, url].filter(
+    (value): value is string => value !== undefined,
+  );
+  if (textValues.some(hasIcsControlCharacters)) {
+    return rejectedExport(
+      'icalendar',
+      'EOM event export contains unsupported control characters in text metadata.',
+    );
+  }
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -433,11 +478,6 @@ export function eomToCalendar(input: unknown): AdapterExportResult {
     `UID:${escapeIcs(uid)}`,
     `SUMMARY:${escapeIcs(summary)}`,
   ];
-  const description = stringFromLocalized(source.description);
-  const start = firstString(source, ['start']);
-  const end = firstString(source, ['end']);
-  const location = firstString(source, ['location']);
-  const url = firstString(source, ['url', 'canonical']);
   if (description) lines.push(`DESCRIPTION:${escapeIcs(description)}`);
   if (start) lines.push(`DTSTART:${toIcsDate(start)}`);
   if (end) lines.push(`DTEND:${toIcsDate(end)}`);
@@ -463,6 +503,23 @@ export function eomToCalendar(input: unknown): AdapterExportResult {
     findings: [],
     publication: 'preview-only',
   };
+}
+
+function hasIcsControlCharacters(value: string): boolean {
+  for (const character of value) {
+    const codePoint = character.codePointAt(0);
+    if (
+      codePoint !== undefined &&
+      (codePoint <= 8 ||
+        codePoint === 11 ||
+        codePoint === 12 ||
+        (codePoint >= 14 && codePoint <= 31) ||
+        codePoint === 127)
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function oneRosterToEom(input: unknown, options: AdapterOptions = {}): AdapterResult {
@@ -1039,6 +1096,188 @@ function rejectedExport(format: AdapterFormat, message: string): AdapterExportRe
   };
 }
 
+function limitedResult(
+  definitionValue: AdapterDefinition,
+  findings: readonly Finding[],
+): AdapterResult {
+  return {
+    adapterId: definitionValue.id,
+    version: '1.0',
+    claims: [],
+    lossReport: loss([], [], ['adapter input exceeded a safety limit'], []),
+    findings,
+    quarantined: true,
+    publication: 'candidate-only',
+  };
+}
+
+function limitedExportResult(
+  definitionValue: AdapterDefinition,
+  findings: readonly Finding[],
+): AdapterExportResult {
+  return {
+    adapterId: definitionValue.id,
+    version: '1.0',
+    document: {},
+    lossReport: loss([], [], ['adapter input exceeded a safety limit'], []),
+    findings,
+    publication: 'preview-only',
+  };
+}
+
+function inspectInputLimits(input: unknown, options: AdapterOptions): readonly Finding[] {
+  const maxBytes = boundedAdapterLimit(
+    options.maxBytes,
+    DEFAULT_ADAPTER_MAX_BYTES,
+    HARD_ADAPTER_MAX_BYTES,
+  );
+  const maxDepth = boundedAdapterLimit(
+    options.maxDepth,
+    DEFAULT_ADAPTER_MAX_DEPTH,
+    HARD_ADAPTER_MAX_DEPTH,
+    true,
+  );
+  const maxItems = boundedAdapterLimit(
+    options.maxItems,
+    DEFAULT_ADAPTER_MAX_ITEMS,
+    HARD_ADAPTER_MAX_ITEMS,
+    true,
+  );
+  const maxNodes = boundedAdapterLimit(
+    options.maxNodes,
+    DEFAULT_ADAPTER_MAX_NODES,
+    HARD_ADAPTER_MAX_NODES,
+  );
+  const findings: Finding[] = [];
+  const pending: Array<{ value: unknown; depth: number; pointer: string }> = [
+    { value: input, depth: 0, pointer: '' },
+  ];
+  const visited = new WeakSet<object>();
+  let bytes = 0;
+  let items = 0;
+  let nodes = 0;
+  while (pending.length > 0) {
+    const current = pending.pop()!;
+    if (current.depth > maxDepth) {
+      findings.push(
+        finding(
+          'EOM_ADAPTER_DEPTH_LIMIT',
+          'transport',
+          `Adapter input exceeds the configured ${maxDepth}-level depth limit.`,
+          { severity: 'error', pointer: current.pointer || '/' },
+        ),
+      );
+      break;
+    }
+    const value = current.value;
+    if (typeof value === 'string') {
+      bytes += new TextEncoder().encode(value).byteLength;
+    } else if (value !== null && typeof value === 'object') {
+      if (visited.has(value)) {
+        findings.push(
+          finding(
+            'EOM_ADAPTER_CYCLE',
+            'syntax',
+            'Adapter input must not contain cyclic object references.',
+            { severity: 'error', pointer: current.pointer || '/' },
+          ),
+        );
+        break;
+      }
+      visited.add(value);
+      nodes += 1;
+      if (nodes > maxNodes) {
+        findings.push(
+          finding(
+            'EOM_ADAPTER_NODE_LIMIT',
+            'transport',
+            `Adapter input exceeds the configured ${maxNodes}-node limit.`,
+            { severity: 'error', pointer: current.pointer || '/' },
+          ),
+        );
+        break;
+      }
+      if (Array.isArray(value)) {
+        items += value.length;
+        if (items > maxItems) {
+          findings.push(
+            finding(
+              'EOM_ADAPTER_ITEM_LIMIT',
+              'transport',
+              `Adapter input exceeds the configured ${maxItems}-item limit.`,
+              { severity: 'error', pointer: current.pointer || '/' },
+            ),
+          );
+          break;
+        }
+        for (let index = value.length - 1; index >= 0; index -= 1) {
+          pending.push({
+            value: value[index],
+            depth: current.depth + 1,
+            pointer: `${current.pointer}/${index}`,
+          });
+        }
+      } else if (isJsonObject(value)) {
+        const entries = Object.entries(value);
+        items += entries.length;
+        if (items > maxItems) {
+          findings.push(
+            finding(
+              'EOM_ADAPTER_ITEM_LIMIT',
+              'transport',
+              `Adapter input exceeds the configured ${maxItems}-item limit.`,
+              { severity: 'error', pointer: current.pointer || '/' },
+            ),
+          );
+          break;
+        }
+        for (const [key, child] of entries.reverse()) {
+          bytes += new TextEncoder().encode(key).byteLength;
+          pending.push({
+            value: child,
+            depth: current.depth + 1,
+            pointer: `${current.pointer}/${escapePointer(key)}`,
+          });
+        }
+      } else {
+        findings.push(
+          finding(
+            'EOM_ADAPTER_INPUT_INVALID',
+            'syntax',
+            'Adapter input must contain only JSON-compatible objects and arrays.',
+            { severity: 'error', pointer: current.pointer || '/' },
+          ),
+        );
+        break;
+      }
+    }
+    if (bytes > maxBytes) {
+      findings.push(
+        finding(
+          'EOM_ADAPTER_BYTES_LIMIT',
+          'transport',
+          `Adapter input exceeds the configured ${maxBytes}-byte limit.`,
+          { severity: 'error', pointer: current.pointer || '/' },
+        ),
+      );
+      break;
+    }
+  }
+  return findings;
+}
+
+function boundedAdapterLimit(
+  value: number | undefined,
+  fallback: number,
+  maximum: number,
+  allowZero = false,
+): number {
+  if (!Number.isFinite(value) || value === undefined || (allowZero ? value < 0 : value <= 0)) {
+    return fallback;
+  }
+  return Math.min(Math.floor(value), maximum);
+}
+
 function addString(target: Record<string, unknown>, key: string, value: unknown): void {
   if (typeof value === 'string' && value.length > 0) target[key] = value;
   if (isJsonObject(value)) target[key] = value;
@@ -1092,7 +1331,7 @@ function escapeIcs(value: string): string {
     .replaceAll('\\', '\\\\')
     .replaceAll(';', '\\;')
     .replaceAll(',', '\\,')
-    .replaceAll('\n', '\\n');
+    .replace(/\r\n|\r|\n/gu, '\\n');
 }
 
 function toIcsDate(value: string): string {
@@ -1129,7 +1368,7 @@ function asJsonValue(value: unknown): JsonValue {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (Array.isArray(value)) return value.map(asJsonValue);
   if (isJsonObject(value)) {
-    const result: JsonObject = {};
+    const result: JsonObject = Object.create(null) as JsonObject;
     for (const [key, child] of Object.entries(value)) result[key] = asJsonValue(child);
     return result;
   }
@@ -1137,7 +1376,7 @@ function asJsonValue(value: unknown): JsonValue {
 }
 
 function asJsonObject(value: Record<string, unknown>): JsonObject {
-  const result: JsonObject = {};
+  const result: JsonObject = Object.create(null) as JsonObject;
   for (const [key, child] of Object.entries(value)) result[key] = asJsonValue(child);
   return result;
 }

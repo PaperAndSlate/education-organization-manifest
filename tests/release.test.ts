@@ -59,6 +59,7 @@ describe('EOM release evidence', () => {
         manifest.artifacts.some((artifact) => isRecord(artifact) && artifact.path === required),
       ).toBe(true);
     }
+    expect(existsSync(join(releaseRoot, 'v1.0.0-rc.3', 'reports', 'local'))).toBe(false);
   });
 
   it('keeps provenance and public-status language honest', () => {

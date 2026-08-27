@@ -782,8 +782,9 @@ function validateSignatureRecord(
     );
     valid = false;
   }
+  const rawExpires = valueAt(signature, ['expires']);
   const expires = stringAt(signature, ['expires']);
-  if (expires !== undefined && !isDateTime(expires)) {
+  if (rawExpires !== undefined && (expires === undefined || !isDateTime(expires))) {
     findings.push(
       finding(
         'EOM_SIGNATURE_PROFILE_INVALID',
@@ -1202,8 +1203,13 @@ function isPast(value: unknown, path: readonly string[], now: Date): boolean {
 }
 
 function isResourceCurrent(value: unknown, now: Date): boolean {
-  const expires = stringAt(value, ['expires']);
-  return expires === undefined || Date.parse(expires) >= now.getTime();
+  const rawExpires = valueAt(value, ['expires']);
+  if (rawExpires === undefined) return true;
+  return (
+    typeof rawExpires === 'string' &&
+    isDateTime(rawExpires) &&
+    Date.parse(rawExpires) >= now.getTime()
+  );
 }
 
 function digestBytes(value: Uint8Array): string {

@@ -449,6 +449,16 @@ async function copyCandidateArtifacts(
     const sourcePath = join(root, source);
     if (!(await exists(sourcePath))) continue;
     const targetPath = join(candidateDirectory, target);
+    if (source === 'reports') {
+      for (const file of await walk(sourcePath)) {
+        const relativePath = relative(sourcePath, file).replaceAll('\\', '/');
+        if (relativePath === 'local' || relativePath.startsWith('local/')) continue;
+        const destination = join(targetPath, relativePath);
+        await mkdir(dirname(destination), { recursive: true });
+        await cp(file, destination);
+      }
+      continue;
+    }
     await mkdir(dirname(targetPath), { recursive: true });
     await cp(sourcePath, targetPath, { recursive: true });
   }
@@ -560,6 +570,7 @@ function isArchivePath(path: string): boolean {
   if (parts.some((part) => ['.git', 'dist', 'node_modules', 'generated', 'build'].includes(part)))
     return false;
   if (normalized.startsWith('docs/goals/')) return false;
+  if (normalized.startsWith('reports/local/')) return false;
   if (normalized.startsWith('release/')) return false;
   return extname(normalized) !== '.log';
 }

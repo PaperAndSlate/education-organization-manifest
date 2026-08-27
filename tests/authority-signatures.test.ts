@@ -229,6 +229,22 @@ describe('EOM optional JCS and detached Ed25519 signatures', () => {
     ).toBe(true);
   });
 
+  it('rejects a signed resource with malformed expiry metadata', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = {
+      ...(fixture('fixtures/signatures/unsigned-resource.json') as Record<string, unknown>),
+      expires: 123,
+    };
+    const keyId = 'https://ecme-high.example/eom/keys#malformed-expiry';
+    const signature = signDetached(resource, { privateKey, keyId });
+    const keySet = { keys: [publicKeyRecord(publicKey, { keyId })] };
+    const result = verifyDetached(resource, signature, keySet, {
+      now: new Date('2027-08-01T00:00:00Z'),
+    });
+    expect(result.resourceExpiryValid).toBe(false);
+    expect(result.overall).toBe(false);
+  });
+
   it('signs, validates, and verifies a detached resource, including WebCrypto verification', async () => {
     const { privateKey, publicKey } = generateKeyPairSync('ed25519');
     const resource = fixture('fixtures/signatures/unsigned-resource.json');

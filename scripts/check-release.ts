@@ -66,6 +66,9 @@ if (!isRecord(manifest) || !Array.isArray(manifest.artifacts)) {
     if (artifactPaths.has(artifact.path))
       failures.push(`duplicate release artifact: ${artifact.path}`);
     artifactPaths.add(artifact.path);
+    if (artifact.path.startsWith(`v${expectedRelease}/reports/local/`)) {
+      failures.push('release candidate must not include ignored local conformance reports.');
+    }
     const path = join(releaseRoot, artifact.path);
     if (!isWithin(releaseRoot, path)) {
       failures.push(`artifact escapes release root: ${artifact.path}`);

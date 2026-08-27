@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
-import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, open, readdir, rename, stat, unlink, writeFile } from 'node:fs/promises';
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
@@ -653,7 +653,10 @@ async function readCachedResponse(
     if (Date.now() - information.mtimeMs > maxAge) return undefined;
     const maxCacheBytes = Math.min(16 * 1024 * 1024, Math.max(maxBytes * 4, 1024 * 1024));
     if (information.size > maxCacheBytes) return undefined;
-    const parsed = parseStrictJson(await readFile(path, 'utf8'), path);
+    const parsed = parseStrictJson(
+      new TextDecoder('utf-8', { fatal: true }).decode(await readBoundedFile(path, maxCacheBytes)),
+      path,
+    );
     if (!isRecord(parsed)) return undefined;
     const value = parsed as Partial<FetchResponse> & { cacheIntegrity?: unknown };
     const headers = value.headers;
@@ -690,6 +693,28 @@ async function readCachedResponse(
     return cachedResponse as FetchResponse;
   } catch {
     return undefined;
+  }
+}
+
+async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> {
+  const handle = await open(path, 'r');
+  try {
+    const information = await handle.stat();
+    if (!information.isFile() || information.size > maxBytes)
+      throw new Error('cache entry too large');
+    const chunks: Buffer[] = [];
+    let total = 0;
+    for (;;) {
+      const chunk = Buffer.allocUnsafe(Math.min(64 * 1024, maxBytes - total + 1));
+      const { bytesRead } = await handle.read(chunk, 0, chunk.length, null);
+      if (bytesRead === 0) break;
+      total += bytesRead;
+      chunks.push(chunk.subarray(0, bytesRead));
+      if (total > maxBytes) throw new Error('cache entry too large');
+    }
+    return Buffer.concat(chunks, total);
+  } finally {
+    await handle.close();
   }
 }
 

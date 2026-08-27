@@ -107,6 +107,50 @@ test('rejects detached signature lifetime removal in the browser engine', async 
   }, browserPayload);
   expect(result.overall).toBe(false);
   expect(result.findings.join(' ')).toContain('lifetime');
+
+  const unknownFieldResult = await page.evaluate(async ({ resource, signature, keySet }) => {
+    const playground = (window as unknown as { __EOM_PLAYGROUND__: unknown })
+      .__EOM_PLAYGROUND__ as {
+      verifyDetachedSignature: (
+        value: unknown,
+        detachedSignature: unknown,
+        detachedKeySet: unknown,
+        options?: { now?: string },
+      ) => Promise<{ overall: boolean; findings: readonly string[] }>;
+    };
+    return playground.verifyDetachedSignature(
+      resource,
+      { ...signature, unsupportedField: true },
+      keySet,
+      { now: '2027-01-02T00:00:00Z' },
+    );
+  }, browserPayload);
+  expect(unknownFieldResult.overall).toBe(false);
+  expect(unknownFieldResult.findings.join(' ')).toContain('additionalProperties');
+
+  const incompleteKeySet = structuredClone(keySet) as {
+    keys: Array<Record<string, unknown>>;
+  };
+  delete incompleteKeySet.keys[0]?.status;
+  const missingStatusResult = await page.evaluate(
+    async ({ resource, signature, keySet }) => {
+      const playground = (window as unknown as { __EOM_PLAYGROUND__: unknown })
+        .__EOM_PLAYGROUND__ as {
+        verifyDetachedSignature: (
+          value: unknown,
+          detachedSignature: unknown,
+          detachedKeySet: unknown,
+          options?: { now?: string },
+        ) => Promise<{ overall: boolean; findings: readonly string[] }>;
+      };
+      return playground.verifyDetachedSignature(resource, signature, keySet, {
+        now: '2027-01-02T00:00:00Z',
+      });
+    },
+    { ...browserPayload, keySet: incompleteKeySet },
+  );
+  expect(missingStatusResult.overall).toBe(false);
+  expect(missingStatusResult.findings.join(' ')).toContain('status');
 });
 
 test('keeps starter and uploaded content as text and rejects cross-origin service paths', async ({

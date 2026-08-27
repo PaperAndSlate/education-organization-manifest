@@ -114,7 +114,7 @@ function schemaForType(type: string): string {
 }
 
 function cloneObject(value: JsonObject): JsonObject {
-  const result: JsonObject = {};
+  const result: JsonObject = Object.create(null) as JsonObject;
   for (const [key, child] of Object.entries(value)) result[key] = cloneValue(child);
   return result;
 }

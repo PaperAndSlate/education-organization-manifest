@@ -172,4 +172,32 @@ describe('EOM interoperability mappings', () => {
       }).document,
     );
   });
+
+  it('encodes iCalendar line breaks and bounds direct adapter inputs', () => {
+    const calendar = eomToCalendar({
+      type: 'event',
+      id: 'https://ecme-high.example/events/open-house',
+      name: 'Open\r\nHouse',
+    });
+    expect(calendar.findings).toHaveLength(0);
+    expect(calendar.document).toContain('SUMMARY:Open\\nHouse');
+    expect(calendar.document).not.toContain('SUMMARY:Open\r');
+
+    const rejected = eomToCalendar({
+      type: 'event',
+      id: 'https://ecme-high.example/events/open-house',
+      name: 'Open\u0000House',
+    });
+    expect(rejected.findings[0]?.code).toBe('EOM_ADAPTER_EXPORT_UNAVAILABLE');
+
+    const limited = mapInput('json-feed-rss-atom', 'oversized', { maxBytes: 4 });
+    expect(limited.quarantined).toBe(true);
+    expect(limited.findings[0]?.code).toBe('EOM_ADAPTER_BYTES_LIMIT');
+
+    const deep: Record<string, unknown> = { value: 'leaf' };
+    const nested = { child: { child: deep } };
+    const depthLimited = mapInput('json-feed-rss-atom', nested, { maxDepth: 1 });
+    expect(depthLimited.quarantined).toBe(true);
+    expect(depthLimited.findings[0]?.code).toBe('EOM_ADAPTER_DEPTH_LIMIT');
+  });
 });

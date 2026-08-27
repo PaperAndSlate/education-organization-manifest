@@ -163,6 +163,82 @@ describe('EOM structural and semantic validation', () => {
     });
   });
 
+  it('does not trust declarations from a resource rejected by final-url authority', async () => {
+    const manifest = fixture('fixtures/valid/core/minimal-school-manifest.json') as Record<
+      string,
+      unknown
+    >;
+    manifest.capabilities = [];
+    manifest.resources = [
+      {
+        id: 'https://ecme-high.example/eom/resource/organization',
+        type: 'organization-profile',
+        href: 'https://ecme-high.example/eom/organization.json',
+        mediaType: 'application/json',
+        version: '1.0',
+        subjects: ['https://ecme-high.example/id/school'],
+      },
+    ];
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    let resourceFetches = 0;
+    const transport = {
+      fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+      fetchEom: (url: string): Promise<FetchResponse> => {
+        resourceFetches += 1;
+        return Promise.resolve({
+          requestedUrl: url,
+          finalUrl: 'https://evil.example/eom/organization.json',
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+          contentType: 'application/json',
+          body: JSON.stringify({
+            type: 'organization-profile',
+            id: 'https://evil.example/id/organization',
+            name: 'Unauthorized resource',
+            organizationType: 'secondary-school',
+            resources: [
+              {
+                id: 'https://evil.example/eom/resource/nested',
+                type: 'news-feed',
+                href: 'https://public.example/eom/nested.json',
+                mediaType: 'application/json',
+                version: '1.0',
+              },
+            ],
+          }),
+          redirects: [
+            {
+              from: url,
+              to: 'https://evil.example/eom/organization.json',
+              status: 302,
+              crossOrigin: true,
+            },
+          ],
+          observedAt: '2027-08-01T00:00:00.000Z',
+        });
+      },
+    };
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      transport,
+      now: new Date('2027-08-01T00:00:00Z'),
+    });
+    expect(result.valid).toBe(false);
+    expect(resourceFetches).toBe(1);
+    expect(result.fetches.map((item) => item.declaredUrl)).not.toContain(
+      'https://public.example/eom/nested.json',
+    );
+  });
+
   it('rejects a cross-origin redirect while discovering the root manifest', async () => {
     const manifest = fixture('fixtures/valid/core/minimal-school-manifest.json');
     const rootResponse: ManifestFetchResponse = {

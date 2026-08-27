@@ -1,5 +1,15 @@
-import { access, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
-import { existsSync, readFileSync } from 'node:fs';
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  open,
+  readFile,
+  readdir,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
+import { closeSync, existsSync, fstatSync, openSync, readSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { homedir, tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -1934,12 +1944,7 @@ function applyUserOptions(program: Command): void {
     if (explicit) throw new CliInputError(`User CLI configuration was not found: ${explicit}`);
     return;
   }
-  const bytes = readFileSync(path);
-  if (bytes.byteLength > MAX_CLI_INPUT_BYTES) {
-    throw new CliInputError(
-      `User CLI configuration exceeds the ${MAX_CLI_INPUT_BYTES}-byte limit.`,
-    );
-  }
+  const bytes = readBoundedFileSync(path, MAX_CLI_INPUT_BYTES, 'User CLI configuration');
   const parsed = parseStrictJson(decodeUtf8(bytes, path), path);
   if (!isJsonObject(parsed))
     throw new CliInputError('User CLI configuration must be a JSON object.');
@@ -2124,11 +2129,54 @@ async function readStdin(): Promise<Buffer> {
 
 async function readBoundedFile(file: string): Promise<Buffer> {
   const path = resolve(file);
-  const bytes = await readFile(path);
-  if (bytes.byteLength > MAX_CLI_INPUT_BYTES) {
-    throw new CliInputError(`${file} exceeds the ${MAX_CLI_INPUT_BYTES}-byte CLI input limit.`);
+  const handle = await open(path, 'r');
+  try {
+    const information = await handle.stat();
+    if (!information.isFile()) throw new CliInputError(`${file} must be a regular file.`);
+    if (information.size > MAX_CLI_INPUT_BYTES) {
+      throw new CliInputError(`${file} exceeds the ${MAX_CLI_INPUT_BYTES}-byte CLI input limit.`);
+    }
+    const chunks: Buffer[] = [];
+    let total = 0;
+    for (;;) {
+      const chunk = Buffer.allocUnsafe(Math.min(64 * 1024, MAX_CLI_INPUT_BYTES - total + 1));
+      const { bytesRead } = await handle.read(chunk, 0, chunk.length, null);
+      if (bytesRead === 0) break;
+      total += bytesRead;
+      chunks.push(chunk.subarray(0, bytesRead));
+      if (total > MAX_CLI_INPUT_BYTES) {
+        throw new CliInputError(`${file} exceeds the ${MAX_CLI_INPUT_BYTES}-byte CLI input limit.`);
+      }
+    }
+    return Buffer.concat(chunks, total);
+  } finally {
+    await handle.close();
   }
-  return bytes;
+}
+
+function readBoundedFileSync(path: string, limit: number, label: string): Buffer {
+  const descriptor = openSync(path, 'r');
+  try {
+    const information = fstatSync(descriptor);
+    if (!information.isFile()) throw new CliInputError(`${label} must be a regular file.`);
+    if (information.size > limit) {
+      throw new CliInputError(`${label} exceeds the ${limit}-byte CLI input limit.`);
+    }
+    const chunks: Buffer[] = [];
+    let total = 0;
+    for (;;) {
+      const chunk = Buffer.allocUnsafe(Math.min(64 * 1024, limit - total + 1));
+      const bytesRead = readSync(descriptor, chunk, 0, chunk.length, null);
+      if (bytesRead === 0) break;
+      total += bytesRead;
+      chunks.push(chunk.subarray(0, bytesRead));
+      if (total > limit)
+        throw new CliInputError(`${label} exceeds the ${limit}-byte CLI input limit.`);
+    }
+    return Buffer.concat(chunks, total);
+  } finally {
+    closeSync(descriptor);
+  }
 }
 
 async function readTextInput(file: string): Promise<string> {

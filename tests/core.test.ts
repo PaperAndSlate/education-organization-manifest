@@ -5,6 +5,7 @@ import {
   isPrivateOrLocalHostname,
   normalizeLocalized,
   parseStrictJson,
+  stringifyCanonical,
   StrictJsonError,
 } from '@paperandslate/eom-core';
 
@@ -30,6 +31,12 @@ describe('EOM core primitives', () => {
     expect(() => parseStrictJson(nested, 'deep.json')).toThrow(
       /nesting exceeds the 128-level safety limit/iu,
     );
+  });
+
+  it('preserves prototype-looking JSON keys during canonical output', () => {
+    const parsed = parseStrictJson('{"__proto__":{"polluted":true},"safe":1}');
+    expect(stringifyCanonical(parsed)).toContain('"__proto__"');
+    expect(Object.prototype).not.toHaveProperty('polluted');
   });
 
   it('normalizes localized values and keeps direction metadata', () => {

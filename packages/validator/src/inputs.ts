@@ -337,6 +337,7 @@ export async function validatePublicationUrl(
             redirects,
             cached: cachedResponse,
           });
+          let authorityAccepted = true;
           const authorityUrls = [
             next.href,
             finalUrl,
@@ -350,6 +351,7 @@ export async function validatePublicationUrl(
               options.now === undefined ? {} : { now: options.now },
             );
             if (!authority.accepted) {
+              authorityAccepted = false;
               findings.push(
                 ...authority.findings.map((item) => ({
                   ...item,
@@ -368,7 +370,10 @@ export async function validatePublicationUrl(
               resource: item.resource ?? finalUrl,
             })),
           );
-          if (isJsonObject(document)) {
+          // A resource that failed any declared/final/redirect authority check
+          // is still reported and validated as data, but its declarations are
+          // not trusted as a new graph frontier.
+          if (authorityAccepted && isJsonObject(document)) {
             enqueueResources(document, next.depth + 1, queue, queued, maxDepth, findings);
           }
         } catch (error) {

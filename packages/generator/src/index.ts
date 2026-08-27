@@ -4,6 +4,7 @@ import {
   lstat,
   mkdir,
   mkdtemp,
+  open,
   readFile,
   readdir,
   realpath,
@@ -435,16 +436,12 @@ export async function readAuthoringValue(
   file: string,
   maxBytes = MAX_SOURCE_BYTES,
 ): Promise<unknown> {
-  const fileStat = await stat(file);
-  if (fileStat.size > maxBytes) {
-    throw new GeneratorInputError('Authoring input exceeds its configured size limit.', [
-      generatorFinding('EOM_GENERATOR_INPUT_TOO_LARGE', 'Authoring input is too large.', file),
-    ]);
-  }
+  const bytes = await readBoundedFile(file, maxBytes);
   let text: string;
   try {
-    text = new TextDecoder('utf-8', { fatal: true }).decode(await readFile(file));
+    text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
   } catch (error) {
+    if (error instanceof GeneratorInputError) throw error;
     throw new GeneratorInputError('Authoring input is not valid UTF-8.', [
       generatorFinding(
         'EOM_GENERATOR_UTF8_INVALID',
@@ -1067,7 +1064,12 @@ async function readCachedAuthoringValue(
     const cacheStat = await stat(cachePath);
     const maxCacheBytes = Math.min(16 * 1024 * 1024, Math.max(maxBytes * 4, 1024 * 1024));
     if (cacheStat.size > maxCacheBytes) throw new Error('The source cache entry is too large.');
-    const cached = parseStrictJson(await readFile(cachePath, 'utf8'), cachePath);
+    const cached = parseStrictJson(
+      new TextDecoder('utf-8', { fatal: true }).decode(
+        await readBoundedFile(cachePath, maxCacheBytes),
+      ),
+      cachePath,
+    );
     if (
       isJsonObject(cached) &&
       cached.cacheVersion === '1' &&
@@ -1114,6 +1116,44 @@ async function readCachedAuthoringValue(
     // Source parsing remains authoritative when an optional cache cannot be written.
   }
   return value;
+}
+
+async function readBoundedFile(file: string, maxBytes: number): Promise<Buffer> {
+  const handle = await open(file, 'r');
+  try {
+    const information = await handle.stat();
+    if (!information.isFile()) {
+      throw new GeneratorInputError('Authoring input must be a regular file.', [
+        generatorFinding(
+          'EOM_GENERATOR_INPUT_INVALID',
+          'Authoring input must be a regular file.',
+          file,
+        ),
+      ]);
+    }
+    if (information.size > maxBytes) {
+      throw new GeneratorInputError('Authoring input exceeds its configured size limit.', [
+        generatorFinding('EOM_GENERATOR_INPUT_TOO_LARGE', 'Authoring input is too large.', file),
+      ]);
+    }
+    const chunks: Buffer[] = [];
+    let total = 0;
+    for (;;) {
+      const chunk = Buffer.allocUnsafe(Math.min(64 * 1024, maxBytes - total + 1));
+      const { bytesRead } = await handle.read(chunk, 0, chunk.length, null);
+      if (bytesRead === 0) break;
+      total += bytesRead;
+      chunks.push(chunk.subarray(0, bytesRead));
+      if (total > maxBytes) {
+        throw new GeneratorInputError('Authoring input exceeds its configured size limit.', [
+          generatorFinding('EOM_GENERATOR_INPUT_TOO_LARGE', 'Authoring input is too large.', file),
+        ]);
+      }
+    }
+    return Buffer.concat(chunks, total);
+  } finally {
+    await handle.close();
+  }
 }
 
 async function assertSafeOutputRoot(
@@ -2592,50 +2632,108 @@ async function replacePublicationPair(
       'Publication and build-report directories must share a protected parent for atomic replacement.',
     );
   }
-  // Validate both targets immediately before moving either one.  This keeps a
-  // build report and its publication as one ownership-checked transaction.
-  await assertReplaceableDirectory(publicationTarget, publicationTarget, expected);
-  await assertReplaceableDirectory(buildTarget, buildTarget, expected);
-  const transaction = await mkdtemp(join(parent, '.eom-replace-'));
-  const publicationBackup = join(transaction, 'publication.previous');
-  const buildBackup = join(transaction, 'build.previous');
+  // Keep the parent identity stable for the entire replacement window. The
+  // lock also prevents concurrent generator processes from interleaving their
+  // marker checks and renames. A stale lock fails closed and is safe to remove
+  // only after confirming no generator process is still running.
+  await assertNoSymlinkEscape(parent);
+  const expectedParent = await realpath(parent);
+  const lockPath = join(parent, '.eom-replace.lock');
+  let lockAcquired = false;
+  try {
+    await mkdir(lockPath);
+    lockAcquired = true;
+  } catch (error) {
+    throw unsafeOutputError(
+      parent,
+      error instanceof Error && 'code' in error && error.code === 'EEXIST'
+        ? 'Another generator replacement is already in progress.'
+        : 'The generator could not acquire an exclusive replacement lock.',
+    );
+  }
+  let transaction: string | undefined;
   let movedPublication = false;
   let movedBuild = false;
   let installedPublication = false;
   let installedBuild = false;
   try {
+    await assertStableReplacementParent(parent, expectedParent);
+    // Validate both targets immediately before moving either one. This keeps a
+    // build report and its publication as one ownership-checked transaction.
+    await assertReplaceableDirectory(publicationTarget, publicationTarget, expected);
+    await assertReplaceableDirectory(buildTarget, buildTarget, expected);
+    transaction = await mkdtemp(join(parent, '.eom-replace-'));
+    const publicationBackup = join(transaction, 'publication.previous');
+    const buildBackup = join(transaction, 'build.previous');
     try {
+      await assertStableReplacementParent(parent, expectedParent);
       await rename(publicationTarget, publicationBackup);
       movedPublication = true;
     } catch (error) {
       if (!isNotFound(error)) throw error;
     }
     try {
+      await assertStableReplacementParent(parent, expectedParent);
       await rename(buildTarget, buildBackup);
       movedBuild = true;
     } catch (error) {
       if (!isNotFound(error)) throw error;
     }
+    await assertStableReplacementParent(parent, expectedParent);
     await rename(buildTemporary, buildTarget);
     installedBuild = true;
+    await assertStableReplacementParent(parent, expectedParent);
     await rename(publicationTemporary, publicationTarget);
     installedPublication = true;
+    await assertStableReplacementParent(parent, expectedParent);
     await rm(transaction, { recursive: true, force: true });
   } catch (error) {
-    if (installedPublication) {
-      await rm(publicationTarget, { recursive: true, force: true }).catch(() => undefined);
+    if (transaction && (await isStableReplacementParent(parent, expectedParent))) {
+      const publicationBackup = join(transaction, 'publication.previous');
+      const buildBackup = join(transaction, 'build.previous');
+      if (installedPublication) {
+        await rm(publicationTarget, { recursive: true, force: true }).catch(() => undefined);
+      }
+      if (installedBuild) {
+        await rm(buildTarget, { recursive: true, force: true }).catch(() => undefined);
+      }
+      if (movedBuild) {
+        await rename(buildBackup, buildTarget).catch(() => undefined);
+      }
+      if (movedPublication) {
+        await rename(publicationBackup, publicationTarget).catch(() => undefined);
+      }
+      await rm(transaction, { recursive: true, force: true }).catch(() => undefined);
     }
-    if (installedBuild) {
-      await rm(buildTarget, { recursive: true, force: true }).catch(() => undefined);
-    }
-    if (movedBuild) {
-      await rename(buildBackup, buildTarget).catch(() => undefined);
-    }
-    if (movedPublication) {
-      await rename(publicationBackup, publicationTarget).catch(() => undefined);
-    }
-    await rm(transaction, { recursive: true, force: true }).catch(() => undefined);
     throw error;
+  } finally {
+    if (lockAcquired && (await isStableReplacementParent(parent, expectedParent))) {
+      await rm(lockPath, { recursive: true, force: true }).catch(() => undefined);
+    }
+  }
+}
+
+async function assertStableReplacementParent(
+  parent: string,
+  expectedRealPath: string,
+): Promise<void> {
+  await assertNoSymlinkEscape(parent);
+  if (normalizeFsPath(await realpath(parent)) !== normalizeFsPath(expectedRealPath)) {
+    throw unsafeOutputError(
+      parent,
+      'The generator replacement parent changed during the atomic publication transaction.',
+    );
+  }
+}
+
+async function isStableReplacementParent(
+  parent: string,
+  expectedRealPath: string,
+): Promise<boolean> {
+  try {
+    return normalizeFsPath(await realpath(parent)) === normalizeFsPath(expectedRealPath);
+  } catch {
+    return false;
   }
 }
 
