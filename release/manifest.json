@@ -3,17 +3,17 @@
     {
       "bytes": 5507,
       "path": "build-provenance.json",
-      "sha256": "78702d3ce7d3b4081e6cd4e636c39e8a513e5d6eb54b4d252cf2b218a9c3e73f"
+      "sha256": "42e6f7db2ad7f3ccd1fcc28528f9836d9bf1f4076e0eb878a2a8c6fdfbd63041"
     },
     {
       "bytes": 31746,
       "path": "checksums.sha256",
-      "sha256": "a14909064458b89ddefa999ff1d519a879354020ce0795be432e2fe888b63858"
+      "sha256": "9c4307318951f49dd08ece79b5469e2e30f23969ac832b1db693c253a7d530f2"
     },
     {
-      "bytes": 827068,
+      "bytes": 827110,
       "path": "educational-organization-manifest-1.0.0-rc.3.tar.gz",
-      "sha256": "24d5e92eaf56c90b3d103e3d4367a4a5cb169a1c04ee4c2f4f70c580d653d53b"
+      "sha256": "034ef3660eedd7a4eae0e706df6abd505751189ae8fb96f374cae86e9e13ee96"
     },
     {
       "bytes": 54336,
@@ -893,7 +893,7 @@
     {
       "bytes": 1366,
       "path": "v1.0.0-rc.3/reports/verification/traceability-result.json",
-      "sha256": "1867f6ad678d0503475f02941471ec1c194aa90551ebc6b8a6b3c2d98da4c095"
+      "sha256": "243c7f154200bdf13fdc1b6bf8456b5f9fb13c67da7e324ff6f133440792074d"
     },
     {
       "bytes": 133729,

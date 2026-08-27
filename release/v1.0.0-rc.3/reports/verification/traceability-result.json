@@ -4,12 +4,12 @@
   "command": "pnpm traceability:check",
   "validationMode": "release-bound",
   "repositoryRevision": {
-    "commit": "6df650ee174903475c4b77570293da661aea0563",
-    "tree": "dd712d83fbddcba4733758e2c6c70b5de01c8e28"
+    "commit": "b8032f378752f5f5375da253605b809dd77fdbbb",
+    "tree": "493b2a677be8f8c7e38aedb0d9afb78b69a53d41"
   },
   "invocationRevision": {
-    "commit": "6df650ee174903475c4b77570293da661aea0563",
-    "tree": "dd712d83fbddcba4733758e2c6c70b5de01c8e28"
+    "commit": "b8032f378752f5f5375da253605b809dd77fdbbb",
+    "tree": "493b2a677be8f8c7e38aedb0d9afb78b69a53d41"
   },
   "evidencePolicy": "This generated result records the exact repository revision checked by pnpm traceability:check. A passed result is valid only for its recorded revision, source tree, and validation mode; report prose is not evidence.",
   "sourceRevision": {
