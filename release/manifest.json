@@ -3,17 +3,17 @@
     {
       "bytes": 5507,
       "path": "build-provenance.json",
-      "sha256": "c33b7d8c43656eb4f407f4e14845c082c6d6666e1acc6b9a49ac018e1890fe59"
+      "sha256": "ad2322da0a0ceb9b26495ca664194e11994939ee6d6ca22df2a63e017d99e48f"
     },
     {
       "bytes": 30894,
       "path": "checksums.sha256",
-      "sha256": "63e7e539865b46b7fe7681f22f32ac534014aab1fdcd0c35225b31c454407407"
+      "sha256": "070d2393ae27fb19a23001a17a30f24baaa39e663b750225e5fcf1e7dfdf92c7"
     },
     {
-      "bytes": 773301,
+      "bytes": 773534,
       "path": "educational-organization-manifest-1.0.0-rc.3.tar.gz",
-      "sha256": "7910d9d29c92d62a35ece077f5ec42c6fd1da8db03375f45b17c97ea030e9bb2"
+      "sha256": "d1fa31feb64710fe4070978f253432e78967476f14ce51272ad16186ad3f6879"
     },
     {
       "bytes": 50138,
@@ -43,7 +43,7 @@
     {
       "bytes": 9930,
       "path": "package-pack-manifest.json",
-      "sha256": "87cb660292dc1d9a464a2d87f59ef9a0278903ec077d310c68b5c684f120ec12"
+      "sha256": "dbf66558aa6b7a60a0a5026654dee83712b658d2e61f830d177c4c863a6b78fb"
     },
     {
       "bytes": 11271,
@@ -123,12 +123,12 @@
     {
       "bytes": 94236,
       "path": "sbom.cdx.json",
-      "sha256": "2b0372e05eed85612056581a010aecfda30520394ad26a4357b0f45171895ce0"
+      "sha256": "a23f394d5d9f513bd7406d4700bf5275ba14032f12a692fbb09926bd9f071309"
     },
     {
       "bytes": 381,
       "path": "v1.0.0-rc.3/STATUS.md",
-      "sha256": "311ba4f515e4ae36b80e17498abdd75b04a41e1a5a33c65d2dcd5b42f2d3870e"
+      "sha256": "550910f2bdec855ac18446c6261cca811ea077fbdc05dff8e33769e352857893"
     },
     {
       "bytes": 997,
@@ -826,39 +826,39 @@
       "sha256": "7c2ad571c881011d9a0d99d99bc6d447a8ad9d00379d9f7ec3452a3c6d5c20f3"
     },
     {
-      "bytes": 1578,
+      "bytes": 1521,
       "path": "v1.0.0-rc.3/reports/security-scan.json",
-      "sha256": "0b848f0ae171701c77d92cbc731004fe5813d30d900813cc9f2f457b2c2ba3ed"
+      "sha256": "75b796f66a041711f2fb49d8577cec9668889f6c1747ae51f08f2eac2e98df0b"
     },
     {
-      "bytes": 1669,
+      "bytes": 1581,
       "path": "v1.0.0-rc.3/reports/security-scan.md",
-      "sha256": "629638491ba72769873269fca0a4eb2c3f1425afa05595070eea64ce40c7491b"
+      "sha256": "dd0ef90955bb4cafe3f7b839669e6682b19176fb381c88eae5b4bb9d70c11d95"
     },
     {
       "bytes": 3466,
       "path": "v1.0.0-rc.3/reports/security-scan/coverage.json",
-      "sha256": "599a0f78fe87d5885a853d79c471b2674b83d68e06e150af6a06d90605fe1795"
+      "sha256": "2d2f492f523483a7cfb569904181f5b961cf18cee48961ffe054015ff2fe0f2d"
     },
     {
       "bytes": 144,
       "path": "v1.0.0-rc.3/reports/security-scan/findings.json",
-      "sha256": "9e11353fdeb28c068acbcffb76d51d6a9dc7caab5bc03ad68232bc359749b5a3"
+      "sha256": "bb4e68bb603c5f0007c3afd692320733678e602a084cc1137f6d7defeb827411"
     },
     {
-      "bytes": 2577,
+      "bytes": 5470,
       "path": "v1.0.0-rc.3/reports/security-scan/report.md",
-      "sha256": "b4f79dbeb5c7be4fd2a858c8a6b59af60f3f18bc7a80df609e7dacd02e5cca32"
+      "sha256": "a72843433eb0767777b78c52779b9ed3799959677fe870d2a13c7ed2aaa6234b"
     },
     {
-      "bytes": 4375,
+      "bytes": 4603,
       "path": "v1.0.0-rc.3/reports/security-scan/scan-manifest.json",
-      "sha256": "6dedf16e4c0e689d610fc7e703071f9d408c4860b005d93e02343688d2c91b00"
+      "sha256": "40c1be04d0342e1a0c034680c0713067d0ea9980116c2e95dd6f51fa338b381b"
     },
     {
       "bytes": 3452,
       "path": "v1.0.0-rc.3/reports/verification/local-gates.json",
-      "sha256": "4833398f0e29d1948031955dfbaf6ddb19d71233a14f962a2a173f71af9499d8"
+      "sha256": "67b369c28a03181da1f2444f1ebf170debe92fe14084e65bce92f6474b58eb5c"
     },
     {
       "bytes": 133729,
@@ -1345,8 +1345,8 @@
   "protocolStatus": "working-draft",
   "release": "1.0.0-rc.3",
   "schemaBase": "https://paperandslate.org/schemas/eom/1.0/",
-  "sourceCommit": "88d1283acff8e00d4598531d82442545a5342558",
+  "sourceCommit": "ec48db9f3789810dec4a69c97ec7e73f823cce21",
   "sourceDateEpoch": 0,
-  "sourceTree": "ff865e8cb260e8318d87a9a4178f92b0727b1eb6",
+  "sourceTree": "0b985b5cb9e79f40a8b808b78b8f7d8369c4771c",
   "specification": "https://paperandslate.org/spec/eom/1.0"
 }

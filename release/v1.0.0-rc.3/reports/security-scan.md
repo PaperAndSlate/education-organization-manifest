@@ -17,9 +17,9 @@ fixtures remain test inputs and are not release data.
 
 Formal post-remediation status: pass
 
-- Scan ID: `75beb51b-8b00-4da6-8ca0-867474d910c5`
-- Exact scanned revision: `eabcab722ddc09d96b0af0cf04c8e837d51ee7a1`
-- Exact scanned tree: `1e9822b90ba64d6f98800136555c78bdfdd9d235`
+- Scan ID: `f8f6779b-8e79-4816-ba42-78970b521815`
+- Exact scanned revision: `8d013d9b61e6a3f3c2e16ec34af7beb7a23c2a38`
+- Exact scanned tree: `20a50470f8d14b49972504c17b3e82c0f6478c68`
 - Coverage: complete repository review
 - Reportable findings: 0
 - Unresolved critical/high/medium/low findings: 0
@@ -27,9 +27,8 @@ Formal post-remediation status: pass
   [`security-scan/findings.json`](security-scan/findings.json), and
   [`security-scan/coverage.json`](security-scan/coverage.json)
 
-The aggregate verification receipt records the later clean source revision that carries this
-durable evidence and repeats the scan ID, target commit, and target tree. The scan identity is
-therefore exact without pretending that a commit can include a report whose contents depend on
+The aggregate verification receipt repeats this scan ID, target commit, and target tree. The scan
+identity is exact without pretending that a commit can include a report whose contents depend on
 that same commit hash.
 
 This local report does not claim an external penetration test, hosted CodeQL result, production
