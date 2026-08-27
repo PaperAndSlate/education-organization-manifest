@@ -3,17 +3,17 @@
     {
       "bytes": 5507,
       "path": "build-provenance.json",
-      "sha256": "c2570e78ddb2691a2c4bb8afcd3dd278a7a85af3f4f56d42e7586b160b14be61"
+      "sha256": "c33b7d8c43656eb4f407f4e14845c082c6d6666e1acc6b9a49ac018e1890fe59"
     },
     {
       "bytes": 30894,
       "path": "checksums.sha256",
-      "sha256": "ba601ad1231ebb1173d351a7c9c870357199b66b47bc1db378e8084334654f93"
+      "sha256": "63e7e539865b46b7fe7681f22f32ac534014aab1fdcd0c35225b31c454407407"
     },
     {
-      "bytes": 773332,
+      "bytes": 773301,
       "path": "educational-organization-manifest-1.0.0-rc.3.tar.gz",
-      "sha256": "22d3077df1e74c54c3af82c1ea3c9c74517fb8c6453a9673f16cf9f4449c3b30"
+      "sha256": "7910d9d29c92d62a35ece077f5ec42c6fd1da8db03375f45b17c97ea030e9bb2"
     },
     {
       "bytes": 50138,
@@ -43,7 +43,7 @@
     {
       "bytes": 9930,
       "path": "package-pack-manifest.json",
-      "sha256": "225aaef53004a54c0380c89311d05ec3f5a811c35c21a900fad0d58eed0a0b0d"
+      "sha256": "87cb660292dc1d9a464a2d87f59ef9a0278903ec077d310c68b5c684f120ec12"
     },
     {
       "bytes": 11271,
@@ -123,12 +123,12 @@
     {
       "bytes": 94236,
       "path": "sbom.cdx.json",
-      "sha256": "471cfdc519ee74c3c84bc346566574cb6cb210be83549353380257edbc0ce260"
+      "sha256": "2b0372e05eed85612056581a010aecfda30520394ad26a4357b0f45171895ce0"
     },
     {
       "bytes": 381,
       "path": "v1.0.0-rc.3/STATUS.md",
-      "sha256": "8cde1cc467217f5442f9d55381d776ec7feb02a003bb3282d2cd93309db9be00"
+      "sha256": "311ba4f515e4ae36b80e17498abdd75b04a41e1a5a33c65d2dcd5b42f2d3870e"
     },
     {
       "bytes": 997,
@@ -858,7 +858,7 @@
     {
       "bytes": 3452,
       "path": "v1.0.0-rc.3/reports/verification/local-gates.json",
-      "sha256": "7f5ab634540a57aef93cc0c164e2f9933ec82639906c76292232ab897e7d1642"
+      "sha256": "4833398f0e29d1948031955dfbaf6ddb19d71233a14f962a2a173f71af9499d8"
     },
     {
       "bytes": 133729,
@@ -1345,8 +1345,8 @@
   "protocolStatus": "working-draft",
   "release": "1.0.0-rc.3",
   "schemaBase": "https://paperandslate.org/schemas/eom/1.0/",
-  "sourceCommit": "d7f697210ed57c5bf4e78ebf85d1b5ea4c6f16d1",
+  "sourceCommit": "88d1283acff8e00d4598531d82442545a5342558",
   "sourceDateEpoch": 0,
-  "sourceTree": "429ab56853df8d2d8d6dde793468e2f46a36dede",
+  "sourceTree": "ff865e8cb260e8318d87a9a4178f92b0727b1eb6",
   "specification": "https://paperandslate.org/spec/eom/1.0"
 }
