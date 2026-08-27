@@ -50,7 +50,7 @@
       "version": "1.0.0-rc.3"
     },
     {
-      "bytes": 16274,
+      "bytes": 16406,
       "files": [
         "dist/diff.d.ts",
         "dist/diff.d.ts.map",
@@ -79,15 +79,15 @@
         "package.json"
       ],
       "name": "@paperandslate/eom-core",
-      "sha256": "a1e662d1359d986769bff46ff451e6a6bff91914895ec2910b4dba44a164eb7a",
+      "sha256": "5c67c0ecbbf2933f706b49d7e8624256eea72c43e20007ac3e0ff6c56e8b10f7",
       "tarball": "packages/paperandslate-eom-core-1.0.0-rc.3.tgz",
       "version": "1.0.0-rc.3"
     },
     {
-      "bytes": 22426,
+      "bytes": 24567,
       "files": ["dist/index.d.ts", "dist/index.d.ts.map", "dist/index.js", "package.json"],
       "name": "@paperandslate/eom-generator",
-      "sha256": "5e2cfaf518a9d477f96a07e041b623c3f5b1cad9b7719274c4739f1c8982a1ea",
+      "sha256": "c9a39616701a90010f71aef97d8481eff2eb6e98a089c9203e9666e7e4de11b5",
       "tarball": "packages/paperandslate-eom-generator-1.0.0-rc.3.tgz",
       "version": "1.0.0-rc.3"
     },
@@ -247,7 +247,7 @@
     }
   ],
   "release": "1.0.0-rc.3",
-  "sourceCommit": "fc2bde6f0f525b785051632561364e7063c613f9",
-  "sourceTree": "b1bcb7005050e6310670fcc3615f6d4e695da507",
+  "sourceCommit": "a6dd48891c86c221bf45614e3b5dc23de547ade4",
+  "sourceTree": "89f836fae8dff06c09efdd4437e87a80d161452f",
   "version": 1
 }

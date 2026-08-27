@@ -12,7 +12,7 @@ deployment has been achieved.
 - RC1 and RC2 artifacts and their reports are preserved as immutable historical evidence and are
   superseded for current acceptance. They are not evidence for RC3.
 - The durable pre-remediation formal scan is recorded in
-  [`security-scan-pre-remediation.md`](security-scan-pre-remediation.md); its five findings remain
+  [`security-scan-pre-remediation.md`](security-scan-pre-remediation.md); its six findings remain
   closed only when the new tests and aggregate gates provide executable evidence.
 
 ## Remediation scope

@@ -14,9 +14,9 @@
       "resolvedDependencies": [
         {
           "digest": {
-            "sha1": "fc2bde6f0f525b785051632561364e7063c613f9"
+            "sha1": "a6dd48891c86c221bf45614e3b5dc23de547ade4"
           },
-          "uri": "git:fc2bde6f0f525b785051632561364e7063c613f9"
+          "uri": "git:a6dd48891c86c221bf45614e3b5dc23de547ade4"
         },
         {
           "digest": {
@@ -39,12 +39,12 @@
   },
   "predicateType": "https://slsa.dev/provenance/v1",
   "provenanceStatus": "local metadata; not a signed external attestation",
-  "sourceCommit": "fc2bde6f0f525b785051632561364e7063c613f9",
-  "sourceTree": "b1bcb7005050e6310670fcc3615f6d4e695da507",
+  "sourceCommit": "a6dd48891c86c221bf45614e3b5dc23de547ade4",
+  "sourceTree": "89f836fae8dff06c09efdd4437e87a80d161452f",
   "subject": [
     {
       "digest": {
-        "sha256": "8cf1333492d85c1018109216f0f3c8ebeb1474af35acd09037fa71b9936923df"
+        "sha256": "96c421fcc709d2f0fe27851ba530bf8db08ba291a75ba416f16fa38df350277f"
       },
       "name": "educational-organization-manifest-1.0.0-rc.3.tar.gz"
     },
@@ -74,13 +74,13 @@
     },
     {
       "digest": {
-        "sha256": "6960d67a4822033093e4d399ceac59a4b5ecc8b01a244d8aaa266a3339458baf"
+        "sha256": "f5d0a9c420f0e698f56e2a08856a1a010ad99108f3cf9c6af9c93e2ca306079f"
       },
       "name": "eom-documentation-1.0.0-rc.3.tar.gz"
     },
     {
       "digest": {
-        "sha256": "58c74cd1889e3793f732c221bb0cb64779dbf587d632be08a7a8a11a588c5e06"
+        "sha256": "7231f0422ff75bb0e4320ee9865905a38266670e6fc3faf75652f28daba889b7"
       },
       "name": "sbom.cdx.json"
     },
@@ -122,13 +122,13 @@
     },
     {
       "digest": {
-        "sha256": "a1e662d1359d986769bff46ff451e6a6bff91914895ec2910b4dba44a164eb7a"
+        "sha256": "5c67c0ecbbf2933f706b49d7e8624256eea72c43e20007ac3e0ff6c56e8b10f7"
       },
       "name": "packages/paperandslate-eom-core-1.0.0-rc.3.tgz"
     },
     {
       "digest": {
-        "sha256": "5e2cfaf518a9d477f96a07e041b623c3f5b1cad9b7719274c4739f1c8982a1ea"
+        "sha256": "c9a39616701a90010f71aef97d8481eff2eb6e98a089c9203e9666e7e4de11b5"
       },
       "name": "packages/paperandslate-eom-generator-1.0.0-rc.3.tgz"
     },
