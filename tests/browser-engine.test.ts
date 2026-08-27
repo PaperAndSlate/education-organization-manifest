@@ -33,6 +33,61 @@ describe('browser-compatible EOM engine', () => {
     );
   });
 
+  it('rejects invalid browser evaluation times instead of using the current clock', () => {
+    const result = validateBrowserDocument(
+      {
+        type: 'organization-profile',
+        id: 'https://browser-engine.example/id/organization',
+        canonical: 'https://browser-engine.example/eom/organization.json',
+      },
+      { now: '' },
+    );
+    expect(result.valid).toBe(false);
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({ code: 'EOM_EVALUATION_TIME_INVALID' }),
+    );
+  });
+
+  it('rejects invalid browser signature evaluation times', async () => {
+    const { privateKey } = generateKeyPairSync('ed25519');
+    const resource = {
+      id: 'https://browser-engine.example/id/resource',
+      type: 'organization-profile',
+      canonical: 'https://browser-engine.example/eom/resource.json',
+    };
+    const signature = signDetached(resource, {
+      privateKey,
+      keyId: 'https://browser-engine.example/eom/keys#test',
+    });
+    const result = await verifyDetachedBrowser(resource, signature, {}, { now: '' });
+    expect(result.overall).toBe(false);
+    expect(result.findings).toContain('The verification time is invalid.');
+  });
+
+  it('normalizes browser values before schema and semantic evaluation', () => {
+    const previous = Object.getOwnPropertyDescriptor(Object.prototype, 'expires');
+    Object.defineProperty(Object.prototype, 'expires', {
+      configurable: true,
+      enumerable: false,
+      value: '2020-01-01T00:00:00Z',
+      writable: true,
+    });
+    try {
+      const result = validateBrowserDocument(
+        {
+          type: 'organization-profile',
+          id: 'https://browser-engine.example/id/organization',
+          canonical: 'https://browser-engine.example/eom/organization.json',
+        },
+        { now: '2026-01-01T00:00:00Z' },
+      );
+      expect(result.findings.some((item) => item.code === 'EOM_PUBLICATION_EXPIRED')).toBe(false);
+    } finally {
+      if (previous) Object.defineProperty(Object.prototype, 'expires', previous);
+      else Reflect.deleteProperty(Object.prototype, 'expires');
+    }
+  });
+
   it('does not accept inherited signature key metadata', async () => {
     const { privateKey, publicKey } = generateKeyPairSync('ed25519');
     const resource = {

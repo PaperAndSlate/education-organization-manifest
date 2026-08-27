@@ -109,8 +109,9 @@ export function validateBrowserDocument(value, options = {}) {
       ),
     ]);
   }
+  let normalizedValue;
   try {
-    assertJsonSafe(value, 0);
+    normalizedValue = normalizeBrowserJson(value, 'browser document');
   } catch (error) {
     return result(false, false, false, [
       browserFinding(
@@ -121,8 +122,22 @@ export function validateBrowserDocument(value, options = {}) {
       ),
     ]);
   }
+  if (!isPlainObject(normalizedValue)) {
+    return result(false, false, false, [
+      browserFinding(
+        'EOM_DOCUMENT_OBJECT_REQUIRED',
+        'structural',
+        'The publication must be a JSON object.',
+        '/',
+      ),
+    ]);
+  }
+  const evaluationTime = evaluationDate(options.now);
+  const now = evaluationTime ?? new Date(0);
   const type =
-    Object.hasOwn(value, 'type') && typeof value.type === 'string' ? value.type : undefined;
+    Object.hasOwn(normalizedValue, 'type') && typeof normalizedValue.type === 'string'
+      ? normalizedValue.type
+      : undefined;
   const file = type ? (TYPE_TO_SCHEMA[type] ?? `modules/${type}.schema.json`) : undefined;
   const schema = file ? schemas.find((item) => item.$id === `${SCHEMA_BASE}${file}`) : undefined;
   const findings = [];
@@ -146,7 +161,7 @@ export function validateBrowserDocument(value, options = {}) {
           '/',
         ),
       );
-    } else if (!validator(value)) {
+    } else if (!validator(normalizedValue)) {
       for (const error of validator.errors ?? []) {
         let pointer = error.instancePath || '/';
         if (error.keyword === 'required' && typeof error.params?.missingProperty === 'string') {
@@ -163,9 +178,17 @@ export function validateBrowserDocument(value, options = {}) {
       }
     }
   }
-  findings.push(
-    ...semanticFindings(value, { now: options.now ? new Date(options.now) : new Date() }),
-  );
+  if (options.now !== undefined && evaluationTime === undefined) {
+    findings.push(
+      browserFinding(
+        'EOM_EVALUATION_TIME_INVALID',
+        'security',
+        'The browser evaluation time must be a valid RFC 3339 date-time or Date.',
+        '/',
+      ),
+    );
+  }
+  findings.push(...semanticFindings(normalizedValue, { now }));
   const structural = !findings.some(
     (item) => item.category === 'structural' && item.severity === 'error',
   );
@@ -181,10 +204,10 @@ export function validateBrowserDocument(value, options = {}) {
 }
 
 export function semanticDiffBrowser(before, after) {
-  assertJsonSafe(before, 0);
-  assertJsonSafe(after, 0);
+  const normalizedBefore = normalizeBrowserJson(before, 'browser diff before value');
+  const normalizedAfter = normalizeBrowserJson(after, 'browser diff after value');
   const changes = [];
-  compareValue(before, after, '', changes);
+  compareValue(normalizedBefore, normalizedAfter, '', changes);
   const breaking = changes.some(
     (change) =>
       change.kind === 'removed' ||
@@ -201,18 +224,36 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
   if (!isPlainObject(value) || !isPlainObject(signature) || !isPlainObject(keySet)) {
     return { overall: false, findings: ['A signature and key-set object are required.'] };
   }
+  let normalizedValue;
+  let normalizedSignature;
+  let normalizedKeySet;
   try {
-    assertJsonSafe(value, 0);
-    assertJsonSafe(signature, 0);
-    assertJsonSafe(keySet, 0);
+    normalizedValue = normalizeBrowserJson(value, 'browser value');
+    normalizedSignature = normalizeBrowserJson(signature, 'browser signature');
+    normalizedKeySet = normalizeBrowserJson(keySet, 'browser key set');
   } catch (error) {
     return {
       overall: false,
       findings: [error instanceof Error ? error.message : 'Inputs must contain only JSON values.'],
     };
   }
-  const now = options.now ? new Date(options.now) : new Date();
-  if (Number.isNaN(now.getTime())) findings.push('The verification time is invalid.');
+  if (
+    !isPlainObject(normalizedValue) ||
+    !isPlainObject(normalizedSignature) ||
+    !isPlainObject(normalizedKeySet)
+  ) {
+    return {
+      overall: false,
+      findings: ['A signature, resource, and key-set object are required.'],
+    };
+  }
+  const evaluationTime = evaluationDate(options.now);
+  const now = evaluationTime ?? new Date(0);
+  if (options.now !== undefined && evaluationTime === undefined)
+    findings.push('The verification time is invalid.');
+  value = normalizedValue;
+  signature = normalizedSignature;
+  keySet = normalizedKeySet;
   appendSchemaErrors(signature, 'signature', findings);
   if (Object.keys(keySet).some((field) => field !== 'keys')) {
     appendSchemaErrors(keySet, 'key-set', findings);
@@ -661,6 +702,23 @@ function browserFinding(code, category, message, pointer, severity = 'error') {
   return { code, category, severity, message, pointer };
 }
 
+function normalizeBrowserJson(value, label) {
+  assertJsonSafe(value, 0);
+  return stripObjectPrototypes(parseStrictJson(canonicalJson(value), label));
+}
+
+function stripObjectPrototypes(value) {
+  if (Array.isArray(value)) {
+    for (const item of value) stripObjectPrototypes(item);
+    return value;
+  }
+  if (isPlainObject(value)) {
+    Object.setPrototypeOf(value, null);
+    for (const item of Object.values(value)) stripObjectPrototypes(item);
+  }
+  return value;
+}
+
 function appendSchemaErrors(value, type, findings) {
   const file = TYPE_TO_SCHEMA[type];
   const schema = schemas.find((item) => item.$id === `${SCHEMA_BASE}${file}`);
@@ -868,4 +926,11 @@ function isHttpsUri(value) {
 
 function validDate(value) {
   return isValidDateTime(value);
+}
+
+function evaluationDate(value) {
+  if (value === undefined) return new Date();
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : new Date(value);
+  if (typeof value !== 'string' || !validDate(value)) return undefined;
+  return new Date(Date.parse(value));
 }

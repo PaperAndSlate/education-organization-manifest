@@ -113,4 +113,41 @@ describe('EOM privacy and quality linting', () => {
       expect.arrayContaining([expect.objectContaining({ code: 'EOM_LINT_NON_JSON_VALUE' })]),
     );
   });
+
+  it('does not treat inherited publication fields as declared input', () => {
+    const fields = {
+      expires: '2030-01-01T00:00:00Z',
+      type: 'contact-directory',
+      contacts: [{ person: { name: 'Inherited Person' } }],
+      provenance: [{ scope: 'field' }],
+    } as const;
+    const previous = new Map(
+      Object.keys(fields).map((field) => [
+        field,
+        Object.getOwnPropertyDescriptor(Object.prototype, field),
+      ]),
+    );
+    try {
+      for (const [field, value] of Object.entries(fields)) {
+        Object.defineProperty(Object.prototype, field, {
+          configurable: true,
+          enumerable: false,
+          value,
+          writable: true,
+        });
+      }
+      const findings = lintPublication({});
+      expect(findings.some((item) => item.code === 'EOM_LINT_MISSING_EXPIRY')).toBe(true);
+      expect(findings.some((item) => item.code === 'EOM_CONTACT_REVIEW_REQUIRED')).toBe(false);
+      expect(findings.some((item) => item.code === 'EOM_PROVENANCE_FIELD_TARGET_REQUIRED')).toBe(
+        false,
+      );
+    } finally {
+      for (const field of Object.keys(fields)) {
+        const descriptor = previous.get(field);
+        if (descriptor) Object.defineProperty(Object.prototype, field, descriptor);
+        else Reflect.deleteProperty(Object.prototype, field);
+      }
+    }
+  });
 });

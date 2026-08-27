@@ -65,7 +65,7 @@ export function lintPublication(document: unknown, options: LintOptions = {}): r
     );
   }
   if (isRecord(document)) {
-    if (!document.expires) {
+    if (!Object.hasOwn(document, 'expires') || !document.expires) {
       findings.push(
         finding(
           'EOM_LINT_MISSING_EXPIRY',
@@ -79,7 +79,7 @@ export function lintPublication(document: unknown, options: LintOptions = {}): r
         ),
       );
     }
-    if (document.type === 'contact-directory') {
+    if (Object.hasOwn(document, 'type') && document.type === 'contact-directory') {
       inspectContactPublicationReview(document, findings, options);
     }
   }
@@ -245,10 +245,17 @@ function inspectContactPublicationReview(
   findings: Finding[],
   options: LintOptions,
 ): void {
-  const contacts = Array.isArray(document.contacts) ? document.contacts : [];
+  const contacts =
+    Object.hasOwn(document, 'contacts') && Array.isArray(document.contacts)
+      ? document.contacts
+      : [];
   contacts.forEach((contact, index) => {
     if (!isRecord(contact)) return;
-    if (contact.person && !contact.publicationReview) {
+    if (
+      Object.hasOwn(contact, 'person') &&
+      contact.person &&
+      (!Object.hasOwn(contact, 'publicationReview') || !contact.publicationReview)
+    ) {
       findings.push(
         finding(
           'EOM_CONTACT_REVIEW_REQUIRED',

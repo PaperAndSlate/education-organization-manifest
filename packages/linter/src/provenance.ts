@@ -4,7 +4,12 @@ const MAX_PROVENANCE_RECORDS = 100_000;
 
 /** Lint embedded provenance records without treating provenance as a factual guarantee. */
 export function provenanceFindings(document: unknown): readonly Finding[] {
-  if (!isRecord(document) || !Array.isArray(document.provenance)) return [];
+  if (
+    !isRecord(document) ||
+    !Object.hasOwn(document, 'provenance') ||
+    !Array.isArray(document.provenance)
+  )
+    return [];
   const provenance = document.provenance as unknown[];
   const findings: Finding[] = [];
   if (!isDenseArray(provenance)) {
