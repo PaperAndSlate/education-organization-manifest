@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync as readFileBytes } from 'node:fs';
-import { lstat, readFile, realpath } from 'node:fs/promises';
+import { lstat, mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 
 const root = resolve(process.cwd());
@@ -9,7 +9,17 @@ const manifestPath = join(root, 'plans', 'pack-manifest.json');
 const traceabilityPath = join(root, 'requirements', 'plan-file-traceability.json');
 const matrixPath = join(root, 'requirements', 'TRACEABILITY_MATRIX.md');
 const verificationPath = join(root, 'reports', 'verification', 'local-gates.json');
+const traceabilityResultPath = join(root, 'reports', 'verification', 'traceability-result.json');
+const hostedMode = process.env.EOM_TRACEABILITY_MODE === 'hosted';
 const failures: string[] = [];
+
+try {
+  await writeTraceabilityResult('running');
+} catch (error) {
+  failures.push(
+    `could not initialize durable traceability result: ${error instanceof Error ? error.message : String(error)}`,
+  );
+}
 
 const manifest = parseJson(await readFile(manifestPath, 'utf8'), manifestPath);
 const traceability = parseJson(await readFile(traceabilityPath, 'utf8'), traceabilityPath);
@@ -20,7 +30,7 @@ const atomicEntries = asArray(traceability.atomicRequirements);
 const traceabilitySource = isRecord(traceability.source) ? traceability.source : {};
 const verification = await readOptionalJson(verificationPath);
 
-if (!verification) {
+if (!verification && !hostedMode) {
   failures.push(
     'missing executable aggregate verification receipt reports/verification/local-gates.json',
   );
@@ -63,7 +73,7 @@ for (const [index, value] of manifestFiles.entries()) {
 const ids = new Set<string>();
 const planPaths = new Set<string>();
 const scripts = isRecord(packageJson.scripts) ? packageJson.scripts : {};
-if (verification) await checkVerificationReceipt(verification, scripts);
+if (verification && !hostedMode) await checkVerificationReceipt(verification, scripts);
 for (const [index, value] of planEntries.entries()) {
   if (!isRecord(value)) {
     failures.push(`traceability plan entry ${index} is not an object`);
@@ -103,7 +113,7 @@ for (const [index, value] of planEntries.entries()) {
   for (const path of evidencePaths) await checkEvidencePath(path, id ?? String(index));
   for (const command of evidenceCommands)
     checkEvidenceCommand(command, scripts, id ?? String(index));
-  if (status === 'verified-local') {
+  if (status === 'verified-local' && !hostedMode) {
     for (const command of evidenceCommands)
       checkEvidenceExecution(command, verification, id ?? String(index));
   }
@@ -157,7 +167,7 @@ for (const [index, value] of atomicEntries.entries()) {
   for (const path of evidencePaths) await checkEvidencePath(path, id ?? String(index));
   for (const command of evidenceCommands)
     checkEvidenceCommand(command, scripts, id ?? String(index));
-  if (status === 'verified-local') {
+  if (status === 'verified-local' && !hostedMode) {
     for (const command of evidenceCommands)
       checkEvidenceExecution(command, verification, id ?? String(index));
   }
@@ -187,12 +197,143 @@ if (matrix.includes('RC2 manifest') || matrix.includes('Final Standard workbench
   failures.push('current traceability matrix contains superseded RC2/formal-scan claims');
 
 if (failures.length > 0) {
+  await writeFailedTraceabilityResult(failures);
   process.stderr.write(`${failures.join('\n')}\n`);
   process.exitCode = 1;
 } else {
-  process.stdout.write(
-    `traceability check passed: ${manifestByPath.size} planning files and ${atomicEntries.length} atomic requirements\n`,
-  );
+  try {
+    await writeTraceabilityResult('passed');
+    process.stdout.write(
+      `traceability check passed: ${manifestByPath.size} planning files and ${atomicEntries.length} atomic requirements\n`,
+    );
+  } catch (error) {
+    const failure = `could not finalize durable traceability result: ${error instanceof Error ? error.message : String(error)}`;
+    failures.push(failure);
+    await writeFailedTraceabilityResult(failures);
+    process.stderr.write(`${failure}\n`);
+    process.exitCode = 1;
+  }
+}
+
+async function writeFailedTraceabilityResult(currentFailures: readonly string[]): Promise<void> {
+  try {
+    await writeTraceabilityResult('failed', currentFailures);
+  } catch {
+    // Preserve the authoritative check failure even if the diagnostic artifact
+    // cannot be written (for example, on a read-only hosted checkout).
+  }
+}
+
+async function writeTraceabilityResult(
+  status: 'running' | 'passed' | 'failed',
+  currentFailures: readonly string[] = [],
+): Promise<void> {
+  const repositoryRevision = currentRepositoryRevision();
+  const result: Record<string, unknown> = {
+    version: 1,
+    status,
+    command: 'pnpm traceability:check',
+    validationMode: hostedMode ? 'hosted-structure' : 'release-bound',
+    repositoryRevision,
+    evidencePolicy:
+      'This generated result records the exact repository revision checked by pnpm traceability:check. A passed result is valid only for its recorded revision, source tree, and validation mode; report prose is not evidence.',
+  };
+  if (status === 'passed') {
+    result.sourceRevision = await resolveSourceRevision();
+    result.planningPack = {
+      path: 'plans/pack-manifest.json',
+      sha256: sha256(await readFile(manifestPath)),
+      fileCount: manifestFiles.length,
+    };
+    result.traceabilityDocument = {
+      path: 'requirements/plan-file-traceability.json',
+      sha256: sha256(await readFile(traceabilityPath)),
+      planFileCount: planEntries.length,
+      atomicRequirementCount: atomicEntries.length,
+    };
+    result.matrix = {
+      path: 'requirements/TRACEABILITY_MATRIX.md',
+      sha256: sha256(await readFile(matrixPath)),
+    };
+  }
+  if (currentFailures.length > 0) result.failures = [...currentFailures];
+  await mkdir(join(root, 'reports', 'verification'), { recursive: true });
+  await writeFile(traceabilityResultPath, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
+}
+
+function currentRepositoryRevision(): { readonly commit: string; readonly tree: string } {
+  const commit = git('rev-parse', 'HEAD');
+  return { commit, tree: git('rev-parse', `${commit}^{tree}`) };
+}
+
+async function resolveSourceRevision(): Promise<{
+  readonly commit: string;
+  readonly tree: string;
+}> {
+  const current = currentRepositoryRevision();
+  const releaseSource = await readReleaseSourceRevision();
+  if (releaseSource && sourceTreeMatchesWorkingSource(releaseSource.tree)) return releaseSource;
+  if (!sourceTreeMatchesWorkingSource(current.tree)) {
+    throw new Error(
+      'durable traceability evidence requires a clean committed source tree outside release/ and generated evidence paths',
+    );
+  }
+  return current;
+}
+
+async function readReleaseSourceRevision(): Promise<
+  { readonly commit: string; readonly tree: string } | undefined
+> {
+  try {
+    const value = JSON.parse(await readFile(join(root, 'release', 'manifest.json'), 'utf8')) as {
+      sourceCommit?: unknown;
+      sourceTree?: unknown;
+    };
+    if (
+      typeof value.sourceCommit === 'string' &&
+      typeof value.sourceTree === 'string' &&
+      isCommit(value.sourceCommit) &&
+      isCommit(value.sourceTree) &&
+      git('rev-parse', `${value.sourceCommit}^{tree}`) === value.sourceTree
+    ) {
+      return { commit: value.sourceCommit, tree: value.sourceTree };
+    }
+  } catch {
+    // A release packet is optional for ordinary hosted pull-request checks.
+  }
+  return undefined;
+}
+
+function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
+  try {
+    execFileSync(
+      'git',
+      [
+        'diff',
+        '--quiet',
+        sourceTree,
+        '--',
+        '.',
+        ':(exclude)release/**',
+        ...generatedEvidencePathspecs(),
+      ],
+      { cwd: root, stdio: 'ignore' },
+    );
+    const status = git('status', '--porcelain=v1', '--untracked-files=all');
+    return status
+      .split(/\r?\n/u)
+      .filter(Boolean)
+      .every((line) => {
+        const path = line.slice(3).trim().replace(/^"|"$/gu, '').replaceAll('\\', '/');
+        return path === 'release' || path.startsWith('release/') || isGeneratedEvidencePath(path);
+      });
+  } catch {
+    return false;
+  }
+}
+
+function isCommit(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{40}$/u.test(value);
 }
 
 function parseJson(text: string, path: string): Record<string, unknown> {
@@ -439,4 +580,31 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function sha256(bytes: Buffer): string {
   return createHash('sha256').update(bytes).digest('hex');
+}
+
+function generatedEvidencePathspecs(): readonly string[] {
+  return generatedEvidencePaths().map((path) =>
+    path === 'reports/security-scan' ? ':(exclude)reports/security-scan/**' : `:(exclude)${path}`,
+  );
+}
+
+function isGeneratedEvidencePath(path: string): boolean {
+  const normalized = path.replaceAll('\\', '/').replace(/^"|"$/gu, '');
+  return generatedEvidencePaths().some(
+    (candidate) => normalized === candidate || normalized.startsWith(`${candidate}/`),
+  );
+}
+
+function generatedEvidencePaths(): readonly string[] {
+  return [
+    'reports/remediation-audit.md',
+    'reports/release-checklist.md',
+    'reports/security-scan.md',
+    'reports/security-scan.json',
+    'reports/security-scan',
+    'reports/verification/local-gates.json',
+    'reports/verification/traceability-result.json',
+    'requirements/TRACEABILITY_MATRIX.md',
+    'requirements/plan-file-traceability.json',
+  ];
 }

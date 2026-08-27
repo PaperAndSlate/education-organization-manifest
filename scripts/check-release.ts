@@ -397,6 +397,7 @@ function generatedEvidencePathspecs(): readonly string[] {
     'reports/security-scan.json',
     'reports/security-scan/**',
     'reports/verification/local-gates.json',
+    'reports/verification/traceability-result.json',
     'requirements/TRACEABILITY_MATRIX.md',
     'requirements/plan-file-traceability.json',
   ].map((path) => `:(exclude)${path}`);
@@ -414,6 +415,7 @@ function isGeneratedEvidencePath(path: string): boolean {
     'reports/security-scan.json',
     'reports/security-scan',
     'reports/verification/local-gates.json',
+    'reports/verification/traceability-result.json',
     'requirements/TRACEABILITY_MATRIX.md',
     'requirements/plan-file-traceability.json',
   ].some((candidate) => path === candidate || path.startsWith(`${candidate}/`));

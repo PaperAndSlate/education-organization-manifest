@@ -821,6 +821,7 @@ function generatedEvidencePaths(): readonly string[] {
     'reports/security-scan.json',
     'reports/security-scan',
     'reports/verification/local-gates.json',
+    'reports/verification/traceability-result.json',
     'requirements/TRACEABILITY_MATRIX.md',
     'requirements/plan-file-traceability.json',
   ];
