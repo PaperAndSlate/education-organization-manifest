@@ -1,0 +1,96 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/course-offering-catalog.schema.json",
+  "canonical": "https://ecme-high.example/eom/offerings.json",
+  "catalogVersion": {
+    "effective": { "from": "2027-07-01", "until": "2028-06-30" },
+    "id": "https://ecme-high.example/id/catalog/2027-2028",
+    "label": "2027–2028",
+    "public": true,
+    "status": "active"
+  },
+  "defaultLanguage": "en-US",
+  "expires": "2028-05-01T14:00:00Z",
+  "extensions": { "https://fixture.example/eom/extensions/module-test": { "value": "preserved" } },
+  "id": "https://ecme-high.example/eom/resource/offerings",
+  "items": [
+    {
+      "academicPeriod": { "id": "https://ecme-high.example/id/academic-period/2027-fall" },
+      "academicYear": "2027–2028",
+      "applicationWindow": { "from": "2027-03-01", "until": "2027-08-15" },
+      "availability": {
+        "enrollmentUrl": "https://ecme-high.example/eom/enroll/cul-202-2027",
+        "expires": "2027-08-23T00:00:00Z",
+        "observedAt": "2027-05-01T14:00:00Z",
+        "seatsRemaining": 12,
+        "source": "https://ecme-high.example/eom/offerings.json",
+        "status": "open"
+      },
+      "campuses": [{ "id": "https://ecme-high.example/id/campus/main" }],
+      "course": { "id": "https://ecme-high.example/id/course/cul-202" },
+      "end": "2027-12-17",
+      "id": "https://ecme-high.example/id/offering/cul-202-2027",
+      "instructors": [{ "id": "https://ecme-high.example/id/staff/teacher-1" }],
+      "languages": ["en-US"],
+      "modes": ["in-person", "lab"],
+      "name": "Culinary Arts II — 2027–2028",
+      "provider": { "id": "https://ecme-high.example/id/school" },
+      "publicScheduleSummary": "Periods 2 and 4; exact times are provided after enrollment.",
+      "sections": [
+        {
+          "id": "https://ecme-high.example/id/section/cul-202-2027-a",
+          "name": "Culinary Arts II — Section A",
+          "type": "course-section"
+        }
+      ],
+      "start": "2027-08-23",
+      "status": "open",
+      "term": "fall",
+      "type": "course-offering"
+    },
+    {
+      "academicPeriod": { "id": "https://ecme-high.example/id/academic-period/2027-fall" },
+      "academicYear": "2027–2028",
+      "availability": {
+        "expires": "2027-08-23T00:00:00Z",
+        "observedAt": "2027-05-01T14:00:00Z",
+        "status": "open"
+      },
+      "campuses": [{ "id": "https://ecme-high.example/id/campus/main" }],
+      "course": { "id": "https://ecme-high.example/id/course/mat-351" },
+      "end": "2027-12-17",
+      "id": "https://ecme-high.example/id/offering/mat-351-2027-fall",
+      "languages": ["en-US"],
+      "modes": ["in-person", "online"],
+      "name": "Statistics and Data Literacy — Fall 2027",
+      "provider": { "id": "https://ecme-high.example/id/school" },
+      "publicScheduleSummary": "Fall semester; public times vary by section.",
+      "start": "2027-08-23",
+      "status": "open",
+      "term": "fall",
+      "type": "course-offering"
+    },
+    {
+      "academicPeriod": { "id": "https://ecme-high.example/id/academic-period/2028-spring" },
+      "academicYear": "2027–2028",
+      "campuses": [{ "id": "https://ecme-high.example/id/campus/main" }],
+      "course": { "id": "https://ecme-high.example/id/course/mat-351" },
+      "end": "2028-06-02",
+      "id": "https://ecme-high.example/id/offering/mat-351-2028-spring",
+      "languages": ["en-US"],
+      "modes": ["in-person", "online"],
+      "name": "Statistics and Data Literacy — Spring 2028",
+      "provider": { "id": "https://ecme-high.example/id/school" },
+      "publicScheduleSummary": "Spring semester; final availability is published before registration.",
+      "start": "2028-01-10",
+      "status": "planned",
+      "term": "spring",
+      "type": "course-offering"
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "releaseStatus": "active",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "subjects": ["https://ecme-high.example/id/school"],
+  "type": "course-offering-catalog",
+  "version": "1.0"
+}

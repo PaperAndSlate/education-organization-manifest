@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/key-set.schema.json",
+  "title": "EOM public verification key set",
+  "type": "object",
+  "required": ["$schema", "specification", "version", "id", "type", "canonical", "keys"],
+  "properties": {
+    "$schema": { "const": "https://paperandslate.org/schemas/eom/1.0/key-set.schema.json" },
+    "specification": { "const": "https://paperandslate.org/spec/eom/1.0" },
+    "version": { "const": "1.0" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "type": { "const": "key-set" },
+    "canonical": { "$ref": "common.schema.json#/$defs/httpsUri" },
+    "keys": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kid", "kty", "use", "alg", "status", "publicKeyJwk"],
+        "properties": {
+          "kid": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+          "kty": { "type": "string", "minLength": 1 },
+          "use": { "enum": ["sig"] },
+          "alg": { "enum": ["EdDSA"] },
+          "purpose": { "type": "string", "minLength": 1 },
+          "owner": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+          "scope": {
+            "type": "object",
+            "properties": {
+              "resourceTypes": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 },
+                "uniqueItems": true
+              },
+              "resourceIds": {
+                "type": "array",
+                "items": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+                "uniqueItems": true
+              }
+            },
+            "additionalProperties": false
+          },
+          "status": { "enum": ["active", "revoked", "expired"] },
+          "publicKeyJwk": {
+            "type": "object",
+            "required": ["kty", "crv", "x"],
+            "properties": {
+              "kty": { "const": "OKP" },
+              "crv": { "const": "Ed25519" },
+              "x": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" }
+            },
+            "additionalProperties": false
+          },
+          "validFrom": { "$ref": "common.schema.json#/$defs/dateTime" },
+          "validUntil": { "$ref": "common.schema.json#/$defs/dateTime" },
+          "revokedAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+          "successor": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+          "provenance": {
+            "type": "array",
+            "items": { "$ref": "provenance.schema.json" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "modified": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "expires": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "provenance": { "type": "array", "items": { "$ref": "provenance.schema.json" } },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

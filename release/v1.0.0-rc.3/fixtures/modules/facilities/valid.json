@@ -1,0 +1,20 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/facility-catalog.schema.json",
+  "canonical": "https://ecme-high.example/eom/facilities.json",
+  "expires": "2028-05-01T14:00:00Z",
+  "id": "https://ecme-high.example/eom/resource/facilities",
+  "items": [
+    {
+      "capabilities": ["wheelchair access"],
+      "facilityType": "library",
+      "id": "https://ecme-high.example/id/facility/library",
+      "name": "Library",
+      "type": "facility"
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "subjects": ["https://ecme-high.example/id/school"],
+  "type": "facility-catalog",
+  "version": "1.0"
+}

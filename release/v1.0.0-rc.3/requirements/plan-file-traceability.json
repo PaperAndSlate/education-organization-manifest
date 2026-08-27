@@ -1,0 +1,3188 @@
+{
+  "version": 1,
+  "source": {
+    "manifest": "plans/pack-manifest.json",
+    "expectedFileCount": 194,
+    "planningPackUnchanged": true
+  },
+  "planFiles": [
+    {
+      "id": "EOM-PLAN-001",
+      "planPath": "plans/00_PROJECT_BRIEF.md",
+      "planSha256": "81c7ca4b59ceddef3d7c2ec9c40f81c5cc71f6948c2757f39d7cf5fdd474ed03",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/00_PROJECT_BRIEF.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "README.md",
+        "docs/project-status.md",
+        "requirements/plan-file-traceability.json"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-002",
+      "planPath": "plans/01_CONFIRMED_DECISIONS.md",
+      "planSha256": "d2b7ecb133a3b6fd161315bc3e16de5a1c5803eb7d66d5a8ae9bc4120f25d8ba",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/01_CONFIRMED_DECISIONS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "README.md",
+        "docs/project-status.md",
+        "requirements/plan-file-traceability.json"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-003",
+      "planPath": "plans/02_NAMING_DECISION.md",
+      "planSha256": "df3afdd3a1fc52ca0d67ea05fd622789269e00c554c40cc0ad392654a9e37b21",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/02_NAMING_DECISION.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "README.md",
+        "docs/project-status.md",
+        "requirements/plan-file-traceability.json"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-004",
+      "planPath": "plans/03_REPOSITORY_BLUEPRINT.md",
+      "planSha256": "c58ef05d18845d8a2c3748169d1b4e9a3b7bcf2da9c26aaed3a108ebb219d893",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/03_REPOSITORY_BLUEPRINT.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-005",
+      "planPath": "plans/04_IMPLEMENTATION_PRINCIPLES.md",
+      "planSha256": "c880fa050058e4eaa71a885fad80433a728ebf91d23ce4727ba5fbb3439d0772",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/04_IMPLEMENTATION_PRINCIPLES.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-006",
+      "planPath": "plans/05_GLOSSARY.md",
+      "planSha256": "6db053a98503c165387804718dd4b73324bd717089b44bab6aedbaba957f439c",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/05_GLOSSARY.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-007",
+      "planPath": "plans/06_SOURCE_RESEARCH.md",
+      "planSha256": "f3f443599a217b36c3c761f902349cb11a2ffb38ef32fc5d9de621778122841b",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/06_SOURCE_RESEARCH.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-008",
+      "planPath": "plans/CODEX_EXECUTION_PLAYBOOK.md",
+      "planSha256": "a5ea870a2f109767862c63244d83c98048dbf5520f497dcf935bc698bcfb408d",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/CODEX_EXECUTION_PLAYBOOK.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-009",
+      "planPath": "plans/MASTER_CODEX_GOAL_PROMPT.txt",
+      "planSha256": "ae053cb5b7b847175ddb667714dcc811b600b4954d33380695139e3f7e2cbf2c",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/MASTER_CODEX_GOAL_PROMPT.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-010",
+      "planPath": "plans/OPERATOR_HANDOFF.md",
+      "planSha256": "28249f23895f7e9264d4c88bbb50776e17f1068cd058f4212ba00c19a408418e",
+      "classification": "reference",
+      "requirement": "Preserve plans/OPERATOR_HANDOFF.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-011",
+      "planPath": "plans/PACK_INDEX.md",
+      "planSha256": "fce0e265c95fe97c75012b7c76f262b45d1ef09e4a28e497b4b7d740c44f92fd",
+      "classification": "reference",
+      "requirement": "Preserve plans/PACK_INDEX.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-012",
+      "planPath": "plans/PACK_VALIDATION_REPORT.md",
+      "planSha256": "adbfff40ef2249e68671f9bbd5b6702cdabd590ade80204fc106951b9d714131",
+      "classification": "reference",
+      "requirement": "Preserve plans/PACK_VALIDATION_REPORT.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-013",
+      "planPath": "plans/README.md",
+      "planSha256": "5ef450bac0316e5a8f9b25828770c7048a7a84ffd19b7682c42376b9a813fb29",
+      "classification": "reference",
+      "requirement": "Preserve plans/README.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-014",
+      "planPath": "plans/adoption/CONSUMER_PATTERNS.md",
+      "planSha256": "704ae184e3d72270df302cc699ddc4c5fda041b9b0f07cea8bf34ba70a21490b",
+      "classification": "reference",
+      "requirement": "Preserve plans/adoption/CONSUMER_PATTERNS.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-015",
+      "planPath": "plans/adoption/PUBLISHING_METHODS.md",
+      "planSha256": "570552f4840fc4fb03cef2414d8d42e34dcb3f5c0bce9f0c8a0128be6cbb2983",
+      "classification": "reference",
+      "requirement": "Preserve plans/adoption/PUBLISHING_METHODS.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-016",
+      "planPath": "plans/adoption/USE_CASES.md",
+      "planSha256": "d6106d2df68b61e0d85b34ee8f17d46bcf2cc554ccf32879b73055056ac58204",
+      "classification": "reference",
+      "requirement": "Preserve plans/adoption/USE_CASES.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-017",
+      "planPath": "plans/adoption/VENDOR_AND_DISTRICT_INTEGRATION.md",
+      "planSha256": "546aedc3ba3e417ca1ff708b5e9b5ff18bd8728cb530925313109e7399152539",
+      "classification": "reference",
+      "requirement": "Preserve plans/adoption/VENDOR_AND_DISTRICT_INTEGRATION.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-018",
+      "planPath": "plans/adoption/WHY_EOM_EXISTS.md",
+      "planSha256": "e72974aa95ae8aeecd2f33fb8f1c959d4e83ade40ab62200339f51df599721a6",
+      "classification": "reference",
+      "requirement": "Preserve plans/adoption/WHY_EOM_EXISTS.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-019",
+      "planPath": "plans/agentic/AGENTS.md",
+      "planSha256": "7ebf08249f001518079d0ba87f10a741caadbd0c962c306dd1aa7c411e4b3aed",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/AGENTS.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-020",
+      "planPath": "plans/agentic/EVIDENCE_LEDGER.md",
+      "planSha256": "a2e4e6c11729d472bdd3675a5022f03960f3f514335093dcc3e4c6a6b72ed453",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/EVIDENCE_LEDGER.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-021",
+      "planPath": "plans/agentic/EXTRACTION_METHODOLOGY.md",
+      "planSha256": "00b1ec0d501aa505265e5a9d51cfe72fc42328e73dc1e74be5ea6744bb6e4733",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/EXTRACTION_METHODOLOGY.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-022",
+      "planPath": "plans/agentic/HUMAN_REVIEW_WORKFLOW.md",
+      "planSha256": "fddbd235615de1b11df2eb6a5c082975e3668542cab1d5b2df3c394f5d2d3d04",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/HUMAN_REVIEW_WORKFLOW.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-023",
+      "planPath": "plans/agentic/PROMPT_CATALOG.md",
+      "planSha256": "ecff59b8edd3964d2d589c06862da9d55282d036106ffe134a9e12a0d1fab442",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/PROMPT_CATALOG.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-024",
+      "planPath": "plans/agentic/prompts/add-courses.txt",
+      "planSha256": "917c8e4eecdf5f4e0ee0490248e1cdc04f9ce9b26dea2b74434835c7aca1157e",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/add-courses.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-025",
+      "planPath": "plans/agentic/prompts/add-department.txt",
+      "planSha256": "8f342d5d8820f0330291078df93037be0fb498611bd0f87b6776c0ca3a877fb4",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/add-department.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-026",
+      "planPath": "plans/agentic/prompts/audit-school-data.txt",
+      "planSha256": "28c0720fce15948aaf61f16981863fc784b95597bfe4b09ac5b4fe5bd91900b2",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/audit-school-data.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-027",
+      "planPath": "plans/agentic/prompts/create-course-catalog.txt",
+      "planSha256": "a3bbd1ef4921ece664e42b16af0302f12c3cc2197de7a49476541ee2c5308d65",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/create-course-catalog.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-028",
+      "planPath": "plans/agentic/prompts/create-from-documents.txt",
+      "planSha256": "e04c65dbd382a2e940d0b90e4e061fd2cdba5dd395227b76baa58cbda67588dc",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/create-from-documents.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-029",
+      "planPath": "plans/agentic/prompts/create-from-website.txt",
+      "planSha256": "9fe5143ecda9f46486bc2703662fe4d60b60c159557097292ce0c15fba34a2b1",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/create-from-website.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-030",
+      "planPath": "plans/agentic/prompts/enrich-from-public-data.txt",
+      "planSha256": "ff246ff0922f9c795eec9a34b8ae6243f660dc6c61fbdcd59008d1158d7febea",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/enrich-from-public-data.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-031",
+      "planPath": "plans/agentic/prompts/find-stale-information.txt",
+      "planSha256": "a679431e2c82b341075546301706ca262f4e0d2e18d23fcd851d5f31d6805332",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/find-stale-information.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-032",
+      "planPath": "plans/agentic/prompts/generate-website-assets.txt",
+      "planSha256": "cb86c2a9a6d6075a259b62ab2a3092905b558149e47c94a83fbcb1425b786eef",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/generate-website-assets.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-033",
+      "planPath": "plans/agentic/prompts/implementation/01-bootstrap-repository.txt",
+      "planSha256": "5c2e4c6136e9891d578de502ae44267f21b5a983f3ba9e8c275855b20476fde7",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/implementation/01-bootstrap-repository.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-034",
+      "planPath": "plans/agentic/prompts/implementation/02-core-protocol-and-schemas.txt",
+      "planSha256": "d9b14c56bad4a65271b15c2bf2b574f3897983ac59251c4c3acd533ad87418e5",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/implementation/02-core-protocol-and-schemas.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-035",
+      "planPath": "plans/agentic/prompts/implementation/03-module-schemas-and-ecme.txt",
+      "planSha256": "da91804a8c2da3a988ecbfc8fac7eb7e88a75d613f377093dec04363aa68e07b",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/implementation/03-module-schemas-and-ecme.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-036",
+      "planPath": "plans/agentic/prompts/implementation/04-generator-validator-cli.txt",
+      "planSha256": "cad8d95c8b8185df32a6731e26997ef7aee238e616a184850726d9435ea0a386",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/implementation/04-generator-validator-cli.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-037",
+      "planPath": "plans/agentic/prompts/implementation/05-provenance-and-agent-workflows.txt",
+      "planSha256": "ca63b38ef16fdd4f89fdff756c144908a5ce32a6993749a168077e17a896aa91",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/implementation/05-provenance-and-agent-workflows.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-038",
+      "planPath": "plans/agentic/prompts/implementation/06-delegation-and-signatures.txt",
+      "planSha256": "fba63677f8208d8b223b9023bf840255a6c676e863b1ca55e36c21ac66c926d1",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/implementation/06-delegation-and-signatures.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-039",
+      "planPath": "plans/agentic/prompts/implementation/07-documentation-and-playground.txt",
+      "planSha256": "ad95e6806bbb0839514c6ab04e96e8f5989117a4a94246b1f9cf70744f77e6b5",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/implementation/07-documentation-and-playground.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-040",
+      "planPath": "plans/agentic/prompts/implementation/08-conformance-release-registration.txt",
+      "planSha256": "b48ed14f4f8db903fb23a8d09f5374cce9e251e3790e833758b6e591c20f50cf",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/implementation/08-conformance-release-registration.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-041",
+      "planPath": "plans/agentic/prompts/migrate-schema.txt",
+      "planSha256": "d4c50795af0bc67fd6ebcfffa20eea6deff68c073a5c088c54e3833cb298aae4",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/migrate-schema.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-042",
+      "planPath": "plans/agentic/prompts/privacy-review.txt",
+      "planSha256": "37365f67652f77a20575b1265056b4d780e9832bb7784ac41005c644791cca16",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/privacy-review.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-043",
+      "planPath": "plans/agentic/prompts/update-existing-school.txt",
+      "planSha256": "933b8994836208f5f622643ea270e7adade4466d52d1b516ed7324f32a91fb79",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/update-existing-school.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-044",
+      "planPath": "plans/agentic/prompts/verify-source-provenance.txt",
+      "planSha256": "13f723dde27b744e0978b3315f1c0b622bdaf2dbceac8c6457e6e8c5d4be1a04",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/agentic/prompts/verify-source-provenance.txt as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-045",
+      "planPath": "plans/architecture/CI_CD_AND_RELEASE.md",
+      "planSha256": "4528f896507c7c2b3e7a5178b72549d2ad51b7a4a42f70f86c2335d3bb41ab14",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/CI_CD_AND_RELEASE.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-046",
+      "planPath": "plans/architecture/CLI_DESIGN.md",
+      "planSha256": "64192351542444b9d6378e5b323739e9b296f4f972536abaf2f446ee65778a3a",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/CLI_DESIGN.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-047",
+      "planPath": "plans/architecture/CONFORMANCE_SUITE.md",
+      "planSha256": "cc109ae8a0de552e3050474f7b7e0ca58f73f158b2a9ff2e9b16eef54ef236c2",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/CONFORMANCE_SUITE.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-048",
+      "planPath": "plans/architecture/DEPENDENCY_AND_SUPPLY_CHAIN_POLICY.md",
+      "planSha256": "c2bf74d7c94a7dde672414b14a76263f53cc20acd3fcf635dbd21514335d92cf",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/DEPENDENCY_AND_SUPPLY_CHAIN_POLICY.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-049",
+      "planPath": "plans/architecture/DOCUMENTATION_AND_PLAYGROUND.md",
+      "planSha256": "1644d7712b25a50a6e36e09c8b24330a17be0d74bc2cad527141e934cb8a7c8c",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/DOCUMENTATION_AND_PLAYGROUND.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-050",
+      "planPath": "plans/architecture/GENERATOR_PIPELINE.md",
+      "planSha256": "bc64b8ef2d0b9d9eddb9420ccfa01e3d83ee6faa676889a443a1b550d53d34cf",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/GENERATOR_PIPELINE.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-051",
+      "planPath": "plans/architecture/MONOREPO_ARCHITECTURE.md",
+      "planSha256": "b40e9d69966f5c29d5cb64d0491049e659f266cbbcd15b17e2608947c6937916",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/MONOREPO_ARCHITECTURE.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-052",
+      "planPath": "plans/architecture/PERFORMANCE_AND_CACHING.md",
+      "planSha256": "a0ff33aff1d69507fb05f491a7adc7df9f354336daafab900b12a11881baf7c2",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/PERFORMANCE_AND_CACHING.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-053",
+      "planPath": "plans/architecture/REFERENCE_IMPLEMENTATION.md",
+      "planSha256": "d1634be4ad7bf7a3f8d83263fd68bfd8316642e7c8d16efbe26281d392363997",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/REFERENCE_IMPLEMENTATION.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-054",
+      "planPath": "plans/architecture/SCHEMA_ENGINEERING.md",
+      "planSha256": "139c2ce0015535473fe2f75ca68e712d998fd3b12d8997ee403c8500cbf54595",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/SCHEMA_ENGINEERING.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-055",
+      "planPath": "plans/architecture/SOURCE_AND_GENERATED_DATA.md",
+      "planSha256": "ec188d06c46bf2fab87ce38e72fb9171c4c6f3bc5a4147ac1e90eeec72056018",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/SOURCE_AND_GENERATED_DATA.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-056",
+      "planPath": "plans/architecture/TESTING_STRATEGY.md",
+      "planSha256": "9a19fe8139f4acca310328607ce2442db9bd89a764c35b92bb6ad101f704381a",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/TESTING_STRATEGY.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-057",
+      "planPath": "plans/architecture/THREAT_MODEL.md",
+      "planSha256": "502a528a8dc321f7505161bd7b60db0903f29f2d787e0dae0c3288cd8c519452",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/THREAT_MODEL.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-058",
+      "planPath": "plans/architecture/VALIDATOR_AND_LINTER.md",
+      "planSha256": "b534a448ecbb07c7a7e9d34c850b88b72a4a8f6f096d1c538b5de7eb0a720753",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/architecture/VALIDATOR_AND_LINTER.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-059",
+      "planPath": "plans/data-model/ADMISSIONS_AND_ENROLLMENT.md",
+      "planSha256": "cea0a92939a9030b242de4150f00323bd2e3056ca08f79a7130ca5689739ab3c",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/ADMISSIONS_AND_ENROLLMENT.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-060",
+      "planPath": "plans/data-model/API_AND_SERVICE_DISCOVERY.md",
+      "planSha256": "d8f43b5fb6176889ce2ba2605595b467c7e7fdd43642ddefe512aa1de998c519",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/API_AND_SERVICE_DISCOVERY.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-061",
+      "planPath": "plans/data-model/CALENDARS_EVENTS_AND_NEWS.md",
+      "planSha256": "867f4022a94f1a07f619075eefd752657b59e4c46c7238552cedd0fda68def60",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/CALENDARS_EVENTS_AND_NEWS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-062",
+      "planPath": "plans/data-model/COMMON_TYPES.md",
+      "planSha256": "03591f2720559ac39d8a6a986db436e8ca8a9252a74125cb160d0018f83a9a4b",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/COMMON_TYPES.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-063",
+      "planPath": "plans/data-model/COURSES.md",
+      "planSha256": "427a514b4077f4a747c12fb8ff79f36467aff42ddffdc6f38fbf6bb1dabe45df",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/COURSES.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-064",
+      "planPath": "plans/data-model/DATA_MODEL_OVERVIEW.md",
+      "planSha256": "c33590e13d0f19ae6881eeb008437d44088c38b0a7d7d3b656420545b4351f0f",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/DATA_MODEL_OVERVIEW.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-065",
+      "planPath": "plans/data-model/DEPARTMENTS_CONTACTS_AND_STAFF.md",
+      "planSha256": "23519cb7d2451aa9a0113e0c55910ce3b707dff62f2615c6ec06652560ea15d9",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/DEPARTMENTS_CONTACTS_AND_STAFF.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-066",
+      "planPath": "plans/data-model/FACILITIES_SERVICES_AND_POLICIES.md",
+      "planSha256": "24a2fd7eb159734403a8c6418a5968926810806f3efe8ae4fdcbb5955aec7f68",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/FACILITIES_SERVICES_AND_POLICIES.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-067",
+      "planPath": "plans/data-model/JOBS.md",
+      "planSha256": "8a4cbb6bc88f07a5a6a6d52f98116a94264c4c962b14c6b23f2d15bd8edde35f",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/JOBS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-068",
+      "planPath": "plans/data-model/MEALS_AND_MENUS.md",
+      "planSha256": "2b00a1189f16ecbe538f4b3b04ffec507eb00c4506e441151188a126f02d791a",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/MEALS_AND_MENUS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-069",
+      "planPath": "plans/data-model/MODULE_REGISTRY.md",
+      "planSha256": "4d54ae4a0248a938c72ddba32fbba5aea30d651223b849b7596d9aa333147001",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/MODULE_REGISTRY.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-070",
+      "planPath": "plans/data-model/OFFERINGS_AND_SECTIONS.md",
+      "planSha256": "9823fc086e061944fec557be0ce6ef8450e0f250b3ee59f5eea6dc928db00591",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/OFFERINGS_AND_SECTIONS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-071",
+      "planPath": "plans/data-model/ORGANIZATIONS_AND_CAMPUSES.md",
+      "planSha256": "b761578ba019a504102fbc0c37faa5781a782fdcfb7a1f11087097c252491774",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/ORGANIZATIONS_AND_CAMPUSES.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-072",
+      "planPath": "plans/data-model/PROGRAMS_AND_PATHWAYS.md",
+      "planSha256": "61c3c5d72731f558ac3c4b566b3ed6e2ffba4b019f0475ef513422fdc15a08f5",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/PROGRAMS_AND_PATHWAYS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-073",
+      "planPath": "plans/data-model/SPORTS_AND_CLUBS.md",
+      "planSha256": "9b6edbb62489bf08dc61de9044d5c3a0d93948cb8eb02805806fda6066f8bced",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/SPORTS_AND_CLUBS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-074",
+      "planPath": "plans/data-model/STATISTICS_AND_PUBLIC_DATA.md",
+      "planSha256": "e985a801b7dbd0c1f9cb1511a2c26087140c5cf3c4bffef06d7a1fcffc619fa5",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/STATISTICS_AND_PUBLIC_DATA.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-075",
+      "planPath": "plans/data-model/TRANSPORTATION.md",
+      "planSha256": "bd69a666b0fcae6ef9424570f08f695bcdcd72989384c20607d4bc81300bf195",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/TRANSPORTATION.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-076",
+      "planPath": "plans/data-model/VOCABULARIES_AND_CODE_LISTS.md",
+      "planSha256": "1786681e2e2efbfc39ecb1929357373f62e8c45601d80440bcb7801f1fdd3b0d",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/data-model/VOCABULARIES_AND_CODE_LISTS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-077",
+      "planPath": "plans/delivery/DEFINITION_OF_DONE.md",
+      "planSha256": "78ac7747928ad0c4aa7956412aecd15f7b39a85b500e47c3f29cf139c873a31a",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/delivery/DEFINITION_OF_DONE.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "scripts/check-traceability.ts",
+        "package.json"
+      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-PLAN-078",
+      "planPath": "plans/delivery/ISSUE_BACKLOG.md",
+      "planSha256": "3d7dc903c75334cacfdefc485fcd11a7d9f4533d3d9d487fd8e16eef7ccdcc28",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/delivery/ISSUE_BACKLOG.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "scripts/check-traceability.ts",
+        "package.json"
+      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-PLAN-079",
+      "planPath": "plans/delivery/PHASES_AND_MILESTONES.md",
+      "planSha256": "a617c1f6fbd03aa1c4342611d4f656e3714a2ebbed5250898ea94f6a4e5810a1",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/delivery/PHASES_AND_MILESTONES.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "scripts/check-traceability.ts",
+        "package.json"
+      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-PLAN-080",
+      "planPath": "plans/delivery/RELEASE_CHECKLIST.md",
+      "planSha256": "b35343e7e02225024ef60b83e2a11d1b4acb5e278ba7544bc6c24bd71bf59ed3",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/delivery/RELEASE_CHECKLIST.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "scripts/check-traceability.ts",
+        "package.json"
+      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-PLAN-081",
+      "planPath": "plans/delivery/REQUIREMENT_TRACEABILITY_TEMPLATE.md",
+      "planSha256": "3b3088fd258b3ff4466d834a0e6090e2e4bdf35fd0684b6429e84acf075d9c73",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/delivery/REQUIREMENT_TRACEABILITY_TEMPLATE.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "scripts/check-traceability.ts",
+        "package.json"
+      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-PLAN-082",
+      "planPath": "plans/delivery/RISK_REGISTER.md",
+      "planSha256": "a023ab7dd31de9fa89e7c126345d7d3acb1267141f8055181e7f69528d2e0a98",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/delivery/RISK_REGISTER.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "scripts/check-traceability.ts",
+        "package.json"
+      ],
+      "evidenceCommands": ["pnpm traceability:check", "pnpm verify"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-PLAN-083",
+      "planPath": "plans/examples/ecme-high/CODEOWNERS.example",
+      "planSha256": "704f2bc1450e858610c1514e585449f1506bbd6b7a283d8900983ecd73028cd2",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/examples/ecme-high/CODEOWNERS.example as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-084",
+      "planPath": "plans/examples/ecme-high/COURSE_CATALOG_PLAN.md",
+      "planSha256": "2023c8de60d1f65723a7d0e7b63ce48280fc77ca2710384ef7039d086207cdc1",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/examples/ecme-high/COURSE_CATALOG_PLAN.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-085",
+      "planPath": "plans/examples/ecme-high/DEPLOYMENT_TOPOLOGY.md",
+      "planSha256": "3b60198e32840604ff6ffff8bb4f7ff51708fa34a67cc1a8eed68043a79dc9ab",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/examples/ecme-high/DEPLOYMENT_TOPOLOGY.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-086",
+      "planPath": "plans/examples/ecme-high/EXAMPLE_BLUEPRINT.md",
+      "planSha256": "27f657055b2c02346bb36ea2b101407ccdc56f7a005ce669c7f680de574c71d3",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/examples/ecme-high/EXAMPLE_BLUEPRINT.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-087",
+      "planPath": "plans/examples/ecme-high/OWNERSHIP_PLAN.md",
+      "planSha256": "202cd1456669636ad28e1a2311fac3802388d4570212b33bc15c9539c0e40b3d",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/examples/ecme-high/OWNERSHIP_PLAN.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-088",
+      "planPath": "plans/examples/ecme-high/README.md",
+      "planSha256": "7f726d84a6796fcf6a38ef1f1056268cc07cb7b1f1ad295dadcb112919183329",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/examples/ecme-high/README.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-089",
+      "planPath": "plans/examples/ecme-high/VALIDATION_SCENARIOS.md",
+      "planSha256": "671a063259afad6a30befd85aef0cdd7b567ec6adfab19ec614c29916440b5e4",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/examples/ecme-high/VALIDATION_SCENARIOS.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-090",
+      "planPath": "plans/examples/ecme-high/expected-sample/.well-known/educational-organization-manifest",
+      "planSha256": "04f245409669e0c1065d6d429521991f154eea122a6f405752c0d2fc204d903b",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/.well-known/educational-organization-manifest as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-091",
+      "planPath": "plans/examples/ecme-high/expected-sample/README.md",
+      "planSha256": "be30b45c2bff2f68aa17335700a18b6762a655822ac62a47120507dd181013ce",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/README.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-092",
+      "planPath": "plans/examples/ecme-high/expected-sample/delegated/district/jobs.json",
+      "planSha256": "41202467e3eae203fc3491ea4ecb5c3596f22299ecaa992b1978f055f0596324",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/delegated/district/jobs.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-093",
+      "planPath": "plans/examples/ecme-high/expected-sample/delegated/district/transportation.json",
+      "planSha256": "69ee603122eb20b8ebe76ae00ec7b24ffcb5878e4f3236056b45657e0d39bd45",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/delegated/district/transportation.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-094",
+      "planPath": "plans/examples/ecme-high/expected-sample/delegated/vendor/menus.json",
+      "planSha256": "9d55f02ef1e439da6964737bd6fee39732a97967f24268814c1d1b4a2f5b7a1c",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/delegated/vendor/menus.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-095",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/admissions.json",
+      "planSha256": "0578c1441d4a80af779241096af865c1c739a0af0d8fabb2d47905c8852ddbf3",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/admissions.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-096",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/api-services.json",
+      "planSha256": "54051f65fe9df134ffe9680e73ebf6f01c62a245bc2513f17dc5f17ef20bd4fc",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/api-services.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-097",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/calendar.json",
+      "planSha256": "f6ad0deb09ffe63da3bdf7023e1141d5566b614ac285e6452900783d86f7d37b",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/calendar.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-098",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/campuses.json",
+      "planSha256": "f4ab170c5b787d19997106681135498600c051827e0b2f82bf7197a296945a92",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/campuses.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-099",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/clubs.json",
+      "planSha256": "0ac0f2d4c57b574ad5a23543bdf1a7c69e29e5f07efc2cf5da2be5115570e0dc",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/clubs.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-100",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/conformance.json",
+      "planSha256": "5971a425cfc1167777328caefa1602106ba0d8ce42942228a6faf96f389d27ba",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/conformance.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-101",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/contacts.json",
+      "planSha256": "d4dc354350083fcb14152c944c6e4da7a0e695410f397189d6475a50615a9411",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/contacts.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-102",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/courses/cul-202.json",
+      "planSha256": "7a28ef47e1da47504fbb22033e75d34e022e3270d2a6386cb50e91e727a99439",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/courses/cul-202.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-103",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/courses/index.json",
+      "planSha256": "f3f48a7d2574559f5370a68c439d639a09b7ecefef004a88d4377c7768dc25db",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/courses/index.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-104",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/departments.json",
+      "planSha256": "44f6bd922520ae7cd4cd8cb05ee22e7163e837fe214ea07295f8aa1bb2bfd029",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/departments.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-105",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/events.json",
+      "planSha256": "809d8dd596c18efc32e4a8ebc68022f79e186669cb9ffd0f40b581b83351eb80",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/events.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-106",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/facilities.json",
+      "planSha256": "d748adb379be7a8b92536fd3279ea99fe4f3d5d563b6066713f8b95ba83a8667",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/facilities.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-107",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/keys.json",
+      "planSha256": "9786af2f4207e1b34586bd3a4029ad321f511044359273b43a7eb9ca51d6d952",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/keys.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-108",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/news.json",
+      "planSha256": "713de4efdbc48820cde1c3db8d82d7e3b3dab7d4d601e7e099a4280208d0b7a6",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/news.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-109",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/offerings.json",
+      "planSha256": "f382c08c8b6b91b4e84c61bc76ee1c8cba02602bdef2e3b4ebab8f82b6df2db9",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/offerings.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-110",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/organization.json",
+      "planSha256": "9b6b79905b483571d6a905f0f7fb234a51d458562de1c28defb0fe4c69360861",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/organization.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-111",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/policies.json",
+      "planSha256": "a5a4af25e09fff0cb4feec3ee8bcbb60a6bdc4606ad27bc757862782dee9f5cb",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/policies.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-112",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/programs.json",
+      "planSha256": "fe251681101acd59e4b487314fc990ded97ad0602f0c8de82aaedeeb578d56e0",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/programs.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-113",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/schemaorg.jsonld",
+      "planSha256": "da226e8e2894c0d3c02d97aebd087b3bd28774262d7af662f53ff4dd00145885",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/schemaorg.jsonld as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-114",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/services.json",
+      "planSha256": "0be8f43ab9c0b92907396ca5cdb123cd16e6850c92d958c653ffe0cdf4de3be3",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/services.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-115",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/sports.json",
+      "planSha256": "f87831ce9b9ce3cebc5a0ce5426a98adf2b1d3bd207890ca991b95c04256cc9a",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/sports.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-116",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/staff.json",
+      "planSha256": "c1ff35d932eccb0dda79db02f9dcc016b3930dd4dae741269c4d843a26622d9d",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/staff.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-117",
+      "planPath": "plans/examples/ecme-high/expected-sample/eom/1.0/statistics.json",
+      "planSha256": "02519439679f4ae9ca68e010ac7a4903b65226d1e13fde46d946adb6868fa1e5",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/expected-sample/eom/1.0/statistics.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-118",
+      "planPath": "plans/examples/ecme-high/invalid-sample/delegation-scope-escape.json",
+      "planSha256": "be76d2a1c0afafd0fd37e6c9240b89674e2baa4a7aaf34bfc00e6c5406d70bef",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/invalid-sample/delegation-scope-escape.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-119",
+      "planPath": "plans/examples/ecme-high/invalid-sample/prerequisite-cycle.json",
+      "planSha256": "f3a1dbc7584fddf91a657c2f47c1023df34ba611c8611638e254d193a1af6ffe",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/invalid-sample/prerequisite-cycle.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-120",
+      "planPath": "plans/examples/ecme-high/invalid-sample/private-api-endpoint.json",
+      "planSha256": "d030965142f90d76c262d9dfefe5b8603c0664ed0c9d474e61e0250c2d34fc47",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/invalid-sample/private-api-endpoint.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-121",
+      "planPath": "plans/examples/ecme-high/invalid-sample/staff-without-publication-review.json",
+      "planSha256": "229ce02f5bce6329f2b778c9fe228fc0485ddb809485bf3292e03b54938460f1",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/invalid-sample/staff-without-publication-review.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-122",
+      "planPath": "plans/examples/ecme-high/invalid-sample/student-record.json",
+      "planSha256": "1680f2b1292379acd5ca7f5e0077846fd8a2294f4a794eecfb4f8b954bf2e968",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/invalid-sample/student-record.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-123",
+      "planPath": "plans/examples/ecme-high/invalid-sample/transitive-delegation.json",
+      "planSha256": "6ae3359355be4dc66f62bd27f2d99f44de84d0e845b169ef4415667a6359eac1",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/invalid-sample/transitive-delegation.json as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-124",
+      "planPath": "plans/examples/ecme-high/source-sample/admissions/profile.yaml",
+      "planSha256": "d66fda5f0ed92142fd5b89ad1807d499ab4d94897fb21a22165b037f58019116",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/admissions/profile.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-125",
+      "planPath": "plans/examples/ecme-high/source-sample/apis/services.yaml",
+      "planSha256": "f3db220124b54f170fd1f0faa1cc81fb5400174b6aee766e9ed5f2d19b8a0f10",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/apis/services.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-126",
+      "planPath": "plans/examples/ecme-high/source-sample/calendar/2027-2028.yaml",
+      "planSha256": "9fa9e39315c9f78a1939855e0b86e354058ea95527165238fa1cebfe00aa08a6",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/calendar/2027-2028.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-127",
+      "planPath": "plans/examples/ecme-high/source-sample/campuses/main.yaml",
+      "planSha256": "4c1c70fefcd54e064e4fc6d63b1eec7cb093309e2e47f4722a22e6d07496e6cb",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/campuses/main.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-128",
+      "planPath": "plans/examples/ecme-high/source-sample/clubs/catalog.yaml",
+      "planSha256": "dadad88379e616bdd577e809b0b61604314438accad8f12325b1c009d0eb0d98",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/clubs/catalog.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-129",
+      "planPath": "plans/examples/ecme-high/source-sample/contacts/roles.yaml",
+      "planSha256": "ed1c2e4e0400c0833e174f56284211e3ea761dab1701c459194a6b6ebe425a87",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/contacts/roles.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-130",
+      "planPath": "plans/examples/ecme-high/source-sample/courses/fcs/cul-202.yaml",
+      "planSha256": "b93f92f613a0978110591de0068bc842f28af932859561c1aa1ed9929754e18d",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/courses/fcs/cul-202.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-131",
+      "planPath": "plans/examples/ecme-high/source-sample/delegated/jobs.yaml",
+      "planSha256": "f3d57fd413abb5878a72a9651c544677fc0c2a82ba3f1668e4c121531a572187",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/delegated/jobs.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-132",
+      "planPath": "plans/examples/ecme-high/source-sample/delegated/meals.yaml",
+      "planSha256": "02c2d5ed3105425f01785be508c5d0a7dd2cee19f86a6bb3da6a113c10ccd8a3",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/delegated/meals.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-133",
+      "planPath": "plans/examples/ecme-high/source-sample/delegated/transportation.yaml",
+      "planSha256": "2a1e2c071f1f5f7d03b8f3565c1a58d2528084be03328a42df008be190f51c4e",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/delegated/transportation.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-134",
+      "planPath": "plans/examples/ecme-high/source-sample/departments/fcs.yaml",
+      "planSha256": "52ac743bf823cc05156e3c7036e4a31949d934063d942a8f28bbd7dab8997555",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/departments/fcs.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-135",
+      "planPath": "plans/examples/ecme-high/source-sample/eom.config.yaml",
+      "planSha256": "90306aa26d1bbff6bf53f834058d2186de986d7049abf521dcc009dfa7478e4a",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/eom.config.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-136",
+      "planPath": "plans/examples/ecme-high/source-sample/events/course-selection-night.yaml",
+      "planSha256": "3f71189152e921bdfed176fca9106e3b911cec55435ce428345be7b2a30c06d5",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/events/course-selection-night.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-137",
+      "planPath": "plans/examples/ecme-high/source-sample/facilities/culinary-lab.yaml",
+      "planSha256": "b7daf7097f4c38c9a30dacee054090505ba734450fae1935d107705f3d4bcb5b",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/facilities/culinary-lab.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-138",
+      "planPath": "plans/examples/ecme-high/source-sample/jobs/catalog.yaml",
+      "planSha256": "fbf09b7e8de9d0ad31c62e473316c7078be050c292f1343fbd310a06c0ed3d51",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/jobs/catalog.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-139",
+      "planPath": "plans/examples/ecme-high/source-sample/news/catalog.yaml",
+      "planSha256": "83df30a75fc84f337ff91037668a5682148698718f50bf82deb88453fced0b6a",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/news/catalog.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-140",
+      "planPath": "plans/examples/ecme-high/source-sample/organization.yaml",
+      "planSha256": "e30c5fa099b86a3c6d563bbe12db0dd2929aec9e4cf386deed4c2df2ef5d4c1c",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/organization.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-141",
+      "planPath": "plans/examples/ecme-high/source-sample/policies/catalog.yaml",
+      "planSha256": "f867ad41c8f211ff4e13d987d7c15d7f2262928584dfcb42285c722e20314b2d",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/policies/catalog.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-142",
+      "planPath": "plans/examples/ecme-high/source-sample/programs/culinary-hospitality.yaml",
+      "planSha256": "b732389431c64b9699b7394a42c55b206bad1ddc79cb07643ee73ea21e1da4bd",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/programs/culinary-hospitality.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-143",
+      "planPath": "plans/examples/ecme-high/source-sample/provenance/sources.yaml",
+      "planSha256": "ee4d8c8a761f22e52962439e21ae5a47b13ea4211c9989d8e0ac97f72f327544",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/provenance/sources.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-144",
+      "planPath": "plans/examples/ecme-high/source-sample/services/public-services.yaml",
+      "planSha256": "8258747a0882f02a0bef06f9e54ae9ce26d27023f019c703498a6921b211e120",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/services/public-services.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-145",
+      "planPath": "plans/examples/ecme-high/source-sample/sports/catalog.yaml",
+      "planSha256": "771bb840df549cb0e718e50d72c3f0cb6392545e3cfd3a6c28b13a62d3b7ae86",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/sports/catalog.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-146",
+      "planPath": "plans/examples/ecme-high/source-sample/statistics/profile.yaml",
+      "planSha256": "e30a79b04b408274fa07efef64051a29b72f6987b3d30977bf253a0469bd5175",
+      "classification": "reference",
+      "requirement": "Preserve plans/examples/ecme-high/source-sample/statistics/profile.yaml as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-147",
+      "planPath": "plans/future/FOUNDATION_INDEX_AND_API.md",
+      "planSha256": "5f9d954f493a6d1172219a2cf2a166b6a7d26093ed1ce2b6110e23fdfd04ce7e",
+      "classification": "reference",
+      "requirement": "Preserve plans/future/FOUNDATION_INDEX_AND_API.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-148",
+      "planPath": "plans/future/RELATIONSHIP_TO_OTHER_PAPER_AND_SLATE_PROJECTS.md",
+      "planSha256": "5a5cb1bb1354d484b1ac907ae682adff21508e300592a096cd1654ace0d3fe02",
+      "classification": "reference",
+      "requirement": "Preserve plans/future/RELATIONSHIP_TO_OTHER_PAPER_AND_SLATE_PROJECTS.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-149",
+      "planPath": "plans/future/SCHOOL_WEBSITE_PLATFORM.md",
+      "planSha256": "7016bafcf7498af3f10abfd5008e5318d6b5f089516a67708c508664f128a16b",
+      "classification": "reference",
+      "requirement": "Preserve plans/future/SCHOOL_WEBSITE_PLATFORM.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-150",
+      "planPath": "plans/governance/ADR_PROCESS.md",
+      "planSha256": "b2a25c10d140e5d50efb92766df09127b923fca8c525f8507b819e967e7d946f",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/ADR_PROCESS.md; prose alone cannot establish completion.",
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-151",
+      "planPath": "plans/governance/CONFORMANCE_MARK_POLICY.md",
+      "planSha256": "d6daa8826bf9e3f43fc5acf1bc537973ed96937335666f1143a68170de32ae1b",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/CONFORMANCE_MARK_POLICY.md; prose alone cannot establish completion.",
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-152",
+      "planPath": "plans/governance/CONTRIBUTING_PLAN.md",
+      "planSha256": "5aac5c547a1a1d1a5cc5795a268f0eb77aaae9fe3a3a49e6d35e36b997c4bdd5",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/CONTRIBUTING_PLAN.md; prose alone cannot establish completion.",
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-153",
+      "planPath": "plans/governance/GOVERNANCE.md",
+      "planSha256": "e04b6664fa91ce5aa546bf7e7501d47bd563d2bae0f4b4fdedb1454866713d51",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/GOVERNANCE.md; prose alone cannot establish completion.",
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-154",
+      "planPath": "plans/governance/LICENSE_AND_IP_PLAN.md",
+      "planSha256": "ef21f03ec00de8aaaefc1966e25420806c661b2b474c6af41d731c3d73d8a43b",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/LICENSE_AND_IP_PLAN.md; prose alone cannot establish completion.",
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-155",
+      "planPath": "plans/governance/MAINTAINERS_AND_SUCCESSION.md",
+      "planSha256": "3c25bd8ca18672ead5257c656ececa2430de42bc090c82f76715460de80633f0",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/MAINTAINERS_AND_SUCCESSION.md; prose alone cannot establish completion.",
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-156",
+      "planPath": "plans/governance/RFC_PROCESS.md",
+      "planSha256": "d743a359f7d60ce669a7194860588dc107e7dfbbebc443ac6277a44e2557aee7",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/RFC_PROCESS.md; prose alone cannot establish completion.",
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-157",
+      "planPath": "plans/governance/SECURITY_POLICY_PLAN.md",
+      "planSha256": "19869c933819ab82d6180061510c5eba162bb8b99427e076d3c535f35cd009fd",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/governance/SECURITY_POLICY_PLAN.md; prose alone cannot establish completion.",
+      "evidencePaths": ["GOVERNANCE.md", "CONTRIBUTING.md", "scripts/lint.ts"],
+      "evidenceCommands": ["pnpm policy:check", "pnpm license:check"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-PLAN-158",
+      "planPath": "plans/interoperability/CEDS_EDFI_MAPPING.md",
+      "planSha256": "a837ff819270a165fb06dfe5d6611df7060b97239a7d6bc109e3b723ff44d533",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/interoperability/CEDS_EDFI_MAPPING.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "mappings/registry.json",
+        "packages/adapters/src/index.ts",
+        "tests/mappings.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-159",
+      "planPath": "plans/interoperability/IMPORT_EXPORT_ADAPTERS.md",
+      "planSha256": "09d67f7ab5e84a1e00d7ad67716878e5a0af7d46f6b26f030409aff4cabfb5dd",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/interoperability/IMPORT_EXPORT_ADAPTERS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "mappings/registry.json",
+        "packages/adapters/src/index.ts",
+        "tests/mappings.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-160",
+      "planPath": "plans/interoperability/ONE_ROSTER_CASE_QTI_LTI.md",
+      "planSha256": "c8274d05d98b2fa9210b9bede031ea265cdd8950642ae92bd6aad716a9988d74",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/interoperability/ONE_ROSTER_CASE_QTI_LTI.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "mappings/registry.json",
+        "packages/adapters/src/index.ts",
+        "tests/mappings.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-161",
+      "planPath": "plans/interoperability/SCHEMA_ORG_MAPPING.md",
+      "planSha256": "eb8765c4995972de578953fcfb54a25ca9a8b06500dd0c698f56b87b8277a54a",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/interoperability/SCHEMA_ORG_MAPPING.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "mappings/registry.json",
+        "packages/adapters/src/index.ts",
+        "tests/mappings.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-162",
+      "planPath": "plans/interoperability/STANDARDS_LANDSCAPE.md",
+      "planSha256": "f6a25db10216ffb90b252d83a1d60a91ce768834e30c189f76d82df87d2d0e43",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/interoperability/STANDARDS_LANDSCAPE.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "mappings/registry.json",
+        "packages/adapters/src/index.ts",
+        "tests/mappings.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-163",
+      "planPath": "plans/methodology/DATA_GOVERNANCE_METHOD.md",
+      "planSha256": "9175f2568b48bb002a662bc77d7ef7396f658014ea7ad06247356eb52790c351",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/methodology/DATA_GOVERNANCE_METHOD.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-164",
+      "planPath": "plans/methodology/IDENTIFIER_AND_ENTITY_RESOLUTION_METHOD.md",
+      "planSha256": "18495b4a995c4fdc182ea0f2bbaf1ce6e92631bee5884856026bde7ff6bf64c5",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/methodology/IDENTIFIER_AND_ENTITY_RESOLUTION_METHOD.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-165",
+      "planPath": "plans/methodology/SPECIFICATION_DEVELOPMENT_METHOD.md",
+      "planSha256": "a269156558d6efc7009daa5dd3d3346427729d6409b2cf9fbb086baa53aa8e1d",
+      "classification": "implementation-guidance",
+      "requirement": "Use plans/methodology/SPECIFICATION_DEVELOPMENT_METHOD.md as implementation guidance and map each actionable obligation to executable repository evidence.",
+      "evidencePaths": [
+        "requirements/plan-file-traceability.json",
+        "requirements/TRACEABILITY_MATRIX.md"
+      ],
+      "evidenceCommands": ["pnpm traceability:check"],
+      "status": "not-applicable"
+    },
+    {
+      "id": "EOM-PLAN-166",
+      "planPath": "plans/ownership/CODEOWNERS_EXAMPLE.md",
+      "planSha256": "283d312d64db02ab17d1832d2400c68641c954fdf37a5fb432581674051e9232",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/ownership/CODEOWNERS_EXAMPLE.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        ".github/CODEOWNERS",
+        "docs/governance/ownership-and-review.md",
+        "scripts/check-ownership.ts"
+      ],
+      "evidenceCommands": ["pnpm ownership:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-167",
+      "planPath": "plans/ownership/DELEGATED_VENDOR_HOSTING.md",
+      "planSha256": "964f0836d1b715a0ba6e9a91852aec3c25f22c57681b8c0944ef7e2da6ccfaba",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/ownership/DELEGATED_VENDOR_HOSTING.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        ".github/CODEOWNERS",
+        "docs/governance/ownership-and-review.md",
+        "scripts/check-ownership.ts"
+      ],
+      "evidenceCommands": ["pnpm ownership:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-168",
+      "planPath": "plans/ownership/MULTI_OWNER_WORKFLOWS.md",
+      "planSha256": "4ade0e98daee269de4764841425056ec0120a58fdf570947ae6c1ec84c90adcd",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/ownership/MULTI_OWNER_WORKFLOWS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        ".github/CODEOWNERS",
+        "docs/governance/ownership-and-review.md",
+        "scripts/check-ownership.ts"
+      ],
+      "evidenceCommands": ["pnpm ownership:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-169",
+      "planPath": "plans/ownership/REVIEW_AND_APPROVAL_MATRIX.md",
+      "planSha256": "b96399b172b4c93cc4055c24e08ff8c5b3d718416ba33ce3fa92eed0b28a401e",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/ownership/REVIEW_AND_APPROVAL_MATRIX.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        ".github/CODEOWNERS",
+        "docs/governance/ownership-and-review.md",
+        "scripts/check-ownership.ts"
+      ],
+      "evidenceCommands": ["pnpm ownership:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-170",
+      "planPath": "plans/roadmap.md",
+      "planSha256": "c6ee9ff33014a11fd0b9396e3c8f85db3849294931099a690104433329bd6a68",
+      "classification": "reference",
+      "requirement": "Preserve plans/roadmap.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-171",
+      "planPath": "plans/specification/CONFORMANCE_MODEL.md",
+      "planSha256": "ecf2a9f9df877c278ccf6069d02387448d51e10a53f62a43b67ba77e4eb5b7c4",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/CONFORMANCE_MODEL.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/protocol.md",
+        "packages/validator/src/semantic.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-172",
+      "planPath": "plans/specification/HTTP_AND_DISCOVERY.md",
+      "planSha256": "aa85e26a732ebc9037e48c2c885af6f66fa44d164ad0d682dbe18b808f403759",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/HTTP_AND_DISCOVERY.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/http-discovery.md",
+        "packages/core/src/fetch.ts",
+        "tests/fetch.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-173",
+      "planPath": "plans/specification/IANA_REGISTRATION_PLAN.md",
+      "planSha256": "20bc6197508e37edd1b9d24650f16d7e9531dca9dab9c7c81343ae6579513168",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/IANA_REGISTRATION_PLAN.md; prose alone cannot establish completion.",
+      "evidencePaths": ["release/registration/status.json", "reports/external-gates.md"],
+      "evidenceCommands": ["pnpm release:check"],
+      "status": "blocked-external",
+      "notes": "This planning item records an external gate; local checks must not close it."
+    },
+    {
+      "id": "EOM-PLAN-174",
+      "planPath": "plans/specification/IDENTIFIERS_AND_SCOPE.md",
+      "planSha256": "a61ca00d62fa19a19a42d49cb3ff0cf493c322a8a6d7464e7de16e3420c260bd",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/IDENTIFIERS_AND_SCOPE.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/protocol.md",
+        "packages/validator/src/semantic.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-175",
+      "planPath": "plans/specification/INTERNATIONALIZATION.md",
+      "planSha256": "aeaaa6e701d40a8e8b8a8f446adb4092b9a03684a113297a95ff93bec6b81f1a",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/INTERNATIONALIZATION.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/protocol.md",
+        "packages/validator/src/semantic.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-176",
+      "planPath": "plans/specification/OWNERSHIP_AND_DELEGATION.md",
+      "planSha256": "deed2f28aa13837b41df40d378fcbbda54aa730fd1bdf1f59da21d3b6b79011d",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/OWNERSHIP_AND_DELEGATION.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/ownership-delegation.md",
+        "packages/authority/src/index.ts",
+        "tests/authority-signatures.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm ownership:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-177",
+      "planPath": "plans/specification/PRIVACY_AND_PUBLICATION.md",
+      "planSha256": "44e98dba8bc1f4d94443e25cc71cb8fdd27806050e5332bc0c3851605227ecfd",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/PRIVACY_AND_PUBLICATION.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/protocol.md",
+        "packages/validator/src/semantic.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-178",
+      "planPath": "plans/specification/PROTOCOL_OVERVIEW.md",
+      "planSha256": "458ca9203cdb5ef2f099c427884c1f595b17b6d49639298fcef8774a74d87671",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/PROTOCOL_OVERVIEW.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/protocol.md",
+        "packages/validator/src/semantic.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-179",
+      "planPath": "plans/specification/PROVENANCE_AND_CONFLICTS.md",
+      "planSha256": "eef6116ae9f36c1e1e58e31a2cbfce5a3a4a8eb0085e0480b318eaf5ac1ee881",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/PROVENANCE_AND_CONFLICTS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/protocol.md",
+        "packages/validator/src/semantic.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-180",
+      "planPath": "plans/specification/RESOURCES_AND_CAPABILITIES.md",
+      "planSha256": "7ef7ca263448f40e272470c4dc7809f95f1fb412be2b8afa6c9c2e5fa0e7c803",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/RESOURCES_AND_CAPABILITIES.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/protocol.md",
+        "packages/validator/src/semantic.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-181",
+      "planPath": "plans/specification/ROOT_MANIFEST.md",
+      "planSha256": "5dbfb4310aab513595d5c8ff76e6f09c6378cfafa09482a7f906f973a80d781d",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/ROOT_MANIFEST.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/protocol.md",
+        "packages/validator/src/semantic.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-182",
+      "planPath": "plans/specification/SIGNATURES_AND_INTEGRITY.md",
+      "planSha256": "4a83692eb04e87f1ced719e2dcfdda0d707b850bb970c93225708d8b8657315d",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/SIGNATURES_AND_INTEGRITY.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/signatures.md",
+        "packages/signatures/src/index.ts",
+        "tests/authority-signatures.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-183",
+      "planPath": "plans/specification/VERSIONING_AND_EXTENSIONS.md",
+      "planSha256": "1ba556b5578d57bc489a662f41116b5d9de45cbad023c347047e2b255aa644a9",
+      "classification": "normative",
+      "requirement": "Implement and verify the normative or delivery obligations described by plans/specification/VERSIONING_AND_EXTENSIONS.md; prose alone cannot establish completion.",
+      "evidencePaths": [
+        "spec/1.0/protocol.md",
+        "packages/validator/src/semantic.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-PLAN-184",
+      "planPath": "plans/templates/ADR_TEMPLATE.md",
+      "planSha256": "4141a914a62330c0ce82dada6f1864017e11312c7e210f2448161bc1c59b3988",
+      "classification": "reference",
+      "requirement": "Preserve plans/templates/ADR_TEMPLATE.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-185",
+      "planPath": "plans/templates/DATA_REVIEW_CHECKLIST.md",
+      "planSha256": "1a23ceeab275a80ee9c01c08e8eb1b6bb6cd35ecf79e46e2bce7ae4821424923",
+      "classification": "reference",
+      "requirement": "Preserve plans/templates/DATA_REVIEW_CHECKLIST.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-186",
+      "planPath": "plans/templates/MODULE_SPEC_TEMPLATE.md",
+      "planSha256": "9130d7abccb17e5943f4e5672dad1e38d81b96ccbb505d7f4ddb65d98f5919ae",
+      "classification": "reference",
+      "requirement": "Preserve plans/templates/MODULE_SPEC_TEMPLATE.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-187",
+      "planPath": "plans/templates/PHASE_REPORT_TEMPLATE.md",
+      "planSha256": "22a5c2320ea93ad859af597564c115d98f2d7d4c6376efeffbcb27c8a5a16da8",
+      "classification": "reference",
+      "requirement": "Preserve plans/templates/PHASE_REPORT_TEMPLATE.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-188",
+      "planPath": "plans/templates/RFC_TEMPLATE.md",
+      "planSha256": "fbbd011e1098ec64126f66f891625bc60c36eb9afad63591ef28c1785909dad9",
+      "classification": "reference",
+      "requirement": "Preserve plans/templates/RFC_TEMPLATE.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-189",
+      "planPath": "plans/templates/SECURITY_REVIEW_TEMPLATE.md",
+      "planSha256": "bc8a3ada93305f848936f676a79343e18f037d2e9fccfb41e709cbb1ba2c4914",
+      "classification": "reference",
+      "requirement": "Preserve plans/templates/SECURITY_REVIEW_TEMPLATE.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-190",
+      "planPath": "plans/website/EMBED_EXPORT_STRATEGY.md",
+      "planSha256": "79d6ddab9689f0a746301d15cafba8f2dead67d4ee301f5d37a1322269bcd470",
+      "classification": "reference",
+      "requirement": "Preserve plans/website/EMBED_EXPORT_STRATEGY.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-191",
+      "planPath": "plans/website/MAIN_WEBSITE_COPY.md",
+      "planSha256": "b48f62d7e6f5bab3853aff9b4ad96d65a5016ab9612b17c80919b8b234c89db1",
+      "classification": "reference",
+      "requirement": "Preserve plans/website/MAIN_WEBSITE_COPY.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-192",
+      "planPath": "plans/website/SCHOOL_ADOPTION_GUIDE.md",
+      "planSha256": "443266a8691e9f95605aa24487b913f06451d64f796feebd525d38d3bdb3d59d",
+      "classification": "reference",
+      "requirement": "Preserve plans/website/SCHOOL_ADOPTION_GUIDE.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-193",
+      "planPath": "plans/website/TOOLS_AND_DEVELOPER_PORTAL.md",
+      "planSha256": "43df6ebf5fe5c0c0417f6147462c49e9bb957918058969b2c4425fb32009afb0",
+      "classification": "reference",
+      "requirement": "Preserve plans/website/TOOLS_AND_DEVELOPER_PORTAL.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    },
+    {
+      "id": "EOM-PLAN-194",
+      "planPath": "plans/website/WEBSITE_INTEGRATION_VISION.md",
+      "planSha256": "9cded2c7dbf35543560686589561a4a9e5602f74473db6369bedc1a8cd28e22a",
+      "classification": "reference",
+      "requirement": "Preserve plans/website/WEBSITE_INTEGRATION_VISION.md as non-normative reference material; it does not independently assert implementation completion.",
+      "evidencePaths": [],
+      "evidenceCommands": [],
+      "status": "not-applicable",
+      "notes": "Non-normative reference material; actionable obligations are mapped separately."
+    }
+  ],
+  "atomicRequirements": [
+    {
+      "id": "EOM-MOD-AGG-001",
+      "requirement": "The complete module registry is unique, schema-backed, versioned, privacy-classified, mapped, fixture-covered, generator-supported, and profile-tested.",
+      "source": [
+        "spec/1.0/modules.md",
+        "data-model/MODULE_REGISTRY.md",
+        "delivery/DEFINITION_OF_DONE.md"
+      ],
+      "evidencePaths": [
+        "modules/registry.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-001",
+      "requirement": "The organization module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/organization-profile.schema.json",
+        "examples/ecme-high/public/eom/organization.json",
+        "fixtures/modules/organization/valid.json",
+        "fixtures/modules/organization/invalid-unknown-property.json",
+        "fixtures/modules/organization/invalid-privacy.json",
+        "fixtures/modules/organization/invalid-security.json",
+        "fixtures/modules/organization/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-002",
+      "requirement": "The campuses module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/campus-catalog.schema.json",
+        "examples/ecme-high/public/eom/campuses.json",
+        "fixtures/modules/campuses/valid.json",
+        "fixtures/modules/campuses/invalid-unknown-property.json",
+        "fixtures/modules/campuses/invalid-privacy.json",
+        "fixtures/modules/campuses/invalid-security.json",
+        "fixtures/modules/campuses/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-003",
+      "requirement": "The departments module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/department-catalog.schema.json",
+        "examples/ecme-high/public/eom/departments.json",
+        "fixtures/modules/departments/valid.json",
+        "fixtures/modules/departments/invalid-unknown-property.json",
+        "fixtures/modules/departments/invalid-privacy.json",
+        "fixtures/modules/departments/invalid-security.json",
+        "fixtures/modules/departments/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-004",
+      "requirement": "The staff module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/staff-directory.schema.json",
+        "examples/ecme-high/public/eom/staff.json",
+        "fixtures/modules/staff/valid.json",
+        "fixtures/modules/staff/invalid-unknown-property.json",
+        "fixtures/modules/staff/invalid-privacy.json",
+        "fixtures/modules/staff/invalid-security.json",
+        "fixtures/modules/staff/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-005",
+      "requirement": "The contacts module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/contact-directory.schema.json",
+        "examples/ecme-high/public/eom/contacts.json",
+        "fixtures/modules/contacts/valid.json",
+        "fixtures/modules/contacts/invalid-unknown-property.json",
+        "fixtures/modules/contacts/invalid-privacy.json",
+        "fixtures/modules/contacts/invalid-security.json",
+        "fixtures/modules/contacts/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-006",
+      "requirement": "The courses module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/course-catalog.schema.json",
+        "examples/ecme-high/public/eom/courses.json",
+        "fixtures/modules/courses/valid.json",
+        "fixtures/modules/courses/invalid-unknown-property.json",
+        "fixtures/modules/courses/invalid-privacy.json",
+        "fixtures/modules/courses/invalid-security.json",
+        "fixtures/modules/courses/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-007",
+      "requirement": "The offerings module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/course-offering-catalog.schema.json",
+        "examples/ecme-high/public/eom/offerings.json",
+        "fixtures/modules/offerings/valid.json",
+        "fixtures/modules/offerings/invalid-unknown-property.json",
+        "fixtures/modules/offerings/invalid-privacy.json",
+        "fixtures/modules/offerings/invalid-security.json",
+        "fixtures/modules/offerings/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-008",
+      "requirement": "The programs module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/program-catalog.schema.json",
+        "examples/ecme-high/public/eom/programs.json",
+        "fixtures/modules/programs/valid.json",
+        "fixtures/modules/programs/invalid-unknown-property.json",
+        "fixtures/modules/programs/invalid-privacy.json",
+        "fixtures/modules/programs/invalid-security.json",
+        "fixtures/modules/programs/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-009",
+      "requirement": "The calendar module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/academic-calendar.schema.json",
+        "examples/ecme-high/public/eom/calendar.json",
+        "fixtures/modules/calendar/valid.json",
+        "fixtures/modules/calendar/invalid-unknown-property.json",
+        "fixtures/modules/calendar/invalid-privacy.json",
+        "fixtures/modules/calendar/invalid-security.json",
+        "fixtures/modules/calendar/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-010",
+      "requirement": "The events module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/event-catalog.schema.json",
+        "examples/ecme-high/public/eom/events.json",
+        "fixtures/modules/events/valid.json",
+        "fixtures/modules/events/invalid-unknown-property.json",
+        "fixtures/modules/events/invalid-privacy.json",
+        "fixtures/modules/events/invalid-security.json",
+        "fixtures/modules/events/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-011",
+      "requirement": "The facilities module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/facility-catalog.schema.json",
+        "examples/ecme-high/public/eom/facilities.json",
+        "fixtures/modules/facilities/valid.json",
+        "fixtures/modules/facilities/invalid-unknown-property.json",
+        "fixtures/modules/facilities/invalid-privacy.json",
+        "fixtures/modules/facilities/invalid-security.json",
+        "fixtures/modules/facilities/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-012",
+      "requirement": "The services module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/service-catalog.schema.json",
+        "examples/ecme-high/public/eom/services.json",
+        "fixtures/modules/services/valid.json",
+        "fixtures/modules/services/invalid-unknown-property.json",
+        "fixtures/modules/services/invalid-privacy.json",
+        "fixtures/modules/services/invalid-security.json",
+        "fixtures/modules/services/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-013",
+      "requirement": "The policies module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/policy-catalog.schema.json",
+        "examples/ecme-high/public/eom/policies.json",
+        "fixtures/modules/policies/valid.json",
+        "fixtures/modules/policies/invalid-unknown-property.json",
+        "fixtures/modules/policies/invalid-privacy.json",
+        "fixtures/modules/policies/invalid-security.json",
+        "fixtures/modules/policies/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-014",
+      "requirement": "The admissions module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/admissions-profile.schema.json",
+        "examples/ecme-high/public/eom/admissions.json",
+        "fixtures/modules/admissions/valid.json",
+        "fixtures/modules/admissions/invalid-unknown-property.json",
+        "fixtures/modules/admissions/invalid-privacy.json",
+        "fixtures/modules/admissions/invalid-security.json",
+        "fixtures/modules/admissions/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-015",
+      "requirement": "The sports module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/sports-catalog.schema.json",
+        "examples/ecme-high/public/eom/sports.json",
+        "fixtures/modules/sports/valid.json",
+        "fixtures/modules/sports/invalid-unknown-property.json",
+        "fixtures/modules/sports/invalid-privacy.json",
+        "fixtures/modules/sports/invalid-security.json",
+        "fixtures/modules/sports/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-016",
+      "requirement": "The transportation module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/transportation-catalog.schema.json",
+        "examples/ecme-high/public/eom/transportation.json",
+        "fixtures/modules/transportation/valid.json",
+        "fixtures/modules/transportation/invalid-unknown-property.json",
+        "fixtures/modules/transportation/invalid-privacy.json",
+        "fixtures/modules/transportation/invalid-security.json",
+        "fixtures/modules/transportation/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-017",
+      "requirement": "The meals module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/meal-menu-catalog.schema.json",
+        "examples/ecme-high/public/eom/meals.json",
+        "fixtures/modules/meals/valid.json",
+        "fixtures/modules/meals/invalid-unknown-property.json",
+        "fixtures/modules/meals/invalid-privacy.json",
+        "fixtures/modules/meals/invalid-security.json",
+        "fixtures/modules/meals/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-018",
+      "requirement": "The clubs module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/club-catalog.schema.json",
+        "examples/ecme-high/public/eom/clubs.json",
+        "fixtures/modules/clubs/valid.json",
+        "fixtures/modules/clubs/invalid-unknown-property.json",
+        "fixtures/modules/clubs/invalid-privacy.json",
+        "fixtures/modules/clubs/invalid-security.json",
+        "fixtures/modules/clubs/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-019",
+      "requirement": "The jobs module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/job-catalog.schema.json",
+        "examples/ecme-high/public/eom/jobs.json",
+        "fixtures/modules/jobs/valid.json",
+        "fixtures/modules/jobs/invalid-unknown-property.json",
+        "fixtures/modules/jobs/invalid-privacy.json",
+        "fixtures/modules/jobs/invalid-security.json",
+        "fixtures/modules/jobs/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-020",
+      "requirement": "The news module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/news-feed.schema.json",
+        "examples/ecme-high/public/eom/news.json",
+        "fixtures/modules/news/valid.json",
+        "fixtures/modules/news/invalid-unknown-property.json",
+        "fixtures/modules/news/invalid-privacy.json",
+        "fixtures/modules/news/invalid-security.json",
+        "fixtures/modules/news/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-021",
+      "requirement": "The statistics module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/statistics-profile.schema.json",
+        "examples/ecme-high/public/eom/statistics.json",
+        "fixtures/modules/statistics/valid.json",
+        "fixtures/modules/statistics/invalid-unknown-property.json",
+        "fixtures/modules/statistics/invalid-privacy.json",
+        "fixtures/modules/statistics/invalid-security.json",
+        "fixtures/modules/statistics/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-MOD-022",
+      "requirement": "The apis module has complete structural, semantic, privacy/security, extension, mapping, generator, example, and conformance evidence.",
+      "source": ["data-model/MODULE_REGISTRY.md", "delivery/DEFINITION_OF_DONE.md"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "schemas/1.0/modules/api-reference.schema.json",
+        "examples/ecme-high/public/eom/apis.json",
+        "fixtures/modules/apis/valid.json",
+        "fixtures/modules/apis/invalid-unknown-property.json",
+        "fixtures/modules/apis/invalid-privacy.json",
+        "fixtures/modules/apis/invalid-security.json",
+        "fixtures/modules/apis/extension.json",
+        "scripts/check-modules.ts",
+        "tests/modules.test.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-001",
+      "requirement": "HTTPS discovery, redirect, content-type, cache, CORS, DNS binding, and resource limits are bounded and observable.",
+      "source": ["spec/1.0/http-discovery.md", "packages/core/src/fetch.ts", "tests/fetch.test.ts"],
+      "evidencePaths": ["packages/core/src/fetch.ts", "tests/fetch.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm verify:security"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-002",
+      "requirement": "Root manifests are compact and link independently optional resource modules.",
+      "source": [
+        "spec/1.0/protocol.md",
+        "schemas/1.0/manifest.schema.json",
+        "tests/validator.test.ts"
+      ],
+      "evidencePaths": ["schemas/1.0/manifest.schema.json", "tests/validator.test.ts"],
+      "evidenceCommands": ["pnpm schema:check", "pnpm test"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-003",
+      "requirement": "Identifiers, origins, paths, canonical URLs, and references are absolute and scope-safe.",
+      "source": ["spec/1.0/protocol.md", "packages/core/src/ids.ts", "tests/validator.test.ts"],
+      "evidencePaths": ["packages/core/src/ids.ts", "tests/validator.test.ts"],
+      "evidenceCommands": ["pnpm test"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-004",
+      "requirement": "Resource envelopes, capabilities, indexes, lifecycle, and module relationships are structurally valid.",
+      "source": ["schemas/1.0/catalog.json", "scripts/check-schemas.ts", "tests/modules.test.ts"],
+      "evidencePaths": ["scripts/check-schemas.ts", "tests/modules.test.ts"],
+      "evidenceCommands": ["pnpm schema:check", "pnpm module:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-005",
+      "requirement": "Language tags, direction, localized values, and international education profiles are supported.",
+      "source": [
+        "spec/1.0/internationalization.md",
+        "packages/core/src/localized.ts",
+        "tests/core.test.ts"
+      ],
+      "evidencePaths": ["packages/core/src/localized.ts", "tests/core.test.ts"],
+      "evidenceCommands": ["pnpm test"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-006",
+      "requirement": "Course definitions are separated from offerings and prerequisite graphs are checked.",
+      "source": [
+        "spec/1.0/data-model.md",
+        "packages/validator/src/semantic.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidencePaths": ["packages/validator/src/semantic.ts", "tests/validator.test.ts"],
+      "evidenceCommands": ["pnpm test"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-007",
+      "requirement": "Privacy and publication safety exclude student/private data and security-sensitive fields.",
+      "source": [
+        "spec/1.0/privacy.md",
+        "packages/linter/src/index.ts",
+        "scripts/security-check.ts"
+      ],
+      "evidencePaths": ["packages/linter/src/index.ts", "scripts/security-check.ts"],
+      "evidenceCommands": ["pnpm verify:security", "pnpm test"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-NORM-008",
+      "requirement": "Provenance, evidence, conflicts, review states, freshness, and candidate gating preserve uncertainty.",
+      "source": [
+        "spec/1.0/provenance-conflicts.md",
+        "packages/agentic/src/index.ts",
+        "tests/agentic.test.ts"
+      ],
+      "evidencePaths": ["packages/agentic/src/index.ts", "tests/agentic.test.ts"],
+      "evidenceCommands": ["pnpm test"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-009",
+      "requirement": "Delegation is explicit, scoped, time-bounded, revocable, subject-bound, key-aware, and non-transitive by default.",
+      "source": [
+        "spec/1.0/ownership-delegation.md",
+        "packages/authority/src/index.ts",
+        "tests/authority-signatures.test.ts"
+      ],
+      "evidencePaths": ["packages/authority/src/index.ts", "tests/authority-signatures.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm ownership:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-010",
+      "requirement": "Signatures use canonical JSON, structured protected lifetime metadata, exact sidecar binding, key lifecycle, subject, and cryptographic checks.",
+      "source": [
+        "spec/1.0/signatures.md",
+        "packages/signatures/src/index.ts",
+        "tests/authority-signatures.test.ts"
+      ],
+      "evidencePaths": ["packages/signatures/src/index.ts", "tests/authority-signatures.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm schema:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-011",
+      "requirement": "Versioned schemas, vocabularies, extensions, compatibility, and migrations are immutable and testable.",
+      "source": [
+        "spec/1.0/versioning.md",
+        "schemas/1.0/catalog.json",
+        "vocabularies/registry.json"
+      ],
+      "evidencePaths": ["schemas/1.0/catalog.json", "vocabularies/registry.json"],
+      "evidenceCommands": ["pnpm schema:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-012",
+      "requirement": "Authoring generation is deterministic, safe against path replacement, and supports full, module, organization, and changed-files modes.",
+      "source": [
+        "spec/1.0/generation.md",
+        "packages/generator/src/index.ts",
+        "tests/generator.test.ts"
+      ],
+      "evidencePaths": ["packages/generator/src/index.ts", "tests/generator.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm verify:determinism"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-013",
+      "requirement": "Validation and linting expose stable, actionable findings and machine-readable report formats.",
+      "source": [
+        "spec/1.0/validation.md",
+        "packages/validator/src/reports.ts",
+        "tests/validator.test.ts"
+      ],
+      "evidencePaths": ["packages/validator/src/reports.ts", "tests/validator.test.ts"],
+      "evidenceCommands": ["pnpm test"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-014",
+      "requirement": "CLI commands and global operational limits have stable behavior and usage exit codes.",
+      "source": ["spec/1.0/cli.md", "packages/cli/src/index.ts", "tests/cli.test.ts"],
+      "evidencePaths": ["packages/cli/src/index.ts", "tests/cli.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm typecheck"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-015",
+      "requirement": "Mappings preserve identifiers, privacy boundaries, loss reports, and review status.",
+      "source": [
+        "spec/1.0/interoperability.md",
+        "mappings/registry.json",
+        "tests/mappings.test.ts"
+      ],
+      "evidencePaths": ["mappings/registry.json", "tests/mappings.test.ts"],
+      "evidenceCommands": ["pnpm test"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-016",
+      "requirement": "Conformance profiles evaluate publisher, consumer, generator, validator, module, delegation, and signature behavior.",
+      "source": [
+        "spec/1.0/conformance.md",
+        "conformance/registry.json",
+        "scripts/run-conformance-profiles.ts"
+      ],
+      "evidencePaths": ["conformance/registry.json", "scripts/run-conformance-profiles.ts"],
+      "evidenceCommands": ["pnpm conformance:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-017",
+      "requirement": "Browser tools use the browser-safe engine, avoid uploads by default, and meet automated accessibility/security checks.",
+      "source": [
+        "plans/architecture/DOCUMENTATION_AND_PLAYGROUND.md",
+        "apps/playground/src/browser-engine.js",
+        "tests/browser.spec.ts"
+      ],
+      "evidencePaths": ["apps/playground/src/browser-engine.js", "tests/browser.spec.ts"],
+      "evidenceCommands": ["pnpm test:browser", "pnpm docs:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-NORM-018",
+      "requirement": "Release evidence is revision-bound, reproducible, checksummed, licensed, and status-honest.",
+      "source": [
+        "spec/1.0/release.md",
+        "scripts/check-release.ts",
+        "scripts/check-release-reproducibility.ts"
+      ],
+      "evidencePaths": ["scripts/check-release.ts", "scripts/check-release-reproducibility.ts"],
+      "evidenceCommands": ["pnpm release:check", "pnpm verify:release-reproducibility"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-REM-001",
+      "requirement": "Published packages resolve only compiled files and bundled schema assets.",
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["scripts/check-packages.ts", "packages/schema/package.json"],
+      "evidenceCommands": ["pnpm packages:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-REM-002",
+      "requirement": "Generator output replacement is confined to compatible marked roots and selectors.",
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["packages/generator/src/index.ts", "tests/generator.test.ts"],
+      "evidenceCommands": ["pnpm test"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-REM-003",
+      "requirement": "Network connections cannot be redirected to a private address after DNS validation.",
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["packages/core/src/fetch.ts", "tests/fetch.test.ts"],
+      "evidenceCommands": ["pnpm test"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-REM-004",
+      "requirement": "All module registry and vocabulary records are schema-validated and versioned.",
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": [
+        "modules/registry.json",
+        "vocabularies/registry.json",
+        "scripts/check-modules.ts"
+      ],
+      "evidenceCommands": ["pnpm module:check", "pnpm vocabulary:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-REM-005",
+      "requirement": "Every v1 module has dedicated valid, invalid, privacy, security, extension, and conformance evidence.",
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["scripts/check-modules.ts", "fixtures/modules"],
+      "evidenceCommands": ["pnpm module:check", "pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-REM-006",
+      "requirement": "CLI, migration, diff, graph, and report interfaces match the planning contract.",
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["packages/cli/src/index.ts", "tests/cli.test.ts"],
+      "evidenceCommands": ["pnpm test", "pnpm typecheck"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-REM-007",
+      "requirement": "Conformance roles test publisher, consumer, generator, validator, delegation, and signature behavior.",
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": [
+        "packages/testkit/src/index.ts",
+        "fixtures/conformance/expected/profiles.json"
+      ],
+      "evidenceCommands": ["pnpm conformance:profiles"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-REM-008",
+      "requirement": "Browser validation shares the real validator and has automated accessibility coverage.",
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["apps/playground/src/browser-engine.js", "tests/browser.spec.ts"],
+      "evidenceCommands": ["pnpm test:browser"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-REM-009",
+      "requirement": "CI runs real lint, CodeQL/dependency/secret checks, drift, packaging, and cross-platform gates.",
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/codeql.yml",
+        "scripts/check-action-pins.ts"
+      ],
+      "evidenceCommands": ["pnpm actions:check", "pnpm lint"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-REM-010",
+      "requirement": "Release artifacts are exact, reproducible, source-revision-bound, and status-honest.",
+      "source": ["MASTER_CODEX_GOAL_PROMPT.txt"],
+      "evidencePaths": ["scripts/generate-release-artifacts.ts", "scripts/check-release.ts"],
+      "evidenceCommands": ["pnpm release:check", "pnpm verify:release-reproducibility"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-REL-LOCAL-001",
+      "requirement": "Frozen install, build, typecheck, lint, tests, coverage, schemas, fixtures, docs, packages, security, and release checks pass through the aggregate gate.",
+      "source": ["delivery/RELEASE_CHECKLIST.md"],
+      "evidencePaths": ["package.json", "scripts/check-traceability.ts"],
+      "evidenceCommands": ["pnpm verify"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-REL-LOCAL-002",
+      "requirement": "Cross-platform CI, CodeQL, dependency review, secret scanning, REUSE, and automated dependency maintenance are configured and pinned.",
+      "source": ["architecture/CI_CD_AND_RELEASE.md"],
+      "evidencePaths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/security.yml",
+        ".github/dependabot.yml",
+        "scripts/check-action-pins.ts"
+      ],
+      "evidenceCommands": ["pnpm actions:check"],
+      "status": "verified-local"
+    },
+    {
+      "id": "EOM-REL-LOCAL-003",
+      "requirement": "A formal post-remediation security scan has no unresolved critical, high, medium, low, or plan-conformance security finding.",
+      "source": ["architecture/THREAT_MODEL.md", "governance/SECURITY_POLICY_PLAN.md"],
+      "evidencePaths": ["reports/security-scan.md", "scripts/security-check.ts"],
+      "evidenceCommands": ["pnpm verify:security"],
+      "status": "open"
+    },
+    {
+      "id": "EOM-REL-EXT-001",
+      "requirement": "The proposed well-known suffix is registered or its current status is rechecked and recorded by the responsible external owner.",
+      "source": ["specification/IANA_REGISTRATION_PLAN.md"],
+      "evidencePaths": ["release/registration/status.json"],
+      "evidenceCommands": [],
+      "status": "blocked-external",
+      "owner": "registration owner",
+      "blocker": "IANA action and decision are outside this repository."
+    },
+    {
+      "id": "EOM-REL-EXT-002",
+      "requirement": "Independent publisher and consumer interoperability exchange evidence is supplied.",
+      "source": ["adoption/CONSUMER_PATTERNS.md", "interoperability/ONE_ROSTER_CASE_QTI_LTI.md"],
+      "evidencePaths": ["release/pilot/README.md"],
+      "evidenceCommands": [],
+      "status": "blocked-external",
+      "owner": "pilot coordinator",
+      "blocker": "Independent participants and exchange logs are not available locally."
+    },
+    {
+      "id": "EOM-REL-EXT-003",
+      "requirement": "Legal/licensing review and stable governance approval are recorded.",
+      "source": ["governance/LICENSE_AND_IP_PLAN.md", "governance/GOVERNANCE.md"],
+      "evidencePaths": ["reports/external-gates.md"],
+      "evidenceCommands": [],
+      "status": "blocked-external",
+      "owner": "legal/release owner and maintainers",
+      "blocker": "Written external review and approval have not been supplied."
+    },
+    {
+      "id": "EOM-REL-EXT-004",
+      "requirement": "Production deployment, adoption, certification, and factual endorsement remain explicitly unclaimed.",
+      "source": ["specification/IANA_REGISTRATION_PLAN.md", "website/MAIN_WEBSITE_COPY.md"],
+      "evidencePaths": ["docs/project-status.md", "reports/external-gates.md"],
+      "evidenceCommands": ["pnpm release:check"],
+      "status": "verified-local",
+      "owner": "release authority",
+      "blocker": "Deployment and adoption are intentionally not authorized by this release candidate."
+    }
+  ]
+}

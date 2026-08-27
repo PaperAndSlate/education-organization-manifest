@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/modules/staff-directory.schema.json",
+  "title": "EOM deliberate-public staff directory",
+  "allOf": [
+    { "$ref": "../module-resource.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "const": "https://paperandslate.org/schemas/eom/1.0/modules/staff-directory.schema.json"
+        },
+        "type": { "const": "staff-directory" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "module-items.schema.json#/$defs/staff" }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+# EOM 1.0 Versioning and Extensions
+
+Protocol/specification, root schema, module schema, profile, vocabulary, extension, and package versions are distinct. Major versions can break validity or meaning; minor versions add compatible optional capabilities; patch versions do not change accepted instance meaning. Released versioned URLs are immutable; `latest` aliases are non-persistent conveniences. RC3 intentionally makes two fail-closed pre-release changes: delegation records require `validUntil`, and detached signatures protect structured lifetime metadata. RC2 delegation records require migration by adding a bounded interval; RC2 signatures require re-signing, because RC2 protected-header strings are not accepted as RC3 signatures.
+
+Unknown top-level properties fail structural validation. Extensions are JSON objects under `extensions`, keyed by an absolute URI or controlled reverse-domain identifier; an extension cannot override core meaning or weaken privacy. Extension schemas and owners should be discoverable. Deprecations name replacements, first-deprecated version, planned removal, migration, and a stable linter code.

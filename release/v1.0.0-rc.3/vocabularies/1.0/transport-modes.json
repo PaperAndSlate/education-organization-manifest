@@ -1,0 +1,33 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/vocabulary.schema.json",
+  "canonical": "https://paperandslate.org/vocabularies/eom/transport-modes/1.0",
+  "category": "transport-modes",
+  "compatibleProtocolVersions": ["1.0"],
+  "contentDigest": "sha256:cf544f034d10dd85d6dbf3534d8d5dcbaf42ec9e8baad282e41da299f397856f",
+  "id": "https://paperandslate.org/vocabularies/eom/transport-modes/1.0",
+  "license": "CC0-1.0",
+  "openness": "extensible",
+  "retrievedAt": "2026-08-26T00:00:00Z",
+  "source": "https://paperandslate.org/vocabularies/eom/transport-modes",
+  "sourceVersion": "eom-working-draft",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "terms": [
+    {
+      "code": "bus",
+      "definition": "A public bus service mode without student route or rider records.",
+      "preferredLabel": "Bus",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/transport-modes/bus"
+    },
+    {
+      "code": "walk",
+      "definition": "A public walking service mode.",
+      "preferredLabel": "Walking",
+      "status": "active",
+      "uri": "https://paperandslate.org/vocabularies/eom/transport-modes/walk"
+    }
+  ],
+  "type": "vocabulary",
+  "updateMechanism": "governance review",
+  "version": "1.0"
+}

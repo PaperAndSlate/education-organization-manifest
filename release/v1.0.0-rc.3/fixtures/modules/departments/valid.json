@@ -1,0 +1,68 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/modules/department-catalog.schema.json",
+  "canonical": "https://ecme-high.example/eom/departments.json",
+  "defaultLanguage": "en-US",
+  "expires": "2028-05-01T14:00:00Z",
+  "id": "https://ecme-high.example/eom/resource/departments",
+  "items": [
+    {
+      "id": "https://ecme-high.example/id/department/ela",
+      "name": "English Language Arts",
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
+      "type": "department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/engineering-technology",
+      "name": "Engineering and Technology",
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
+      "type": "department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/fcs",
+      "name": "Family and Consumer Sciences",
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
+      "type": "department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/fine-arts",
+      "name": "Fine Arts",
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
+      "type": "department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/mathematics",
+      "name": "Mathematics",
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
+      "type": "department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/peh",
+      "name": "Physical Education and Health",
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
+      "type": "department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/science",
+      "name": "Science",
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
+      "type": "department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/social-studies",
+      "name": "Social Studies",
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
+      "type": "department"
+    },
+    {
+      "id": "https://ecme-high.example/id/department/world-languages",
+      "name": "World Languages",
+      "parentOrganization": { "id": "https://ecme-high.example/id/school" },
+      "type": "department"
+    }
+  ],
+  "modified": "2027-05-01T14:00:00Z",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "subjects": ["https://ecme-high.example/id/school"],
+  "type": "department-catalog",
+  "version": "1.0"
+}

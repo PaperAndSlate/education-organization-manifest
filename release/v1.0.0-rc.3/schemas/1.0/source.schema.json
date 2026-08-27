@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/source.schema.json",
+  "title": "EOM controlled source inventory record",
+  "type": "object",
+  "required": ["type", "id", "uri", "title", "sourceType", "retrievedAt"],
+  "properties": {
+    "type": { "const": "source-record" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "uri": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "title": { "$ref": "common.schema.json#/$defs/localized" },
+    "publisher": { "$ref": "common.schema.json#/$defs/entityRef" },
+    "sourceType": {
+      "enum": [
+        "organization-publication",
+        "organization-website",
+        "organization-api",
+        "government-registry",
+        "government-statistical-dataset",
+        "standards-body",
+        "vendor-authorized-feed",
+        "human-submission",
+        "agent-extraction",
+        "foundation-derived",
+        "mirror",
+        "unknown"
+      ]
+    },
+    "jurisdiction": { "type": "string", "minLength": 1 },
+    "retrievedAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "observedAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "effective": { "$ref": "common.schema.json#/$defs/period" },
+    "contentDigest": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]+=:.*:$"
+    },
+    "licenseStatus": {
+      "enum": ["permitted", "review-required", "restricted", "unknown"]
+    },
+    "license": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "accessRestrictions": {
+      "enum": ["public", "operator-approved", "restricted", "unknown"]
+    },
+    "modules": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "reviewOwner": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": ["discovered", "approved", "rejected", "stale", "withdrawn"]
+    },
+    "snapshot": {
+      "type": "object",
+      "required": ["kind", "digest"],
+      "properties": {
+        "kind": { "enum": ["digest-only", "local-copy", "controlled-fixture"] },
+        "digest": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9-]+=:.*:$"
+        },
+        "path": { "type": "string", "minLength": 1 },
+        "retentionUntil": { "$ref": "common.schema.json#/$defs/dateTime" }
+      },
+      "additionalProperties": false
+    },
+    "notes": { "$ref": "common.schema.json#/$defs/localized" },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

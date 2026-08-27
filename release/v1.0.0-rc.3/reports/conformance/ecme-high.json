@@ -1,0 +1,568 @@
+{
+  "$schema": "https://paperandslate.org/schemas/eom/1.0/conformance-report.schema.json",
+  "canonical": "https://paperandslate.org/spec/eom/1.0/conformance/reports/b39c78cf58c334d3a964804b7c0386a41b84d79c8b40597cadbc498c346bd956",
+  "checks": [
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/.well-known%2Feducational-organization-manifest"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/.well-known%2Feducational-organization-manifest",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/.well-known%2Feducational-organization-manifest.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/.well-known%2Feducational-organization-manifest.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fadmissions.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fadmissions.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fapis.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fapis.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcalendar.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fcalendar.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcampuses.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fcampuses.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fclubs.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fclubs.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcontacts.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fcontacts.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcourses.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fcourses.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fdepartments.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fdepartments.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fevents.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fevents.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Ffacilities.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Ffacilities.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fjobs.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fjobs.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fmeals.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fmeals.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fnews.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fnews.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fofferings.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fofferings.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Forganization.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Forganization.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fpolicies.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fpolicies.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fprograms.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fprograms.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fservices.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fservices.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fsports.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fsports.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fstaff.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fstaff.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fstatistics.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Fstatistics.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Ftransportation.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/syntax/eom%2Ftransportation.json",
+      "message": "Strict JSON parsing passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/.well-known%2Feducational-organization-manifest"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/.well-known%2Feducational-organization-manifest",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/.well-known%2Feducational-organization-manifest"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/.well-known%2Feducational-organization-manifest",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/.well-known%2Feducational-organization-manifest.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/.well-known%2Feducational-organization-manifest.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/.well-known%2Feducational-organization-manifest.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/.well-known%2Feducational-organization-manifest.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fadmissions.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fadmissions.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fadmissions.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fadmissions.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fapis.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fapis.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fapis.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fapis.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcalendar.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fcalendar.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcalendar.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fcalendar.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcampuses.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fcampuses.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcampuses.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fcampuses.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fclubs.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fclubs.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fclubs.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fclubs.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcontacts.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fcontacts.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcontacts.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fcontacts.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcourses.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fcourses.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fcourses.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fcourses.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fdepartments.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fdepartments.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fdepartments.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fdepartments.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fevents.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fevents.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fevents.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fevents.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Ffacilities.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Ffacilities.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Ffacilities.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Ffacilities.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fjobs.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fjobs.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fjobs.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fjobs.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fmeals.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fmeals.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fmeals.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fmeals.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fnews.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fnews.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fnews.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fnews.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fofferings.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fofferings.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fofferings.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fofferings.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Forganization.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Forganization.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Forganization.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Forganization.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fpolicies.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fpolicies.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fpolicies.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fpolicies.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fprograms.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fprograms.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fprograms.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fprograms.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fservices.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fservices.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fservices.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fservices.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fsports.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fsports.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fsports.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fsports.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fstaff.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fstaff.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": ["https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fstaff.json"],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fstaff.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fstatistics.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Fstatistics.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Fstatistics.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Fstatistics.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Ftransportation.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/validation/eom%2Ftransportation.json",
+      "message": "Structural and semantic validation passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/eom%2Ftransportation.json"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/privacy-policy/eom%2Ftransportation.json",
+      "message": "Privacy and publication policy lint passed.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/.well-known%2Feducational-organization-manifest"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/profile-manifest/.well-known%2Feducational-organization-manifest",
+      "message": "One root manifest is present (2 identical capture path(s)).",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/.well-known%2Feducational-organization-manifest"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/profile-organization/.well-known%2Feducational-organization-manifest",
+      "message": "An organization profile or index is present.",
+      "status": "pass"
+    },
+    {
+      "evidence": [
+        "https://paperandslate.org/spec/eom/1.0/conformance/evidence/.well-known%2Feducational-organization-manifest"
+      ],
+      "id": "https://paperandslate.org/spec/eom/1.0/conformance/checks/resource-graph/.well-known%2Feducational-organization-manifest",
+      "message": "Manifest resource links resolve inside the captured publication directory.",
+      "status": "pass"
+    }
+  ],
+  "id": "https://paperandslate.org/spec/eom/1.0/conformance/reports/b39c78cf58c334d3a964804b7c0386a41b84d79c8b40597cadbc498c346bd956",
+  "implementation": {
+    "name": "@paperandslate/eom-testkit",
+    "version": "0.1.0"
+  },
+  "profile": "https://paperandslate.org/spec/eom/1.0/profiles/publisher-core",
+  "specification": "https://paperandslate.org/spec/eom/1.0",
+  "status": "conforming",
+  "type": "conformance-report",
+  "version": "1.0"
+}

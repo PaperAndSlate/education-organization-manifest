@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/delegation.schema.json",
+  "title": "EOM authority delegation",
+  "type": "object",
+  "required": ["id", "delegate", "scope", "validFrom", "validUntil", "transitive", "status"],
+  "properties": {
+    "type": { "const": "delegation" },
+    "id": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "delegate": {
+      "oneOf": [
+        { "$ref": "common.schema.json#/$defs/httpsUri" },
+        {
+          "type": "object",
+          "required": ["id", "name"],
+          "properties": {
+            "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+            "name": { "$ref": "common.schema.json#/$defs/localized" },
+            "type": { "type": "string", "minLength": 1 },
+            "website": { "$ref": "common.schema.json#/$defs/httpsUri" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "resourceTypes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "resourceIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/absoluteUri"
+          }
+        },
+        "allowedOrigins": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/httpsUri"
+          }
+        },
+        "allowedPathPrefixes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          }
+        }
+      },
+      "anyOf": [
+        { "required": ["resourceTypes"] },
+        { "required": ["resourceIds"] },
+        { "required": ["allowedOrigins"] },
+        { "required": ["allowedPathPrefixes"] }
+      ],
+      "additionalProperties": false
+    },
+    "keys": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/absoluteUri"
+      },
+      "uniqueItems": true
+    },
+    "validFrom": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "validUntil": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "revokedAt": {
+      "$ref": "common.schema.json#/$defs/dateTime"
+    },
+    "successor": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "subject": {
+      "$ref": "common.schema.json#/$defs/absoluteUri"
+    },
+    "transitive": {
+      "const": false
+    },
+    "status": {
+      "enum": ["active", "revoked", "expired"]
+    },
+    "statement": {
+      "$ref": "common.schema.json#/$defs/localized"
+    },
+    "provenance": {
+      "type": "array",
+      "items": { "$ref": "provenance.schema.json" }
+    },
+    "extensions": {
+      "$ref": "common.schema.json#/$defs/extensions"
+    }
+  },
+  "additionalProperties": false
+}

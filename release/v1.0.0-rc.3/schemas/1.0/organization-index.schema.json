@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://paperandslate.org/schemas/eom/1.0/organization-index.schema.json",
+  "title": "EOM organization index",
+  "type": "object",
+  "required": ["$schema", "specification", "version", "id", "type", "canonical", "organizations"],
+  "properties": {
+    "$schema": {
+      "const": "https://paperandslate.org/schemas/eom/1.0/organization-index.schema.json"
+    },
+    "specification": { "const": "https://paperandslate.org/spec/eom/1.0" },
+    "version": { "const": "1.0" },
+    "id": { "$ref": "common.schema.json#/$defs/absoluteUri" },
+    "type": { "const": "organization-index" },
+    "canonical": { "$ref": "common.schema.json#/$defs/httpsUri" },
+    "organizations": {
+      "type": "array",
+      "items": { "$ref": "manifest.schema.json#/$defs/organizationSummary" }
+    },
+    "next": { "$ref": "common.schema.json#/$defs/httpsUri" },
+    "modified": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "expires": { "$ref": "common.schema.json#/$defs/dateTime" },
+    "provenance": { "type": "array", "items": { "$ref": "provenance.schema.json" } },
+    "extensions": { "$ref": "common.schema.json#/$defs/extensions" }
+  },
+  "additionalProperties": false
+}

@@ -2,7 +2,7 @@
   "bomFormat": "CycloneDX",
   "components": [
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-adapters@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-adapters@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -12,13 +12,13 @@
         }
       ],
       "name": "eom-adapters",
-      "purl": "pkg:npm/@paperandslate/eom-adapters@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-adapters@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-agentic@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-agentic@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -28,13 +28,13 @@
         }
       ],
       "name": "eom-agentic",
-      "purl": "pkg:npm/@paperandslate/eom-agentic@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-agentic@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-authority@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-authority@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -44,13 +44,13 @@
         }
       ],
       "name": "eom-authority",
-      "purl": "pkg:npm/@paperandslate/eom-authority@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-authority@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-cli@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-cli@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -60,13 +60,13 @@
         }
       ],
       "name": "eom-cli",
-      "purl": "pkg:npm/@paperandslate/eom-cli@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-cli@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-config@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-config@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -76,13 +76,13 @@
         }
       ],
       "name": "eom-config",
-      "purl": "pkg:npm/@paperandslate/eom-config@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-config@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-conformance-runner@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-conformance-runner@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -92,13 +92,13 @@
         }
       ],
       "name": "eom-conformance-runner",
-      "purl": "pkg:npm/@paperandslate/eom-conformance-runner@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-conformance-runner@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-core@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-core@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -108,13 +108,13 @@
         }
       ],
       "name": "eom-core",
-      "purl": "pkg:npm/@paperandslate/eom-core@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-core@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-docs@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-docs@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -124,13 +124,13 @@
         }
       ],
       "name": "eom-docs",
-      "purl": "pkg:npm/@paperandslate/eom-docs@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-docs@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-generator@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-generator@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -140,13 +140,13 @@
         }
       ],
       "name": "eom-generator",
-      "purl": "pkg:npm/@paperandslate/eom-generator@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-generator@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-linter@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-linter@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -156,13 +156,13 @@
         }
       ],
       "name": "eom-linter",
-      "purl": "pkg:npm/@paperandslate/eom-linter@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-linter@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-playground@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-playground@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -172,13 +172,13 @@
         }
       ],
       "name": "eom-playground",
-      "purl": "pkg:npm/@paperandslate/eom-playground@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-playground@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-schema@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-schema@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -188,13 +188,13 @@
         }
       ],
       "name": "eom-schema",
-      "purl": "pkg:npm/@paperandslate/eom-schema@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-schema@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-schemaorg-adapter@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-schemaorg-adapter@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -204,13 +204,13 @@
         }
       ],
       "name": "eom-schemaorg-adapter",
-      "purl": "pkg:npm/@paperandslate/eom-schemaorg-adapter@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-schemaorg-adapter@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-signatures@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-signatures@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -220,13 +220,13 @@
         }
       ],
       "name": "eom-signatures",
-      "purl": "pkg:npm/@paperandslate/eom-signatures@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-signatures@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-testkit@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-testkit@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -236,13 +236,13 @@
         }
       ],
       "name": "eom-testkit",
-      "purl": "pkg:npm/@paperandslate/eom-testkit@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-testkit@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-types@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-types@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -252,13 +252,13 @@
         }
       ],
       "name": "eom-types",
-      "purl": "pkg:npm/@paperandslate/eom-types@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-types@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-validator@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-validator@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -268,13 +268,13 @@
         }
       ],
       "name": "eom-validator",
-      "purl": "pkg:npm/@paperandslate/eom-validator@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-validator@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
-      "bom-ref": "pkg:npm/@paperandslate/eom-workspace@1.0.0-rc.2",
+      "bom-ref": "pkg:npm/@paperandslate/eom-workspace@1.0.0-rc.3",
       "group": "paperandslate",
       "licenses": [
         {
@@ -284,10 +284,10 @@
         }
       ],
       "name": "eom-workspace",
-      "purl": "pkg:npm/@paperandslate/eom-workspace@1.0.0-rc.2",
+      "purl": "pkg:npm/@paperandslate/eom-workspace@1.0.0-rc.3",
       "scope": "required",
       "type": "library",
-      "version": "1.0.0-rc.2"
+      "version": "1.0.0-rc.3"
     },
     {
       "bom-ref": "pkg:npm/@ampproject/remapping@2.3.0",
@@ -3458,15 +3458,15 @@
     "properties": [
       {
         "name": "eom.release",
-        "value": "1.0.0-rc.2"
+        "value": "1.0.0-rc.3"
       },
       {
         "name": "eom.sourceCommit",
-        "value": "82bb2571ad926304b8da6b42bb2b9f242046e5d2"
+        "value": "fc2bde6f0f525b785051632561364e7063c613f9"
       },
       {
         "name": "eom.sourceTree",
-        "value": "3180209da82505787963d57e0fd5825850156335"
+        "value": "b1bcb7005050e6310670fcc3615f6d4e695da507"
       },
       {
         "name": "eom.sourceDateEpoch",
@@ -3474,7 +3474,7 @@
       },
       {
         "name": "eom.pnpmLockSha256",
-        "value": "8032c2ff2808acb50f263a435af6999594907bd882b556cfebf3ca0cf855469c"
+        "value": "6189b85d4df6839209c12bd5db79fe042477277dc69d09eef7432add96ce7db1"
       }
     ],
     "timestamp": "1970-01-01T00:00:00.000Z",
@@ -3482,7 +3482,7 @@
       {
         "name": "eom-release-tooling",
         "vendor": "paper&slate",
-        "version": "1.0.0-rc.2"
+        "version": "1.0.0-rc.3"
       }
     ]
   },
