@@ -378,11 +378,7 @@ function sourceTreeMatchesCheckedOutSource(sourceTree: string): boolean {
       .filter(Boolean)
       .every((line) => {
         const path = line.slice(3).trim().replace(/^"|"$/gu, '').replaceAll('\\', '/');
-        return (
-          path === 'release' ||
-          path.startsWith('release/') ||
-          path === 'reports/verification/local-gates.json'
-        );
+        return isReleasePath(path) || isGeneratedEvidencePath(path);
       });
   } catch {
     return false;
@@ -404,4 +400,21 @@ function generatedEvidencePathspecs(): readonly string[] {
     'requirements/TRACEABILITY_MATRIX.md',
     'requirements/plan-file-traceability.json',
   ].map((path) => `:(exclude)${path}`);
+}
+
+function isReleasePath(path: string): boolean {
+  return path === 'release' || path.startsWith('release/');
+}
+
+function isGeneratedEvidencePath(path: string): boolean {
+  return [
+    'reports/remediation-audit.md',
+    'reports/release-checklist.md',
+    'reports/security-scan.md',
+    'reports/security-scan.json',
+    'reports/security-scan',
+    'reports/verification/local-gates.json',
+    'requirements/TRACEABILITY_MATRIX.md',
+    'requirements/plan-file-traceability.json',
+  ].some((candidate) => path === candidate || path.startsWith(`${candidate}/`));
 }
