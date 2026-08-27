@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { format as formatPrettier } from 'prettier';
 import { describe, expect, it } from 'vitest';
 import {
   createSecurityScanProjection,
@@ -49,6 +50,12 @@ describe('sealed security-scan evidence', () => {
     } finally {
       await rm(root, { recursive: true, force: true });
     }
+  });
+
+  it('keeps the checked-in projection in repository formatter form', async () => {
+    const path = join(process.cwd(), 'reports', 'security-scan.json');
+    const source = await readFile(path, 'utf8');
+    await expect(formatPrettier(source, { filepath: path, parser: 'json' })).resolves.toBe(source);
   });
 });
 
