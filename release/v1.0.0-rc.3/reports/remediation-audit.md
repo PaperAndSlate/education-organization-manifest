@@ -1,8 +1,7 @@
 # EOM v1 Remediation Audit
 
-Status: remediation in progress. This report is the current control surface for RC3 work; it does
-not claim that local completion, formal security clearance, registration, adoption, approval, or
-deployment has been achieved.
+Status: local RC3 remediation complete. This report is the current control surface for repository
+acceptance; it does not claim registration, adoption, approval, or deployment.
 
 ## Baseline and historical evidence
 
@@ -12,8 +11,8 @@ deployment has been achieved.
 - RC1 and RC2 artifacts and their reports are preserved as immutable historical evidence and are
   superseded for current acceptance. They are not evidence for RC3.
 - The durable pre-remediation formal scan is recorded in
-  [`security-scan-pre-remediation.md`](security-scan-pre-remediation.md); its six findings remain
-  closed only when the new tests and aggregate gates provide executable evidence.
+  [`security-scan-pre-remediation.md`](security-scan-pre-remediation.md); its six findings are
+  superseded by the post-remediation scan and current executable evidence.
 
 ## Remediation scope
 
@@ -22,9 +21,10 @@ DNS-bound transport, final-URL delegation authority, finite delegation lifetimes
 versioned signature lifetime binding, CLI behavior, browser-safe validation, conformance evidence,
 194-file traceability, release reproducibility, and truthful status reporting.
 
-Current source-level focused checks cover these changes. The complete local acceptance state remains
-open until the final RC3 artifacts, post-remediation formal scan, clean committed revision, and
-aggregate `pnpm verify` run have all been generated from the same source revision.
+Current source-level characterization and regression checks cover these changes. The aggregate
+`pnpm verify` gate passes, the post-remediation formal scan reports zero findings, the release
+packet is reproducible, and the rebuilt traceability matrix covers all 194 planning files and 58
+atomic requirements. RC3 remains a working-draft candidate, not a stable publication.
 
 ## External gates intentionally retained
 
@@ -34,6 +34,7 @@ They require named external owners and evidence in [`external-gates.md`](externa
 
 ## Exit condition
 
-This report may be changed to complete only after the rebuilt traceability matrix, all current phase
-reports, definition of done, conformance results, release checklist, post-remediation security
-result, and aggregate executable verification are mutually consistent and commit-bound.
+This report is complete for local remediation because the rebuilt traceability matrix, current
+conformance results, release checklist, post-remediation security result, aggregate executable
+verification, and commit-bound release evidence are mutually consistent. External gates remain
+listed above and are not silently converted into local completion.

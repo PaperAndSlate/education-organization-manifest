@@ -3,17 +3,17 @@
     {
       "bytes": 5507,
       "path": "build-provenance.json",
-      "sha256": "663cdbcc3b9bc2c4cd8cad214dfe7bb104a39c5e1573957eaf81c1e436bbb01f"
+      "sha256": "c2570e78ddb2691a2c4bb8afcd3dd278a7a85af3f4f56d42e7586b160b14be61"
     },
     {
       "bytes": 30894,
       "path": "checksums.sha256",
-      "sha256": "fc32259805431200a0849b353d83272f948148c6bde59517befd097bb404617c"
+      "sha256": "ba601ad1231ebb1173d351a7c9c870357199b66b47bc1db378e8084334654f93"
     },
     {
-      "bytes": 771881,
+      "bytes": 773332,
       "path": "educational-organization-manifest-1.0.0-rc.3.tar.gz",
-      "sha256": "0be31cf2224ea14eb83acee3ca933cbc93fb365f7f76fc8bce66a09dc1630d01"
+      "sha256": "22d3077df1e74c54c3af82c1ea3c9c74517fb8c6453a9673f16cf9f4449c3b30"
     },
     {
       "bytes": 50138,
@@ -43,7 +43,7 @@
     {
       "bytes": 9930,
       "path": "package-pack-manifest.json",
-      "sha256": "c29b8cd484b8d8a5508af1b4938c230f165f35086566cde30fd45317edc6e829"
+      "sha256": "225aaef53004a54c0380c89311d05ec3f5a811c35c21a900fad0d58eed0a0b0d"
     },
     {
       "bytes": 11271,
@@ -123,12 +123,12 @@
     {
       "bytes": 94236,
       "path": "sbom.cdx.json",
-      "sha256": "fb79c2f2e4768d520f043aa21918f1a18f9c0d58f1bf7192fb86dd34cd5ddd71"
+      "sha256": "471cfdc519ee74c3c84bc346566574cb6cb210be83549353380257edbc0ce260"
     },
     {
       "bytes": 381,
       "path": "v1.0.0-rc.3/STATUS.md",
-      "sha256": "f2a17694e491ccdebcb9a12eede8e8a068383d1ae77e07d32e2a2129da07b1bf"
+      "sha256": "8cde1cc467217f5442f9d55381d776ec7feb02a003bb3282d2cd93309db9be00"
     },
     {
       "bytes": 997,
@@ -796,14 +796,14 @@
       "sha256": "70ba5be77181b2186583c96b38ad9aeaacb424a9ea39449a17d3747a1cc18306"
     },
     {
-      "bytes": 2184,
+      "bytes": 2267,
       "path": "v1.0.0-rc.3/reports/release-checklist.md",
-      "sha256": "170a16b06e9dfee7854f5c044728acf816f9d4b50c81d8ef98a7c6fa5edf9f3b"
+      "sha256": "2c03afcc699fec35bad9597e79358ff4f3ed380cfb5b6c4a0c94e8fc200e8d9a"
     },
     {
-      "bytes": 2268,
+      "bytes": 2371,
       "path": "v1.0.0-rc.3/reports/remediation-audit.md",
-      "sha256": "731c1af6ba69a1a7df04f412ddadc5624da63213e46a6e172de7e36d0d5d9dff"
+      "sha256": "de271622804d2b30e67c478ffab2b91a057dbfd23b24781b7556d5a142999d98"
     },
     {
       "bytes": 495,
@@ -858,17 +858,17 @@
     {
       "bytes": 3452,
       "path": "v1.0.0-rc.3/reports/verification/local-gates.json",
-      "sha256": "1b6ffffba73193b4c8c8b60810de753c24c46647d927f74ffc984354af9eeaea"
+      "sha256": "7f5ab634540a57aef93cc0c164e2f9933ec82639906c76292232ab897e7d1642"
     },
     {
-      "bytes": 80327,
+      "bytes": 133729,
       "path": "v1.0.0-rc.3/requirements/TRACEABILITY_MATRIX.md",
-      "sha256": "0ec01a25af2eac2ea562895a703bd5f7cba207fba9a3ed6d0ab090d439442c23"
+      "sha256": "2aeeb0895663b3148ebd7a2d6882f6add7a16d9003ba7340e6875a203851b8ce"
     },
     {
-      "bytes": 165561,
+      "bytes": 160105,
       "path": "v1.0.0-rc.3/requirements/plan-file-traceability.json",
-      "sha256": "ab57d41523b7e813c9360fe12c96536bfdf375bcd9364261a62f4b285145523d"
+      "sha256": "eb806083285543d1d9573eea81b037103990963f47d6aeec282e5021cc5ff342"
     },
     {
       "bytes": 1805,
@@ -1345,8 +1345,8 @@
   "protocolStatus": "working-draft",
   "release": "1.0.0-rc.3",
   "schemaBase": "https://paperandslate.org/schemas/eom/1.0/",
-  "sourceCommit": "afc8ffbaf3c29ffaa84369af49828b31200210a9",
+  "sourceCommit": "d7f697210ed57c5bf4e78ebf85d1b5ea4c6f16d1",
   "sourceDateEpoch": 0,
-  "sourceTree": "8415f57fb72a97f39ff0c288fe612c95d6849caf",
+  "sourceTree": "429ab56853df8d2d8d6dde793468e2f46a36dede",
   "specification": "https://paperandslate.org/spec/eom/1.0"
 }
