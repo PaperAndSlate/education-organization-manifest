@@ -17,6 +17,7 @@ import {
 import { homedir, tmpdir } from 'node:os';
 import { basename, extname, dirname, join, parse, relative, resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
+import { format as formatJson } from 'prettier';
 import { isJsonObject, parseStrictJson, stringifyCanonical } from '@paperandslate/eom-core';
 
 const root = resolve(process.cwd());
@@ -382,7 +383,17 @@ async function createPackagePackArtifacts(
     packageManager: 'pnpm@10.6.0',
     packages,
   };
-  const manifestBytes = Buffer.from(stringifyCanonical(manifest as never), 'utf8');
+  const manifestBytes = Buffer.from(
+    await formatJson(stringifyCanonical(manifest as never), {
+      parser: 'json',
+      printWidth: 100,
+      tabWidth: 2,
+      useTabs: false,
+      trailingComma: 'none',
+      endOfLine: 'lf',
+    }),
+    'utf8',
+  );
   await writeFile(join(targetRoot, 'package-pack-manifest.json'), manifestBytes);
   return {
     manifestBytes,
