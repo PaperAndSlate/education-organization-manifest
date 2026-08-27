@@ -2,22 +2,22 @@
 
 ## Scope
 
-Authoritative Standard scan over the complete repository at the exact clean committed source revision.
+Full post-remediation EOM repository Standard scan at clean source revision 6df650ee174903475c4b77570293da661aea0563 with tree dd712d83fbddcba4733758e2c6c70b5de01c8e28.
 
 - Scan mode: repository
 - Target kind: git_revision
 - Target ID: target_sha256_7c22d80eb592711a4a29f0237589139f73e10edfd120e36f9c6ca5a99a48f88d
-- Revision: c42b3df9e1670db80c41275eba1eba2058f22c13
+- Revision: 6df650ee174903475c4b77570293da661aea0563
 - Inventory strategy: repository
 - Included paths: .
 - Excluded paths: none
-- Runtime or test status: not recorded
-- Artifacts reviewed: packages/core/src/fetch.ts, packages/core/src/json.ts, packages/core/src/ids.ts, packages/authority/src/index.ts, packages/signatures/src/index.ts, packages/validator/src/engine.ts, packages/validator/src/inputs.ts, packages/validator/src/semantic.ts, packages/generator/src/index.ts, packages/cli/src/index.ts, apps/playground/src/browser-engine.js, apps/playground/src/app.js, scripts/generate-release-artifacts.ts, scripts/check-release-reproducibility.ts, scripts/check-release.ts, scripts/record-verification.ts, .github/workflows
-- Scan context: Focused post-remediation review of transport and cache binding, strict input handling, delegation and final-URL authority, signatures, generator output ownership, isolated release reproducibility roots, archive traversal, package boundaries, browser inputs, CI, and release evidence.
+- Runtime or test status: local Windows parent source audit; independent baseline worker was unavailable after bounded wait and shutdown
+- Artifacts reviewed: All 1396 files in the clean source revision, TypeScript packages, CLI, tests, schemas, examples, browser app, workflows, scripts, reports, and release tooling
 
 Limitations and exclusions:
-- Independent baseline worker was unavailable because the desktop thread worker limit was reached; parent-thread source review and executable gates provide the recorded review basis.
-- Linux, macOS, and external CI execution are not available in this local Windows session.
+- Hosted Linux and macOS execution, CodeQL service analysis, dependency-review service analysis, and external interoperability were not available in this local scan.
+- The independent baseline worker did not return within the bounded continuation window; parent-only source review and executable local gates provide the recorded review basis.
+- The scan does not constitute IANA registration, legal review, governance approval, pilot/adoption evidence, deployment approval, or stable publication authorization.
 
 ### Scan Summary
 
@@ -28,54 +28,50 @@ Limitations and exclusions:
 | Severity mix | none |
 | Confidence mix | none |
 | Coverage | complete |
-| Validation mode | not recorded |
+| Validation mode | repository-wide Standard |
 
 Canonical artifacts: `scan-manifest.json`, `findings.json`, and `coverage.json`. This report is a deterministic projection of those files.
 
 ## Threat Model
 
-Whole-repository post-remediation review of public EOM authoring, validation, retrieval, authority, signing, browser, packaging, release archives, reproducibility, and evidence paths.
+Repository-wide EOM security review covering untrusted remote manifests and resources, authoring and generated publication content, detached signatures and delegated authority, parser and filesystem resource limits, browser rendering, package/release supply chain, CI workflows, and traceability evidence.
 
 ### Assets
 
-- Public EOM publication integrity
-- Delegation and final-URL authorization
-- Detached signature authenticity and lifetime
-- Generator output and release archive integrity
-- Release provenance, traceability, and package boundaries
+- Published manifests, linked resources, schemas, vocabularies, signatures, and provenance
+- Developer and consumer filesystem contents and generated publication roots
+- Verifier decisions, reports, and conformance results
+- Package and release integrity, CI credentials, and workflow execution
+- Privacy-sensitive educational organization information
 
 ### Trust Boundaries
 
-- Untrusted local authoring files to generator
-- Untrusted network DNS/HTTP responses to validator
-- Root manifest declarations to delegated resource fetches
-- Detached signature/key-set inputs to verification
-- Browser uploads and same-origin validation responses
-- Committed source revision to generated release evidence
+- Remote HTTP(S) content to local fetch, validation, cache, and report code
+- Untrusted authoring input to generator, validator, browser, and documentation surfaces
+- Detached signature material and delegated authority to verification decisions
+- Repository source and dependencies to package, archive, SBOM, provenance, and CI outputs
+- Generated evidence and release claims to reviewers and release consumers
 
 ### Attacker Capabilities
 
-- Supply malformed or adversarial JSON/YAML
-- Control or race DNS answers and HTTP redirects
-- Provide unauthorized delegated origins or scope metadata
-- Mutate signature lifetime, key, and sidecar metadata
-- Supply polluted runtime objects or workspace dependency links
-- Attempt unsafe output paths, symlinks, stale markers, temporary roots, or release archive traversal
+- Control or alter remote manifest/resource responses, redirects, DNS answers, and cache contents
+- Supply malformed JSON/YAML, oversized or deeply nested inputs, unsafe paths, links, archives, and browser content
+- Provide invalid, replayed, scope-mismatched, or cryptographically misleading delegation/signature records
+- Submit pull requests or dependency changes that execute within repository tooling and workflows
 
 ### Security Objectives
 
-- Fail closed on malformed, oversized, cyclic, or ambiguous inputs
-- Bind connections to validated addresses and revalidate redirects and cache hits
-- Enforce delegation origin/path/type/id/subject/time/revocation/key scope
-- Cryptographically bind signature metadata and expiry
-- Prevent destructive or cross-project generated-output replacement and archive traversal
-- Keep release evidence tied to an exact committed source tree and lockfile
+- Prevent SSRF, DNS rebinding, unauthorized redirects, unbounded resource consumption, and unsafe filesystem replacement
+- Fail closed on signature, authority, lifetime, subject, key-scope, and canonicalization mismatches
+- Keep generated packages and evidence deterministic, source-bound, reviewable, and free of ambient credentials
+- Prevent XSS, unsafe rich text, privacy leakage, and workflow privilege escalation
+- Ensure reports cannot overstate executable evidence or external approval
 
 ### Assumptions
 
-- The scan target is the exact clean committed source revision named by the scan context.
-- Historical candidate and pre-remediation reports are evidence only.
-- External registration, pilot, legal/governance, deployment, and stable-publication gates are not local security findings.
+- External registration, legal/governance approval, independent interoperability, pilots, deployment, and stable publication are not asserted by this local scan.
+- Hosted Linux and macOS execution, CodeQL service analysis, dependency-review service analysis, and external interoperability remain hosted or external evidence.
+- Node's DEP0169 warning observed in package smoke tests is emitted by Corepack pnpm 10.6.0 authentication handling, not first-party code.
 
 ## Findings
 
@@ -87,15 +83,15 @@ No reportable findings survived the canonical discovery, validation, and reporta
 
 | Surface | Risk Area | Outcome | Notes |
 | --- | --- | --- | --- |
-| DNS-pinned HTTP retrieval and cache | not recorded | No issue found | Validated addresses are bound to connections; redirects and cache hits revalidate transport policy. |
-| Strict JSON and resource limits | not recorded | No issue found | Duplicate keys, depth, node, byte, cycle, sparse-array, and non-JSON checks are covered. |
-| Delegation and final-URL authority | not recorded | No issue found | Observed final URL, descriptor, scope, subject, time, revocation, and key allowlist checks are shared. |
-| Detached signature metadata and cryptographic verification | not recorded | No issue found | RC3 structured protected metadata and sidecar lifetime binding are fail-closed. |
-| Validator structural and semantic input boundary | not recorded | No issue found | Runtime and graph inputs are bounded and normalized before schema and semantic processing. |
-| Generator source/output ownership and atomic replacement | not recorded | No issue found | Approved roots, markers, mode selectors, dependency closure, symlink checks, locks, journals, and rollback reviewed. |
-| Release archive traversal and reproducibility | not recorded | No issue found | Excluded dependency trees are pruned before traversal; isolated temporary output roots are trusted only after safe-root validation. |
-| CLI path, graph, and dry-run boundaries | not recorded | No issue found | CLI paths and report writes use bounded and symlink-aware operations. |
-| Browser engine, uploads, URL service, CSP/XSS | not recorded | No issue found | Browser JSON/YAML is bounded and normalized; report output uses textContent; service requests are same-origin HTTPS-bound. |
-| Package exports and clean tarball installation | not recorded | No issue found | Exports target dist and clean package runtime/type smoke checks passed. |
-| Traceability and aggregate verification evidence | not recorded | No issue found | Evidence records require formal zero-finding scan, exact source-tree agreement, and an authoritative self-check. |
-| CI, security policy, and dependency controls | not recorded | No issue found | Action pins, policy/security checks, lint, dependency audit, and license checks passed locally where available. |
+| HTTP, DNS, redirects, and cache | not recorded | No issue found | No additional canonical notes were recorded. |
+| Parsers and resource bounds | not recorded | No issue found | No additional canonical notes were recorded. |
+| Authority and delegation scope | not recorded | No issue found | No additional canonical notes were recorded. |
+| Detached signatures and key binding | not recorded | No issue found | No additional canonical notes were recorded. |
+| Generator filesystem and atomic output | not recorded | No issue found | No additional canonical notes were recorded. |
+| Validator, linter, and CLI | not recorded | No issue found | No additional canonical notes were recorded. |
+| Browser and playground | not recorded | No issue found | No additional canonical notes were recorded. |
+| Packages and dependency boundary | not recorded | No issue found | No additional canonical notes were recorded. |
+| CI and GitHub Actions | not recorded | No issue found | No additional canonical notes were recorded. |
+| Release, archives, SBOM, and provenance | not recorded | No issue found | No additional canonical notes were recorded. |
+| Traceability and evidence writers | not recorded | No issue found | No additional canonical notes were recorded. |
+| Privacy, documentation, examples, and conformance | not recorded | No issue found | No additional canonical notes were recorded. |

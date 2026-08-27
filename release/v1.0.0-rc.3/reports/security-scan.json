@@ -2,9 +2,9 @@
   "version": 1,
   "status": "pass",
   "scanType": "standard",
-  "scanId": "d4abb4f5-1f16-4cdd-9122-d24528efbbdb",
-  "targetCommit": "c42b3df9e1670db80c41275eba1eba2058f22c13",
-  "targetTree": "3157225c89e3a66f6988bfe3f08c8929dc2b230d",
+  "scanId": "a65ae28f-ef5e-45d3-b4f4-8b3e4aa5b3ba",
+  "targetCommit": "6df650ee174903475c4b77570293da661aea0563",
+  "targetTree": "dd712d83fbddcba4733758e2c6c70b5de01c8e28",
   "targetPath": ".",
   "targetKind": "git_revision",
   "targetId": "target_sha256_7c22d80eb592711a4a29f0237589139f73e10edfd120e36f9c6ca5a99a48f88d",
@@ -26,7 +26,17 @@
       "findings": "reports/security-scan/findings.json",
       "coverage": "reports/security-scan/coverage.json",
       "report": "reports/security-scan/report.md"
+    },
+    "canonicalArtifactSha256": {
+      "manifest": "bdd485513fff4f95cb9bad3fea5993a9aedd5991e9505f6a465adc6a4c0393ab",
+      "findings": "1d8868977ab5bb3ef9d323ddf69b0fd47e11f8e1c348f5f51a329830bb49aed8",
+      "coverage": "7cf91854533d75b014fac88c32cbb7ddc2a90a4a3fcddc497e760943504267ca",
+      "report": "b8fe48fea048843af764675f62a9616bc1234a5afa4dd0699950d3b934bfd80f"
     }
+  },
+  "producer": {
+    "name": "codex-security-plugin",
+    "version": "0.1.22"
   },
   "externalGates": {
     "ianaRegistration": "blocked-external",
@@ -34,10 +44,10 @@
     "legalGovernanceApproval": "blocked-external",
     "deploymentProductionAdoption": "blocked-external"
   },
-  "evidencePolicy": "This projection is generated from the sealed Standard scan artifacts. targetCommit and targetTree identify the exact source revision reviewed by the formal scan; reports/verification/local-gates.json repeats the same identity in the aggregate local-gate receipt.",
+  "evidencePolicy": "This projection is generated from the sealed Standard scan artifacts. Verification requires the producer, scan identity, target identity, zero-finding counts, and SHA-256 digests of every canonical artifact to agree.",
   "limitations": [
-    "Independent baseline worker was unavailable because the desktop thread worker limit was reached; parent-thread source review and executable gates provide the recorded review basis.",
-    "Linux, macOS, and external CI execution were not available in this local Windows session.",
-    "External registration, interoperability, legal or governance approval, deployment, adoption, and stable publication remain explicitly blocked or pending."
+    "Hosted Linux and macOS execution, CodeQL service analysis, dependency-review service analysis, and external interoperability were not available in this local scan.",
+    "The independent baseline worker did not return within the bounded continuation window; parent-only source review and executable local gates provide the recorded review basis.",
+    "The scan does not constitute IANA registration, legal review, governance approval, pilot/adoption evidence, deployment approval, or stable publication authorization."
   ]
 }

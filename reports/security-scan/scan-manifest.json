@@ -5,21 +5,21 @@
       {
         "mediaType": "application/json",
         "path": "findings.json",
-        "sha256": "648d158cf03475afc514ecb3c0b5bf7bf5ef7e5b68623a5ba0c30adeaf98ef7d"
+        "sha256": "1d8868977ab5bb3ef9d323ddf69b0fd47e11f8e1c348f5f51a329830bb49aed8"
       },
       {
         "mediaType": "application/json",
         "path": "coverage.json",
-        "sha256": "e7cbd6a7a31cdece1b68cc54b56358c46e99599ef1c164968498dbecdaffbebd"
+        "sha256": "7cf91854533d75b014fac88c32cbb7ddc2a90a4a3fcddc497e760943504267ca"
       }
     ],
-    "completedAt": "2026-08-27T17:40:50.918461Z",
+    "completedAt": "2026-08-27T21:59:30.551541Z",
     "coverageRef": "coverage.json",
     "findingsRef": "findings.json",
-    "id": "d4abb4f5-1f16-4cdd-9122-d24528efbbdb",
+    "id": "a65ae28f-ef5e-45d3-b4f4-8b3e4aa5b3ba",
     "preservedSources": {
-      "checkpoints/5117c88207ed0ade5a29966e1e268e9ec061a7449c5309b91767de880d633a31.json": "5117c88207ed0ade5a29966e1e268e9ec061a7449c5309b91767de880d633a31",
-      "checkpoints/be7368ffef6ca579d2ba301fd3f1b0b6f06bb195b106220bd93c44f69b77b6a6.json": "c257da470977936d6cf9707611829832867e5ed5cfa8c47290cebdea7833d1b9"
+      "checkpoints/55e9f76f27d274438657dccb500daecb735fa608924272a87ce8d9618d2e3ea2.json": "fbd455118604e9a81a4db4bf4d8e91428991ce6a9e4f8602dadf9986709ebde4",
+      "checkpoints/c85ee66d5c050f4ad1e21b114d45af8e135577cf2b60708d2d44af349df3ab3a.json": "c85ee66d5c050f4ad1e21b114d45af8e135577cf2b60708d2d44af349df3ab3a"
     },
     "producer": {
       "name": "codex-security-plugin",
@@ -27,81 +27,64 @@
     },
     "scope": {
       "artifactsReviewed": [
-        "packages/core/src/fetch.ts",
-        "packages/core/src/json.ts",
-        "packages/core/src/ids.ts",
-        "packages/authority/src/index.ts",
-        "packages/signatures/src/index.ts",
-        "packages/validator/src/engine.ts",
-        "packages/validator/src/inputs.ts",
-        "packages/validator/src/semantic.ts",
-        "packages/generator/src/index.ts",
-        "packages/cli/src/index.ts",
-        "apps/playground/src/browser-engine.js",
-        "apps/playground/src/app.js",
-        "scripts/generate-release-artifacts.ts",
-        "scripts/check-release-reproducibility.ts",
-        "scripts/check-release.ts",
-        "scripts/record-verification.ts",
-        ".github/workflows"
+        "All 1396 files in the clean source revision",
+        "TypeScript packages, CLI, tests, schemas, examples, browser app, workflows, scripts, reports, and release tooling"
       ],
-      "context": "Focused post-remediation review of transport and cache binding, strict input handling, delegation and final-URL authority, signatures, generator output ownership, isolated release reproducibility roots, archive traversal, package boundaries, browser inputs, CI, and release evidence.",
       "excludePaths": [],
       "includePaths": [
         "."
       ],
       "limitations": [
-        "Independent baseline worker was unavailable because the desktop thread worker limit was reached; parent-thread source review and executable gates provide the recorded review basis.",
-        "Linux, macOS, and external CI execution are not available in this local Windows session."
+        "Hosted Linux and macOS execution, CodeQL service analysis, dependency-review service analysis, and external interoperability were not available in this local scan.",
+        "The independent baseline worker did not return within the bounded continuation window; parent-only source review and executable local gates provide the recorded review basis.",
+        "The scan does not constitute IANA registration, legal review, governance approval, pilot/adoption evidence, deployment approval, or stable publication authorization."
       ],
-      "summary": "Authoritative Standard scan over the complete repository at the exact clean committed source revision."
+      "runtimeStatus": "local Windows parent source audit; independent baseline worker was unavailable after bounded wait and shutdown",
+      "summary": "Full post-remediation EOM repository Standard scan at clean source revision 6df650ee174903475c4b77570293da661aea0563 with tree dd712d83fbddcba4733758e2c6c70b5de01c8e28.",
+      "validationMode": "repository-wide Standard"
     },
-    "sealedAt": "2026-08-27T17:40:50.918461Z",
-    "startedAt": "2026-08-27T17:39:50.638000Z",
+    "sealedAt": "2026-08-27T21:59:30.551541Z",
+    "startedAt": "2026-08-27T21:47:04.656838Z",
     "status": "completed",
     "target": {
       "displayName": "well-known",
       "kind": "git_revision",
-      "revision": "c42b3df9e1670db80c41275eba1eba2058f22c13",
+      "revision": "6df650ee174903475c4b77570293da661aea0563",
       "targetId": "target_sha256_7c22d80eb592711a4a29f0237589139f73e10edfd120e36f9c6ca5a99a48f88d"
     },
     "threatModel": {
       "assets": [
-        "Public EOM publication integrity",
-        "Delegation and final-URL authorization",
-        "Detached signature authenticity and lifetime",
-        "Generator output and release archive integrity",
-        "Release provenance, traceability, and package boundaries"
+        "Published manifests, linked resources, schemas, vocabularies, signatures, and provenance",
+        "Developer and consumer filesystem contents and generated publication roots",
+        "Verifier decisions, reports, and conformance results",
+        "Package and release integrity, CI credentials, and workflow execution",
+        "Privacy-sensitive educational organization information"
       ],
       "assumptions": [
-        "The scan target is the exact clean committed source revision named by the scan context.",
-        "Historical candidate and pre-remediation reports are evidence only.",
-        "External registration, pilot, legal/governance, deployment, and stable-publication gates are not local security findings."
+        "External registration, legal/governance approval, independent interoperability, pilots, deployment, and stable publication are not asserted by this local scan.",
+        "Hosted Linux and macOS execution, CodeQL service analysis, dependency-review service analysis, and external interoperability remain hosted or external evidence.",
+        "Node's DEP0169 warning observed in package smoke tests is emitted by Corepack pnpm 10.6.0 authentication handling, not first-party code."
       ],
       "attackerCapabilities": [
-        "Supply malformed or adversarial JSON/YAML",
-        "Control or race DNS answers and HTTP redirects",
-        "Provide unauthorized delegated origins or scope metadata",
-        "Mutate signature lifetime, key, and sidecar metadata",
-        "Supply polluted runtime objects or workspace dependency links",
-        "Attempt unsafe output paths, symlinks, stale markers, temporary roots, or release archive traversal"
+        "Control or alter remote manifest/resource responses, redirects, DNS answers, and cache contents",
+        "Supply malformed JSON/YAML, oversized or deeply nested inputs, unsafe paths, links, archives, and browser content",
+        "Provide invalid, replayed, scope-mismatched, or cryptographically misleading delegation/signature records",
+        "Submit pull requests or dependency changes that execute within repository tooling and workflows"
       ],
       "securityObjectives": [
-        "Fail closed on malformed, oversized, cyclic, or ambiguous inputs",
-        "Bind connections to validated addresses and revalidate redirects and cache hits",
-        "Enforce delegation origin/path/type/id/subject/time/revocation/key scope",
-        "Cryptographically bind signature metadata and expiry",
-        "Prevent destructive or cross-project generated-output replacement and archive traversal",
-        "Keep release evidence tied to an exact committed source tree and lockfile"
+        "Prevent SSRF, DNS rebinding, unauthorized redirects, unbounded resource consumption, and unsafe filesystem replacement",
+        "Fail closed on signature, authority, lifetime, subject, key-scope, and canonicalization mismatches",
+        "Keep generated packages and evidence deterministic, source-bound, reviewable, and free of ambient credentials",
+        "Prevent XSS, unsafe rich text, privacy leakage, and workflow privilege escalation",
+        "Ensure reports cannot overstate executable evidence or external approval"
       ],
-      "summary": "Whole-repository post-remediation review of public EOM authoring, validation, retrieval, authority, signing, browser, packaging, release archives, reproducibility, and evidence paths.",
+      "summary": "Repository-wide EOM security review covering untrusted remote manifests and resources, authoring and generated publication content, detached signatures and delegated authority, parser and filesystem resource limits, browser rendering, package/release supply chain, CI workflows, and traceability evidence.",
       "trustBoundaries": [
-        "Untrusted local authoring files to generator",
-        "Untrusted network DNS/HTTP responses to validator",
-        "Root manifest declarations to delegated resource fetches",
-        "Detached signature/key-set inputs to verification",
-        "Browser uploads and same-origin validation responses",
-        "Committed source revision to generated release evidence"
+        "Remote HTTP(S) content to local fetch, validation, cache, and report code",
+        "Untrusted authoring input to generator, validator, browser, and documentation surfaces",
+        "Detached signature material and delegated authority to verification decisions",
+        "Repository source and dependencies to package, archive, SBOM, provenance, and CI outputs",
+        "Generated evidence and release claims to reviewers and release consumers"
       ]
     }
   },

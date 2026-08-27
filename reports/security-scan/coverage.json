@@ -10,141 +10,79 @@
   "inventoryStrategy": "repository",
   "mode": "repository",
   "openQuestions": [],
-  "scanId": "d4abb4f5-1f16-4cdd-9122-d24528efbbdb",
+  "scanId": "a65ae28f-ef5e-45d3-b4f4-8b3e4aa5b3ba",
   "schemaVersion": "1.0",
   "surfaces": [
     {
       "disposition": "no_issue_found",
-      "id": "surface_dns-pinned-http-retrieval-and-cache",
-      "label": "DNS-pinned HTTP retrieval and cache",
-      "notes": "Validated addresses are bound to connections; redirects and cache hits revalidate transport policy.",
-      "paths": [
-        "packages/core/src/fetch.ts"
-      ],
+      "id": "surface_http-dns-redirects-and-cache",
+      "label": "HTTP, DNS, redirects, and cache",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_strict-json-and-resource-limits",
-      "label": "Strict JSON and resource limits",
-      "notes": "Duplicate keys, depth, node, byte, cycle, sparse-array, and non-JSON checks are covered.",
-      "paths": [
-        "packages/core/src/json.ts",
-        "packages/generator/src/index.ts",
-        "apps/playground/src/browser-engine.js"
-      ],
+      "id": "surface_parsers-and-resource-bounds",
+      "label": "Parsers and resource bounds",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_delegation-and-final-url-authority",
-      "label": "Delegation and final-URL authority",
-      "notes": "Observed final URL, descriptor, scope, subject, time, revocation, and key allowlist checks are shared.",
-      "paths": [
-        "packages/authority/src/index.ts",
-        "packages/validator/src/inputs.ts"
-      ],
+      "id": "surface_authority-and-delegation-scope",
+      "label": "Authority and delegation scope",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_detached-signature-metadata-and-cryptographic-verification",
-      "label": "Detached signature metadata and cryptographic verification",
-      "notes": "RC3 structured protected metadata and sidecar lifetime binding are fail-closed.",
-      "paths": [
-        "packages/signatures/src/index.ts"
-      ],
+      "id": "surface_detached-signatures-and-key-binding",
+      "label": "Detached signatures and key binding",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_validator-structural-and-semantic-input-boundary",
-      "label": "Validator structural and semantic input boundary",
-      "notes": "Runtime and graph inputs are bounded and normalized before schema and semantic processing.",
-      "paths": [
-        "packages/validator/src/engine.ts",
-        "packages/validator/src/inputs.ts",
-        "packages/validator/src/semantic.ts"
-      ],
+      "id": "surface_generator-filesystem-and-atomic-output",
+      "label": "Generator filesystem and atomic output",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_generator-source-output-ownership-and-atomic-replacement",
-      "label": "Generator source/output ownership and atomic replacement",
-      "notes": "Approved roots, markers, mode selectors, dependency closure, symlink checks, locks, journals, and rollback reviewed.",
-      "paths": [
-        "packages/generator/src/index.ts"
-      ],
+      "id": "surface_validator-linter-and-cli",
+      "label": "Validator, linter, and CLI",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_release-archive-traversal-and-reproducibility",
-      "label": "Release archive traversal and reproducibility",
-      "notes": "Excluded dependency trees are pruned before traversal; isolated temporary output roots are trusted only after safe-root validation.",
-      "paths": [
-        "scripts/generate-release-artifacts.ts",
-        "scripts/check-release-reproducibility.ts",
-        "scripts/check-release.ts"
-      ],
+      "id": "surface_browser-and-playground",
+      "label": "Browser and playground",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_cli-path-graph-report-and-dry-run-boundaries",
-      "label": "CLI path, graph, and dry-run boundaries",
-      "notes": "CLI paths and report writes use bounded and symlink-aware operations.",
-      "paths": [
-        "packages/cli/src/index.ts"
-      ],
+      "id": "surface_packages-and-dependency-boundary",
+      "label": "Packages and dependency boundary",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_browser-engine-uploads-url-service-csp-xss",
-      "label": "Browser engine, uploads, URL service, CSP/XSS",
-      "notes": "Browser JSON/YAML is bounded and normalized; report output uses textContent; service requests are same-origin HTTPS-bound.",
-      "paths": [
-        "apps/playground/src/browser-engine.js",
-        "apps/playground/src/app.js"
-      ],
+      "id": "surface_ci-and-github-actions",
+      "label": "CI and GitHub Actions",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_package-exports-and-clean-tarball-installation",
-      "label": "Package exports and clean tarball installation",
-      "notes": "Exports target dist and clean package runtime/type smoke checks passed.",
-      "paths": [
-        "packages/*/package.json",
-        "packages/*/src"
-      ],
+      "id": "surface_release-archives-sbom-and-provenance",
+      "label": "Release, archives, SBOM, and provenance",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_traceability-and-aggregate-verification-evidence",
-      "label": "Traceability and aggregate verification evidence",
-      "notes": "Evidence records require formal zero-finding scan, exact source-tree agreement, and an authoritative self-check.",
-      "paths": [
-        "scripts/record-verification.ts",
-        "scripts/check-release.ts",
-        "scripts/check-traceability.ts",
-        "scripts/generate-traceability.ts"
-      ],
+      "id": "surface_traceability-and-evidence-writers",
+      "label": "Traceability and evidence writers",
       "receiptRefs": []
     },
     {
       "disposition": "no_issue_found",
-      "id": "surface_ci-security-policy-and-dependency-controls",
-      "label": "CI, security policy, and dependency controls",
-      "notes": "Action pins, policy/security checks, lint, dependency audit, and license checks passed locally where available.",
-      "paths": [
-        ".github/workflows",
-        "scripts/security-check.ts",
-        "eslint.config.mjs"
-      ],
+      "id": "surface_privacy-documentation-examples-and-conformance",
+      "label": "Privacy, documentation, examples, and conformance",
       "receiptRefs": []
     }
   ]

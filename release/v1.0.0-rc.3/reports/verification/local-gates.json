@@ -2,17 +2,40 @@
   "version": 1,
   "status": "passed",
   "aggregateGate": "pnpm verify",
-  "sourceCommit": "c42b3df9e1670db80c41275eba1eba2058f22c13",
-  "sourceTree": "3157225c89e3a66f6988bfe3f08c8929dc2b230d",
+  "sourceCommit": "6df650ee174903475c4b77570293da661aea0563",
+  "sourceTree": "dd712d83fbddcba4733758e2c6c70b5de01c8e28",
   "lockfileSha256": "83cc8dc0c83cb333453620ff80a69bb5480558b6655812190f893162ae2efb8f",
   "aggregateScriptSha256": "c2493eb74a8d17361be1e38742e94b6ae55bf5533675395bfc997853b9e15062",
   "formalSecurityScan": {
     "version": 1,
     "status": "pass",
-    "scanId": "d4abb4f5-1f16-4cdd-9122-d24528efbbdb",
-    "targetCommit": "c42b3df9e1670db80c41275eba1eba2058f22c13",
-    "targetTree": "3157225c89e3a66f6988bfe3f08c8929dc2b230d",
-    "unresolvedFindingCount": 0
+    "scanId": "a65ae28f-ef5e-45d3-b4f4-8b3e4aa5b3ba",
+    "targetCommit": "6df650ee174903475c4b77570293da661aea0563",
+    "targetTree": "dd712d83fbddcba4733758e2c6c70b5de01c8e28",
+    "targetId": "target_sha256_7c22d80eb592711a4a29f0237589139f73e10edfd120e36f9c6ca5a99a48f88d",
+    "unresolvedFindingCount": 0,
+    "canonicalArtifacts": {
+      "manifest": {
+        "path": "reports/security-scan/scan-manifest.json",
+        "sha256": "bdd485513fff4f95cb9bad3fea5993a9aedd5991e9505f6a465adc6a4c0393ab"
+      },
+      "findings": {
+        "path": "reports/security-scan/findings.json",
+        "sha256": "1d8868977ab5bb3ef9d323ddf69b0fd47e11f8e1c348f5f51a329830bb49aed8"
+      },
+      "coverage": {
+        "path": "reports/security-scan/coverage.json",
+        "sha256": "7cf91854533d75b014fac88c32cbb7ddc2a90a4a3fcddc497e760943504267ca"
+      },
+      "report": {
+        "path": "reports/security-scan/report.md",
+        "sha256": "b8fe48fea048843af764675f62a9616bc1234a5afa4dd0699950d3b934bfd80f"
+      }
+    },
+    "producer": {
+      "name": "codex-security-plugin",
+      "version": "0.1.22"
+    }
   },
   "completedBeforeReceipt": [
     {
