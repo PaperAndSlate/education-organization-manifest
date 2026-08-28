@@ -11,11 +11,11 @@ const MAX_WORKFLOW_DIRECTORY_ENTRIES = 100_000;
 const MAX_WORKFLOW_DEPTH = 128;
 const MAX_WORKFLOW_BYTES = 4 * 1024 * 1024;
 const verifiedPins: Readonly<Record<string, string>> = {
-  'actions/checkout': '11bd71901bbe5b1630ceea73d27597364c9af683',
+  'actions/checkout': 'fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09',
   'actions/dependency-review-action': 'ce3cf9537a52e8119d91fd484ab5b8a807627bf8',
-  'actions/setup-node': '49933ea5288caeca8642d1e84afbd3f7d6820020',
-  'actions/upload-artifact': '65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08',
-  'fsfe/reuse-action': 'bb774aa972c2a89ff34781233d275075cbddf542',
+  'actions/setup-node': 'a0853c24544627f65ddf259abe73b1d18a591444',
+  'actions/upload-artifact': '330a01c490aca151604b8cf639adc76d48f6c5d4',
+  'fsfe/reuse-action': '676e2d560c9a403aa252096d99fcab3e1132b0f5',
   'github/codeql-action': 'b56ba49b26e50535fa1e7f7db0f4f7b4bf65d80d',
   'gitleaks/gitleaks-action': 'ff98106e4c7b2bc287b24eaf42907196329070c7',
   'pnpm/action-setup': '7088e561eb65bb68695d245aa206f005ef30921d',
