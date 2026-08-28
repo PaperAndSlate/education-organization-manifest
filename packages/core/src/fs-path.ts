@@ -7,15 +7,14 @@ import { relative, resolve, sep } from 'node:path';
  * operating system's own temporary-directory alias as an unsafe link.
  *
  * macOS commonly exposes the process temporary directory through /var while
- * its canonical path is under /private/var. The alias is trusted because it
- * is the directory selected by Node for temporary files; links introduced
- * below that directory still produce a different canonical path and remain
- * rejected by callers.
+ * its canonical path is under /private/var, and Windows runners may expose it
+ * through an 8.3 short path. The alias is trusted because it is the directory
+ * selected by Node for temporary files; links introduced below that directory
+ * still produce a different canonical path and remain rejected by callers.
  */
 export function normalizeFsPath(value: string): string {
   const resolved = resolve(value);
   const normalized = normalizeRaw(resolved);
-  if (process.platform === 'win32') return normalized;
 
   const temporaryAlias = resolve(tmpdir());
   const temporaryCanonical = safeRealpath(temporaryAlias);
