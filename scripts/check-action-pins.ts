@@ -14,7 +14,7 @@ const verifiedPins: Readonly<Record<string, string>> = {
   'actions/checkout': 'fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09',
   'actions/dependency-review-action': 'ce3cf9537a52e8119d91fd484ab5b8a807627bf8',
   'actions/setup-node': 'a0853c24544627f65ddf259abe73b1d18a591444',
-  'actions/upload-artifact': '330a01c490aca151604b8cf639adc76d48f6c5d4',
+  'actions/upload-artifact': 'b7c566a772e6b6bfb58ed0dc250532a479d7789f',
   'fsfe/reuse-action': '676e2d560c9a403aa252096d99fcab3e1132b0f5',
   'github/codeql-action': 'b56ba49b26e50535fa1e7f7db0f4f7b4bf65d80d',
   'gitleaks/gitleaks-action': 'ff98106e4c7b2bc287b24eaf42907196329070c7',
