@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
-import { lstat, mkdir, mkdtemp, open, readdir, realpath, rename, rm, stat } from 'node:fs/promises';
+import { lstat, mkdir, mkdtemp, open, opendir, realpath, rename, rm, stat } from 'node:fs/promises';
 import { request as httpRequest, type ClientRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
@@ -14,6 +14,11 @@ export const DEFAULT_FETCH_MAX_REDIRECTS = 5;
 export const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
 export const DEFAULT_FETCH_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
 export const DEFAULT_FETCH_CACHE_MAX_ENTRIES = 128;
+export const MAX_FETCH_BYTES = 64 * 1024 * 1024;
+export const MAX_FETCH_REDIRECTS = 20;
+export const MAX_FETCH_TIMEOUT_MS = 120_000;
+export const MAX_FETCH_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+export const MAX_FETCH_CACHE_MAX_ENTRIES = 4096;
 
 export type EomFetchErrorCode =
   | 'EOM_FETCH_SCHEME'
@@ -141,14 +146,17 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
   const maxBytes = boundedPositive(
     options.maxBytes ?? DEFAULT_FETCH_MAX_BYTES,
     DEFAULT_FETCH_MAX_BYTES,
+    MAX_FETCH_BYTES,
   );
   const maxRedirects = boundedNonNegative(
     options.maxRedirects ?? DEFAULT_FETCH_MAX_REDIRECTS,
     DEFAULT_FETCH_MAX_REDIRECTS,
+    MAX_FETCH_REDIRECTS,
   );
   const timeoutMs = boundedPositive(
     options.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS,
     DEFAULT_FETCH_TIMEOUT_MS,
+    MAX_FETCH_TIMEOUT_MS,
   );
   const cacheKey = cacheKeyFor(requestedUrl, options.method ?? 'GET');
   const redirects: RedirectHop[] = [];
@@ -775,12 +783,12 @@ function headersObject(headers: Headers): Record<string, string> {
   return result;
 }
 
-function boundedPositive(value: number, fallback: number): number {
-  return Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+function boundedPositive(value: number, fallback: number, maximum: number): number {
+  return Number.isFinite(value) && value > 0 ? Math.min(Math.floor(value), maximum) : fallback;
 }
 
-function boundedNonNegative(value: number, fallback: number): number {
-  return Number.isFinite(value) && value >= 0 ? Math.floor(value) : fallback;
+function boundedNonNegative(value: number, fallback: number, maximum: number): number {
+  return Number.isFinite(value) && value >= 0 ? Math.min(Math.floor(value), maximum) : fallback;
 }
 
 async function readCachedResponse(
@@ -802,6 +810,7 @@ async function readCachedResponse(
     const maxAge = boundedNonNegative(
       options.cacheMaxAgeMs ?? DEFAULT_FETCH_CACHE_MAX_AGE_MS,
       DEFAULT_FETCH_CACHE_MAX_AGE_MS,
+      MAX_FETCH_CACHE_MAX_AGE_MS,
     );
     if (Date.now() - information.mtimeMs > maxAge) return undefined;
     const maxCacheBytes = Math.min(16 * 1024 * 1024, Math.max(maxBytes * 4, 1024 * 1024));
@@ -939,10 +948,10 @@ async function writeCachedResponse(
     const maxEntries = boundedPositive(
       options.cacheMaxEntries ?? DEFAULT_FETCH_CACHE_MAX_ENTRIES,
       DEFAULT_FETCH_CACHE_MAX_ENTRIES,
+      MAX_FETCH_CACHE_MAX_ENTRIES,
     );
-    const entries = (await readdir(resolvedDirectory, { withFileTypes: true }))
-      .filter((entry) => entry.isFile() && /^[a-f0-9]{64}\.json$/u.test(entry.name))
-      .map((entry) => join(resolvedDirectory, entry.name));
+    const entries = await boundedCacheEntries(resolvedDirectory);
+    if (entries === undefined) return;
     const path = join(resolvedDirectory, `${key}.json`);
     // Cache eviction is deliberately non-destructive.  Once the bounded
     // cache is full, skip new keys rather than deleting paths that may have
@@ -975,6 +984,24 @@ async function writeCachedResponse(
     if (temporaryDirectory && stableDirectory && (await isStableCacheDirectory(stableDirectory))) {
       await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined);
     }
+  }
+}
+
+async function boundedCacheEntries(directory: string): Promise<string[] | undefined> {
+  const handle = await opendir(directory);
+  const entries: string[] = [];
+  let count = 0;
+  try {
+    for await (const entry of handle) {
+      count += 1;
+      if (count > MAX_FETCH_CACHE_MAX_ENTRIES) return undefined;
+      if (entry.isFile() && /^[a-f0-9]{64}\.json$/u.test(entry.name)) {
+        entries.push(join(directory, entry.name));
+      }
+    }
+    return entries;
+  } finally {
+    await handle.close().catch(() => undefined);
   }
 }
 

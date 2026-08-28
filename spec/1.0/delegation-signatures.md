@@ -1,6 +1,6 @@
 # EOM 1.0 delegation and optional signatures
 
-The HTTPS root origin is the baseline authority anchor. A cross-origin resource is accepted only when an active, time-bounded, non-transitive root delegation covers its resource type or id, final origin, path, and (when present) subject. Source-file ownership and publication authority remain separate. A delegated vendor or district is never the school identity.
+The HTTPS root origin is the baseline authority anchor. A cross-origin resource is accepted only when an active, time-bounded, non-transitive root delegation covers its resource type or id, final origin, path, and declared subject. Every delegation declares the organization subject it authorizes; the resource subject must match it. Source-file ownership and publication authority remain separate. A delegated vendor or district is never the school identity.
 
 Signatures are optional. Unsigned conformant v1 resources remain valid. A detached signature adds portable integrity but does not prove that claims are factually true. Verification reports canonicalization, digest match, cryptographic validity, key time/revocation, subject binding, resource expiry, delegation scope, and root authority separately.
 

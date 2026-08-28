@@ -21,6 +21,7 @@ export interface BrowserSemanticDiff {
 
 export interface BrowserSignatureVerificationResult {
   readonly overall: boolean;
+  readonly keyScopeValid: boolean;
   readonly findings: readonly string[];
 }
 

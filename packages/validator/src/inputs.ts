@@ -1,4 +1,5 @@
-import { lstat, open, readdir, realpath } from 'node:fs/promises';
+import { lstat, open, opendir, realpath } from 'node:fs/promises';
+import type { Dirent } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import {
   EomFetchError,
@@ -20,6 +21,13 @@ import {
 import { finding, hasErrors, type Finding } from './findings.js';
 import { publicationSetFindings } from './semantic.js';
 import { validateDocument, type ValidationOptions } from './engine.js';
+
+export const MAX_PUBLICATION_FILES = 4096;
+export const MAX_PUBLICATION_RESOURCES = 4096;
+export const MAX_PUBLICATION_DEPTH = 128;
+export const MAX_PUBLICATION_FILE_BYTES = 64 * 1024 * 1024;
+export const MAX_PUBLICATION_TOTAL_BYTES = 256 * 1024 * 1024;
+export const MAX_PUBLICATION_DIRECTORY_ENTRIES = 100_000;
 
 export interface PublicationValidationOptions extends ValidationOptions {
   readonly maxFiles?: number;
@@ -70,11 +78,20 @@ export async function validatePublicationDirectory(
   if (normalizeFsPath(expectedRootRealPath) !== normalizeFsPath(root)) {
     throw new Error(`${directory} must not traverse a symbolic link.`);
   }
-  const maxFiles = positiveLimit(options.maxFiles, 256);
-  const maxBytes = positiveLimit(options.maxBytes, 10 * 1024 * 1024);
-  const maxDepth = nonNegativeLimit(options.maxDepth, 32);
-  const maxTotalBytes = positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024);
-  const walked = await publicationFiles(root, maxFiles, maxDepth);
+  const maxFiles = positiveLimit(options.maxFiles, 256, MAX_PUBLICATION_FILES);
+  const maxBytes = positiveLimit(options.maxBytes, 10 * 1024 * 1024, MAX_PUBLICATION_FILE_BYTES);
+  const maxDepth = nonNegativeLimit(options.maxDepth, 32, MAX_PUBLICATION_DEPTH);
+  const maxTotalBytes = positiveLimit(
+    options.maxTotalBytes,
+    32 * 1024 * 1024,
+    MAX_PUBLICATION_TOTAL_BYTES,
+  );
+  const walked = await publicationFiles(
+    root,
+    maxFiles,
+    maxDepth,
+    MAX_PUBLICATION_DIRECTORY_ENTRIES,
+  );
   const paths = walked.paths;
   const findings: Finding[] = [];
   const documents: Record<string, unknown> = {};
@@ -97,6 +114,16 @@ export async function validatePublicationDirectory(
         'EOM_GRAPH_DEPTH_LIMIT',
         'transport',
         `The publication contains files deeper than the configured ${maxDepth}-level limit.`,
+        { severity: 'error' },
+      ),
+    );
+  }
+  if (walked.entryLimitExceeded) {
+    findings.push(
+      finding(
+        'EOM_GRAPH_DIRECTORY_ENTRY_LIMIT',
+        'security',
+        `The publication directory traversal exceeded the ${MAX_PUBLICATION_DIRECTORY_ENTRIES}-entry safety limit.`,
         { severity: 'error' },
       ),
     );
@@ -369,9 +396,13 @@ export async function validatePublicationUrl(
       })),
     );
     if (options.fetchGraph !== false && isJsonObject(rootResponse.document)) {
-      const maxResources = positiveLimit(options.maxResources, 64);
-      const maxDepth = nonNegativeLimit(options.maxDepth, 1);
-      const maxTotalBytes = positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024);
+      const maxResources = positiveLimit(options.maxResources, 64, MAX_PUBLICATION_RESOURCES);
+      const maxDepth = nonNegativeLimit(options.maxDepth, 1, MAX_PUBLICATION_DEPTH);
+      const maxTotalBytes = positiveLimit(
+        options.maxTotalBytes,
+        32 * 1024 * 1024,
+        MAX_PUBLICATION_TOTAL_BYTES,
+      );
       let totalBytes = Buffer.byteLength(rootResponse.body, 'utf8');
       const queue: Array<{
         readonly href: string;
@@ -663,12 +694,14 @@ interface PublicationFileWalk {
   readonly depthLimitExceeded: boolean;
   readonly symlinkPaths: readonly string[];
   readonly symlinkLimitExceeded: boolean;
+  readonly entryLimitExceeded: boolean;
 }
 
 async function publicationFiles(
   directory: string,
   maxFiles: number,
   maxDepth: number,
+  maxEntries: number,
 ): Promise<PublicationFileWalk> {
   const result: string[] = [];
   const symlinkPaths: string[] = [];
@@ -676,6 +709,8 @@ async function publicationFiles(
   let fileLimitExceeded = false;
   let depthLimitExceeded = false;
   let symlinkLimitExceeded = false;
+  let entryCount = 0;
+  let entryLimitExceeded = false;
   const recordSymlink = (path: string): boolean => {
     symlinkCount += 1;
     if (symlinkCount > maxFiles) {
@@ -686,17 +721,29 @@ async function publicationFiles(
     return false;
   };
   async function visit(current: string, depth: number): Promise<void> {
-    if (fileLimitExceeded) return;
+    if (fileLimitExceeded || entryLimitExceeded) return;
     if (depth > maxDepth) {
       depthLimitExceeded = true;
       return;
     }
     await assertStableDirectory(current);
-    const entries = (await readdir(current, { withFileTypes: true })).sort((left, right) =>
-      compareStrings(left.name, right.name),
-    );
+    const entries: Dirent[] = [];
+    const handle = await opendir(current);
+    try {
+      for await (const entry of handle) {
+        entryCount += 1;
+        if (entryCount > maxEntries) {
+          entryLimitExceeded = true;
+          return;
+        }
+        entries.push(entry);
+      }
+    } finally {
+      await handle.close().catch(() => undefined);
+    }
+    entries.sort((left, right) => compareStrings(left.name, right.name));
     for (const entry of entries) {
-      if (fileLimitExceeded) return;
+      if (fileLimitExceeded || entryLimitExceeded) return;
       const path = join(current, entry.name);
       const information = await lstat(path);
       if (information.isSymbolicLink()) {
@@ -731,6 +778,7 @@ async function publicationFiles(
     depthLimitExceeded,
     symlinkPaths: symlinkPaths.sort(compareStrings),
     symlinkLimitExceeded,
+    entryLimitExceeded,
   };
 }
 
@@ -795,8 +843,10 @@ function fetchFinding(error: unknown, resource: string): Finding {
   );
 }
 
-function positiveLimit(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+function positiveLimit(value: number | undefined, fallback: number, maximum: number): number {
+  return value !== undefined && Number.isFinite(value) && value > 0
+    ? Math.min(Math.floor(value), maximum)
+    : fallback;
 }
 
 function decodeUtf8(bytes: Uint8Array, source: string): string {
@@ -809,8 +859,10 @@ function decodeUtf8(bytes: Uint8Array, source: string): string {
   }
 }
 
-function nonNegativeLimit(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) && value >= 0 ? Math.floor(value) : fallback;
+function nonNegativeLimit(value: number | undefined, fallback: number, maximum: number): number {
+  return value !== undefined && Number.isFinite(value) && value >= 0
+    ? Math.min(Math.floor(value), maximum)
+    : fallback;
 }
 
 interface EnqueueResourcesResult {

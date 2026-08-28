@@ -83,16 +83,41 @@ describe('EOM evidence-led candidate workflows', () => {
       id: 'https://ecme-high.example/evidence/candidate/approved',
       status: 'release-approved',
       directPublication: false,
+      sourceSet: ['https://ecme-high.example/evidence/source/catalog'],
+      claims: ['https://ecme-high.example/evidence/claim/name'],
+      requiredOwners: ['publication-admin'],
+      releaseApproval: {
+        decision: 'release-approved',
+        reviewer: 'publication-admin',
+        approvedAt: '2026-08-26T12:00:00Z',
+        expires: '2027-08-26T12:00:00Z',
+        rationale: 'Synthetic public fixture approved for publication.',
+      },
     };
     const claims = [
       {
+        type: 'claim-record',
         id: 'https://ecme-high.example/evidence/claim/name',
         target: { resourceId: 'https://ecme-high.example/eom/organization', pointer: '/name' },
         proposedValue: 'Ecme High School',
         method: { kind: 'direct-extraction' },
         authorityClass: 'organization-origin',
         privacyClass: 'public-reviewed',
-        review: { state: 'approved', requiredOwner: 'publication-admin' },
+        source: {
+          sourceId: 'https://ecme-high.example/evidence/source/catalog',
+          locator: { section: 'organization' },
+        },
+        evidence: {
+          observedAt: '2026-08-26T12:00:00Z',
+          contentDigest: 'sha-256=:cHVibGljLXNvdXJjZQ==:',
+        },
+        confidence: 1,
+        review: {
+          state: 'approved',
+          requiredOwner: 'publication-admin',
+          reviewedBy: 'publication-admin',
+          reviewedAt: '2026-08-26T12:00:00Z',
+        },
       },
     ];
     const gate = candidateGate(workspace, claims, [], {
@@ -102,6 +127,79 @@ describe('EOM evidence-led candidate workflows', () => {
       reportContainsSensitiveValues: false,
     });
     expect(gate.allowed).toBe(true);
+  });
+
+  it('rejects future or incomplete release approval metadata', () => {
+    const workspace = {
+      type: 'candidate-workspace',
+      status: 'release-approved',
+      directPublication: false,
+      sourceSet: ['https://ecme-high.example/evidence/source/catalog'],
+      claims: ['https://ecme-high.example/evidence/claim/name'],
+      requiredOwners: ['publication-admin'],
+      releaseApproval: {
+        decision: 'release-approved',
+        reviewer: 'publication-admin',
+        approvedAt: '2026-08-27T12:00:00Z',
+        expires: '2027-08-27T12:00:00Z',
+        rationale: 'Synthetic public fixture approved for publication.',
+      },
+    };
+    const claim = {
+      type: 'claim-record',
+      id: 'https://ecme-high.example/evidence/claim/name',
+      target: { resourceId: 'https://ecme-high.example/eom/organization', pointer: '/name' },
+      proposedValue: 'Ecme High School',
+      source: {
+        sourceId: 'https://ecme-high.example/evidence/source/catalog',
+        locator: { section: 'organization' },
+      },
+      evidence: {
+        observedAt: '2026-08-26T12:00:00Z',
+        contentDigest: 'sha-256=:cHVibGljLXNvdXJjZQ==:',
+      },
+      method: { kind: 'direct-extraction' },
+      confidence: 1,
+      privacyClass: 'public-reviewed',
+      review: {
+        state: 'approved',
+        requiredOwner: 'publication-admin',
+        reviewedBy: 'publication-admin',
+        reviewedAt: '2026-08-26T12:00:00Z',
+      },
+    };
+    const gate = candidateGate(workspace, [claim], [], undefined, {
+      now: new Date('2026-08-26T12:00:00Z'),
+    });
+    expect(gate.allowed).toBe(false);
+    expect(gate.reasons).toContain(
+      'Release-approved candidates require a current, explicit human releaseApproval record.',
+    );
+  });
+
+  it('requires release approval rationale and an authorized reviewer', () => {
+    const workspace = {
+      type: 'candidate-workspace',
+      status: 'release-approved',
+      directPublication: false,
+      sourceSet: ['https://ecme-high.example/evidence/source/catalog'],
+      claims: ['https://ecme-high.example/evidence/claim/name'],
+      requiredOwners: ['publication-admin'],
+      releaseApproval: {
+        decision: 'release-approved',
+        reviewer: 'unlisted-reviewer',
+        approvedAt: '2026-08-26T12:00:00Z',
+        expires: '2027-08-26T12:00:00Z',
+        rationale: '   ',
+      },
+    };
+    const gate = candidateGate(workspace, [], [], undefined, {
+      now: new Date('2026-08-26T13:00:00Z'),
+    });
+    expect(gate.allowed).toBe(false);
+    expect(gate.reasons).toContain(
+      'Release-approved candidates require a current, explicit human releaseApproval record.',
+    );
   });
 
   it('reports uncovered candidate values and keeps candidates outside generator source paths', () => {

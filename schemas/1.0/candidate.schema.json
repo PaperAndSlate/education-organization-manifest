@@ -46,6 +46,18 @@
       "uniqueItems": true
     },
     "directPublication": { "const": false },
+    "releaseApproval": {
+      "type": "object",
+      "required": ["decision", "reviewer", "approvedAt", "expires", "rationale"],
+      "properties": {
+        "decision": { "const": "release-approved" },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "approvedAt": { "$ref": "common.schema.json#/$defs/dateTime" },
+        "expires": { "$ref": "common.schema.json#/$defs/dateTime" },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 }
+      },
+      "additionalProperties": false
+    },
     "generatedPreview": { "type": "string", "minLength": 1 },
     "privacyReview": { "enum": ["pending", "clear", "blocked", "quarantined"] },
     "notes": { "type": "string", "maxLength": 4000 },

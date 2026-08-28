@@ -607,6 +607,31 @@ describe('EOM deterministic authoring generator', () => {
       );
       if (!isJsonObject(manifest)) throw new Error('Generated manifest must be an object.');
       expect(manifest.publisher).toMatchObject({ id: organizationB });
+
+      await writeFile(
+        join(root, 'source', 'contacts.yaml'),
+        [
+          'items:',
+          '  - id: https://network.example/id/contact/a',
+          '    role: Admissions A',
+          `    organization: ${organizationA}`,
+          '',
+        ].join('\n'),
+      );
+      const noContacts = await buildPublication({
+        configFile: join(root, 'eom.config.yaml'),
+        outputRoot: join(root, 'generated', 'no-contacts', 'public'),
+        mode: 'organization',
+        organization: organizationB,
+      });
+      expect(noContacts.valid, JSON.stringify(noContacts.findings)).toBe(true);
+      const noContactsDocument = parseStrictJson(
+        await readFile(
+          join(root, 'generated', 'no-contacts', 'public', 'eom', 'contacts.json'),
+          'utf8',
+        ),
+      );
+      expect(noContactsDocument).toMatchObject({ contacts: [] });
     } finally {
       await rm(root, { recursive: true, force: true });
     }

@@ -222,7 +222,11 @@ export function semanticDiffBrowser(before, after) {
 export async function verifyDetachedBrowser(value, signature, keySet, options = {}) {
   const findings = [];
   if (!isPlainObject(value) || !isPlainObject(signature) || !isPlainObject(keySet)) {
-    return { overall: false, findings: ['A signature and key-set object are required.'] };
+    return {
+      overall: false,
+      keyScopeValid: false,
+      findings: ['A signature and key-set object are required.'],
+    };
   }
   let normalizedValue;
   let normalizedSignature;
@@ -234,6 +238,7 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
   } catch (error) {
     return {
       overall: false,
+      keyScopeValid: false,
       findings: [error instanceof Error ? error.message : 'Inputs must contain only JSON values.'],
     };
   }
@@ -244,6 +249,7 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
   ) {
     return {
       overall: false,
+      keyScopeValid: false,
       findings: ['A signature, resource, and key-set object are required.'],
     };
   }
@@ -368,6 +374,12 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
             candidate.kid === signature.keyId,
         )
       : undefined;
+  const manifestKeySetBindingValid = validateManifestKeySetBinding(
+    options.manifest,
+    keySet,
+    findings,
+  );
+  let keyScopeValid = false;
   if (
     !isPlainObject(key) ||
     !Object.hasOwn(key, 'publicKeyJwk') ||
@@ -420,6 +432,7 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
       'd' in key.publicKeyJwk
     )
       findings.push('The supplied key is not a public Ed25519 key.');
+    keyScopeValid = evaluateKeyScope(key, value, findings);
   }
   if (
     Object.hasOwn(keySet, 'expires') &&
@@ -598,7 +611,11 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
       }
     }
   }
-  return { overall: findings.length === 0 && cryptographic, findings };
+  return {
+    overall: findings.length === 0 && cryptographic && keyScopeValid && manifestKeySetBindingValid,
+    keyScopeValid,
+    findings,
+  };
 }
 
 function compareValue(before, after, path, changes, depth = 0) {
@@ -774,6 +791,8 @@ function appendKeySetFragmentErrors(keySet, findings) {
       if (seen.has(key.kid)) findings.push(`/keys/${index}/kid must be unique.`);
       seen.add(key.kid);
     }
+    if (Object.hasOwn(key, 'scope') && !isValidKeyScope(key.scope))
+      findings.push(`/keys/${index}/scope is invalid.`);
     if (!Object.hasOwn(key, 'kty') || key.kty !== 'OKP')
       findings.push(`/keys/${index}/kty must be OKP.`);
     if (!Object.hasOwn(key, 'use') || key.use !== 'sig')
@@ -813,6 +832,80 @@ function appendKeySetFragmentErrors(keySet, findings) {
     )
       findings.push(`/keys/${index}/validUntil must be later than validFrom.`);
   }
+}
+
+function isValidKeyScope(scope) {
+  if (!isPlainObject(scope)) return false;
+  const keys = Object.keys(scope);
+  if (keys.length === 0 || keys.some((key) => !['resourceTypes', 'resourceIds'].includes(key)))
+    return false;
+  if (Object.hasOwn(scope, 'resourceTypes')) {
+    if (
+      !Array.isArray(scope.resourceTypes) ||
+      scope.resourceTypes.length === 0 ||
+      !scope.resourceTypes.every((item) => typeof item === 'string' && item.length > 0) ||
+      new Set(scope.resourceTypes).size !== scope.resourceTypes.length
+    )
+      return false;
+  }
+  if (Object.hasOwn(scope, 'resourceIds')) {
+    if (
+      !Array.isArray(scope.resourceIds) ||
+      scope.resourceIds.length === 0 ||
+      !scope.resourceIds.every((item) => typeof item === 'string' && isAbsoluteUri(item)) ||
+      new Set(scope.resourceIds).size !== scope.resourceIds.length
+    )
+      return false;
+  }
+  return true;
+}
+
+function evaluateKeyScope(key, resource, findings) {
+  if (!isPlainObject(key)) return false;
+  const scope = key.scope;
+  if (scope === undefined) return true;
+  if (!isValidKeyScope(scope)) return false;
+  const typeInScope =
+    !Array.isArray(scope.resourceTypes) ||
+    (typeof resource.type === 'string' && scope.resourceTypes.includes(resource.type));
+  const idInScope =
+    !Array.isArray(scope.resourceIds) ||
+    (typeof resource.id === 'string' && scope.resourceIds.includes(resource.id));
+  if (!typeInScope || !idInScope)
+    findings.push(
+      'EOM_SIGNATURE_KEY_OUT_OF_SCOPE: The signing key is not authorized for this resource.',
+    );
+  return typeInScope && idInScope;
+}
+
+function validateManifestKeySetBinding(manifest, keySet, findings) {
+  if (manifest === undefined) return true;
+  const signing =
+    isPlainObject(manifest) && Object.hasOwn(manifest, 'signing') ? manifest.signing : undefined;
+  if (signing === undefined) return true;
+  if (!isPlainObject(signing)) {
+    findings.push(
+      'EOM_SIGNATURE_MANIFEST_KEY_SET_INVALID: The manifest signing declaration must be an object.',
+    );
+    return false;
+  }
+  if (
+    typeof signing.keySet !== 'string' ||
+    signing.keySet.length === 0 ||
+    !isAbsoluteUri(signing.keySet)
+  ) {
+    findings.push(
+      'EOM_SIGNATURE_MANIFEST_KEY_SET_REQUIRED: The manifest signing declaration must identify its key set.',
+    );
+    return false;
+  }
+  if (typeof keySet.id !== 'string' || !isAbsoluteUri(keySet.id) || keySet.id !== signing.keySet) {
+    findings.push(
+      'EOM_SIGNATURE_MANIFEST_KEY_SET_MISMATCH: The supplied verification key set does not match the manifest signing key-set identifier.',
+    );
+    return false;
+  }
+  return true;
 }
 
 function isPlainObject(value) {

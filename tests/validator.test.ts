@@ -131,6 +131,7 @@ describe('EOM structural and semantic validation', () => {
         type: 'delegation',
         id: 'https://ecme-high.example/id/delegation/vendor-organization',
         delegate: 'https://vendor.example',
+        subject: 'https://ecme-high.example/id/school',
         scope: {
           resourceTypes: ['organization-profile'],
           resourceIds: [resources[0].id],
@@ -710,6 +711,7 @@ describe('EOM structural and semantic validation', () => {
         type: 'delegation',
         id: 'https://ecme-high.example/id/delegation/vendor-organization',
         delegate: 'https://vendor.example',
+        subject: 'https://ecme-high.example/id/school',
         scope: {
           resourceTypes: ['organization-profile'],
           resourceIds: [resources[0].id],

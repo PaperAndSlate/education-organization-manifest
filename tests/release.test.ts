@@ -3,10 +3,21 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseStrictJson } from '@paperandslate/eom-core';
+import { CLEAN_PACKAGE_INSTALL_ARGS } from '../scripts/package-install-options.js';
 
 const root = resolve(process.cwd());
 
 describe('EOM release evidence', () => {
+  it('keeps clean package smoke installs usable on fresh hosted caches', () => {
+    expect(CLEAN_PACKAGE_INSTALL_ARGS).toEqual([
+      'install',
+      '--prefer-offline',
+      '--ignore-scripts',
+      '--no-frozen-lockfile',
+    ]);
+    expect(CLEAN_PACKAGE_INSTALL_ARGS).not.toContain('--offline');
+  });
+
   it('contains a self-consistent candidate manifest and checksums', () => {
     const releaseRoot = join(root, 'release');
     const manifest = parseStrictJson(readFileSync(join(releaseRoot, 'manifest.json'), 'utf8'));

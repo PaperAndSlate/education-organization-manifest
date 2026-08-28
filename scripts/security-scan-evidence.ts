@@ -11,6 +11,8 @@ export const SECURITY_SCAN_ARTIFACTS = {
 } as const;
 
 export const SECURITY_SCAN_PROJECTION = 'reports/security-scan.json';
+const MAX_SECURITY_SCAN_ARTIFACT_BYTES = 16 * 1024 * 1024;
+const MAX_SECURITY_SCAN_PROJECTION_BYTES = 4 * 1024 * 1024;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -72,10 +74,7 @@ export async function readCanonicalSecurityScan(root: string): Promise<Canonical
   const scanId = requiredString(scan.id, 'scan-manifest.json scan.id');
   const targetCommit = requiredCommit(target.revision, 'scan-manifest.json target.revision');
   const targetId = requiredString(target.targetId, 'scan-manifest.json target.targetId');
-  const targetTree = requiredCommit(
-    target.tree ?? extractTreeFromSummary(scan),
-    'scan-manifest.json target tree',
-  );
+  const targetTree = requiredCommit(target.tree, 'scan-manifest.json target tree');
 
   if (manifest.documentType !== 'codex-security.scan-manifest')
     throw new Error('scan-manifest.json has an unexpected document type');
@@ -149,7 +148,11 @@ export async function readCanonicalSecurityScan(root: string): Promise<Canonical
 
 export async function readSecurityScanEvidence(root: string): Promise<SecurityScanEvidence> {
   const canonical = await readCanonicalSecurityScan(root);
-  const projectionBytes = await readRegularFile(resolve(root), SECURITY_SCAN_PROJECTION);
+  const projectionBytes = await readRegularFile(
+    resolve(root),
+    SECURITY_SCAN_PROJECTION,
+    MAX_SECURITY_SCAN_PROJECTION_BYTES,
+  );
   const projection = asRecord(
     parseStrictJson(projectionBytes.toString('utf8'), SECURITY_SCAN_PROJECTION),
     SECURITY_SCAN_PROJECTION,
@@ -288,7 +291,11 @@ export function renderSecurityScanProjection(canonical: CanonicalSecurityScan): 
   ].join('\n');
 }
 
-async function readRegularFile(root: string, path: string): Promise<Buffer> {
+async function readRegularFile(
+  root: string,
+  path: string,
+  maxBytes = MAX_SECURITY_SCAN_ARTIFACT_BYTES,
+): Promise<Buffer> {
   const resolvedRoot = resolve(root);
   const absolute = resolve(resolvedRoot, path);
   const suffix = relative(resolvedRoot, absolute);
@@ -313,6 +320,9 @@ async function readRegularFile(root: string, path: string): Promise<Buffer> {
   const information = await lstat(absolute);
   if (!information.isFile() || information.isSymbolicLink()) {
     throw new Error(`security scan artifact must be a regular file: ${path}`);
+  }
+  if (information.size > maxBytes) {
+    throw new Error(`security scan artifact exceeds its ${maxBytes}-byte limit: ${path}`);
   }
   return readFile(absolute);
 }
@@ -351,19 +361,6 @@ function extractLimitations(manifest: JsonRecord): string[] {
   return scope && Array.isArray(scope.limitations)
     ? scope.limitations.filter((value): value is string => typeof value === 'string')
     : [];
-}
-
-function extractTreeFromSummary(scan: JsonRecord): string | undefined {
-  const scope = isRecord(scan.scope) ? scan.scope : undefined;
-  const summaries = [
-    scope && typeof scope.summary === 'string' ? scope.summary : undefined,
-    typeof scan.targetSummary === 'string' ? scan.targetSummary : undefined,
-  ];
-  for (const summary of summaries) {
-    const match = summary?.match(/\b(?:source\s+)?tree\s+([a-f0-9]{40})\b/u);
-    if (match?.[1]) return match[1];
-  }
-  return undefined;
 }
 
 function asRecord(value: unknown, label: string): JsonRecord {

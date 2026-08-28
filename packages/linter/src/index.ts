@@ -167,8 +167,8 @@ function walk(
   try {
     for (const [key, child] of Object.entries(value)) {
       const childPointer = `${pointer}/${escapePointer(key)}`;
-      const normalized = key.replaceAll('_', '').replaceAll('-', '').toLowerCase();
-      if (prohibitedNames.has(key) || prohibitedNames.has(normalized)) {
+      const normalized = normalizePrivacyName(key);
+      if (isProhibitedName(key, normalized)) {
         findings.push(
           finding(
             'EOM_PRIVACY_PROHIBITED_FIELD',
@@ -251,25 +251,71 @@ function inspectContactPublicationReview(
       : [];
   contacts.forEach((contact, index) => {
     if (!isRecord(contact)) return;
-    if (
-      Object.hasOwn(contact, 'person') &&
-      contact.person &&
-      (!Object.hasOwn(contact, 'publicationReview') || !contact.publicationReview)
-    ) {
+    if (!Object.hasOwn(contact, 'person') || !contact.person) return;
+    const pointer = `/contacts/${index}/publicationReview`;
+    const review = isRecord(contact.publicationReview) ? contact.publicationReview : undefined;
+    if (!review) {
       findings.push(
         finding(
           'EOM_CONTACT_REVIEW_REQUIRED',
           'privacy',
           'A contact that identifies a person needs an explicit publication review record.',
           {
-            severity: options.strictPrivacy === true ? 'error' : 'warning',
+            severity: 'error',
             pointer: `/contacts/${index}/person`,
             help: 'Prefer a role-based contact or include deliberate-public review and expiry metadata.',
           },
         ),
       );
+      return;
+    }
+    const now = options.now ?? new Date();
+    const status = review.status;
+    const reviewedAt = typeof review.reviewedAt === 'string' ? Date.parse(review.reviewedAt) : NaN;
+    const expires = typeof review.expires === 'string' ? Date.parse(review.expires) : NaN;
+    if (status !== 'approved' || !Number.isFinite(reviewedAt) || !Number.isFinite(expires)) {
+      findings.push(
+        finding(
+          'EOM_CONTACT_REVIEW_INVALID',
+          'privacy',
+          'A named contact requires an approved, dated publication review with an expiry.',
+          {
+            severity: 'error',
+            pointer,
+            help: 'Use status=approved and retain a current review expiry.',
+          },
+        ),
+      );
+    } else if (reviewedAt > expires || expires <= now.getTime()) {
+      findings.push(
+        finding(
+          'EOM_CONTACT_REVIEW_EXPIRED',
+          'freshness',
+          'The named contact publication review is expired or has an invalid time interval.',
+          {
+            severity: 'error',
+            pointer: `${pointer}/expires`,
+            help: 'Refresh or remove the named contact before publication.',
+          },
+        ),
+      );
     }
   });
+}
+
+function normalizePrivacyName(value: string): string {
+  return value
+    .replace(/([a-z0-9])([A-Z])/gu, '$1-$2')
+    .replaceAll('_', '')
+    .replaceAll('-', '')
+    .toLowerCase();
+}
+
+function isProhibitedName(original: string, normalized: string): boolean {
+  if (prohibitedNames.has(original) || prohibitedNames.has(normalized)) return true;
+  return /(?:student|students|pupil|pupils|learner|learners)(?:id|ids|name|names|number|numbers|identifier|identifiers|email|emails|record|records|address|addresses|phone|phones|dob|dateofbirth|birthdate)/u.test(
+    normalized,
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

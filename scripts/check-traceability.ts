@@ -1,12 +1,19 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync as readFileBytes } from 'node:fs';
-import { lstat, mkdir, readFile, realpath, rename, unlink, writeFile } from 'node:fs/promises';
+import { lstat, mkdtemp, readFile, realpath, rm } from 'node:fs/promises';
 import { join, parse, relative, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { parseStrictJson } from '@paperandslate/eom-core';
 import {
   readSecurityScanEvidence,
   securityScanArtifactDigestsMatch,
 } from './security-scan-evidence.js';
+import { AGGREGATE_VERIFY_GATES } from './verify-gates.js';
+import { pnpmInvocation } from './pnpm-runner.js';
+import { safeChildEnvironment } from './safe-child-env.js';
+import { statusBlocksTraceability } from './traceability-policy.js';
+import { atomicWriteFile, ensureRealDirectoryTree } from './atomic-write.js';
 
 const root = resolve(process.cwd());
 const manifestPath = join(root, 'plans', 'pack-manifest.json');
@@ -15,6 +22,7 @@ const matrixPath = join(root, 'requirements', 'TRACEABILITY_MATRIX.md');
 const verificationPath = join(root, 'reports', 'verification', 'local-gates.json');
 const traceabilityResultPath = join(root, 'reports', 'verification', 'traceability-result.json');
 const hostedMode = process.env.EOM_TRACEABILITY_MODE === 'hosted';
+const MAX_TRACEABILITY_FILE_BYTES = 16 * 1024 * 1024;
 const failures: string[] = [];
 const invocationRepositoryRevision = currentRepositoryRevision();
 const expectedCommit = process.env.GITHUB_SHA;
@@ -40,10 +48,13 @@ try {
 }
 
 try {
-  manifestBytes = await readFile(manifestPath);
-  traceabilityBytes = await readFile(traceabilityPath);
-  const packageBytes = await readFile(join(root, 'package.json'));
-  matrixBytes = await readFile(matrixPath);
+  manifestBytes = await readRepositoryFile(manifestPath, 'plans/pack-manifest.json');
+  traceabilityBytes = await readRepositoryFile(
+    traceabilityPath,
+    'requirements/plan-file-traceability.json',
+  );
+  const packageBytes = await readRepositoryFile(join(root, 'package.json'), 'package.json');
+  matrixBytes = await readRepositoryFile(matrixPath, 'requirements/TRACEABILITY_MATRIX.md');
   manifest = parseJson(manifestBytes.toString('utf8'), manifestPath);
   traceability = parseJson(traceabilityBytes.toString('utf8'), traceabilityPath);
   packageJson = parseJson(packageBytes.toString('utf8'), 'package.json');
@@ -92,7 +103,7 @@ for (const [index, value] of manifestFiles.entries()) {
   const absolute = safeResolve(join('plans', value.path), `plans/${value.path}`);
   if (!absolute) continue;
   try {
-    const bytes = await readFile(absolute);
+    const bytes = await readRepositoryFile(absolute, `plans/${value.path}`);
     validatedPlanningBytes.set(value.path, bytes);
     if (bytes.length !== value.bytes)
       failures.push(`${value.path}: planning file byte length changed`);
@@ -132,7 +143,7 @@ for (const [index, value] of planEntries.entries()) {
     failures.push(`${id ?? index}: invalid classification`);
   if (!status || !['verified-local', 'blocked-external', 'open', 'not-applicable'].includes(status))
     failures.push(`${id ?? index}: invalid status`);
-  if (status === 'open')
+  if (statusBlocksTraceability(status ?? '', hostedMode))
     failures.push(
       `${id ?? index}: local requirement remains open and cannot pass the aggregate gate`,
     );
@@ -191,7 +202,7 @@ for (const [index, value] of atomicEntries.entries()) {
   if (sources.length === 0) failures.push(`${id ?? index}: at least one source is required`);
   if (!status || !['verified-local', 'blocked-external', 'open', 'not-applicable'].includes(status))
     failures.push(`${id ?? index}: invalid atomic status`);
-  if (status === 'open')
+  if (statusBlocksTraceability(status ?? '', hostedMode))
     failures.push(
       `${id ?? index}: local requirement remains open and cannot pass the aggregate gate`,
     );
@@ -228,6 +239,8 @@ if (
 }
 if (matrix.includes('RC2 manifest') || matrix.includes('Final Standard workbench scan'))
   failures.push('current traceability matrix contains superseded RC2/formal-scan claims');
+
+if (failures.length === 0) await checkGeneratedTraceability();
 
 try {
   const finalRepositoryRevision = currentRepositoryRevision();
@@ -315,25 +328,8 @@ async function writeTraceabilityResult(
   }
   if (currentFailures.length > 0) result.failures = [...currentFailures];
   const verificationDirectory = join(root, 'reports', 'verification');
-  await mkdir(join(root, 'reports'), { recursive: true });
-  await ensureRealDirectory(join(root, 'reports'));
-  await mkdir(verificationDirectory, { recursive: true });
-  await ensureRealDirectory(verificationDirectory);
-  const temporaryPath = join(
-    verificationDirectory,
-    `.traceability-result.${process.pid}.${randomUUID()}.tmp`,
-  );
-  let replaced = false;
-  try {
-    await writeFile(temporaryPath, `${JSON.stringify(result, null, 2)}\n`, {
-      encoding: 'utf8',
-      flag: 'wx',
-    });
-    await replaceRegularFile(temporaryPath, traceabilityResultPath);
-    replaced = true;
-  } finally {
-    if (!replaced) await unlink(temporaryPath).catch(() => undefined);
-  }
+  await ensureRealDirectoryTree(verificationDirectory);
+  await atomicWriteFile(traceabilityResultPath, `${JSON.stringify(result, null, 2)}\n`);
 }
 
 function currentRepositoryRevision(): { readonly commit: string; readonly tree: string } {
@@ -378,7 +374,14 @@ async function readReleaseSourceRevision(): Promise<
   { readonly commit: string; readonly tree: string } | undefined
 > {
   try {
-    const value = JSON.parse(await readFile(join(root, 'release', 'manifest.json'), 'utf8')) as {
+    const parsed = parseStrictJson(
+      (
+        await readRepositoryFile(join(root, 'release', 'manifest.json'), 'release/manifest.json')
+      ).toString('utf8'),
+      'release/manifest.json',
+    );
+    if (!isRecord(parsed)) return undefined;
+    const value = parsed as {
       sourceCommit?: unknown;
       sourceTree?: unknown;
     };
@@ -431,7 +434,7 @@ function isCommit(value: unknown): value is string {
 
 function parseJson(text: string, path: string): Record<string, unknown> {
   try {
-    const value: unknown = JSON.parse(text);
+    const value: unknown = parseStrictJson(text, path);
     if (!isRecord(value)) throw new Error('expected an object');
     return value;
   } catch (error) {
@@ -443,20 +446,7 @@ function parseJson(text: string, path: string): Record<string, unknown> {
 
 async function readOptionalJson(path: string): Promise<unknown> {
   try {
-    const canonicalRoot = await realpath(root);
-    const canonicalPath = await realpath(path);
-    const canonicalRelative = relative(canonicalRoot, canonicalPath);
-    if (
-      canonicalRelative === '..' ||
-      parse(canonicalRelative).root.length > 0 ||
-      canonicalRelative.startsWith(`..${'\\'}`) ||
-      canonicalRelative.startsWith('../')
-    ) {
-      throw new Error('path escapes the repository through a symbolic link');
-    }
-    const information = await lstat(path);
-    if (information.isSymbolicLink()) throw new Error('symbolic-link paths are not permitted');
-    return JSON.parse(await readFile(path, 'utf8')) as unknown;
+    return parseStrictJson((await readRepositoryFile(path, path)).toString('utf8'), path);
   } catch (error) {
     if (isNotFound(error)) return undefined;
     failures.push(
@@ -464,6 +454,69 @@ async function readOptionalJson(path: string): Promise<unknown> {
     );
     return undefined;
   }
+}
+
+async function checkGeneratedTraceability(): Promise<void> {
+  const temporaryRoot = await mkdtemp(join(tmpdir(), 'eom-traceability-check-'));
+  try {
+    const invocation = pnpmInvocation(['generate:traceability']);
+    execFileSync(invocation.command, invocation.args, {
+      cwd: root,
+      env: safeChildEnvironment({
+        EOM_TRACEABILITY_OUTPUT: temporaryRoot,
+        ...(process.env.EOM_TRACEABILITY_MODE
+          ? { EOM_TRACEABILITY_MODE: process.env.EOM_TRACEABILITY_MODE }
+          : {}),
+      }),
+      stdio: 'pipe',
+    });
+    const generatedTraceability = await readFile(
+      join(temporaryRoot, 'plan-file-traceability.json'),
+    );
+    const generatedMatrix = await readFile(join(temporaryRoot, 'TRACEABILITY_MATRIX.md'));
+    if (!generatedTraceability.equals(traceabilityBytes)) {
+      failures.push(
+        'generated traceability JSON differs from requirements/plan-file-traceability.json; run pnpm generate:traceability',
+      );
+    }
+    if (!generatedMatrix.equals(matrixBytes)) {
+      failures.push(
+        'generated traceability matrix differs from requirements/TRACEABILITY_MATRIX.md; run pnpm generate:traceability',
+      );
+    }
+  } catch (error) {
+    failures.push(
+      `could not regenerate traceability in a temporary directory: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+}
+
+async function readRepositoryFile(
+  path: string,
+  label: string,
+  maxBytes = MAX_TRACEABILITY_FILE_BYTES,
+): Promise<Buffer> {
+  const information = await lstat(path);
+  if (information.isSymbolicLink() || !information.isFile()) {
+    throw new Error(`${label} must be a regular file, not a link or directory.`);
+  }
+  if (information.size > maxBytes) {
+    throw new Error(`${label} exceeds the ${maxBytes}-byte safety limit.`);
+  }
+  const canonicalRoot = await realpath(root);
+  const canonicalPath = await realpath(path);
+  const canonicalRelative = relative(canonicalRoot, canonicalPath);
+  if (
+    canonicalRelative === '..' ||
+    parse(canonicalRelative).root.length > 0 ||
+    canonicalRelative.startsWith(`..${'\\'}`) ||
+    canonicalRelative.startsWith('../')
+  ) {
+    throw new Error(`${label} escapes the repository through a symbolic link.`);
+  }
+  return readFile(path);
 }
 
 function isNotFound(error: unknown): boolean {
@@ -531,30 +584,6 @@ async function repositoryPathIsBounded(path: string, label: string): Promise<boo
   }
 }
 
-async function ensureRealDirectory(path: string): Promise<void> {
-  const information = await lstat(path);
-  if (!information.isDirectory() || information.isSymbolicLink()) {
-    throw new Error(`traceability output directory must be a real directory: ${path}`);
-  }
-  const resolvedPath = await realpath(path);
-  if (parse(resolvedPath).root.length === 0) {
-    throw new Error(`traceability output directory has an invalid path: ${path}`);
-  }
-}
-
-async function replaceRegularFile(temporaryPath: string, destinationPath: string): Promise<void> {
-  try {
-    const existing = await lstat(destinationPath);
-    if (existing.isSymbolicLink() || !existing.isFile()) {
-      throw new Error(`traceability result destination must be a regular file: ${destinationPath}`);
-    }
-    await unlink(destinationPath);
-  } catch (error) {
-    if (!isNotFound(error)) throw error;
-  }
-  await rename(temporaryPath, destinationPath);
-}
-
 async function checkVerificationReceipt(
   value: unknown,
   scripts: Record<string, unknown>,
@@ -593,8 +622,19 @@ async function checkVerificationReceipt(
   ) {
     failures.push('aggregate verification receipt does not bind the current verify script');
   }
-  if (!Array.isArray(value.completedBeforeReceipt) || value.completedBeforeReceipt.length === 0)
-    failures.push('aggregate verification receipt has no completed gate list');
+  const completedBeforeReceipt = Array.isArray(value.completedBeforeReceipt)
+    ? value.completedBeforeReceipt
+    : [];
+  const expectedGates = AGGREGATE_VERIFY_GATES.map((gate) => gate.command);
+  if (
+    completedBeforeReceipt.length !== expectedGates.length ||
+    completedBeforeReceipt.some(
+      (entry, index) =>
+        !isRecord(entry) || entry.command !== expectedGates[index] || entry.status !== 'passed',
+    )
+  ) {
+    failures.push('aggregate verification receipt does not contain the exact passed gate list');
+  }
   if (!Array.isArray(value.finalization) || value.finalization.length !== 3)
     failures.push('aggregate verification receipt has an incomplete finalization contract');
   const formalSecurityScan = value.formalSecurityScan;

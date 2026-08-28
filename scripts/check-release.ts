@@ -4,6 +4,8 @@ import { lstat, readFile, realpath } from 'node:fs/promises';
 import { join, parse, relative, resolve } from 'node:path';
 import { isJsonObject, parseStrictJson } from '@paperandslate/eom-core';
 import { readSecurityScanEvidence } from './security-scan-evidence.js';
+import { pnpmInvocation } from './pnpm-runner.js';
+import { safeChildEnvironment } from './safe-child-env.js';
 
 const root = resolve(process.cwd());
 const releaseRoot = join(root, 'release');
@@ -200,6 +202,19 @@ if (isRecord(manifest) && Array.isArray(manifest.artifacts)) {
   ) {
     failures.push('checksums.sha256: entries do not match the release manifest artifact set');
   }
+}
+
+try {
+  const invocation = pnpmInvocation(['verify:release-reproducibility']);
+  execFileSync(invocation.command, invocation.args, {
+    cwd: root,
+    env: safeChildEnvironment(),
+    stdio: 'pipe',
+  });
+} catch (error) {
+  failures.push(
+    `release reproducibility could not be independently rechecked: ${error instanceof Error ? error.message : String(error)}`,
+  );
 }
 
 const provenance = parseStrictJson(

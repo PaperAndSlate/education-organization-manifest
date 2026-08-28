@@ -8,7 +8,7 @@ import {
   type JsonValue,
 } from '@paperandslate/eom-core';
 import { lintPublication } from '@paperandslate/eom-linter';
-import { finding, type Finding } from '@paperandslate/eom-validator';
+import { finding, type Finding } from '@paperandslate/eom-core/findings';
 
 export type CandidateStatus =
   | 'discovered'
@@ -34,6 +34,10 @@ export interface CandidateGate {
   readonly claimCount: number;
   readonly unresolvedConflictCount: number;
   readonly privacyStatus: 'pending' | 'clear' | 'blocked' | 'quarantined';
+}
+
+export interface CandidateGateOptions {
+  readonly now?: Date;
 }
 
 export interface CoverageReport {
@@ -254,16 +258,27 @@ export function extractControlledCandidate(
       const contentFlagged = privacy.redactedPaths.some(
         (path) => path === claimPrefix || path.startsWith(`${claimPrefix}/`),
       );
-      return contentFlagged || isSensitivePrivacyClass(stringAt(claim, ['privacyClass']))
+      const locatorFlagged = privacy.redactedPaths.some(
+        (path) =>
+          path === `/claims/${index}/source/locator` ||
+          path.startsWith(`/claims/${index}/source/locator/`),
+      );
+      return contentFlagged ||
+        locatorFlagged ||
+        isSensitivePrivacyClass(stringAt(claim, ['privacyClass']))
         ? [stringAt(claim, ['id'])].filter((value): value is string => value !== undefined)
         : [];
     }),
   );
-  const claims = rawClaims.map((claim) =>
-    redactedClaimIds.has(stringAt(claim, ['id']) ?? '')
-      ? asJsonObject({ ...claim, proposedValue: null })
-      : claim,
-  );
+  const claims = rawClaims.map((claim) => {
+    if (!redactedClaimIds.has(stringAt(claim, ['id']) ?? '')) return claim;
+    const source = isJsonObject(claim.source) ? claim.source : {};
+    return asJsonObject({
+      ...claim,
+      proposedValue: null,
+      source: { ...source, locator: { section: '[redacted]' } },
+    });
+  });
   const conflicts = redactSensitiveConflictValues(rawConflicts, redactedClaimIds);
   const sourcePatternFinding = sensitiveSourcePattern.test(sourceText ?? '')
     ? [
@@ -358,11 +373,7 @@ function extractionClaimRecord(
       'EOM_EXTRACTION_CLAIM_INVALID',
       `Invalid JSON Pointer for claim ${claim.id}.`,
     );
-  if (!hasLocator(claim.locator))
-    throw new CandidatePolicyError(
-      'EOM_EXTRACTION_CLAIM_INVALID',
-      `Claim ${claim.id} requires an evidence locator.`,
-    );
+  const locator = normalizeLocator(claim.locator, claim.id);
   if (claim.observedAt !== undefined && Number.isNaN(Date.parse(claim.observedAt)))
     throw new CandidatePolicyError(
       'EOM_EXTRACTION_CLAIM_INVALID',
@@ -387,7 +398,7 @@ function extractionClaimRecord(
     id: claim.id,
     target: { resourceId: claim.resourceId, pointer: claim.pointer },
     proposedValue: claim.proposedValue,
-    source: { sourceId: source.id, locator: claim.locator },
+    source: { sourceId: source.id, locator },
     evidence: { observedAt, contentDigest: sourceDigest },
     method: { kind: claim.method ?? 'direct-extraction' },
     confidence: claim.confidence ?? 0,
@@ -436,12 +447,47 @@ function digestForBytes(value: Uint8Array): string {
   return `sha-256=:${createHash('sha256').update(value).digest('base64')}:`;
 }
 
-function hasLocator(value: ControlledExtractionClaim['locator']): boolean {
-  return Object.values(value).some((part) =>
-    typeof part === 'string'
-      ? part.trim().length > 0
-      : typeof part === 'number' && Number.isInteger(part) && part > 0,
-  );
+function normalizeLocator(value: unknown, claimId: string): ControlledExtractionClaim['locator'] {
+  const allowed = new Set(['page', 'section', 'selector', 'textRange', 'sheet', 'cell']);
+  if (!isJsonObject(value)) {
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_CLAIM_INVALID',
+      `Claim ${claimId} requires an object evidence locator.`,
+    );
+  }
+  const normalized: Record<string, string | number> = {};
+  for (const [key, part] of Object.entries(value)) {
+    if (!allowed.has(key)) {
+      throw new CandidatePolicyError(
+        'EOM_EXTRACTION_CLAIM_INVALID',
+        `Claim ${claimId} contains an unsupported locator field ${key}.`,
+      );
+    }
+    if (key === 'page') {
+      if (typeof part !== 'number' || !Number.isInteger(part) || part < 1) {
+        throw new CandidatePolicyError(
+          'EOM_EXTRACTION_CLAIM_INVALID',
+          `Claim ${claimId} locator page must be a positive integer.`,
+        );
+      }
+      normalized[key] = part;
+    } else {
+      if (typeof part !== 'string' || part.trim().length === 0) {
+        throw new CandidatePolicyError(
+          'EOM_EXTRACTION_CLAIM_INVALID',
+          `Claim ${claimId} locator field ${key} must be non-empty text.`,
+        );
+      }
+      normalized[key] = part;
+    }
+  }
+  if (Object.keys(normalized).length === 0) {
+    throw new CandidatePolicyError(
+      'EOM_EXTRACTION_CLAIM_INVALID',
+      `Claim ${claimId} requires an evidence locator.`,
+    );
+  }
+  return normalized;
 }
 
 function assertAbsoluteUri(value: string, label: string): void {
@@ -715,9 +761,13 @@ export function candidateGate(
     redactedPaths: [],
     reportContainsSensitiveValues: false,
   },
+  options: CandidateGateOptions = {},
 ): CandidateGate {
   const reasons: string[] = [];
   const status = stringAt(workspace, ['status']);
+  const workspaceRecord = isJsonObject(workspace) ? workspace : undefined;
+  const now = options.now ?? new Date();
+  if (Number.isNaN(now.getTime())) reasons.push('Candidate gate requires a valid evaluation time.');
   if (status !== 'release-approved') {
     reasons.push(
       'Candidate must be release-approved by an authorized human owner before publication.',
@@ -726,9 +776,74 @@ export function candidateGate(
   if (workspaceValue(workspace, ['directPublication']) !== false) {
     reasons.push('Candidate workspace directPublication must remain false.');
   }
-  const notApproved = claims.filter((claim) => stringAt(claim, ['review', 'state']) !== 'approved');
+  const workspaceOwners = new Set(stringArrayAt(workspaceRecord, ['requiredOwners']));
+  if (workspaceOwners.size === 0) {
+    reasons.push('Candidate workspace must declare at least one required human review owner.');
+  }
+  const workspaceSourceIds = new Set(stringArrayAt(workspaceRecord, ['sourceSet']));
+  const workspaceClaimIds = new Set(stringArrayAt(workspaceRecord, ['claims']));
+  if (workspaceSourceIds.size === 0) reasons.push('Candidate workspace must declare sourceSet.');
+  if (workspaceClaimIds.size === 0) reasons.push('Candidate workspace must declare claims.');
+  const approval = valueAt(workspaceRecord, ['releaseApproval']);
+  if (
+    !isJsonObject(approval) ||
+    approval.decision !== 'release-approved' ||
+    typeof approval.reviewer !== 'string' ||
+    approval.reviewer.trim().length === 0 ||
+    !workspaceOwners.has(approval.reviewer) ||
+    !isValidDateString(approval.approvedAt) ||
+    !isValidDateString(approval.expires) ||
+    typeof approval.rationale !== 'string' ||
+    approval.rationale.trim().length === 0 ||
+    Date.parse(approval.approvedAt) > now.getTime() ||
+    Date.parse(approval.expires) <= Date.parse(approval.approvedAt) ||
+    Date.parse(approval.expires) <= now.getTime()
+  ) {
+    reasons.push(
+      'Release-approved candidates require a current, explicit human releaseApproval record.',
+    );
+  }
+  const notApproved = claims.filter((claim) => {
+    const review = valueAt(claim, ['review']);
+    return (
+      !isJsonObject(claim) ||
+      claim.type !== 'claim-record' ||
+      !isAbsoluteUriValue(claim.id) ||
+      !workspaceClaimIds.has(typeof claim.id === 'string' ? claim.id : '') ||
+      !isClaimTargetComplete(claim) ||
+      !isClaimSourceComplete(claim, workspaceSourceIds) ||
+      !isClaimEvidenceComplete(claim) ||
+      !isJsonValue(valueAt(claim, ['proposedValue'])) ||
+      !Number.isFinite(numberAt(claim, ['confidence'])) ||
+      (numberAt(claim, ['confidence']) ?? -1) < 0 ||
+      (numberAt(claim, ['confidence']) ?? 2) > 1 ||
+      stringAt(claim, ['privacyClass']) !== 'public-reviewed' ||
+      stringAt(claim, ['method', 'kind']) === 'inference' ||
+      !isJsonObject(review) ||
+      review.state !== 'approved' ||
+      typeof review.requiredOwner !== 'string' ||
+      review.requiredOwner.trim().length === 0 ||
+      !workspaceOwners.has(review.requiredOwner) ||
+      typeof review.reviewedBy !== 'string' ||
+      review.reviewedBy.trim().length === 0 ||
+      !isValidDateString(review.reviewedAt)
+    );
+  });
+  const claimIds = claims
+    .map((claim) => stringAt(claim, ['id']))
+    .filter((id): id is string => id !== undefined);
+  if (
+    claimIds.length !== claims.length ||
+    new Set(claimIds).size !== claimIds.length ||
+    workspaceClaimIds.size !== claimIds.length ||
+    claimIds.some((id) => !workspaceClaimIds.has(id))
+  ) {
+    reasons.push('Candidate workspace claims must exactly match the reviewed claim records.');
+  }
   if (notApproved.length > 0) {
-    reasons.push(`${notApproved.length} claim(s) are not approved by their required owner.`);
+    reasons.push(
+      `${notApproved.length} claim(s) are missing complete, owner-bound publication evidence or approval metadata.`,
+    );
   }
   const unsafeClaims = claims.filter((claim) => {
     const privacyClass = stringAt(claim, ['privacyClass']);
@@ -764,6 +879,69 @@ export function candidateGate(
     unresolvedConflictCount: unresolved.length,
     privacyStatus,
   };
+}
+
+function stringArrayAt(value: unknown, path: readonly string[]): string[] {
+  const candidate = valueAt(value, path);
+  return Array.isArray(candidate)
+    ? candidate.filter((item): item is string => typeof item === 'string' && item.length > 0)
+    : [];
+}
+
+function isAbsoluteUriValue(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  try {
+    assertAbsoluteUri(value, 'URI');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isValidDateString(value: unknown): value is string {
+  return typeof value === 'string' && Number.isFinite(Date.parse(value));
+}
+
+function isClaimTargetComplete(value: JsonObject): boolean {
+  const pointer = valueAt(value, ['target', 'pointer']);
+  return (
+    isAbsoluteUriValue(valueAt(value, ['target', 'resourceId'])) &&
+    typeof pointer === 'string' &&
+    isJsonPointer(pointer)
+  );
+}
+
+function isClaimSourceComplete(value: JsonObject, sourceIds: ReadonlySet<string>): boolean {
+  const sourceId = stringAt(value, ['source', 'sourceId']);
+  return (
+    sourceId !== undefined &&
+    sourceIds.has(sourceId) &&
+    hasLocator(valueAt(value, ['source', 'locator']))
+  );
+}
+
+function isClaimEvidenceComplete(value: JsonObject): boolean {
+  return (
+    isValidDateString(valueAt(value, ['evidence', 'observedAt'])) &&
+    typeof valueAt(value, ['evidence', 'contentDigest']) === 'string' &&
+    stringAt(value, ['evidence', 'contentDigest'])!.length > 0
+  );
+}
+
+function hasLocator(value: unknown): boolean {
+  if (!isJsonObject(value)) return false;
+  const allowed = new Set(['page', 'section', 'selector', 'textRange', 'sheet', 'cell']);
+  const entries = Object.entries(value);
+  return (
+    entries.length > 0 &&
+    entries.every(
+      ([key, part]) =>
+        allowed.has(key) &&
+        (key === 'page'
+          ? typeof part === 'number' && Number.isInteger(part) && part >= 1
+          : typeof part === 'string' && part.trim().length > 0),
+    )
+  );
 }
 
 export function assertPublicationAllowed(

@@ -1,17 +1,20 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { format as formatPrettier } from 'prettier';
+import { parseStrictJson } from '@paperandslate/eom-core';
 import {
   readSecurityScanEvidence,
   securityScanArtifactDigestsMatch,
 } from './security-scan-evidence.js';
+import { atomicWriteFile, ensureRealDirectoryTree } from './atomic-write.js';
 
 const root = resolve(process.cwd());
 const manifestPath = join(root, 'plans', 'pack-manifest.json');
-const outputPath = join(root, 'requirements', 'plan-file-traceability.json');
-const matrixPath = join(root, 'requirements', 'TRACEABILITY_MATRIX.md');
+const outputRoot = resolve(process.env.EOM_TRACEABILITY_OUTPUT ?? join(root, 'requirements'));
+const outputPath = join(outputRoot, 'plan-file-traceability.json');
+const matrixPath = join(outputRoot, 'TRACEABILITY_MATRIX.md');
 
 type JsonRecord = Record<string, unknown>;
 
@@ -52,7 +55,9 @@ type AtomicRequirement = {
   readonly notes?: string;
 };
 
-const manifest = asRecord(JSON.parse(await readFile(manifestPath, 'utf8')));
+const manifest = asRecord(
+  parseStrictJson(await readFile(manifestPath, 'utf8'), 'plans/pack-manifest.json'),
+);
 const packFiles = asPackFiles(manifest.files);
 const modules = await readModules();
 const releaseReady = await isReleaseReady();
@@ -109,22 +114,21 @@ const document = {
   planFiles,
   atomicRequirements,
 };
-await writeFile(
+await ensureRealDirectoryTree(outputRoot);
+await atomicWriteFile(
   outputPath,
   await formatPrettier(JSON.stringify(document, null, 2), {
     parser: 'json',
     printWidth: 100,
   }),
-  'utf8',
 );
-await writeFile(
+await atomicWriteFile(
   matrixPath,
   await formatPrettier(renderMatrix(document), {
     parser: 'markdown',
     printWidth: 100,
     proseWrap: 'preserve',
   }),
-  'utf8',
 );
 process.stdout.write(
   `generated traceability for ${planFiles.length} planning files and ${atomicRequirements.length} atomic requirements\n`,
@@ -666,7 +670,10 @@ function releaseRequirements(
 
 async function readModules(): Promise<readonly ModuleRecord[]> {
   const registry = asRecord(
-    JSON.parse(await readFile(join(root, 'modules', 'registry.json'), 'utf8')),
+    parseStrictJson(
+      await readFile(join(root, 'modules', 'registry.json'), 'utf8'),
+      'modules/registry.json',
+    ),
   );
   return Array.isArray(registry.modules)
     ? registry.modules.filter((value): value is ModuleRecord => isRecord(value))
@@ -685,7 +692,10 @@ function schemaPath(schema: string | undefined): string {
 async function isReleaseReady(): Promise<boolean> {
   try {
     const manifest = asRecord(
-      JSON.parse(await readFile(join(root, 'release', 'manifest.json'), 'utf8')),
+      parseStrictJson(
+        await readFile(join(root, 'release', 'manifest.json'), 'utf8'),
+        'release/manifest.json',
+      ),
     );
     if (
       manifest.release !== '1.0.0-rc.3' ||
@@ -753,7 +763,9 @@ async function isAggregateReady(): Promise<boolean> {
     if (git('rev-parse', `${receipt.sourceCommit}^{tree}`) !== receipt.sourceTree) return false;
     const lockDigest = sha256(await readFile(join(root, 'pnpm-lock.yaml')));
     if (receipt.lockfileSha256 !== lockDigest) return false;
-    const packageJson = asRecord(JSON.parse(await readFile(join(root, 'package.json'), 'utf8')));
+    const packageJson = asRecord(
+      parseStrictJson(await readFile(join(root, 'package.json'), 'utf8'), 'package.json'),
+    );
     const verifyScript = isRecord(packageJson.scripts) ? packageJson.scripts.verify : undefined;
     return (
       typeof verifyScript === 'string' &&
@@ -768,7 +780,7 @@ async function isAggregateReady(): Promise<boolean> {
 }
 
 async function readJson(path: string): Promise<unknown> {
-  return JSON.parse(await readFile(path, 'utf8')) as unknown;
+  return parseStrictJson(await readFile(path, 'utf8'), path);
 }
 
 function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {

@@ -807,13 +807,24 @@ function evaluateDelegation(
   }
   const subjectPresent = hasOwnAt(delegation, ['subject']);
   const subject = stringAt(delegation, ['subject']);
-  const subjectValidValue = !subjectPresent || (subject !== undefined && isAbsoluteUri(subject));
+  const subjectValidValue = subjectPresent && subject !== undefined && isAbsoluteUri(subject);
+  const declaredResourceSubject = stringAt(resource, ['subject']);
   const subjects = [
     ...arrayAt(resource, ['subjects']).filter(isString),
-    ...(stringAt(resource, ['subject']) ? [stringAt(resource, ['subject'])!] : []),
+    ...(declaredResourceSubject ? [declaredResourceSubject] : []),
   ];
-  const subjectValid = subjectValidValue && (!subjectPresent || subjects.includes(subject!));
-  if (!subjectValidValue) {
+  const subjectValid =
+    subjectValidValue && typeof subject === 'string' && subjects.includes(subject);
+  if (!subjectPresent) {
+    findings.push(
+      finding(
+        'EOM_DELEGATION_SUBJECT_REQUIRED',
+        'security',
+        'A delegation must declare the organization subject it is authorized to publish for.',
+        { severity: 'error', pointer: `${basePointer}/subject` },
+      ),
+    );
+  } else if (!subjectValidValue) {
     findings.push(
       finding(
         'EOM_DELEGATION_SUBJECT_INVALID',
@@ -823,7 +834,7 @@ function evaluateDelegation(
       ),
     );
   }
-  if (!subjectValid) {
+  if (subjectPresent && subjectValidValue && !subjectValid) {
     findings.push(
       finding(
         'EOM_DELEGATION_SUBJECT_MISMATCH',

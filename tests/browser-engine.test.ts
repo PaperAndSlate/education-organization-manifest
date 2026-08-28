@@ -114,4 +114,37 @@ describe('browser-compatible EOM engine', () => {
       else Reflect.deleteProperty(Object.prototype, 'keys');
     }
   });
+
+  it('binds browser signature key sets to an authority manifest declaration', async () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = {
+      id: 'https://browser-engine.example/id/resource',
+      type: 'organization-profile',
+      canonical: 'https://browser-engine.example/eom/resource.json',
+    };
+    const keyId = 'https://browser-engine.example/eom/keys#manifest-binding';
+    const keySetId = 'https://browser-engine.example/eom/keys';
+    const signature = signDetached(resource, { privateKey, keyId });
+    const keySet = {
+      $schema: 'https://paperandslate.org/schemas/eom/1.0/key-set.schema.json',
+      specification: 'https://paperandslate.org/spec/eom/1.0',
+      version: '1.0',
+      id: keySetId,
+      type: 'key-set',
+      canonical: 'https://browser-engine.example/eom/keys.json',
+      keys: [publicKeyRecord(publicKey, { keyId })],
+    };
+    const manifest = { signing: { keySet: keySetId } };
+    const matching = await verifyDetachedBrowser(resource, signature, keySet, { manifest });
+    expect(matching.findings.join(' ')).not.toContain('MANIFEST_KEY_SET_MISMATCH');
+
+    const mismatched = await verifyDetachedBrowser(
+      resource,
+      signature,
+      { ...keySet, id: 'https://browser-engine.example/eom/other-keys' },
+      { manifest },
+    );
+    expect(mismatched.overall).toBe(false);
+    expect(mismatched.findings.join(' ')).toContain('EOM_SIGNATURE_MANIFEST_KEY_SET_MISMATCH');
+  });
 });

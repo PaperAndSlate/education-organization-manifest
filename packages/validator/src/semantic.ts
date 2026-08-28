@@ -878,7 +878,7 @@ function inspectResource(document: UnknownRecord, findings: Finding[], now: Date
   inspectLanguageDefaults(document, findings, '');
   inspectFreshness(document, findings, now, '');
   inspectPeriodValue(document.effective, findings, '/effective');
-  inspectModuleItems(document, findings);
+  inspectModuleItems(document, findings, now);
   inspectUniqueIds(arrayValue(document.provenance), findings, '/provenance');
   const id = stringValue(document.id);
   if (id && !isAbsoluteUri(id)) {
@@ -904,7 +904,7 @@ function inspectResource(document: UnknownRecord, findings: Finding[], now: Date
   }
 }
 
-function inspectModuleItems(document: UnknownRecord, findings: Finding[]): void {
+function inspectModuleItems(document: UnknownRecord, findings: Finding[], now: Date): void {
   const documentType = stringValue(document.type);
   const collection = collectionForDocument(document);
   const items = collection.items;
@@ -972,20 +972,75 @@ function inspectModuleItems(document: UnknownRecord, findings: Finding[]): void 
     if (documentType === 'admissions-profile') {
       inspectDateRanges(value.applicationWindows, findings, `${pointer}/applicationWindows`);
     }
-    if (documentType === 'staff-directory') {
-      const review = isRecord(value.publicationReview) ? value.publicationReview : undefined;
-      if (review) {
-        inspectDateOrder(
-          review,
-          'reviewedAt',
-          'expires',
-          findings,
-          `${pointer}/publicationReview`,
-          'EOM_PUBLICATION_REVIEW_ORDER',
-        );
-      }
+    if (
+      documentType === 'staff-directory' ||
+      (documentType === 'contact-directory' && Object.hasOwn(value, 'person') && value.person)
+    ) {
+      inspectPublicationReview(
+        value.publicationReview,
+        findings,
+        `${pointer}/publicationReview`,
+        now,
+      );
     }
   });
+}
+
+function inspectPublicationReview(
+  value: unknown,
+  findings: Finding[],
+  pointer: string,
+  now: Date,
+): void {
+  if (!isRecord(value)) {
+    findings.push(
+      finding(
+        'EOM_PUBLICATION_REVIEW_REQUIRED',
+        'privacy',
+        'A published person requires an explicit publication review record.',
+        { pointer, severity: 'error', help: 'Use an approved review with a current expiry.' },
+      ),
+    );
+    return;
+  }
+  const status = stringValue(value.status);
+  const reviewedAt = parseDate(value.reviewedAt);
+  const expires = parseDate(value.expires);
+  if (status !== 'approved' || reviewedAt === undefined || expires === undefined) {
+    findings.push(
+      finding(
+        'EOM_PUBLICATION_REVIEW_INVALID',
+        'privacy',
+        'A published person requires an approved, validly dated publication review with an expiry.',
+        { pointer, severity: 'error', help: 'Use status=approved and provide reviewedAt/expires.' },
+      ),
+    );
+    return;
+  }
+  if (reviewedAt > expires) {
+    findings.push(
+      finding(
+        'EOM_PUBLICATION_REVIEW_ORDER',
+        'semantic',
+        'reviewedAt must be earlier than or equal to expires.',
+        { pointer: `${pointer}/expires` },
+      ),
+    );
+  }
+  if (expires <= now) {
+    findings.push(
+      finding(
+        'EOM_PUBLICATION_REVIEW_EXPIRED',
+        'freshness',
+        'The publication review has expired and the person must not remain published.',
+        {
+          pointer: `${pointer}/expires`,
+          severity: 'error',
+          help: 'Refresh or remove the person record.',
+        },
+      ),
+    );
+  }
 }
 
 function inspectDateRanges(value: unknown, findings: Finding[], pointer: string): void {

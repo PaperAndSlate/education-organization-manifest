@@ -55,13 +55,17 @@ test('verifies a real detached Ed25519 signature in the browser engine', async (
         detachedSignature: unknown,
         detachedKeySet: unknown,
         options?: { now?: string },
-      ) => Promise<{ overall: boolean; findings: readonly string[] }>;
+      ) => Promise<{
+        overall: boolean;
+        findings: readonly string[];
+        keyScopeValid: boolean;
+      }>;
     };
     return playground.verifyDetachedSignature(resource, signature, keySet, {
       now: '2027-01-02T00:00:00Z',
     });
   }, serialized);
-  expect(result).toEqual({ overall: true, findings: [] });
+  expect(result).toEqual({ overall: true, findings: [], keyScopeValid: true });
 });
 
 test('rejects detached signature lifetime removal in the browser engine', async ({ page }) => {

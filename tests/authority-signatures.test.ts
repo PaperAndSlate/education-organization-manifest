@@ -865,6 +865,41 @@ describe('EOM optional JCS and detached Ed25519 signatures', () => {
     expect(protectedHeader.alg).toBe('EdDSA');
   });
 
+  it('binds an authority-aware signature verification key set to the manifest declaration', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+    const resource = fixture('fixtures/signatures/unsigned-resource.json');
+    const keyId = 'https://ecme-high.example/eom/keys#manifest-binding';
+    const keySetId = 'https://ecme-high.example/eom/keys';
+    const signature = signDetached(resource, { privateKey, keyId });
+    const keySet = {
+      $schema: 'https://paperandslate.org/schemas/eom/1.0/key-set.schema.json',
+      specification: 'https://paperandslate.org/spec/eom/1.0',
+      version: '1.0',
+      id: keySetId,
+      type: 'key-set',
+      canonical: 'https://ecme-high.example/eom/keys.json',
+      keys: [publicKeyRecord(publicKey, { keyId })],
+    };
+    const manifest = { signing: { keySet: keySetId } };
+    const matching = verifyDetached(resource, signature, keySet, { manifest });
+    expect(
+      matching.findings.some((item) => item.code === 'EOM_SIGNATURE_MANIFEST_KEY_SET_MISMATCH'),
+    ).toBe(false);
+
+    const mismatched = verifyDetached(
+      resource,
+      signature,
+      { ...keySet, id: 'https://ecme-high.example/eom/other-keys' },
+      { manifest },
+    );
+    expect(mismatched.overall).toBe(false);
+    expect(mismatched.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_SIGNATURE_MANIFEST_KEY_SET_MISMATCH' }),
+      ]),
+    );
+  });
+
   it('keeps whitespace canonical, but rejects changed values, wrong keys, expired keys, and revoked keys', () => {
     expect(canonicalizeJson({ b: 2, a: 1 })).toBe('{"a":1,"b":2}');
     expect(canonicalizeJsonText('{ "b": 2, "a": 1 }')).toBe('{"a":1,"b":2}');

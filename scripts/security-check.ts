@@ -1,4 +1,4 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { lstat, opendir, readFile } from 'node:fs/promises';
 import { extname, join, relative, resolve } from 'node:path';
 
 const root = resolve(process.cwd());
@@ -17,13 +17,17 @@ const textExtensions = new Set([
   '.yml',
 ]);
 const failures: string[] = [];
+const MAX_SECURITY_FILES = 100_000;
+const MAX_SECURITY_DIRECTORY_ENTRIES = 100_000;
+const MAX_SECURITY_DEPTH = 128;
+const MAX_SECURITY_TEXT_BYTES = 16 * 1024 * 1024;
 const files = await walk(root);
 
 for (const file of files) {
   const relativePath = relative(root, file).replaceAll('\\', '/');
   if (relativePath === 'scripts/security-check.ts') continue;
   if (!textExtensions.has(extname(file).toLowerCase())) continue;
-  const contents = await readFile(file, 'utf8');
+  const contents = await readBoundedText(file, relativePath);
   if (/-----BEGIN [^-\r\n]+PRIVATE KEY-----/u.test(contents)) {
     failures.push(`${relativePath}: private key material is not allowed in the repository`);
   }
@@ -51,8 +55,8 @@ const workflowFiles = files.filter((file) =>
   relative(root, file).replaceAll('\\', '/').startsWith('.github/workflows/'),
 );
 for (const workflow of workflowFiles) {
-  const contents = await readFile(workflow, 'utf8');
   const relativePath = relative(root, workflow).replaceAll('\\', '/');
+  const contents = await readBoundedText(workflow, relativePath);
   if (/pull_request_target/iu.test(contents))
     failures.push(`${relativePath}: untrusted PR workflows must not use pull_request_target`);
   if (/permissions:\s*write-all/iu.test(contents))
@@ -68,8 +72,8 @@ const playgroundHtml = join(root, 'apps', 'playground', 'src', 'index.html');
 const playgroundApp = join(root, 'apps', 'playground', 'src', 'app.js');
 try {
   const [html, app] = await Promise.all([
-    readFile(playgroundHtml, 'utf8'),
-    readFile(playgroundApp, 'utf8'),
+    readBoundedText(playgroundHtml, 'apps/playground/src/index.html'),
+    readBoundedText(playgroundApp, 'apps/playground/src/app.js'),
   ]);
   const remoteValidationStart = app.indexOf('async function validateWithSameOriginService()');
   const remoteValidationEnd = app.indexOf(
@@ -109,14 +113,48 @@ if (failures.length > 0) {
   );
 }
 
-async function walk(directory: string): Promise<string[]> {
-  const entries = await readdir(directory, { withFileTypes: true });
+async function walk(
+  directory: string,
+  state: { entries: number; files: number } = { entries: 0, files: 0 },
+  depth = 0,
+): Promise<string[]> {
+  if (depth > MAX_SECURITY_DEPTH) {
+    throw new Error(`security scan directory depth exceeds ${MAX_SECURITY_DEPTH}`);
+  }
+  const handle = await opendir(directory);
   const result: string[] = [];
-  for (const entry of entries) {
-    if (['.git', 'dist', 'node_modules', '.eom-determinism'].includes(entry.name)) continue;
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) result.push(...(await walk(path)));
-    else if (entry.isFile()) result.push(path);
+  try {
+    for await (const entry of handle) {
+      if (['.git', 'dist', 'node_modules', '.eom-determinism'].includes(entry.name)) continue;
+      state.entries += 1;
+      if (state.entries > MAX_SECURITY_DIRECTORY_ENTRIES) {
+        throw new Error(
+          `security scan directory traversal exceeds ${MAX_SECURITY_DIRECTORY_ENTRIES} entries`,
+        );
+      }
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) result.push(...(await walk(path, state, depth + 1)));
+      else if (entry.isFile()) {
+        state.files += 1;
+        if (state.files > MAX_SECURITY_FILES)
+          throw new Error(`security scan exceeds ${MAX_SECURITY_FILES} files`);
+        result.push(path);
+      }
+    }
+  } finally {
+    await handle.close().catch(() => undefined);
   }
   return result;
+}
+
+async function readBoundedText(path: string, label: string): Promise<string> {
+  const information = await lstat(path);
+  if (!information.isFile() || information.isSymbolicLink())
+    throw new Error(`${label}: inspected text must be a regular file`);
+  if (information.size > MAX_SECURITY_TEXT_BYTES)
+    throw new Error(`${label}: inspected text exceeds the ${MAX_SECURITY_TEXT_BYTES}-byte limit`);
+  const contents = await readFile(path, 'utf8');
+  if (Buffer.byteLength(contents, 'utf8') > MAX_SECURITY_TEXT_BYTES)
+    throw new Error(`${label}: inspected text exceeds the ${MAX_SECURITY_TEXT_BYTES}-byte limit`);
+  return contents;
 }

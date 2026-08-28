@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "@paperandslate/eom-core": "workspace:*",
-    "@paperandslate/eom-linter": "workspace:*",
-    "@paperandslate/eom-validator": "workspace:*"
+    "@paperandslate/eom-linter": "workspace:*"
   },
   "files": [
     "dist"

@@ -127,9 +127,6 @@ importers:
       '@paperandslate/eom-linter':
         specifier: workspace:*
         version: link:../linter
-      '@paperandslate/eom-validator':
-        specifier: workspace:*
-        version: link:../validator
 
   packages/authority:
     dependencies:

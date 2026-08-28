@@ -1,4 +1,3 @@
-import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { format as formatPrettier } from 'prettier';
 import {
@@ -7,6 +6,7 @@ import {
   renderSecurityScanProjection,
   SECURITY_SCAN_PROJECTION,
 } from './security-scan-evidence.js';
+import { atomicWriteFile, ensureRealDirectoryTree } from './atomic-write.js';
 
 const root = resolve(process.cwd());
 const canonical = await readCanonicalSecurityScan(root);
@@ -17,12 +17,12 @@ const projectionText = await formatPrettier(JSON.stringify(projection, null, 2),
   parser: 'json',
 });
 
-await mkdir(join(root, 'reports'), { recursive: true });
-await writeFile(projectionPath, projectionText, 'utf8');
-await writeFile(
+const reportsRoot = join(root, 'reports');
+await ensureRealDirectoryTree(reportsRoot);
+await atomicWriteFile(projectionPath, projectionText);
+await atomicWriteFile(
   join(root, 'reports', 'security-scan.md'),
   renderSecurityScanProjection(canonical),
-  'utf8',
 );
 
 console.log(

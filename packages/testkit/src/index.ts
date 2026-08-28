@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { lstat, open, readdir, realpath } from 'node:fs/promises';
+import type { Dirent } from 'node:fs';
+import { lstat, open, opendir, realpath } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import {
   DEFAULT_FETCH_MAX_REDIRECTS,
@@ -188,6 +189,10 @@ const REPORT_SCHEMA =
   'https://paperandslate.org/schemas/eom/1.0/conformance-report.schema.json' as const;
 const DEFAULT_IMPLEMENTATION_NAME = '@paperandslate/eom-testkit';
 const DEFAULT_IMPLEMENTATION_VERSION = '1.0.0-rc.3';
+const MAX_CONFORMANCE_FILES = 4096;
+const MAX_CONFORMANCE_TOTAL_BYTES = 256 * 1024 * 1024;
+const MAX_CONFORMANCE_DEPTH = 128;
+const MAX_CONFORMANCE_DIRECTORY_ENTRIES = 100_000;
 
 /**
  * Runs a deterministic, offline conformance check over a captured publication directory.
@@ -208,9 +213,10 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
 
   const capture = await readPublicationFiles(
     directory,
-    positiveLimit(options.maxFiles, 256),
-    positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024),
-    nonNegativeLimit(options.maxDepth, 32),
+    positiveLimit(options.maxFiles, 256, MAX_CONFORMANCE_FILES),
+    positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024, MAX_CONFORMANCE_TOTAL_BYTES),
+    nonNegativeLimit(options.maxDepth, 32, MAX_CONFORMANCE_DEPTH),
+    MAX_CONFORMANCE_DIRECTORY_ENTRIES,
   );
   const files = capture.files;
   const checks: ConformanceCheck[] = [];
@@ -243,6 +249,13 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
   }
   if (capture.depthLimitExceeded) {
     addCheck('capture-depth-limit', 'fail', 'The capture exceeded the configured depth limit.');
+  }
+  if (capture.entryLimitExceeded) {
+    addCheck(
+      'capture-directory-entry-limit',
+      'fail',
+      `The capture exceeded the ${MAX_CONFORMANCE_DIRECTORY_ENTRIES}-entry directory traversal limit.`,
+    );
   }
   if (capture.symlinkPaths.length > 0) {
     addCheck(
@@ -324,9 +337,13 @@ export async function runConformance(options: ConformanceOptions): Promise<Confo
           options.now,
           addCheck,
           {
-            maxResources: positiveLimit(options.maxFiles, 64),
-            maxTotalBytes: positiveLimit(options.maxTotalBytes, 32 * 1024 * 1024),
-            maxDepth: nonNegativeLimit(options.maxDepth, 32),
+            maxResources: positiveLimit(options.maxFiles, 64, MAX_CONFORMANCE_FILES),
+            maxTotalBytes: positiveLimit(
+              options.maxTotalBytes,
+              32 * 1024 * 1024,
+              MAX_CONFORMANCE_TOTAL_BYTES,
+            ),
+            maxDepth: nonNegativeLimit(options.maxDepth, 32, MAX_CONFORMANCE_DEPTH),
           },
           options.fixtureAuthorityOrigin,
         )
@@ -858,6 +875,7 @@ interface PublicationFileRead {
   readonly depthLimitExceeded: boolean;
   readonly symlinkPaths: readonly string[];
   readonly symlinkLimitExceeded: boolean;
+  readonly entryLimitExceeded: boolean;
 }
 
 async function readPublicationFiles(
@@ -865,6 +883,7 @@ async function readPublicationFiles(
   maxFiles: number,
   maxTotalBytes: number,
   maxDepth: number,
+  maxEntries: number,
 ): Promise<PublicationFileRead> {
   const information = await lstat(directory);
   if (!information.isDirectory() || information.isSymbolicLink()) {
@@ -881,6 +900,8 @@ async function readPublicationFiles(
   const symlinkPaths: string[] = [];
   let symlinkCount = 0;
   let symlinkLimitExceeded = false;
+  let entryCount = 0;
+  let entryLimitExceeded = false;
   const recordSymlink = (path: string): boolean => {
     symlinkCount += 1;
     if (symlinkCount > maxFiles) {
@@ -892,17 +913,29 @@ async function readPublicationFiles(
   };
   let totalBytes = 0;
   async function visit(current: string, depth: number): Promise<void> {
-    if (fileLimitExceeded || totalBytesExceeded) return;
+    if (fileLimitExceeded || totalBytesExceeded || entryLimitExceeded) return;
     if (depth > maxDepth) {
       depthLimitExceeded = true;
       return;
     }
     await assertStableDirectory(current);
-    const entries = (await readdir(current, { withFileTypes: true })).sort((left, right) =>
-      compareStrings(left.name, right.name),
-    );
+    const entries: Dirent[] = [];
+    const handle = await opendir(current);
+    try {
+      for await (const entry of handle) {
+        entryCount += 1;
+        if (entryCount > maxEntries) {
+          entryLimitExceeded = true;
+          return;
+        }
+        entries.push(entry);
+      }
+    } finally {
+      await handle.close().catch(() => undefined);
+    }
+    entries.sort((left, right) => compareStrings(left.name, right.name));
     for (const entry of entries) {
-      if (fileLimitExceeded || totalBytesExceeded) return;
+      if (fileLimitExceeded || totalBytesExceeded || entryLimitExceeded) return;
       const absolutePath = join(current, entry.name);
       const entryInformation = await lstat(absolutePath);
       if (entryInformation.isSymbolicLink()) {
@@ -980,6 +1013,7 @@ async function readPublicationFiles(
     depthLimitExceeded,
     symlinkPaths: symlinkPaths.sort(compareStrings),
     symlinkLimitExceeded,
+    entryLimitExceeded,
   };
 }
 
@@ -1070,12 +1104,16 @@ function decodeUtf8(bytes: Uint8Array, source: string): string {
   }
 }
 
-function positiveLimit(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+function positiveLimit(value: number | undefined, fallback: number, maximum: number): number {
+  return value !== undefined && Number.isFinite(value) && value > 0
+    ? Math.min(Math.floor(value), maximum)
+    : fallback;
 }
 
-function nonNegativeLimit(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isFinite(value) && value >= 0 ? Math.floor(value) : fallback;
+function nonNegativeLimit(value: number | undefined, fallback: number, maximum: number): number {
+  return value !== undefined && Number.isFinite(value) && value >= 0
+    ? Math.min(Math.floor(value), maximum)
+    : fallback;
 }
 
 function isPublicationFile(path: string): boolean {

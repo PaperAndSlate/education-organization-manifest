@@ -1,12 +1,13 @@
 import { createHash } from 'node:crypto';
 import { createPrivateKey, createPublicKey } from 'node:crypto';
+import type { Dirent } from 'node:fs';
 import {
   lstat,
   mkdir,
   mkdtemp,
   open,
+  opendir,
   readFile,
-  readdir,
   realpath,
   rename,
   rm,
@@ -52,8 +53,14 @@ const SPECIFICATION = 'https://paperandslate.org/spec/eom/1.0';
 const MANIFEST_SCHEMA = 'https://paperandslate.org/schemas/eom/1.0/manifest.schema.json';
 const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
 const MAX_SOURCE_TREE_DEPTH = 128;
+const MAX_SOURCE_TREE_ENTRIES = 100_000;
+const MAX_SOURCE_TREE_FILES = 100_000;
+const MAX_SOURCE_TOTAL_BYTES = 256 * 1024 * 1024;
+const MAX_SOURCE_PATTERNS = 4096;
+const MAX_SOURCE_PATTERN_LENGTH = 1024;
 const MAX_GENERATOR_JSON_NODES = 100_000;
 const DEFAULT_OUTPUT_MAX_BYTES = 256 * 1024;
+const MAX_OUTPUT_BYTES = 16 * 1024 * 1024;
 const GENERATED_MARKER = '.eom-generated.json';
 const GENERATED_OWNERSHIP_VERSION = 1;
 
@@ -513,7 +520,7 @@ export async function buildPublication(options: BuildOptions): Promise<BuildRepo
   const sourceRoot = resolve(configDirectory, config.source.root);
   const mode = inferBuildMode(options);
   const configuredFullOutput = resolve(configDirectory, config.output.root);
-  const maxBytes = config.maxBytes ?? DEFAULT_OUTPUT_MAX_BYTES;
+  const maxBytes = boundedGeneratorBytes(config.maxBytes);
   const effectiveNow =
     options.now ??
     (options.deterministic === true || options.verifyDeterministic === true
@@ -1070,6 +1077,20 @@ async function discoverSources(
     }
   }
 
+  const configuredPatterns = discoverySpecs.flatMap((spec) => spec.patterns);
+  if (
+    configuredPatterns.length > MAX_SOURCE_PATTERNS ||
+    configuredPatterns.some((pattern) => pattern.length > MAX_SOURCE_PATTERN_LENGTH)
+  ) {
+    throw new GeneratorInputError('Generator source patterns exceed the safety limits.', [
+      generatorFinding(
+        'EOM_GENERATOR_PATTERN_LIMIT',
+        `Configurations may contain at most ${MAX_SOURCE_PATTERNS} patterns of ${MAX_SOURCE_PATTERN_LENGTH} characters or fewer.`,
+      ),
+    ]);
+  }
+  const discoveredFiles = await walkFiles(sourceRoot);
+
   for (const { configuredKey, patterns, kind, overlay } of discoverySpecs) {
     const module = moduleDefinition(configuredKey);
     if (!module) {
@@ -1082,7 +1103,7 @@ async function discoverSources(
       ]);
     }
     for (const pattern of patterns) {
-      const files = await matchingFiles(sourceRoot, pattern);
+      const files = matchingFiles(sourceRoot, pattern, discoveredFiles);
       for (const file of files) {
         const normalized = resolve(file);
         if (normalized === resolve(configFile)) continue;
@@ -1195,7 +1216,9 @@ async function readCachedAuthoringValue(
     if (stableCacheDirectory === undefined) return value;
     stableDirectory = stableCacheDirectory;
     const cachePath = join(stableCacheDirectory, `.eom-source-${cacheKey}.json`);
-    const existingEntries = (await readdir(stableCacheDirectory, { withFileTypes: true }))
+    const cachedDirectoryEntries = await boundedDirectoryEntries(stableCacheDirectory, 256);
+    if (cachedDirectoryEntries === undefined) return value;
+    const existingEntries = cachedDirectoryEntries
       .filter((entry) => entry.isFile() && entry.name.startsWith('.eom-source-'))
       .map((entry) => entry.name);
     if (
@@ -1346,6 +1369,23 @@ async function readBoundedFile(file: string, maxBytes: number): Promise<Buffer> 
   } finally {
     await handle.close();
   }
+}
+
+async function boundedDirectoryEntries(
+  directory: string,
+  maxEntries: number,
+): Promise<readonly Dirent[] | undefined> {
+  const handle = await opendir(directory);
+  const entries: Dirent[] = [];
+  try {
+    for await (const entry of handle) {
+      entries.push(entry);
+      if (entries.length > maxEntries) return undefined;
+    }
+  } finally {
+    await handle.close().catch(() => undefined);
+  }
+  return entries.sort((left, right) => compareStrings(left.name, right.name));
 }
 
 async function assertSafeOutputRoot(
@@ -1737,9 +1777,12 @@ function normalizeFsPath(value: string): string {
   return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
-async function matchingFiles(root: string, pattern: string): Promise<readonly string[]> {
+function matchingFiles(
+  root: string,
+  pattern: string,
+  allFiles: readonly string[],
+): readonly string[] {
   const normalizedPattern = normalizePath(pattern).replace(/^\.\//u, '');
-  const allFiles = await walkFiles(root);
   const matcher = globRegExp(normalizedPattern);
   return allFiles
     .filter((file) => matcher.test(normalizePath(relative(root, file))))
@@ -1749,6 +1792,14 @@ async function matchingFiles(root: string, pattern: string): Promise<readonly st
 }
 
 async function walkFiles(directory: string, depth = 0): Promise<readonly string[]> {
+  return walkFilesWithBudget(directory, depth, { entries: 0, files: 0, totalBytes: 0 });
+}
+
+async function walkFilesWithBudget(
+  directory: string,
+  depth: number,
+  budget: { entries: number; files: number; totalBytes: number },
+): Promise<readonly string[]> {
   if (depth > MAX_SOURCE_TREE_DEPTH) {
     throw new GeneratorInputError('Authoring source tree exceeds the safety depth limit.', [
       generatorFinding(
@@ -1759,7 +1810,26 @@ async function walkFiles(directory: string, depth = 0): Promise<readonly string[
     ]);
   }
   await assertNoSymlinkEscape(directory);
-  const entries = await readdir(directory, { withFileTypes: true });
+  const handle = await opendir(directory);
+  const entries: Dirent[] = [];
+  try {
+    for await (const entry of handle) {
+      budget.entries += 1;
+      if (budget.entries > MAX_SOURCE_TREE_ENTRIES) {
+        throw new GeneratorInputError('Authoring source tree exceeds the entry safety limit.', [
+          generatorFinding(
+            'EOM_GENERATOR_INPUT_ENTRY_LIMIT',
+            `Authoring source trees may not contain more than ${MAX_SOURCE_TREE_ENTRIES} entries.`,
+            directory,
+          ),
+        ]);
+      }
+      entries.push(entry);
+    }
+  } finally {
+    await handle.close().catch(() => undefined);
+  }
+  entries.sort((left, right) => compareStrings(left.name, right.name));
   const files: string[] = [];
   for (const entry of entries) {
     const path = join(directory, entry.name);
@@ -1774,12 +1844,38 @@ async function walkFiles(directory: string, depth = 0): Promise<readonly string[
       ]);
     }
     if (information.isDirectory()) {
-      files.push(...(await walkFiles(path, depth + 1)));
+      files.push(...(await walkFilesWithBudget(path, depth + 1, budget)));
     } else if (information.isFile()) {
+      budget.files += 1;
+      if (budget.files > MAX_SOURCE_TREE_FILES) {
+        throw new GeneratorInputError('Authoring source tree exceeds the file safety limit.', [
+          generatorFinding(
+            'EOM_GENERATOR_INPUT_FILE_LIMIT',
+            `Authoring source trees may not contain more than ${MAX_SOURCE_TREE_FILES} files.`,
+            directory,
+          ),
+        ]);
+      }
+      budget.totalBytes += information.size;
+      if (budget.totalBytes > MAX_SOURCE_TOTAL_BYTES) {
+        throw new GeneratorInputError('Authoring source tree exceeds the byte safety limit.', [
+          generatorFinding(
+            'EOM_GENERATOR_INPUT_TOTAL_BYTES',
+            `Authoring source trees may not contain more than ${MAX_SOURCE_TOTAL_BYTES} bytes.`,
+            directory,
+          ),
+        ]);
+      }
       files.push(path);
     }
   }
   return files;
+}
+
+function boundedGeneratorBytes(value: number | undefined): number {
+  return value !== undefined && Number.isFinite(value) && value > 0
+    ? Math.min(Math.floor(value), MAX_OUTPUT_BYTES)
+    : DEFAULT_OUTPUT_MAX_BYTES;
 }
 
 function globRegExp(pattern: string): RegExp {
@@ -1962,7 +2058,9 @@ function buildModules(
         });
       }
     }
-    if (contactItems.length > 0) contactDocument = { ...contactDocument, contacts: contactItems };
+    if (filterOrganization || contactItems.length > 0) {
+      contactDocument = { ...contactDocument, contacts: contactItems };
+    }
     documents['contact-directory'] = contactDocument;
     sourceMap['contact-directory'] = [
       ...contacts.map((source) => source.relativePath),
@@ -3220,7 +3318,10 @@ async function recoverPendingReplacementTransactions(
   expectedParent: string,
 ): Promise<void> {
   await assertStableReplacementParent(parent, expectedParent);
-  const entries = await readdir(parent, { withFileTypes: true });
+  const entries = await boundedDirectoryEntries(parent, 4096);
+  if (entries === undefined) {
+    throw unsafeOutputError(parent, 'The generator replacement parent contains too many entries.');
+  }
   for (const entry of entries) {
     if (!entry.name.startsWith('.eom-replace-')) continue;
     if (!entry.isDirectory() || entry.isSymbolicLink()) {

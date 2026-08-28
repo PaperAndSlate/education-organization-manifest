@@ -50,7 +50,7 @@
     "test:browser": "pnpm --filter @paperandslate/eom-playground build && playwright test",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "verify": "pnpm format:check && pnpm prompts:check && pnpm build && pnpm schema:check && pnpm vocabulary:check && pnpm module:check && pnpm ownership:check && pnpm fixtures:check && pnpm conformance:check && pnpm actions:check && pnpm generate:drift && pnpm typecheck && pnpm test -- --runInBand && pnpm test:coverage && pnpm test:browser && pnpm lint && pnpm policy:check && pnpm verify:security && pnpm license:check && pnpm dependency:check && pnpm audit:prod && pnpm packages:check && pnpm conformance && pnpm conformance:profiles && pnpm verify:determinism && pnpm verify:examples && pnpm docs:build && pnpm docs:check && pnpm release:check && pnpm verify:release-reproducibility && pnpm verify:record && pnpm generate:traceability && pnpm traceability:check",
+    "verify": "tsx scripts/run-verify.ts",
     "verify:determinism": "tsx scripts/check-determinism.ts",
     "verify:examples": "tsx scripts/check-examples.ts",
     "verify:security": "tsx scripts/security-check.ts",

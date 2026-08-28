@@ -1,6 +1,6 @@
-import { readFile, stat } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
-import { parse } from 'yaml';
+import { lstat, readFile, realpath } from 'node:fs/promises';
+import { join, relative, resolve } from 'node:path';
+import { parseDocument } from 'yaml';
 
 type PromptEntry = {
   readonly id?: unknown;
@@ -21,7 +21,20 @@ type PromptCatalog = {
 
 const root = resolve(process.cwd());
 const catalogPath = join(root, 'prompts', 'prompt-catalog.yaml');
-const catalog = parse(await readFile(catalogPath, 'utf8')) as PromptCatalog;
+const promptsRoot = join(root, 'prompts');
+const MAX_PROMPT_FILE_BYTES = 4 * 1024 * 1024;
+const catalogText = await readBoundedText(catalogPath, 'prompts/prompt-catalog.yaml');
+const catalogDocument = parseDocument(catalogText, {
+  strict: true,
+  uniqueKeys: true,
+  prettyErrors: true,
+});
+if (catalogDocument.errors.length > 0) {
+  throw new Error(
+    `invalid prompt catalog YAML: ${catalogDocument.errors.map((error) => error.message).join(' ')}`,
+  );
+}
+const catalog = catalogDocument.toJS({ maxAliasCount: 0 }) as PromptCatalog;
 const failures: string[] = [];
 
 for (const [name, value] of Object.entries({
@@ -49,10 +62,20 @@ if (!Array.isArray(catalog.prompts) || catalog.prompts.length === 0) {
     }
     if (ids.has(id)) failures.push(`duplicate prompt id ${id}`);
     ids.add(id);
-    const filePath = join(root, 'prompts', path);
+    const filePath = resolve(promptsRoot, path);
     try {
-      await stat(filePath);
-      const firstLine = (await readFile(filePath, 'utf8')).split(/\r?\n/u)[0] ?? '';
+      const canonicalPromptsRoot = await realpath(promptsRoot);
+      const canonicalFilePath = await realpath(filePath);
+      const suffix = relative(canonicalPromptsRoot, canonicalFilePath);
+      if (
+        suffix === '..' ||
+        suffix.startsWith(`..${'\\'}`) ||
+        suffix.startsWith('../') ||
+        suffix.length === 0
+      ) {
+        throw new Error('prompt path escapes the prompt directory');
+      }
+      const firstLine = (await readBoundedText(filePath, path)).split(/\r?\n/u)[0] ?? '';
       if (firstLine !== `PROMPT ID: ${id}`) {
         failures.push(`${path} must start with PROMPT ID: ${id}`);
       }
@@ -60,6 +83,18 @@ if (!Array.isArray(catalog.prompts) || catalog.prompts.length === 0) {
       failures.push(`missing prompt file ${path}`);
     }
   }
+}
+
+async function readBoundedText(path: string, label: string): Promise<string> {
+  const information = await lstat(path);
+  if (!information.isFile() || information.isSymbolicLink())
+    throw new Error(`${label}: prompt must be a regular file`);
+  if (information.size > MAX_PROMPT_FILE_BYTES)
+    throw new Error(`${label}: prompt exceeds the ${MAX_PROMPT_FILE_BYTES}-byte limit`);
+  const contents = await readFile(path, 'utf8');
+  if (Buffer.byteLength(contents, 'utf8') > MAX_PROMPT_FILE_BYTES)
+    throw new Error(`${label}: prompt exceeds the ${MAX_PROMPT_FILE_BYTES}-byte limit`);
+  return contents;
 }
 
 if (failures.length > 0) {

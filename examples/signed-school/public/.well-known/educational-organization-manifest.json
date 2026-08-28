@@ -52,7 +52,7 @@
     }
   ],
   "signing": {
-    "keySet": "https://ecme-high.example/eom/keys.json",
+    "keySet": "https://ecme-high.example/eom/keys",
     "signatures": ["https://ecme-high.example/eom/signature.json"],
     "required": false,
     "algorithm": "EdDSA"

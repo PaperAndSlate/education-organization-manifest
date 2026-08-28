@@ -1,8 +1,11 @@
 # EOM Release Checklist
 
-Status: local RC3 release-evidence gates passed for the exact committed source revision below. This
-is a working-draft release candidate; no stable publication, deployment, registration, or external
-approval is claimed or authorized.
+Status: HISTORICAL / SUPERSEDED for current acceptance after hosted-validation-readiness source
+changes. The release-evidence results below remain immutable evidence for the exact revision
+identified below; they do not cover later source or workflow changes.
+
+This is a working-draft release candidate; no stable publication, deployment, registration, or
+external approval is claimed or authorized.
 
 ## Exact evidence identity
 

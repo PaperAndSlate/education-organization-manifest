@@ -1,16 +1,13 @@
 import { execFileSync } from 'node:child_process';
-import { gunzipSync } from 'node:zlib';
-import { existsSync } from 'node:fs';
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { lstat, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
+import { isJsonObject, parseStrictJson } from '@paperandslate/eom-core';
+import { CLEAN_PACKAGE_INSTALL_ARGS } from './package-install-options.js';
+import { pnpmInvocation } from './pnpm-runner.js';
+import { readTarGz } from './tar.js';
 
 const root = resolve(process.cwd());
-const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-const corepackPnpmEntryPoint =
-  process.platform === 'win32'
-    ? join(dirname(process.execPath), 'node_modules', 'corepack', 'dist', 'pnpm.js')
-    : undefined;
 const packageDirectories = [
   ...(await readdir(join(root, 'packages'), { withFileTypes: true }))
     .filter((entry) => entry.isDirectory())
@@ -20,16 +17,42 @@ const packageDirectories = [
 const smokeRoot = await mkdtemp(join(tmpdir(), 'eom-package-smoke-'));
 const packageTarballs = new Map<string, string>();
 const packageNames: string[] = [];
+const MAX_PACKAGE_JSON_BYTES = 1024 * 1024;
 
 try {
   for (const directory of packageDirectories.sort()) {
-    const packageJson = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8')) as {
+    const packageJsonValue = parseStrictJson(
+      await readBoundedText(join(directory, 'package.json'), `${directory}/package.json`),
+      `${directory}/package.json`,
+    );
+    if (!isJsonObject(packageJsonValue)) {
+      throw new Error(`${directory}/package.json must contain an object.`);
+    }
+    const packageJson = packageJsonValue as {
       name?: string;
       private?: boolean;
       exports?: Record<string, unknown>;
       files?: string[];
+      scripts?: Record<string, unknown>;
     };
     if (!packageJson.name || packageJson.private === true) continue;
+    const lifecycleScripts = [
+      'prepublish',
+      'prepare',
+      'prepublishOnly',
+      'publish',
+      'postpublish',
+      'prepack',
+      'postpack',
+    ];
+    const configuredLifecycleScripts = lifecycleScripts.filter((name) =>
+      Object.hasOwn(packageJson.scripts ?? {}, name),
+    );
+    if (configuredLifecycleScripts.length > 0) {
+      throw new Error(
+        `${packageJson.name}: lifecycle scripts are not permitted in release packages: ${configuredLifecycleScripts.join(', ')}`,
+      );
+    }
     packageNames.push(packageJson.name);
     const exportsRoot = packageJson.exports?.['.'];
     if (
@@ -41,12 +64,20 @@ try {
         `${packageJson.name}: package exports must point to dist/index.js and dist/index.d.ts.`,
       );
     }
-    const output = runPnpm(['pack', '--pack-destination', smokeRoot, '--json'], {
-      cwd: directory,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    const packed = JSON.parse(output.toString()) as {
+    const output = runPnpm(
+      // pnpm pack has no --ignore-scripts option. Lifecycle scripts are
+      // rejected above before packing, so the pack operation cannot execute
+      // a release-package hook.
+      ['pack', '--pack-destination', smokeRoot, '--json'],
+      {
+        cwd: directory,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
+    );
+    const parsed = parseStrictJson(output.toString(), `${packageJson.name} pnpm pack output`);
+    const packedValue = Array.isArray(parsed) ? parsed[0] : parsed;
+    const packed = (isJsonObject(packedValue) ? packedValue : {}) as {
       filename?: string;
       files?: readonly { path?: string }[];
     };
@@ -57,7 +88,7 @@ try {
       packed.files
         ?.map((entry) => entry.path)
         .filter((path): path is string => typeof path === 'string') ??
-      readTarEntries(await readFile(packed.filename));
+      readTarGz(await readFile(packed.filename)).map((entry) => entry.path);
     if (entries.some((entry) => entry.startsWith('src/')))
       throw new Error(`${packageJson.name}: packed source files are not allowed.`);
     if (!entries.includes('dist/index.js') || !entries.includes('dist/index.d.ts'))
@@ -76,7 +107,7 @@ try {
     `${JSON.stringify({ name: 'eom-clean-install-smoke', private: true, type: 'module', dependencies, pnpm: { overrides } }, null, 2)}\n`,
     'utf8',
   );
-  runPnpm(['install', '--offline', '--ignore-scripts', '--no-frozen-lockfile'], {
+  runPnpm(CLEAN_PACKAGE_INSTALL_ARGS, {
     cwd: smokeRoot,
     encoding: 'utf8',
     stdio: 'inherit',
@@ -115,22 +146,6 @@ try {
   await rm(smokeRoot, { recursive: true, force: true });
 }
 
-function readTarEntries(bytes: Buffer): string[] {
-  const tar = gunzipSync(bytes);
-  const entries: string[] = [];
-  for (let offset = 0; offset + 512 <= tar.length;) {
-    const header = tar.subarray(offset, offset + 512);
-    if (header.every((byte) => byte === 0)) break;
-    const name = header.subarray(0, 100).toString('utf8').replace(/\0.*$/u, '');
-    const prefix = header.subarray(345, 500).toString('utf8').replace(/\0.*$/u, '');
-    const sizeText = header.subarray(124, 136).toString('ascii').replace(/\0.*$/u, '').trim();
-    const size = sizeText ? Number.parseInt(sizeText, 8) : 0;
-    entries.push(prefix ? `${prefix}/${name}` : name);
-    offset += 512 + Math.ceil(size / 512) * 512;
-  }
-  return entries;
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -139,8 +154,21 @@ function runPnpm(
   args: readonly string[],
   options: Parameters<typeof execFileSync>[2],
 ): Buffer | string {
-  if (corepackPnpmEntryPoint && existsSync(corepackPnpmEntryPoint)) {
-    return execFileSync(process.execPath, [corepackPnpmEntryPoint, ...args], options);
+  const invocation = pnpmInvocation(args);
+  return execFileSync(invocation.command, invocation.args, options);
+}
+
+async function readBoundedText(path: string, label: string): Promise<string> {
+  const information = await lstat(path);
+  if (!information.isFile() || information.isSymbolicLink()) {
+    throw new Error(`${label} must be a regular file.`);
   }
-  return execFileSync(pnpmCommand, [...args], options);
+  if (information.size > MAX_PACKAGE_JSON_BYTES) {
+    throw new Error(`${label} exceeds the ${MAX_PACKAGE_JSON_BYTES}-byte safety limit.`);
+  }
+  const contents = await readFile(path, 'utf8');
+  if (Buffer.byteLength(contents, 'utf8') > MAX_PACKAGE_JSON_BYTES) {
+    throw new Error(`${label} exceeds the ${MAX_PACKAGE_JSON_BYTES}-byte safety limit.`);
+  }
+  return contents;
 }

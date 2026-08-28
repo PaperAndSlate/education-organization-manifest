@@ -218,7 +218,7 @@ export type Delegation = Readonly<{
   readonly "scope": JsonValue | JsonValue | JsonValue | JsonValue;
   readonly "statement"?: CommonLocalized;
   readonly "status": "active" | "revoked" | "expired";
-  readonly "subject"?: CommonAbsoluteUri;
+  readonly "subject": CommonAbsoluteUri;
   readonly "successor"?: CommonAbsoluteUri;
   readonly "transitive": false;
   readonly "type": "delegation";
@@ -377,6 +377,13 @@ export type Candidate = Readonly<{
   readonly "id": CommonAbsoluteUri;
   readonly "notes"?: string;
   readonly "privacyReview"?: "pending" | "clear" | "blocked" | "quarantined";
+  readonly "releaseApproval"?: Readonly<{
+  readonly "approvedAt": CommonDateTime;
+  readonly "decision": "release-approved";
+  readonly "expires": CommonDateTime;
+  readonly "rationale": string;
+  readonly "reviewer": string;
+}>;
   readonly "requiredOwners"?: ReadonlyArray<string>;
   readonly "sourceSet": ReadonlyArray<CommonAbsoluteUri>;
   readonly "status": "discovered" | "extracted" | "normalized" | "validation-failed" | "review-ready" | "changes-requested" | "approved" | "generated" | "release-approved" | "published" | "superseded";

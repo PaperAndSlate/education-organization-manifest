@@ -1,8 +1,11 @@
 # EOM v1 Remediation Audit
 
-Status: local RC3 remediation and release-evidence gates passed for the exact committed source
-revision below. RC3 remains a working-draft release candidate: it has not been published, deployed,
-registered, or approved as a stable release.
+Status: HISTORICAL / SUPERSEDED for current acceptance after hosted-validation-readiness source
+changes. The local RC3 remediation and release-evidence results below remain immutable evidence for
+the exact revision identified below; they do not cover later source or workflow changes.
+
+RC3 remains a working-draft release candidate: it has not been published, deployed, registered, or
+approved as a stable release.
 
 ## Exact evidence identity
 

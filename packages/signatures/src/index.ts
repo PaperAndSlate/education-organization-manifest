@@ -60,6 +60,10 @@ export interface KeyRecordOptions {
   readonly validUntil?: string;
   readonly revokedAt?: string;
   readonly successor?: string;
+  readonly scope?: {
+    readonly resourceTypes?: readonly string[];
+    readonly resourceIds?: readonly string[];
+  };
 }
 
 export interface VerificationOptions {
@@ -84,6 +88,7 @@ export interface SignatureVerificationResult {
   readonly keyTemporalValid: boolean;
   readonly keyRevoked: boolean;
   readonly keySetExpiryValid: boolean;
+  readonly keyScopeValid: boolean;
   readonly delegationScopeValid: boolean | 'not-evaluated';
   readonly rootAuthorityStatus: 'accepted' | 'rejected' | 'not-evaluated';
   readonly resourceExpiryValid: boolean;
@@ -101,6 +106,7 @@ export interface UnsignedVerificationResult {
   readonly signatureValid: 'not-applicable';
   readonly keyTemporalValid: 'not-applicable';
   readonly keyRevoked: false;
+  readonly keyScopeValid: 'not-evaluated';
   readonly delegationScopeValid: 'not-evaluated';
   readonly rootAuthorityStatus: 'not-evaluated';
   readonly resourceExpiryValid: boolean;
@@ -257,6 +263,7 @@ export function publicKeyRecord(publicKey: KeyObject, options: KeyRecordOptions)
     'validUntil',
     'revokedAt',
     'successor',
+    'scope',
   ] as const) {
     const value = options[key];
     if (value !== undefined) record[key] = value;
@@ -332,7 +339,13 @@ export function verifyDetached(
     validateProtectedHeader(header, keyId, signature, findings);
   const keyRecord = keyId ? findKey(keySet, keyId) : undefined;
   const keySetValid = validateKeySet(keySet, findings);
+  const manifestKeySetBindingValid = validateManifestKeySetBinding(
+    options.manifest,
+    keySet,
+    findings,
+  );
   const keyRecordValid = keyRecord === undefined || validateKeyRecord(keyRecord, findings);
+  const keyScopeValid = evaluateKeyScope(keyRecord, value, findings);
   const keySetExpiryValid = isResourceCurrent(keySet, now);
   if (!keySetExpiryValid) {
     findings.push(
@@ -395,6 +408,7 @@ export function verifyDetached(
     signatureValue &&
     headerValid &&
     keySetValid &&
+    manifestKeySetBindingValid &&
     keyRecordValid &&
     keyRecord
   ) {
@@ -521,6 +535,7 @@ export function verifyDetached(
     headerValid &&
     keyTemporalValid &&
     keySetExpiryValid &&
+    keyScopeValid &&
     !keyRevoked &&
     signatureValid &&
     subjectMatch &&
@@ -530,7 +545,7 @@ export function verifyDetached(
     authorityDescriptorValid &&
     evaluationTimeValid &&
     (authority === undefined || authority.accepted);
-  const verifiedOverall = overall && keySetValid && keyRecordValid;
+  const verifiedOverall = overall && keySetValid && manifestKeySetBindingValid && keyRecordValid;
   return {
     canonicalizationValid,
     digestMatch,
@@ -538,6 +553,7 @@ export function verifyDetached(
     keyTemporalValid,
     keyRevoked,
     keySetExpiryValid,
+    keyScopeValid,
     delegationScopeValid,
     rootAuthorityStatus,
     resourceExpiryValid,
@@ -599,6 +615,7 @@ export function verifyUnsigned(
     signatureValid: 'not-applicable',
     keyTemporalValid: 'not-applicable',
     keyRevoked: false,
+    keyScopeValid: 'not-evaluated',
     delegationScopeValid: 'not-evaluated',
     rootAuthorityStatus: 'not-evaluated',
     resourceExpiryValid,
@@ -996,6 +1013,117 @@ function findKey(keySet: unknown, keyId: string): unknown {
   return keys.find((key) => stringAt(key, ['kid']) === keyId);
 }
 
+function validateManifestKeySetBinding(
+  manifest: unknown,
+  keySet: unknown,
+  findings: Finding[],
+): boolean {
+  if (manifest === undefined) return true;
+  const signing = valueAt(manifest, ['signing']);
+  if (signing === undefined) return true;
+  if (!isJsonObject(signing)) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_MANIFEST_KEY_SET_INVALID',
+        'security',
+        'A manifest signing declaration must be an object before its key-set binding can be verified.',
+        { severity: 'error', pointer: '/signing' },
+      ),
+    );
+    return false;
+  }
+  const declaredKeySet = stringAt(signing, ['keySet']);
+  const suppliedKeySet = stringAt(keySet, ['id']);
+  if (declaredKeySet === undefined || !isAbsoluteHttpsOrUri(declaredKeySet)) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_MANIFEST_KEY_SET_REQUIRED',
+        'security',
+        'A manifest signing declaration must identify its key set.',
+        { severity: 'error', pointer: '/signing/keySet' },
+      ),
+    );
+    return false;
+  }
+  if (
+    suppliedKeySet === undefined ||
+    !isAbsoluteHttpsOrUri(suppliedKeySet) ||
+    suppliedKeySet !== declaredKeySet
+  ) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_MANIFEST_KEY_SET_MISMATCH',
+        'security',
+        'The supplied verification key set does not match the key-set identifier declared by the manifest.',
+        {
+          severity: 'error',
+          pointer: '/signing/keySet',
+          related: [declaredKeySet, ...(suppliedKeySet === undefined ? [] : [suppliedKeySet])],
+        },
+      ),
+    );
+    return false;
+  }
+  return true;
+}
+
+function evaluateKeyScope(record: unknown, resource: unknown, findings: Finding[]): boolean {
+  if (!isJsonObject(record)) return false;
+  const scope = valueAt(record, ['scope']);
+  if (scope === undefined) return true;
+  if (!keyScopeShapeIsValid(scope)) return false;
+  const resourceType = stringAt(resource, ['type']);
+  const resourceId = stringAt(resource, ['id']);
+  const resourceTypes = arrayAt(scope, ['resourceTypes']).filter(
+    (item): item is string => typeof item === 'string',
+  );
+  const resourceIds = arrayAt(scope, ['resourceIds']).filter(
+    (item): item is string => typeof item === 'string',
+  );
+  const typeInScope =
+    resourceTypes.length === 0 ||
+    (resourceType !== undefined && resourceTypes.includes(resourceType));
+  const idInScope =
+    resourceIds.length === 0 || (resourceId !== undefined && resourceIds.includes(resourceId));
+  if (!typeInScope || !idInScope) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_OUT_OF_SCOPE',
+        'security',
+        'The signing key is not authorized for this resource type or resource identifier.',
+        { severity: 'error', pointer: '/keys/scope' },
+      ),
+    );
+  }
+  return typeInScope && idInScope;
+}
+
+function keyScopeShapeIsValid(value: unknown): boolean {
+  if (!isJsonObject(value)) return false;
+  const keys = Object.keys(value);
+  if (keys.length === 0 || keys.some((key) => !['resourceTypes', 'resourceIds'].includes(key)))
+    return false;
+  const resourceTypes = valueAt(value, ['resourceTypes']);
+  const resourceIds = valueAt(value, ['resourceIds']);
+  if (Object.hasOwn(value, 'resourceTypes')) {
+    if (!Array.isArray(resourceTypes) || resourceTypes.length === 0) return false;
+    if (
+      !resourceTypes.every((item) => typeof item === 'string' && item.length > 0) ||
+      new Set(resourceTypes).size !== resourceTypes.length
+    )
+      return false;
+  }
+  if (Object.hasOwn(value, 'resourceIds')) {
+    if (!Array.isArray(resourceIds) || resourceIds.length === 0) return false;
+    if (
+      !resourceIds.every((item) => typeof item === 'string' && isAbsoluteHttpsOrUri(item)) ||
+      new Set(resourceIds).size !== resourceIds.length
+    )
+      return false;
+  }
+  return true;
+}
+
 function validateKeySet(keySet: unknown, findings: Finding[]): boolean {
   let valid = true;
   if (!isJsonObject(keySet)) {
@@ -1217,6 +1345,17 @@ function validateKeyRecord(record: unknown, findings: Finding[]): boolean {
         'integrity',
         'A verification key must contain only a public Ed25519 JWK.',
         { severity: 'error', pointer: '/keys/publicKeyJwk' },
+      ),
+    );
+    valid = false;
+  }
+  if (Object.hasOwn(record, 'scope') && !keyScopeShapeIsValid(valueAt(record, ['scope']))) {
+    findings.push(
+      finding(
+        'EOM_SIGNATURE_KEY_SCOPE_INVALID',
+        'security',
+        'A signing key scope must contain one or more unique resource types or identifiers.',
+        { severity: 'error', pointer: '/keys/scope' },
       ),
     );
     valid = false;

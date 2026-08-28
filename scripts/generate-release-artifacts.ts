@@ -1,14 +1,13 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { gunzipSync, gzipSync } from 'node:zlib';
-import { existsSync } from 'node:fs';
+import type { Dirent } from 'node:fs';
 import {
   lstat,
   mkdir,
   mkdtemp,
+  opendir,
   readFile,
-  readdir,
   realpath,
   rm,
   writeFile,
@@ -19,6 +18,8 @@ import { parse as parseYaml } from 'yaml';
 import { format as formatJson } from 'prettier';
 import { isJsonObject, parseStrictJson, stringifyCanonical } from '@paperandslate/eom-core';
 import { readSecurityScanEvidence } from './security-scan-evidence.js';
+import { MAX_TAR_BYTES, createTarGz, readTarGz, type TarEntry } from './tar.js';
+import { pnpmInvocation } from './pnpm-runner.js';
 
 const root = resolve(process.cwd());
 export const RELEASE_VERSION = process.env.EOM_RELEASE_VERSION ?? '1.0.0-rc.3';
@@ -26,6 +27,10 @@ const outputRoot = resolve(process.env.EOM_RELEASE_OUTPUT ?? join(root, 'release
 const sourceDateEpoch = Number(process.env.SOURCE_DATE_EPOCH ?? '0');
 const RELEASE_MARKER = '.eom-release-generated.json';
 const SPECIFICATION = 'https://paperandslate.org/spec/eom/1.0';
+const MAX_RELEASE_TREE_ENTRIES = 100_000;
+const MAX_RELEASE_TREE_FILES = 100_000;
+const MAX_RELEASE_TREE_DEPTH = 128;
+const MAX_RELEASE_INPUT_BYTES = MAX_TAR_BYTES;
 
 if (!/^1\.0\.0-rc\.\d+$/u.test(RELEASE_VERSION)) {
   throw new Error(`EOM_RELEASE_VERSION must be a release candidate, received ${RELEASE_VERSION}.`);
@@ -278,10 +283,7 @@ interface ArchiveDefinition {
   readonly entries: readonly ArchiveEntry[];
 }
 
-interface ArchiveEntry {
-  readonly path: string;
-  readonly bytes: Buffer;
-}
+type ArchiveEntry = TarEntry;
 
 interface ReleaseArtifact {
   readonly path: string;
@@ -316,18 +318,32 @@ async function createPackagePackArtifacts(
   const packages: PackedPackageRecord[] = [];
   try {
     for (const directory of await workspacePackageDirectories()) {
-      const packageJson = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8')) as {
+      const packageJsonValue = parseStrictJson(
+        await readFile(join(directory, 'package.json'), 'utf8'),
+        `${directory}/package.json`,
+      );
+      if (!isJsonObject(packageJsonValue))
+        throw new Error(`${directory}/package.json must be an object.`);
+      const packageJson = packageJsonValue as {
         name?: string;
         version?: string;
         private?: boolean;
+        scripts?: Record<string, unknown>;
       };
       if (!packageJson.name || !packageJson.version || packageJson.private === true) continue;
-      const output = runPnpm(['pack', '--pack-destination', temporaryDirectory, '--json'], {
-        cwd: directory,
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-      const parsed = JSON.parse(output.toString()) as unknown;
+      assertNoLifecycleScripts(packageJson.name, packageJson.scripts);
+      const output = runPnpm(
+        // pnpm pack has no --ignore-scripts option. Lifecycle scripts are
+        // rejected above before packing, so the pack operation cannot execute
+        // a release-package hook.
+        ['pack', '--pack-destination', temporaryDirectory, '--json'],
+        {
+          cwd: directory,
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'pipe'],
+        },
+      );
+      const parsed = parseStrictJson(output.toString(), `${packageJson.name} pnpm pack output`);
       const packed = (Array.isArray(parsed) ? parsed[0] : parsed) as
         | {
             filename?: string;
@@ -341,13 +357,15 @@ async function createPackagePackArtifacts(
         throw new Error(`${packageJson.name}: pnpm pack returned a tarball outside its temp root.`);
       }
       const packedBytes = await readFile(tarballPath);
-      const tarEntries = readTarFiles(packedBytes);
+      const tarEntries = readTarGz(packedBytes);
       const normalizedEntries = tarEntries.map((entry) =>
         entry.path === 'package/package.json'
           ? {
               ...entry,
               bytes: Buffer.from(
-                stringifyCanonical(JSON.parse(entry.bytes.toString('utf8')) as never),
+                stringifyCanonical(
+                  parseStrictJson(entry.bytes.toString('utf8'), `${packageJson.name} package.json`),
+                ),
                 'utf8',
               ),
             }
@@ -409,29 +427,6 @@ async function createPackagePackArtifacts(
     manifestBytes,
     artifacts,
   };
-}
-
-function readTarFiles(bytes: Buffer): ArchiveEntry[] {
-  const tar = gunzipSync(bytes);
-  const entries: ArchiveEntry[] = [];
-  for (let offset = 0; offset + 512 <= tar.length;) {
-    const header = tar.subarray(offset, offset + 512);
-    if (header.every((byte) => byte === 0)) break;
-    const name = header.subarray(0, 100).toString('utf8').replace(/\0.*$/u, '');
-    const prefix = header.subarray(345, 500).toString('utf8').replace(/\0.*$/u, '');
-    const sizeText = header.subarray(124, 136).toString('ascii').replace(/\0.*$/u, '').trim();
-    const size = sizeText ? Number.parseInt(sizeText, 8) : 0;
-    if (!Number.isSafeInteger(size) || size < 0) throw new Error('Invalid package tar entry size.');
-    const type = header[156] ?? 0;
-    if (type === 0 || type === 48) {
-      entries.push({
-        path: prefix ? `${prefix}/${name}` : name,
-        bytes: Buffer.from(tar.subarray(offset + 512, offset + 512 + size)),
-      });
-    }
-    offset += 512 + Math.ceil(size / 512) * 512;
-  }
-  return entries.sort((left, right) => compareStrings(left.path, right.path));
 }
 
 function packageFilePath(path: string): string {
@@ -576,11 +571,16 @@ async function sourceArchiveEntries(): Promise<ArchiveEntry[]> {
     .filter((path) => isArchivePath(relative(root, path)))
     .sort((left, right) => compareStrings(relative(root, left), relative(root, right)));
   const entries: ArchiveEntry[] = [];
+  let totalBytes = 0;
   for (const path of paths) {
     const relativePath = relative(root, path).replaceAll('\\', '/');
+    const bytes = await readReleaseInput(path);
+    totalBytes += bytes.length;
+    if (totalBytes > MAX_TAR_BYTES)
+      throw new Error(`Release source archive exceeds the ${MAX_TAR_BYTES}-byte safety limit.`);
     entries.push({
       path: `educational-organization-manifest-${RELEASE_VERSION}/${relativePath}`,
-      bytes: await readReleaseInput(path),
+      bytes,
     });
   }
   return entries;
@@ -599,9 +599,14 @@ async function directoryArchiveEntries(
     .filter((path) => isArchivePath(relative(root, path)))
     .sort((left, right) => compareStrings(relative(root, left), relative(root, right)));
   const entries: ArchiveEntry[] = [];
+  let totalBytes = 0;
   for (const path of paths) {
     const relativePath = relative(root, path).replaceAll('\\', '/');
-    entries.push({ path: `${prefix}/${relativePath}`, bytes: await readReleaseInput(path) });
+    const bytes = await readReleaseInput(path);
+    totalBytes += bytes.length;
+    if (totalBytes > MAX_TAR_BYTES)
+      throw new Error(`Release archive exceeds the ${MAX_TAR_BYTES}-byte safety limit.`);
+    entries.push({ path: `${prefix}/${relativePath}`, bytes });
   }
   return entries;
 }
@@ -672,7 +677,8 @@ async function readLockedExternalComponents(
     ...(await walk(join(root, 'packages'))),
     ...(await walk(join(root, 'apps'))),
   ].filter((path) => path.endsWith('package.json'))) {
-    const value = JSON.parse(await readFile(path, 'utf8')) as { name?: string };
+    const parsed = parseStrictJson(await readFile(path, 'utf8'), path);
+    const value = isJsonObject(parsed) ? (parsed as { name?: string }) : {};
     if (value.name) workspaceNames.add(value.name);
   }
   const components = new Map<string, Record<string, unknown>>();
@@ -709,48 +715,25 @@ function parseLockPackageKey(key: string): { name: string; version: string } | u
   return { name, version };
 }
 
-function createTarGz(entries: readonly ArchiveEntry[]): Buffer {
-  const blocks: Buffer[] = [];
-  for (const entry of entries) {
-    blocks.push(tarHeader(entry.path, entry.bytes.length));
-    blocks.push(entry.bytes);
-    const padding = (512 - (entry.bytes.length % 512)) % 512;
-    if (padding > 0) blocks.push(Buffer.alloc(padding));
+function assertNoLifecycleScripts(
+  name: string,
+  scripts: Record<string, unknown> | undefined,
+): void {
+  const lifecycleScripts = [
+    'prepublish',
+    'prepare',
+    'prepublishOnly',
+    'publish',
+    'postpublish',
+    'prepack',
+    'postpack',
+  ];
+  const configured = lifecycleScripts.filter((script) => Object.hasOwn(scripts ?? {}, script));
+  if (configured.length > 0) {
+    throw new Error(
+      `${name}: lifecycle scripts are not permitted in release packages: ${configured.join(', ')}`,
+    );
   }
-  blocks.push(Buffer.alloc(1024));
-  return gzipSync(Buffer.concat(blocks), { level: 9 });
-}
-
-function tarHeader(path: string, size: number): Buffer {
-  const header = Buffer.alloc(512, 0);
-  const slash = path.lastIndexOf('/');
-  const name = path.length <= 100 ? path : path.slice(slash + 1);
-  const prefix = path.length <= 100 ? '' : path.slice(0, slash);
-  if (name.length > 100 || prefix.length > 155)
-    throw new Error(`Archive path is too long: ${path}`);
-  writeTarField(header, 0, 100, name);
-  writeTarField(header, 100, 8, '0000644\0');
-  writeTarField(header, 108, 8, '0000000\0');
-  writeTarField(header, 116, 8, '0000000\0');
-  writeTarField(header, 124, 12, `${size.toString(8).padStart(11, '0')}\0`);
-  writeTarField(header, 136, 12, '00000000000\0');
-  writeTarField(header, 148, 8, '        ');
-  writeTarField(header, 156, 1, '0');
-  writeTarField(header, 257, 6, 'ustar\0');
-  writeTarField(header, 263, 2, '00');
-  writeTarField(header, 265, 32, 'paperandslate');
-  writeTarField(header, 297, 32, 'paperandslate');
-  writeTarField(header, 329, 8, '0000000\0');
-  writeTarField(header, 337, 8, '0000000\0');
-  writeTarField(header, 345, 155, prefix);
-  const checksum = [...header].reduce((sum, byte) => sum + byte, 0);
-  writeTarField(header, 148, 8, `${checksum.toString(8).padStart(6, '0')}\0 `);
-  return header;
-}
-
-function writeTarField(buffer: Buffer, offset: number, length: number, value: string): void {
-  buffer.fill(0, offset, offset + length);
-  buffer.write(value.slice(0, length), offset, 'utf8');
 }
 
 function sha256(bytes: Buffer): string {
@@ -767,15 +750,8 @@ function runPnpm(
   args: readonly string[],
   options: Parameters<typeof execFileSync>[2],
 ): Buffer | string {
-  const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-  const corepackPnpmEntryPoint =
-    process.platform === 'win32'
-      ? join(dirname(process.execPath), 'node_modules', 'corepack', 'dist', 'pnpm.js')
-      : undefined;
-  if (corepackPnpmEntryPoint && existsSync(corepackPnpmEntryPoint)) {
-    return execFileSync(process.execPath, [corepackPnpmEntryPoint, ...args], options);
-  }
-  return execFileSync(command, [...args], options);
+  const invocation = pnpmInvocation(args);
+  return execFileSync(invocation.command, invocation.args, options);
 }
 
 function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {
@@ -986,7 +962,13 @@ function isWithin(parent: string, child: string): boolean {
   return suffix === '' || (!suffix.startsWith('..') && !parse(suffix).root);
 }
 
-async function walk(directory: string): Promise<string[]> {
+async function walk(
+  directory: string,
+  state: { entries: number; files: number } = { entries: 0, files: 0 },
+  depth = 0,
+): Promise<string[]> {
+  if (depth > MAX_RELEASE_TREE_DEPTH)
+    throw new Error(`Release input directory depth exceeds ${MAX_RELEASE_TREE_DEPTH}.`);
   let information;
   try {
     information = await lstat(directory);
@@ -998,9 +980,21 @@ async function walk(directory: string): Promise<string[]> {
     throw new Error(`Release input must not contain a symlink or junction: ${directory}`);
   }
   if (!information.isDirectory()) return [directory];
-  const entries = (await readdir(directory, { withFileTypes: true })).sort((left, right) =>
-    compareStrings(left.name, right.name),
-  );
+  const handle = await opendir(directory);
+  const entries: Dirent[] = [];
+  try {
+    for await (const entry of handle) {
+      state.entries += 1;
+      if (state.entries > MAX_RELEASE_TREE_ENTRIES)
+        throw new Error(
+          `Release input traversal exceeds ${MAX_RELEASE_TREE_ENTRIES} directory entries.`,
+        );
+      entries.push(entry);
+    }
+  } finally {
+    await handle.close().catch(() => undefined);
+  }
+  entries.sort((left, right) => compareStrings(left.name, right.name));
   const result: string[] = [];
   for (const entry of entries) {
     // Workspace package managers create dependency trees beneath each app and
@@ -1014,9 +1008,13 @@ async function walk(directory: string): Promise<string[]> {
     if (child.isSymbolicLink()) {
       throw new Error(`Release input must not contain a symlink or junction: ${path}`);
     }
-    if (child.isDirectory()) result.push(...(await walk(path)));
-    else if (child.isFile()) result.push(path);
-    else throw new Error(`Release input contains a non-regular file: ${path}`);
+    if (child.isDirectory()) result.push(...(await walk(path, state, depth + 1)));
+    else if (child.isFile()) {
+      state.files += 1;
+      if (state.files > MAX_RELEASE_TREE_FILES)
+        throw new Error(`Release input contains more than ${MAX_RELEASE_TREE_FILES} files.`);
+      result.push(path);
+    } else throw new Error(`Release input contains a non-regular file: ${path}`);
   }
   return result;
 }
@@ -1039,6 +1037,11 @@ async function readReleaseInput(path: string, allowedRoot = root): Promise<Buffe
   const fileReal = await realpath(path);
   if (!isWithin(trustedRoot, fileReal)) {
     throw new Error(`Release input escapes its trusted root: ${path}`);
+  }
+  if (information.size > MAX_RELEASE_INPUT_BYTES) {
+    throw new Error(
+      `Release input exceeds the ${MAX_RELEASE_INPUT_BYTES}-byte safety limit: ${path}`,
+    );
   }
   return readFile(path);
 }
