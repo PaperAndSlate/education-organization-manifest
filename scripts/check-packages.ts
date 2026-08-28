@@ -3,9 +3,10 @@ import { lstat, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { basename, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { isJsonObject, parseStrictJson } from '@paperandslate/eom-core';
-import { CLEAN_PACKAGE_INSTALL_ARGS } from './package-install-options.js';
+import { CLEAN_PACKAGE_INSTALL_ARGS, CLEAN_PACKAGE_LOCK_ARGS } from './package-install-options.js';
 import { pnpmInvocation } from './pnpm-runner.js';
 import { readTarGz } from './tar.js';
+import { safeChildEnvironment } from './safe-child-env.js';
 
 const root = resolve(process.cwd());
 const packageDirectories = [
@@ -73,6 +74,7 @@ try {
         cwd: directory,
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],
+        env: safeChildEnvironment(),
       },
     );
     const parsed = parseStrictJson(output.toString(), `${packageJson.name} pnpm pack output`);
@@ -122,10 +124,17 @@ try {
     'utf8',
   );
   await writeFile(join(smokeRoot, 'pnpm-workspace.yaml'), `overrides:\n${overrides}\n`, 'utf8');
+  runPnpm(CLEAN_PACKAGE_LOCK_ARGS, {
+    cwd: smokeRoot,
+    encoding: 'utf8',
+    stdio: 'inherit',
+    env: safeChildEnvironment(),
+  });
   runPnpm(CLEAN_PACKAGE_INSTALL_ARGS, {
     cwd: smokeRoot,
     encoding: 'utf8',
     stdio: 'inherit',
+    env: safeChildEnvironment(),
   });
   const importScript = `const names = ${JSON.stringify(packageNames)}; for (const name of names) await import(name); console.log('clean package imports passed: ' + names.length);\n`;
   await writeFile(join(smokeRoot, 'runtime-smoke.mjs'), importScript, 'utf8');
@@ -133,6 +142,7 @@ try {
     cwd: smokeRoot,
     encoding: 'utf8',
     stdio: 'inherit',
+    env: safeChildEnvironment(),
   });
   const typeImports = packageNames
     .map(
@@ -154,7 +164,7 @@ try {
       '--skipLibCheck',
       join(smokeRoot, 'type-smoke.ts'),
     ],
-    { cwd: smokeRoot, encoding: 'utf8', stdio: 'inherit' },
+    { cwd: smokeRoot, encoding: 'utf8', stdio: 'inherit', env: safeChildEnvironment() },
   );
   console.log(`package smoke passed: ${packageNames.length} clean tarball installations`);
 } finally {
