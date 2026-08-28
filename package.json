@@ -82,7 +82,7 @@
     "ajv-formats": "^3.0.1",
     "commander": "^14.0.0",
     "esbuild": "^0.25.0",
-    "eslint": "^9.35.0",
+    "eslint": "^10.9.1",
     "prettier": "^3.6.2",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2",
