@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { lstat, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { isJsonObject, parseStrictJson } from '@paperandslate/eom-core';
 import { CLEAN_PACKAGE_INSTALL_ARGS } from './package-install-options.js';
@@ -100,13 +100,28 @@ try {
       throw new Error('schema package: bundled schema catalog is missing.');
   }
 
-  const dependencies = Object.fromEntries(packageTarballs.entries());
-  const overrides = Object.fromEntries(packageTarballs.entries());
+  // Keep the consumer entirely local. Absolute Windows paths are interpreted
+  // inconsistently by package managers, and pnpm 10 no longer reads the
+  // package.json `pnpm.overrides` field. Relative file specs plus the
+  // workspace-level overrides file work the same on every supported runner.
+  const dependencies = Object.fromEntries(
+    [...packageTarballs.entries()].map(([name, filename]) => [
+      name,
+      `file:./${basename(filename)}`,
+    ]),
+  );
+  const overrides = [...packageTarballs.entries()]
+    .map(
+      ([name, filename]) =>
+        `  ${JSON.stringify(name)}: ${JSON.stringify(`file:./${basename(filename)}`)}`,
+    )
+    .join('\n');
   await writeFile(
     join(smokeRoot, 'package.json'),
-    `${JSON.stringify({ name: 'eom-clean-install-smoke', private: true, type: 'module', dependencies, pnpm: { overrides } }, null, 2)}\n`,
+    `${JSON.stringify({ name: 'eom-clean-install-smoke', private: true, type: 'module', dependencies }, null, 2)}\n`,
     'utf8',
   );
+  await writeFile(join(smokeRoot, 'pnpm-workspace.yaml'), `overrides:\n${overrides}\n`, 'utf8');
   runPnpm(CLEAN_PACKAGE_INSTALL_ARGS, {
     cwd: smokeRoot,
     encoding: 'utf8',

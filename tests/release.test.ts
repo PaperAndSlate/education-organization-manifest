@@ -18,6 +18,13 @@ describe('EOM release evidence', () => {
     expect(CLEAN_PACKAGE_INSTALL_ARGS).not.toContain('--offline');
   });
 
+  it('uses cross-platform local tarball overrides for the package smoke consumer', () => {
+    const packageCheck = readFileSync(join(root, 'scripts', 'check-packages.ts'), 'utf8');
+    expect(packageCheck).toContain("join(smokeRoot, 'pnpm-workspace.yaml')");
+    expect(packageCheck).toContain('file:./');
+    expect(packageCheck).not.toMatch(/pnpm:\s*\{\s*overrides/u);
+  });
+
   it('contains a self-consistent candidate manifest and checksums', () => {
     const releaseRoot = join(root, 'release');
     const manifest = parseStrictJson(readFileSync(join(releaseRoot, 'manifest.json'), 'utf8'));
