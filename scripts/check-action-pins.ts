@@ -18,7 +18,7 @@ const verifiedPins: Readonly<Record<string, string>> = {
   'fsfe/reuse-action': '676e2d560c9a403aa252096d99fcab3e1132b0f5',
   'github/codeql-action': 'b56ba49b26e50535fa1e7f7db0f4f7b4bf65d80d',
   'gitleaks/gitleaks-action': 'ff98106e4c7b2bc287b24eaf42907196329070c7',
-  'pnpm/action-setup': '7088e561eb65bb68695d245aa206f005ef30921d',
+  'pnpm/action-setup': 'fc06bc1257f339d1d5d8b3a19a8cae5388b55320',
 };
 
 if (process.argv[1] && resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1])) {
