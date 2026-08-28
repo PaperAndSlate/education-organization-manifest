@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
-    "@changesets/cli": "^2.29.7",
+    "@changesets/cli": "^3.0.1",
     "@eslint/js": "^9.39.0",
     "@paperandslate/eom-adapters": "workspace:*",
     "@paperandslate/eom-agentic": "workspace:*",
