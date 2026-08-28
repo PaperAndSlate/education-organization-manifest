@@ -3,3 +3,11 @@
 # governance materials until corresponding GitHub teams are created and granted
 # write access.
 * @callum-baillie
+/spec/** @callum-baillie
+/schemas/** @callum-baillie
+/packages/validator/** @callum-baillie
+/packages/signatures/** @callum-baillie
+/packages/testkit/** @callum-baillie
+/release/** @callum-baillie
+/examples/**/generated/** @callum-baillie
+/examples/ecme-high/source/** @callum-baillie
