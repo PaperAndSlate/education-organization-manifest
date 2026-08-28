@@ -114,6 +114,16 @@ the pinned Corepack-bundled pnpm implementation, not an actionable repository
 defect. No unnecessary dependency upgrade was made. The warning should be
 rechecked when the supported pnpm baseline is intentionally updated.
 
+The initial hosted run also printed the same Node deprecation family while
+starting `gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c`
+(v2.3.9), before its organization-license preflight failed. That wrapper is a
+third-party Node action with bundled `@actions/*` and Octokit dependencies; it
+is not part of the EOM source or package smoke path. The workflow now invokes
+the upstream Gitleaks CLI from an immutable image, mounts the checkout
+read-only, and disables container networking after image retrieval, so the
+commercial wrapper and its dependency warnings are no longer on the hosted
+scan path.
+
 ## External and hosted gates
 
 This report does not claim hosted execution, CodeQL findings, dependency review

@@ -6,7 +6,7 @@ SPDX-FileCopyrightText = "2026 paper&slate and contributors"
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = ["*.md", "spec/**", "docs/**"]
+path = ["*.md", "**/*.md", "spec/**", "docs/**", "plans/**", "prompts/**", "reports/**", "requirements/**"]
 SPDX-FileCopyrightText = "2026 paper&slate and contributors"
 SPDX-License-Identifier = "CC-BY-4.0"
 
@@ -14,3 +14,31 @@ SPDX-License-Identifier = "CC-BY-4.0"
 path = ["examples/**", "fixtures/**"]
 SPDX-FileCopyrightText = "2026 paper&slate and contributors"
 SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+  ".changeset/**",
+  ".github/**",
+  "apps/**",
+  "candidates/**",
+  "conformance/**",
+  "evidence/**",
+  "mappings/**",
+  "modules/**",
+  "packages/**",
+  "release/**",
+  "schemas/**",
+  "scripts/**",
+  "sources/**",
+  "tests/**",
+  "vocabularies/**",
+  "*.cjs",
+  "*.css",
+  "*.html",
+  "*.js",
+  "*.mjs",
+  "*.svg",
+  "*.ts"
+]
+SPDX-FileCopyrightText = "2026 paper&slate and contributors"
+SPDX-License-Identifier = "Apache-2.0"

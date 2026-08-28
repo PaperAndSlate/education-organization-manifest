@@ -106,6 +106,9 @@ importers:
 
   apps/playground:
     dependencies:
+      '@paperandslate/eom-authority':
+        specifier: workspace:*
+        version: link:../../packages/authority
       '@paperandslate/eom-core':
         specifier: workspace:*
         version: link:../../packages/core

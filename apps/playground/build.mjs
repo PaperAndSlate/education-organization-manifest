@@ -58,6 +58,7 @@ await build({
   platform: 'browser',
   target: 'es2022',
   alias: {
+    '@paperandslate/eom-authority': join(repository, 'packages', 'authority', 'src', 'index.ts'),
     '@paperandslate/eom-core/ids': join(repository, 'packages', 'core', 'src', 'ids.ts'),
     '@paperandslate/eom-core/json': join(repository, 'packages', 'core', 'src', 'json.ts'),
     '@paperandslate/eom-core/time': join(repository, 'packages', 'core', 'src', 'time.ts'),

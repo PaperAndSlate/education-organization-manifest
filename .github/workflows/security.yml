@@ -43,10 +43,17 @@ jobs:
       - name: Normalize Git settings
         run: |
           git config --local core.autocrlf false
+      # The organization-owned gitleaks-action requires a commercial license
+      # secret and emits Node DEP0169 through its bundled legacy dependencies.
+      # Use the upstream OSS CLI from a verified immutable image instead. The
+      # checkout is read-only and the container has no network after the pull.
       - name: Scan repository history
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          docker run --rm --network none --read-only
+          --tmpfs /tmp:rw,noexec,nosuid,size=64m
+          --mount type=bind,source="${{ github.workspace }}",target=/repo,readonly
+          ghcr.io/gitleaks/gitleaks@sha256:cdbb7c955abce02001a9f6c9f602fb195b7fadc1e812065883f695d1eeaba854
+          git /repo --redact --no-banner --exit-code 1
 
   reuse:
     runs-on: ubuntu-latest
