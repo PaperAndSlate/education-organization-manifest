@@ -2519,6 +2519,12 @@ function explainFinding(code: string): Record<string, unknown> {
       summary: 'A reference does not resolve in the loaded publication set.',
       remediation: 'Publish the referenced public entity or remove the stale reference.',
     },
+    EOM_SEMANTIC_WORK_LIMIT: {
+      category: 'security',
+      summary: 'Semantic validation stopped after reaching a bounded course-code work budget.',
+      remediation:
+        'Split the catalog or reduce repeated course-code comparisons, then validate the smaller publication.',
+    },
   };
   const match = explanations[code];
   return match

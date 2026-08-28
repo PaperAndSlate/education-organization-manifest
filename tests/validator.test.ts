@@ -9,8 +9,10 @@ import {
   type ManifestFetchResponse,
 } from '@paperandslate/eom-core';
 import {
+  MAX_SEMANTIC_COURSE_CODE_FINDINGS,
   publicationSetFindings,
   renderValidationReport,
+  semanticFindings,
   validateDocument,
   validatePublicationDirectory,
   validatePublicationUrl,
@@ -741,6 +743,61 @@ describe('EOM structural and semantic validation', () => {
   it('accepts a historical catalog version with stable course identity', () => {
     const result = validateDocument(fixture('fixtures/valid/course/historical-catalog.json'));
     expect(result.valid, JSON.stringify(result.findings)).toBe(true);
+  });
+
+  it('bounds repeated course-code comparisons and reports a failed validation', () => {
+    const items = Array.from({ length: 600 }, (_, index) => ({
+      id: `https://catalog.example/id/course/${index}`,
+      type: 'course',
+      name: `Course ${index}`,
+      code: 'SHARED',
+      effective: {
+        from: `${2000 + index}-01-01T00:00:00Z`,
+        until: `${2000 + index}-01-01T00:00:00Z`,
+      },
+    }));
+    const findings = semanticFindings({ type: 'course-catalog', items });
+
+    expect(findings.some((item) => item.code === 'EOM_SEMANTIC_WORK_LIMIT')).toBe(true);
+    expect(findings.filter((item) => item.code === 'EOM_COURSE_CODE_OVERLAP')).toHaveLength(0);
+  });
+
+  it('keeps normal course-code overlap detection bounded to one finding per course', () => {
+    const findings = semanticFindings({
+      type: 'course-catalog',
+      items: [
+        {
+          id: 'https://catalog.example/id/course/one',
+          type: 'course',
+          name: 'Course One',
+          code: 'SHARED',
+        },
+        {
+          id: 'https://catalog.example/id/course/two',
+          type: 'course',
+          name: 'Course Two',
+          code: 'SHARED',
+        },
+      ],
+    });
+
+    expect(findings.filter((item) => item.code === 'EOM_COURSE_CODE_OVERLAP')).toHaveLength(1);
+    expect(findings.some((item) => item.code === 'EOM_SEMANTIC_WORK_LIMIT')).toBe(false);
+  });
+
+  it('bounds overlap finding output for an all-overlap course-code catalog', () => {
+    const items = Array.from({ length: MAX_SEMANTIC_COURSE_CODE_FINDINGS + 8 }, (_, index) => ({
+      id: `https://catalog.example/id/course/overlap-${index}`,
+      type: 'course',
+      name: `Overlap Course ${index}`,
+      code: 'SHARED',
+    }));
+    const findings = semanticFindings({ type: 'course-catalog', items });
+
+    expect(findings.some((item) => item.code === 'EOM_SEMANTIC_WORK_LIMIT')).toBe(true);
+    expect(findings.filter((item) => item.code === 'EOM_COURSE_CODE_OVERLAP')).toHaveLength(
+      MAX_SEMANTIC_COURSE_CODE_FINDINGS,
+    );
   });
 
   it('resolves course, offering, and program references across a publication set', () => {
