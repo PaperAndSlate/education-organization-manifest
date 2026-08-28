@@ -1,7 +1,7 @@
 version = 1
 
 [[annotations]]
-path = ["*.json", "*.yaml", "*.yml", "*.toml", "*.config.*", "*.nvmrc", ".npmrc", ".editorconfig", ".gitattributes"]
+path = ["*.json", "*.yaml", "*.yml", "*.toml", "*.config.*", "*.nvmrc", ".npmrc", ".editorconfig", ".gitattributes", ".gitignore", ".prettierignore"]
 SPDX-FileCopyrightText = "2026 paper&slate and contributors"
 SPDX-License-Identifier = "Apache-2.0"
 
