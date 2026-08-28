@@ -2,19 +2,19 @@
   "version": 1,
   "status": "passed",
   "command": "pnpm traceability:check",
-  "validationMode": "release-bound",
+  "validationMode": "hosted-structure",
   "repositoryRevision": {
-    "commit": "b8032f378752f5f5375da253605b809dd77fdbbb",
-    "tree": "493b2a677be8f8c7e38aedb0d9afb78b69a53d41"
+    "commit": "26545a877b0905c61f1dff266d996af4751d0d59",
+    "tree": "82b2e2c63fe34c24e73544759074955fd10c6da6"
   },
   "invocationRevision": {
-    "commit": "b8032f378752f5f5375da253605b809dd77fdbbb",
-    "tree": "493b2a677be8f8c7e38aedb0d9afb78b69a53d41"
+    "commit": "26545a877b0905c61f1dff266d996af4751d0d59",
+    "tree": "82b2e2c63fe34c24e73544759074955fd10c6da6"
   },
   "evidencePolicy": "This generated result records the exact repository revision checked by pnpm traceability:check. A passed result is valid only for its recorded revision, source tree, and validation mode; report prose is not evidence.",
   "sourceRevision": {
-    "commit": "6df650ee174903475c4b77570293da661aea0563",
-    "tree": "dd712d83fbddcba4733758e2c6c70b5de01c8e28"
+    "commit": "26545a877b0905c61f1dff266d996af4751d0d59",
+    "tree": "82b2e2c63fe34c24e73544759074955fd10c6da6"
   },
   "planningPack": {
     "path": "plans/pack-manifest.json",
@@ -24,12 +24,12 @@
   },
   "traceabilityDocument": {
     "path": "requirements/plan-file-traceability.json",
-    "sha256": "eb806083285543d1d9573eea81b037103990963f47d6aeec282e5021cc5ff342",
+    "sha256": "fc670abdcf5671c5cc736c2932a09cefd5cdde23a2a6dfe446ccbd9541f8e26d",
     "planFileCount": 194,
     "atomicRequirementCount": 58
   },
   "matrix": {
     "path": "requirements/TRACEABILITY_MATRIX.md",
-    "sha256": "2aeeb0895663b3148ebd7a2d6882f6add7a16d9003ba7340e6875a203851b8ce"
+    "sha256": "74d2d1ffdc05a9e763dc9f1ff31a15e28dbc0bc2913b2ceedb4562203b3a98d9"
   }
 }
