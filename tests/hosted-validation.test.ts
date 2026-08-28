@@ -91,7 +91,7 @@ describe('hosted validation contract', () => {
           'jobs:',
           '  build:',
           '    steps:',
-          '      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683',
+          '      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09',
         ].join('\n'),
         'fixture.yml',
       ),
