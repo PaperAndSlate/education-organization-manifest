@@ -66,15 +66,68 @@ async function writeSearchIndex(directory) {
 }
 
 function stripMarkup(value) {
-  return value
-    .replace(/<script[\s\S]*?<\/script>/giu, ' ')
-    .replace(/<style[\s\S]*?<\/style>/giu, ' ')
-    .replace(/<[^>]+>/gu, ' ')
+  const lower = value.toLowerCase();
+  let output = '';
+  let cursor = 0;
+  while (cursor < value.length) {
+    const tagStart = value.indexOf('<', cursor);
+    if (tagStart < 0) {
+      output += value.slice(cursor);
+      break;
+    }
+    output += value.slice(cursor, tagStart);
+    const tagEnd = findTagEnd(value, tagStart);
+    if (tagEnd < 0) break;
+    const tagName = readTagName(value, tagStart, tagEnd);
+    cursor = tagEnd + 1;
+    if (tagName === 'script' || tagName === 'style') {
+      const closingStart = findClosingTag(lower, cursor, tagName);
+      if (closingStart < 0) break;
+      const closingEnd = findTagEnd(value, closingStart);
+      if (closingEnd < 0) break;
+      cursor = closingEnd + 1;
+    }
+  }
+  return output
     .replace(/&amp;/gu, '&')
     .replace(/&lt;/gu, '<')
     .replace(/&gt;/gu, '>')
     .replace(/&quot;/gu, '"')
     .replace(/&#39;/gu, "'");
+}
+
+function findTagEnd(value, start) {
+  let quote = '';
+  for (let index = start + 1; index < value.length; index += 1) {
+    const character = value[index];
+    if (quote) {
+      if (character === quote) quote = '';
+    } else if (character === '"' || character === "'") {
+      quote = character;
+    } else if (character === '>') {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function readTagName(value, start, end) {
+  let cursor = start + 1;
+  if (value[cursor] === '/') cursor += 1;
+  while (cursor <= end && /\s/u.test(value[cursor] ?? '')) cursor += 1;
+  const nameStart = cursor;
+  while (cursor <= end && /[A-Za-z0-9]/u.test(value[cursor] ?? '')) cursor += 1;
+  return value.slice(nameStart, cursor).toLowerCase();
+}
+
+function findClosingTag(lower, start, tagName) {
+  const prefix = `</${tagName}`;
+  for (let index = start; index + prefix.length < lower.length; index += 1) {
+    if (!lower.startsWith(prefix, index)) continue;
+    const boundary = lower[index + prefix.length];
+    if (boundary === '>' || /\s/u.test(boundary ?? '')) return index;
+  }
+  return -1;
 }
 
 async function copyPublicDocs(sourceDirectory, destinationDirectory) {

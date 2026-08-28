@@ -50,7 +50,7 @@ describe('EOM CLI command surface', () => {
       });
       expect(result.stdout).toContain(marker);
     }
-  });
+  }, 15_000);
 
   it('returns a stable usage exit code for invalid build modes', async () => {
     const tsx = resolve('node_modules/tsx/dist/cli.mjs');

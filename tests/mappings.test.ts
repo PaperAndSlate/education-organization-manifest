@@ -204,4 +204,29 @@ describe('EOM interoperability mappings', () => {
     const dag = mapInput('json-feed-rss-atom', { first: shared, second: shared });
     expect(dag.findings.some((item) => item.code === 'EOM_ADAPTER_CYCLE')).toBe(false);
   });
+
+  it('parses safe RSS/Atom metadata without backtracking on malformed input', () => {
+    const feed = mapInput(
+      'json-feed-rss-atom',
+      '<rss><channel><item><guid>https://ecme-high.example/news/1</guid>' +
+        '<title>Open house</title><description><![CDATA[Public &amp; useful]]></description>' +
+        '<link href="https://ecme-high.example/news/1" /></item></channel></rss>',
+    );
+    expect(feed.findings).toHaveLength(0);
+    expect(feed.candidate).toMatchObject({
+      id: 'https://ecme-high.example/news/1',
+      name: 'Open house',
+      description: 'Public & useful',
+      url: 'https://ecme-high.example/news/1',
+    });
+
+    const malformed = mapInput('json-feed-rss-atom', `<item><title>${'unclosed '.repeat(8_000)}`, {
+      maxBytes: 100_000,
+    });
+    expect(malformed.findings).toHaveLength(0);
+    expect(malformed.candidate).toMatchObject({
+      type: 'news-item',
+      name: 'Untitled feed item',
+    });
+  });
 });
