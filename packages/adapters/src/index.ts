@@ -1143,30 +1143,33 @@ function decodeXmlEntities(value: string): string {
     '&quot;': '"',
     '&apos;': "'",
   } as const;
-  let output = '';
+  const output: string[] = [];
   let cursor = 0;
   while (cursor < value.length) {
     if (value[cursor] !== '&') {
-      output += value[cursor];
+      output.push(value[cursor] ?? '');
       cursor += 1;
       continue;
     }
-    const entityEnd = value.indexOf(';', cursor + 1);
-    if (entityEnd < 0) {
-      output += '&';
+    // Scan each malformed entity candidate once.  Searching for a semicolon
+    // from every ampersand makes input such as "&&&&..." quadratic when no
+    // semicolon is present.
+    const entityStart = cursor;
+    cursor += 1;
+    while (cursor < value.length && value[cursor] !== ';' && value[cursor] !== '&') {
       cursor += 1;
-      continue;
     }
-    const entity = value.slice(cursor, entityEnd + 1);
-    const decoded = entities[entity as keyof typeof entities];
-    if (decoded === undefined) {
-      output += entity;
+    if (value[cursor] !== ';') {
+      output.push('&');
+      cursor = entityStart + 1;
     } else {
-      output += decoded;
+      const entity = value.slice(entityStart, cursor + 1);
+      const decoded = entities[entity as keyof typeof entities];
+      output.push(decoded ?? entity);
+      cursor += 1;
     }
-    cursor = entityEnd + 1;
   }
-  return output;
+  return output.join('');
 }
 
 function unescapeIcs(value: string): string {

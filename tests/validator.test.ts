@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  MAX_STABLE_JSON_BYTES,
   parseStrictJson,
   type FetchResponse,
   type ManifestFetchResponse,
@@ -115,6 +116,17 @@ describe('EOM structural and semantic validation', () => {
     expect(cyclicResult.valid).toBe(false);
     expect(cyclicResult.findings).toEqual(
       expect.arrayContaining([expect.objectContaining({ code: 'EOM_JSON_CYCLE' })]),
+    );
+  });
+
+  it('rejects oversized runtime JSON string data before schema validation', () => {
+    const result = validateDocument(
+      { type: 'manifest', description: 'x'.repeat(MAX_STABLE_JSON_BYTES + 1) },
+      { semantic: false },
+    );
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_JSON_INPUT_TOO_LARGE' })]),
     );
   });
 
@@ -637,6 +649,37 @@ describe('EOM structural and semantic validation', () => {
     expect(result.valid).toBe(false);
     expect(result.findings).toEqual(
       expect.arrayContaining([expect.objectContaining({ code: 'EOM_RESOURCE_URL_INVALID' })]),
+    );
+  });
+
+  it('enforces one wall-clock budget across the complete publication graph', async () => {
+    const manifest = structuredClone(
+      fixture('fixtures/valid/core/minimal-school-manifest.json'),
+    ) as Record<string, unknown>;
+    manifest.capabilities = [];
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    const startedAt = Date.now();
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      maxTotalTimeMs: 25,
+      transport: {
+        fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+        fetchEom: (): Promise<FetchResponse> => new Promise(() => undefined),
+      },
+    });
+    expect(Date.now() - startedAt).toBeLessThan(500);
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_FETCH_TIMEOUT' })]),
     );
   });
 

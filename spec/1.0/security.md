@@ -1,6 +1,6 @@
 # EOM 1.0 Security Considerations
 
-EOM consumes untrusted JSON, YAML, URLs, redirects, documents, signatures, keys, and agent-generated candidates. Implementations MUST bound input size/depth/time, reject duplicate JSON keys and non-finite numbers when strict mode is used, use safe YAML parsing with bounded aliases, and avoid executing imported scripts or embedded content.
+EOM consumes untrusted JSON, YAML, URLs, redirects, documents, signatures, keys, and agent-generated candidates. Implementations MUST bound input size/depth/time for both parsed inputs and runtime values, keep bounded parsers linear in the input size, reject duplicate JSON keys and non-finite numbers when strict mode is used, use safe YAML parsing with bounded aliases, and avoid executing imported scripts or embedded content.
 
 Networked consumers and validators MUST use HTTPS by default, permit only HTTP(S), block loopback/private/link-local/multicast/metadata destinations, recheck DNS/IP safety after redirects, cap redirects/bytes/decompression/time, reject userinfo, forward no ambient cookies/authentication, and identify their user agent. Hosted endpoint auditing must be isolated and rate-limited.
 

@@ -229,4 +229,19 @@ describe('EOM interoperability mappings', () => {
       name: 'Untitled feed item',
     });
   });
+
+  it('decodes malformed XML entity candidates with linear work', () => {
+    const description = '&'.repeat(100_000);
+    const result = mapInput(
+      'json-feed-rss-atom',
+      `<item><guid>https://ecme-high.example/news/malformed</guid><title>Public notice</title>` +
+        `<description>${description}</description></item>`,
+      { maxBytes: 1_000_000 },
+    );
+    expect(result.findings).toHaveLength(0);
+    expect(result.candidate).toMatchObject({
+      type: 'news-item',
+      description,
+    });
+  });
 });

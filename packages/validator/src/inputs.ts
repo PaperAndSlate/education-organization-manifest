@@ -29,6 +29,8 @@ export const MAX_PUBLICATION_DEPTH = 128;
 export const MAX_PUBLICATION_FILE_BYTES = 64 * 1024 * 1024;
 export const MAX_PUBLICATION_TOTAL_BYTES = 256 * 1024 * 1024;
 export const MAX_PUBLICATION_DIRECTORY_ENTRIES = 100_000;
+export const DEFAULT_PUBLICATION_TIMEOUT_MS = 60_000;
+export const MAX_PUBLICATION_TIMEOUT_MS = 300_000;
 
 export interface PublicationValidationOptions extends ValidationOptions {
   readonly maxFiles?: number;
@@ -36,6 +38,8 @@ export interface PublicationValidationOptions extends ValidationOptions {
   readonly maxDepth?: number;
   readonly maxBytes?: number;
   readonly maxTotalBytes?: number;
+  /** Maximum wall-clock time for root discovery and the complete fetched graph. */
+  readonly maxTotalTimeMs?: number;
   readonly fetchGraph?: boolean;
   readonly fetch?: FetchOptions;
   readonly transport?: PublicationTransport;
@@ -318,6 +322,12 @@ export async function validatePublicationUrl(
   const files: string[] = [];
   const fetches: PublicationFetchRecord[] = [];
   const transport = options.transport;
+  const maxTotalTimeMs = positiveLimit(
+    options.maxTotalTimeMs ?? options.fetch?.timeoutMs,
+    DEFAULT_PUBLICATION_TIMEOUT_MS,
+    MAX_PUBLICATION_TIMEOUT_MS,
+  );
+  const deadline = Date.now() + maxTotalTimeMs;
   const fetchOptions: FetchOptions = {
     ...options.fetch,
     ...(options.maxBytes !== undefined && options.fetch?.maxBytes === undefined
@@ -325,9 +335,14 @@ export async function validatePublicationUrl(
       : {}),
   };
   try {
-    const rootResponse = await (transport?.fetchManifest ?? fetchManifest)(
+    const rootResponse = await withPublicationDeadline(
+      () =>
+        (transport?.fetchManifest ?? fetchManifest)(
+          originOrUrl,
+          fetchOptionsForRemainingTime(fetchOptions, deadline, originOrUrl),
+        ),
+      deadline,
       originOrUrl,
-      fetchOptions,
     );
     rootUrl = rootResponse.finalUrl;
     documents[rootResponse.finalUrl] = rootResponse.document;
@@ -421,6 +436,7 @@ export async function validatePublicationUrl(
       let resourceLimitReported = false;
       let depthLimitReached = false;
       let totalBytesLimitReached = totalBytes > maxTotalBytes;
+      let graphTimedOut = false;
       const rootCacheEntry: GraphCacheEntry = {
         finalUrl: rootResponse.finalUrl,
         document: rootResponse.document,
@@ -443,6 +459,16 @@ export async function validatePublicationUrl(
         // A cross-origin discovery redirect cannot be authorized yet: the
         // redirected document is not trusted until a root manifest from the
         // requested origin has been obtained. Do not follow its declarations.
+      } else if (Date.now() >= deadline) {
+        graphTimedOut = true;
+        findings.push(
+          finding(
+            'EOM_FETCH_TIMEOUT',
+            'transport',
+            'The publication graph exceeded its time budget.',
+            { resource: rootResponse.finalUrl, severity: 'error' },
+          ),
+        );
       } else {
         const enqueueResult = enqueueResources(
           rootResponse.document,
@@ -470,7 +496,16 @@ export async function validatePublicationUrl(
         }
       }
       let fetchedResources = 0;
-      while (queue.length > 0 && fetchedResources < maxResources && !totalBytesLimitReached) {
+      while (
+        queue.length > 0 &&
+        fetchedResources < maxResources &&
+        !totalBytesLimitReached &&
+        !graphTimedOut
+      ) {
+        if (Date.now() >= deadline) {
+          graphTimedOut = true;
+          break;
+        }
         const next = queue.shift();
         if (!next) break;
         fetchedResources += 1;
@@ -489,7 +524,15 @@ export async function validatePublicationUrl(
             redirects = cached.redirects;
             cachedResponse = true;
           } else {
-            const response = await (transport?.fetchEom ?? fetchEom)(next.href, fetchOptions);
+            const response = await withPublicationDeadline(
+              () =>
+                (transport?.fetchEom ?? fetchEom)(
+                  next.href,
+                  fetchOptionsForRemainingTime(fetchOptions, deadline, next.href),
+                ),
+              deadline,
+              next.href,
+            );
             responseBytes = Buffer.byteLength(response.body, 'utf8');
             finalUrl = response.finalUrl;
             redirects = response.redirects;
@@ -637,7 +680,22 @@ export async function validatePublicationUrl(
             });
           }
           findings.push(fetchFinding(error, next.href));
+          if (Date.now() >= deadline) {
+            queue.length = 0;
+            graphTimedOut = true;
+            break;
+          }
         }
+      }
+      if (graphTimedOut && !findings.some((item) => item.code === 'EOM_FETCH_TIMEOUT')) {
+        findings.push(
+          finding(
+            'EOM_FETCH_TIMEOUT',
+            'transport',
+            'The publication graph exceeded its time budget.',
+            { resource: rootResponse.finalUrl, severity: 'error' },
+          ),
+        );
       }
       if (queue.length > 0 && !resourceLimitReported && !totalBytesLimitReached) {
         findings.push(
@@ -681,6 +739,70 @@ export async function validatePublicationUrl(
   return {
     ...publicationResult(documents, files, findings, fetches),
     ...(rootUrl ? { rootUrl } : {}),
+  };
+}
+
+function withPublicationDeadline<T>(
+  operation: () => Promise<T>,
+  deadline: number,
+  url: string,
+): Promise<T> {
+  const remaining = deadline - Date.now();
+  if (remaining <= 0) {
+    return Promise.reject(
+      new EomFetchError(
+        'EOM_FETCH_TIMEOUT',
+        'The publication graph exceeded its time budget.',
+        url,
+      ),
+    );
+  }
+  let promise: Promise<T>;
+  try {
+    promise = operation();
+  } catch (error) {
+    return Promise.reject(error instanceof Error ? error : new Error(String(error)));
+  }
+  return new Promise<T>((resolvePromise, rejectPromise) => {
+    const timer = setTimeout(() => {
+      rejectPromise(
+        new EomFetchError(
+          'EOM_FETCH_TIMEOUT',
+          'The publication graph exceeded its time budget.',
+          url,
+        ),
+      );
+    }, remaining);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolvePromise(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        rejectPromise(error instanceof Error ? error : new Error(String(error)));
+      },
+    );
+  });
+}
+
+function fetchOptionsForRemainingTime(
+  options: FetchOptions,
+  deadline: number,
+  url: string,
+): FetchOptions {
+  const remaining = deadline - Date.now();
+  if (remaining <= 0) {
+    throw new EomFetchError(
+      'EOM_FETCH_TIMEOUT',
+      'The publication graph exceeded its time budget.',
+      url,
+    );
+  }
+  const configuredTimeout = options.timeoutMs ?? remaining;
+  return {
+    ...options,
+    timeoutMs: Math.max(1, Math.min(configuredTimeout, remaining)),
   };
 }
 
