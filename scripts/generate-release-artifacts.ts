@@ -17,6 +17,7 @@ import { basename, extname, dirname, join, parse, relative, resolve } from 'node
 import { parse as parseYaml } from 'yaml';
 import { format as formatJson } from 'prettier';
 import { isJsonObject, parseStrictJson, stringifyCanonical } from '@paperandslate/eom-core';
+import { normalizeFsPath } from '@paperandslate/eom-core/fs-path';
 import { readSecurityScanEvidence } from './security-scan-evidence.js';
 import { MAX_TAR_BYTES, createTarGz, readTarGz, type TarEntry } from './tar.js';
 import { pnpmInvocation } from './pnpm-runner.js';
@@ -1021,11 +1022,6 @@ async function walk(
 
 function isExcludedArchiveDirectory(name: string): boolean {
   return ['.git', 'dist', 'node_modules', 'generated', 'build'].includes(name);
-}
-
-function normalizeFsPath(value: string): string {
-  const resolved = resolve(value);
-  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 async function readReleaseInput(path: string, allowedRoot = root): Promise<Buffer> {

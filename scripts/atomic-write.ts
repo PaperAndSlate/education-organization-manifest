@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { lstat, mkdir, realpath, rename, unlink, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, parse, resolve } from 'node:path';
+import { normalizeFsPath } from '@paperandslate/eom-core/fs-path';
 
 /**
  * Verify that a generated-output directory is a real directory at its
@@ -16,7 +17,7 @@ export async function ensureRealDirectory(path: string): Promise<void> {
   const canonicalPath = await realpath(path);
   if (
     parse(canonicalPath).root.length === 0 ||
-    normalizePath(canonicalPath) !== normalizePath(resolvedPath)
+    normalizeFsPath(canonicalPath) !== normalizeFsPath(resolvedPath)
   ) {
     throw new Error(`generated output directory must not traverse a link: ${path}`);
   }
@@ -53,10 +54,6 @@ export async function ensureRealDirectoryTree(path: string): Promise<void> {
     await ensureRealDirectory(child);
     stableParent = await realpath(child);
   }
-}
-
-function normalizePath(path: string): string {
-  return process.platform === 'win32' ? path.toLowerCase() : path;
 }
 
 /** Replace a generated regular file without following an existing link. */

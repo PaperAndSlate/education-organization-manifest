@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { lstat, readFile, realpath } from 'node:fs/promises';
 import { join, parse, relative, resolve } from 'node:path';
 import { isJsonObject, parseStrictJson } from '@paperandslate/eom-core';
+import { normalizeFsPath } from '@paperandslate/eom-core/fs-path';
 import { readSecurityScanEvidence } from './security-scan-evidence.js';
 import { pnpmInvocation } from './pnpm-runner.js';
 import { safeChildEnvironment } from './safe-child-env.js';
@@ -353,11 +354,6 @@ async function readReleaseFile(path: string): Promise<Buffer> {
     throw new Error(`Release evidence escapes release/: ${path}`);
   }
   return readFile(path);
-}
-
-function normalizeFsPath(value: string): string {
-  const resolved = resolve(value);
-  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

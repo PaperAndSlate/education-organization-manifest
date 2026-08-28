@@ -6,6 +6,7 @@ import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
 import { basename, join, resolve } from 'node:path';
 import { isBlockedIp, isPrivateOrLocalHostname } from './ids.js';
+import { normalizeFsPath } from './fs-path.js';
 import { parseStrictJson, type JsonValue } from './json.js';
 
 export const EOM_DISCOVERY_PATH = '/.well-known/educational-organization-manifest';
@@ -1059,11 +1060,6 @@ async function ensureStableCacheDirectory(path: string): Promise<string | undefi
     stable = actual;
   }
   return stable;
-}
-
-function normalizeFsPath(value: string): string {
-  const resolved = resolve(value);
-  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 function cacheKeyFor(url: string, method: string): string {

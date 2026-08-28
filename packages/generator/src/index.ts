@@ -37,6 +37,7 @@ import {
   type JsonObject,
   type JsonValue,
 } from '@paperandslate/eom-core';
+import { normalizeFsPath } from '@paperandslate/eom-core/fs-path';
 import { lintPublication } from '@paperandslate/eom-linter';
 import {
   publicationSetFindings,
@@ -1770,11 +1771,6 @@ async function assertNoSymlinkEscape(path: string): Promise<void> {
   } catch (error) {
     if (error instanceof GeneratorInputError || !isNotFound(error)) throw error;
   }
-}
-
-function normalizeFsPath(value: string): string {
-  const resolved = resolve(value);
-  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 function matchingFiles(

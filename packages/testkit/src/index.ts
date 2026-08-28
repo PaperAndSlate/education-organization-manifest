@@ -15,6 +15,7 @@ import {
   type JsonObject,
   type JsonValue,
 } from '@paperandslate/eom-core';
+import { normalizeFsPath } from '@paperandslate/eom-core/fs-path';
 import {
   evaluateAuthority,
   resourceDescriptorMatchesDocument,
@@ -1087,11 +1088,6 @@ async function assertStableDirectory(path: string): Promise<void> {
   if (normalizeFsPath(actual) !== normalizeFsPath(path)) {
     throw new Error(`${path} must not traverse a symbolic link.`);
   }
-}
-
-function normalizeFsPath(value: string): string {
-  const resolved = resolve(value);
-  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 function decodeUtf8(bytes: Uint8Array, source: string): string {

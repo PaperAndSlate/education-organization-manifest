@@ -13,6 +13,7 @@ import {
   type FetchOptions,
   type FetchResponse,
 } from '@paperandslate/eom-core';
+import { normalizeFsPath } from '@paperandslate/eom-core/fs-path';
 import {
   evaluateAuthority,
   resourceDescriptorMatchesDocument,
@@ -304,11 +305,6 @@ async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> 
   } finally {
     await handle.close();
   }
-}
-
-function normalizeFsPath(value: string): string {
-  const resolved = resolve(value);
-  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 /** Retrieve and validate a public manifest and its declared resource graph. */

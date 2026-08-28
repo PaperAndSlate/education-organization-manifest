@@ -2,6 +2,7 @@ import { lstat, mkdtemp, readFile, readdir, realpath, rm } from 'node:fs/promise
 import { tmpdir } from 'node:os';
 import { join, parse, relative, resolve } from 'node:path';
 import { parseStrictJson } from '@paperandslate/eom-core';
+import { normalizeFsPath } from '@paperandslate/eom-core/fs-path';
 import { prepareReleaseArtifacts } from './generate-release-artifacts.js';
 
 const root = resolve(process.cwd());
@@ -113,9 +114,4 @@ function isWithin(parent: string, child: string): boolean {
   const childPath = normalizeFsPath(child);
   const suffix = relative(parentPath, childPath);
   return suffix === '' || (!suffix.startsWith('..') && !parse(suffix).root);
-}
-
-function normalizeFsPath(value: string): string {
-  const resolved = resolve(value);
-  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }

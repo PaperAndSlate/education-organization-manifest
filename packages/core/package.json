@@ -29,6 +29,11 @@
       "types": "./dist/time.d.ts",
       "import": "./dist/time.js",
       "default": "./dist/time.js"
+    },
+    "./fs-path": {
+      "types": "./dist/fs-path.d.ts",
+      "import": "./dist/fs-path.js",
+      "default": "./dist/fs-path.js"
     }
   },
   "files": [

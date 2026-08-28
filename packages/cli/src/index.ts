@@ -42,6 +42,7 @@ import {
   stringifyCanonical,
   type FetchOptions,
 } from '@paperandslate/eom-core';
+import { normalizeFsPath } from '@paperandslate/eom-core/fs-path';
 import {
   availableSchemaFiles,
   readSchema,
@@ -2652,11 +2653,6 @@ function readBoundedFileSync(path: string, limit: number, label: string): Buffer
   } finally {
     closeSync(descriptor);
   }
-}
-
-function normalizeFsPath(value: string): string {
-  const resolved = resolve(value);
-  return process.platform === 'win32' ? resolved.replaceAll('/', '\\').toLowerCase() : resolved;
 }
 
 async function readTextInput(file: string): Promise<string> {
