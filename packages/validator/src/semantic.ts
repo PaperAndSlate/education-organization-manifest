@@ -10,6 +10,15 @@ export interface SemanticOptions {
   readonly now?: Date;
 }
 
+/**
+ * Bounds the amount of pairwise work performed while checking reused course
+ * codes. The input parser already bounds bytes, depth, and nodes, but a
+ * catalog can still contain enough same-code entries to make an unbounded
+ * pairwise comparison expensive.
+ */
+export const MAX_SEMANTIC_COURSE_CODE_COMPARISONS = 100_000;
+export const MAX_SEMANTIC_COURSE_CODE_FINDINGS = 4_096;
+
 export function semanticFindings(document: unknown, options: SemanticOptions = {}): Finding[] {
   if (!isRecord(document)) {
     return [
@@ -331,6 +340,9 @@ function inspectCourseCatalog(document: UnknownRecord, findings: Finding[]): voi
   const courseIds = new Set<string>();
   const graph = new Map<string, readonly string[]>();
   const codes = new Map<string, CourseCodeEntry[]>();
+  let courseCodeComparisons = 0;
+  let courseCodeOverlapFindings = 0;
+  let courseCodeWorkLimited = false;
 
   for (const value of items) {
     if (isRecord(value) && stringValue(value.type) === 'course' && typeof value.id === 'string') {
@@ -417,8 +429,22 @@ function inspectCourseCatalog(document: UnknownRecord, findings: Finding[]): voi
         ...(until ? { until } : {}),
       };
       const entries = codes.get(value.code) ?? [];
-      for (const previous of entries) {
-        if (previous.id !== entry.id && periodsOverlap(previous, entry)) {
+      if (!courseCodeWorkLimited) {
+        for (const previous of entries) {
+          if (previous.id === entry.id) continue;
+          if (courseCodeComparisons >= MAX_SEMANTIC_COURSE_CODE_COMPARISONS) {
+            reportCourseCodeWorkLimit(findings, pointer);
+            courseCodeWorkLimited = true;
+            break;
+          }
+          courseCodeComparisons += 1;
+          if (!periodsOverlap(previous, entry)) continue;
+          if (courseCodeOverlapFindings >= MAX_SEMANTIC_COURSE_CODE_FINDINGS) {
+            reportCourseCodeWorkLimit(findings, pointer);
+            courseCodeWorkLimited = true;
+            break;
+          }
+          courseCodeOverlapFindings += 1;
           findings.push(
             finding(
               'EOM_COURSE_CODE_OVERLAP',
@@ -431,6 +457,10 @@ function inspectCourseCatalog(document: UnknownRecord, findings: Finding[]): voi
               },
             ),
           );
+          // One finding per new course is sufficient to identify the
+          // duplicate code while keeping overlapping inputs linear in the
+          // common all-overlap case.
+          break;
         }
       }
       entries.push(entry);
@@ -456,6 +486,21 @@ function inspectCourseCatalog(document: UnknownRecord, findings: Finding[]): voi
       ),
     );
   }
+}
+
+function reportCourseCodeWorkLimit(findings: Finding[], pointer: string): void {
+  if (findings.some((item) => item.code === 'EOM_SEMANTIC_WORK_LIMIT')) return;
+  findings.push(
+    finding(
+      'EOM_SEMANTIC_WORK_LIMIT',
+      'security',
+      'The semantic course-code comparison budget was exceeded; validation stopped checking additional reused codes.',
+      {
+        pointer: `${pointer}/code`,
+        help: 'Split the catalog or reduce repeated course-code comparisons before validating it again.',
+      },
+    ),
+  );
 }
 
 interface CourseCodeEntry {

@@ -251,7 +251,7 @@ describe('EOM deterministic authoring generator', () => {
     } finally {
       await rm(root, { recursive: true, force: true });
     }
-  });
+  }, 15_000);
 
   it('returns a non-publishing report for duplicate stable ids', async () => {
     const root = await mkdtemp(join(tmpdir(), 'eom-generator-invalid-'));

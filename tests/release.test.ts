@@ -3,17 +3,26 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseStrictJson } from '@paperandslate/eom-core';
-import { CLEAN_PACKAGE_INSTALL_ARGS } from '../scripts/package-install-options.js';
+import {
+  CLEAN_PACKAGE_INSTALL_ARGS,
+  CLEAN_PACKAGE_LOCK_ARGS,
+} from '../scripts/package-install-options.js';
 
 const root = resolve(process.cwd());
 
 describe('EOM release evidence', () => {
   it('keeps clean package smoke installs usable on fresh hosted caches', () => {
+    expect(CLEAN_PACKAGE_LOCK_ARGS).toEqual([
+      'install',
+      '--lockfile-only',
+      '--prefer-offline',
+      '--ignore-scripts',
+    ]);
     expect(CLEAN_PACKAGE_INSTALL_ARGS).toEqual([
       'install',
       '--prefer-offline',
+      '--frozen-lockfile',
       '--ignore-scripts',
-      '--no-frozen-lockfile',
     ]);
     expect(CLEAN_PACKAGE_INSTALL_ARGS).not.toContain('--offline');
   });
@@ -22,7 +31,31 @@ describe('EOM release evidence', () => {
     const packageCheck = readFileSync(join(root, 'scripts', 'check-packages.ts'), 'utf8');
     expect(packageCheck).toContain("join(smokeRoot, 'pnpm-workspace.yaml')");
     expect(packageCheck).toContain('file:./');
+    expect(packageCheck).toContain('safeChildEnvironment()');
     expect(packageCheck).not.toMatch(/pnpm:\s*\{\s*overrides/u);
+  });
+
+  it('does not pass ambient environment variables into release package commands', () => {
+    const releaseTooling = readFileSync(
+      join(root, 'scripts', 'generate-release-artifacts.ts'),
+      'utf8',
+    );
+    expect(releaseTooling).toContain("import { safeChildEnvironment } from './safe-child-env.js';");
+    expect(releaseTooling).toContain('env: safeChildEnvironment()');
+    expect(releaseTooling).toContain('assertPinnedPnpmVersion();');
+    expect(releaseTooling).toContain("version !== '10.6.0'");
+  });
+
+  it('derives package policy from parsed tar entries', () => {
+    const packageCheck = readFileSync(join(root, 'scripts', 'check-packages.ts'), 'utf8');
+    const releaseTooling = readFileSync(
+      join(root, 'scripts', 'generate-release-artifacts.ts'),
+      'utf8',
+    );
+    expect(packageCheck).toContain('const actualEntries = readTarGz(');
+    expect(packageCheck).toContain('pnpm pack file metadata does not match the tarball.');
+    expect(releaseTooling).toContain('const actualFiles = tarEntries');
+    expect(releaseTooling).toContain('pnpm pack file metadata does not match the tarball.');
   });
 
   it('contains a self-consistent candidate manifest and checksums', () => {

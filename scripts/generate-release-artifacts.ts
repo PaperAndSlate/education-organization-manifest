@@ -19,6 +19,7 @@ import { format as formatJson } from 'prettier';
 import { isJsonObject, parseStrictJson, stringifyCanonical } from '@paperandslate/eom-core';
 import { normalizeFsPath } from '@paperandslate/eom-core/fs-path';
 import { readSecurityScanEvidence } from './security-scan-evidence.js';
+import { safeChildEnvironment } from './safe-child-env.js';
 import { MAX_TAR_BYTES, createTarGz, readTarGz, type TarEntry } from './tar.js';
 import { pnpmInvocation } from './pnpm-runner.js';
 
@@ -93,6 +94,7 @@ export async function prepareReleaseArtifacts(
   }
 
   await assertSafeReleaseOutputRoot(targetRoot);
+  assertPinnedPnpmVersion();
   buildWorkspacePackages();
   const generatedAt = new Date(sourceDateEpoch * 1000).toISOString();
   const candidateDirectory = join(targetRoot, `v${RELEASE_VERSION}`);
@@ -152,6 +154,7 @@ export async function prepareReleaseArtifacts(
   const packageManifests = await readWorkspacePackageManifests();
   const packagePacks = await createPackagePackArtifacts(targetRoot, sourceCommit, sourceTree);
   const lockBytes = await readFile(join(root, 'pnpm-lock.yaml'));
+  const lockedDependencies = await readLockedDependencies(lockBytes, packageManifests);
   const sbom = {
     bomFormat: 'CycloneDX',
     specVersion: '1.5',
@@ -168,7 +171,11 @@ export async function prepareReleaseArtifacts(
         { name: 'eom.pnpmLockSha256', value: sha256(lockBytes) },
       ],
     },
-    components: [...packageManifests, ...(await readLockedExternalComponents(lockBytes))],
+    components: [
+      ...packageManifests,
+      ...(await readLockedExternalComponents(lockBytes, lockedDependencies.scopes)),
+    ],
+    dependencies: lockedDependencies.dependencies,
   };
   const sbomBytes = Buffer.from(stringifyCanonical(sbom as never), 'utf8');
   const sbomPath = join(targetRoot, 'sbom.cdx.json');
@@ -305,8 +312,45 @@ interface PackedPackageRecord {
   readonly files: readonly string[];
 }
 
+interface Lockfile {
+  readonly importers?: Record<string, LockImporter>;
+  readonly packages?: Record<string, LockPackage>;
+  readonly snapshots?: Record<string, LockSnapshot>;
+}
+
+interface LockImporter {
+  readonly dependencies?: Record<string, LockReference>;
+  readonly optionalDependencies?: Record<string, LockReference>;
+  readonly devDependencies?: Record<string, LockReference>;
+}
+
+interface LockReference {
+  readonly version?: string;
+}
+
+interface LockPackage {
+  readonly resolution?: { readonly integrity?: unknown };
+}
+
+interface LockSnapshot {
+  readonly dependencies?: Record<string, string>;
+  readonly optionalDependencies?: Record<string, string>;
+}
+
 function buildWorkspacePackages(): void {
   runPnpm(['build'], { cwd: root, encoding: 'utf8', stdio: 'inherit' });
+}
+
+function assertPinnedPnpmVersion(): void {
+  const invocation = pnpmInvocation(['--version']);
+  const version = execFileSync(invocation.command, invocation.args, {
+    cwd: root,
+    encoding: 'utf8',
+    env: safeChildEnvironment(),
+  }).trim();
+  if (version !== '10.6.0') {
+    throw new Error(`Release preparation requires pnpm 10.6.0, found ${version || 'unknown'}.`);
+  }
 }
 
 async function createPackagePackArtifacts(
@@ -357,8 +401,19 @@ async function createPackagePackArtifacts(
       if (!isWithin(temporaryDirectory, tarballPath)) {
         throw new Error(`${packageJson.name}: pnpm pack returned a tarball outside its temp root.`);
       }
-      const packedBytes = await readFile(tarballPath);
+      const packedBytes = await readReleaseInput(tarballPath, temporaryDirectory);
       const tarEntries = readTarGz(packedBytes);
+      const actualFiles = tarEntries
+        .map((entry) => packageFilePath(entry.path))
+        .sort(compareStrings);
+      const reportedFiles = packed.files
+        ?.map((entry) => entry.path)
+        .filter((path): path is string => typeof path === 'string')
+        .map(packageFilePath)
+        .sort(compareStrings);
+      if (reportedFiles && !reportedFilesArePresent(reportedFiles, actualFiles)) {
+        throw new Error(`${packageJson.name}: pnpm pack file metadata does not match the tarball.`);
+      }
       const normalizedEntries = tarEntries.map((entry) =>
         entry.path === 'package/package.json'
           ? {
@@ -373,12 +428,7 @@ async function createPackagePackArtifacts(
           : entry,
       );
       const bytes = createTarGz(normalizedEntries);
-      const files =
-        packed.files
-          ?.map((entry) => entry.path)
-          .filter((path): path is string => typeof path === 'string')
-          .map(packageFilePath)
-          .sort(compareStrings) ?? tarEntries.map((entry) => packageFilePath(entry.path));
+      const files = actualFiles;
       if (files.some((file) => file.startsWith('src/'))) {
         throw new Error(`${packageJson.name}: source files cannot enter a release package.`);
       }
@@ -432,6 +482,13 @@ async function createPackagePackArtifacts(
 
 function packageFilePath(path: string): string {
   return path.startsWith('package/') ? path.slice('package/'.length) : path;
+}
+
+function reportedFilesArePresent(reported: readonly string[], actual: readonly string[]): boolean {
+  const actualSet = new Set(actual);
+  return (
+    new Set(reported).size === reported.length && reported.every((path) => actualSet.has(path))
+  );
 }
 
 async function workspacePackageDirectories(): Promise<string[]> {
@@ -668,6 +725,7 @@ async function readWorkspacePackageManifests(): Promise<readonly Record<string, 
 
 async function readLockedExternalComponents(
   lockBytes: Buffer,
+  scopes: ReadonlyMap<string, 'required' | 'optional' | 'excluded'> = new Map(),
 ): Promise<readonly Record<string, unknown>[]> {
   const lock = parseYaml(lockBytes.toString('utf8')) as {
     packages?: Record<string, unknown>;
@@ -686,21 +744,240 @@ async function readLockedExternalComponents(
   for (const key of Object.keys(lock.packages ?? {}).sort()) {
     const parsed = parseLockPackageKey(key);
     if (!parsed || workspaceNames.has(parsed.name)) continue;
+    const packageRecord = isJsonObject(lock.packages?.[key]) ? lock.packages[key] : {};
     const purl = `pkg:npm/${parsed.name}@${parsed.version}`;
     const component: Record<string, unknown> = {
       type: 'library',
       name: parsed.name.startsWith('@') ? parsed.name.split('/')[1] : parsed.name,
       version: parsed.version,
-      scope: 'required',
+      scope: scopes.get(purl) ?? 'excluded',
       'bom-ref': purl,
       purl,
     };
     if (parsed.name.startsWith('@')) component.group = parsed.name.split('/')[0]?.slice(1);
+    const resolution = isJsonObject(packageRecord.resolution) ? packageRecord.resolution : {};
+    const integrity = typeof resolution.integrity === 'string' ? resolution.integrity : undefined;
+    const hash = integrityHash(integrity);
+    if (hash) component.hashes = [hash];
     components.set(purl, component);
   }
   return [...components.values()].sort((left, right) =>
     compareStrings(String(left.purl), String(right.purl)),
   );
+}
+
+async function readLockedDependencies(
+  lockBytes: Buffer,
+  workspaceComponents: readonly Record<string, unknown>[],
+): Promise<{
+  readonly dependencies: readonly Record<string, unknown>[];
+  readonly scopes: ReadonlyMap<string, 'required' | 'optional' | 'excluded'>;
+}> {
+  const lock = parseYaml(lockBytes.toString('utf8')) as Lockfile;
+  const workspaceNames = new Set<string>();
+  for (const component of workspaceComponents) {
+    const purl = typeof component.purl === 'string' ? component.purl : undefined;
+    const name = purl ? purlName(purl) : undefined;
+    if (name) workspaceNames.add(name);
+  }
+  const packagePurls = new Map<string, string>();
+  for (const key of Object.keys(lock.packages ?? {}).sort(compareStrings)) {
+    const parsed = parseLockPackageKey(key);
+    if (!parsed || workspaceNames.has(parsed.name)) continue;
+    packagePurls.set(key, `pkg:npm/${parsed.name}@${parsed.version}`);
+  }
+  const workspacePurls = new Map<string, string>();
+  for (const component of workspaceComponents) {
+    const purl = typeof component.purl === 'string' ? component.purl : undefined;
+    const name = purl ? purlName(purl) : undefined;
+    if (name && purl) workspacePurls.set(name, purl);
+  }
+  const workspaceImporterPurls = await readWorkspaceImporterPurls(workspaceComponents);
+
+  const scopes = new Map<string, 'required' | 'optional' | 'excluded'>();
+  const requiredRoots: string[] = [];
+  const optionalRoots: string[] = [];
+  const developmentRoots: string[] = [];
+  const dependencyEdges = new Map<string, Set<string>>();
+  for (const [importerPath, importer] of Object.entries(lock.importers ?? {})) {
+    const importerPurl = workspaceImporterPurls.get(importerPath);
+    addImporterReferences(
+      importer?.dependencies,
+      'required',
+      requiredRoots,
+      dependencyEdges,
+      workspacePurls,
+      packagePurls,
+      scopes,
+      importerPurl,
+    );
+    addImporterReferences(
+      importer?.optionalDependencies,
+      'optional',
+      optionalRoots,
+      dependencyEdges,
+      workspacePurls,
+      packagePurls,
+      scopes,
+      importerPurl,
+    );
+    addImporterReferences(
+      importer?.devDependencies,
+      'excluded',
+      developmentRoots,
+      dependencyEdges,
+      workspacePurls,
+      packagePurls,
+      scopes,
+      importerPurl,
+    );
+  }
+
+  for (const [key, purl] of packagePurls) {
+    const snapshot = lock.snapshots?.[key];
+    if (!snapshot) continue;
+    const edges = dependencyEdges.get(purl) ?? new Set<string>();
+    for (const [name, reference] of Object.entries({
+      ...snapshot.dependencies,
+      ...snapshot.optionalDependencies,
+    })) {
+      const dependency = resolveLockReference(name, reference, workspacePurls, packagePurls);
+      if (dependency) edges.add(dependency);
+    }
+    dependencyEdges.set(purl, edges);
+  }
+
+  const required = reachable(requiredRoots, dependencyEdges);
+  const optional = reachable(optionalRoots, dependencyEdges);
+  const development = reachable(developmentRoots, dependencyEdges);
+  for (const purl of new Set([...packagePurls.values(), ...workspacePurls.values()])) {
+    if (required.has(purl)) scopes.set(purl, 'required');
+    else if (optional.has(purl)) scopes.set(purl, 'optional');
+    else if (development.has(purl)) scopes.set(purl, 'excluded');
+  }
+
+  const components = new Set([...packagePurls.values(), ...workspacePurls.values()]);
+  return {
+    dependencies: [...components].sort(compareStrings).map((ref) => ({
+      ref,
+      dependsOn: [...(dependencyEdges.get(ref) ?? [])].sort(compareStrings),
+    })),
+    scopes,
+  };
+}
+
+async function readWorkspaceImporterPurls(
+  workspaceComponents: readonly Record<string, unknown>[],
+): Promise<Map<string, string>> {
+  const purlsByName = new Map<string, string>();
+  for (const component of workspaceComponents) {
+    const purl = typeof component.purl === 'string' ? component.purl : undefined;
+    const name = purl ? purlName(purl) : undefined;
+    if (name && purl) purlsByName.set(name, purl);
+  }
+  const paths = [
+    join(root, 'package.json'),
+    ...(await walk(join(root, 'packages'))),
+    ...(await walk(join(root, 'apps'))),
+  ].filter((path) => path.endsWith('package.json'));
+  const result = new Map<string, string>();
+  for (const path of paths) {
+    const value = parseStrictJson(await readFile(path, 'utf8'), path);
+    const name = isJsonObject(value) && typeof value.name === 'string' ? value.name : undefined;
+    const purl = name ? purlsByName.get(name) : undefined;
+    if (purl) {
+      const importerPath = relative(root, dirname(path)).replaceAll('\\', '/') || '.';
+      result.set(importerPath, purl);
+    }
+  }
+  return result;
+}
+
+function addImporterReferences(
+  references: Record<string, LockReference> | undefined,
+  scope: 'required' | 'optional' | 'excluded',
+  roots: string[],
+  edges: Map<string, Set<string>>,
+  workspacePurls: Map<string, string>,
+  packagePurls: Map<string, string>,
+  scopes: Map<string, 'required' | 'optional' | 'excluded'>,
+  importerPurl: string | undefined,
+): void {
+  for (const [name, reference] of Object.entries(references ?? {})) {
+    const purl = resolveLockReference(name, reference, workspacePurls, packagePurls);
+    if (!purl) continue;
+    roots.push(purl);
+    const previous = scopes.get(purl);
+    if (previous !== 'required' && (previous === undefined || scope === 'required')) {
+      scopes.set(purl, scope);
+    }
+    if (!edges.has(purl)) edges.set(purl, new Set());
+    if (importerPurl) {
+      const importerEdges = edges.get(importerPurl) ?? new Set<string>();
+      importerEdges.add(purl);
+      edges.set(importerPurl, importerEdges);
+    }
+  }
+}
+
+function resolveLockReference(
+  name: string,
+  reference: LockReference | string | undefined,
+  workspacePurls: Map<string, string>,
+  packagePurls: Map<string, string>,
+): string | undefined {
+  const version = typeof reference === 'string' ? reference : reference?.version;
+  if (!version) return undefined;
+  if (version.startsWith('link:')) return workspacePurls.get(name);
+  const normalizedVersion = version.split('(', 1)[0];
+  const exactKey = `${name}@${normalizedVersion}`;
+  const matchingKey = packagePurls.has(exactKey)
+    ? exactKey
+    : [...packagePurls.keys()].find((key) => {
+        const parsed = parseLockPackageKey(key);
+        return parsed?.name === name && parsed.version === normalizedVersion;
+      });
+  return matchingKey ? packagePurls.get(matchingKey) : undefined;
+}
+
+function reachable(roots: readonly string[], edges: Map<string, Set<string>>): Set<string> {
+  const seen = new Set<string>();
+  const pending = [...roots];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    if (!current || seen.has(current)) continue;
+    seen.add(current);
+    pending.push(...(edges.get(current) ?? []));
+  }
+  return seen;
+}
+
+function purlName(purl: string): string | undefined {
+  const value = purl.startsWith('pkg:npm/') ? purl.slice('pkg:npm/'.length) : '';
+  const separator = value.lastIndexOf('@');
+  return separator > 0 ? value.slice(0, separator) : undefined;
+}
+
+function integrityHash(integrity: string | undefined): Record<string, string> | undefined {
+  if (!integrity) return undefined;
+  const candidates = integrity
+    .split(/\s+/u)
+    .map((value) => /^([a-z0-9]+)-([A-Za-z0-9+/]+={0,2})$/u.exec(value))
+    .filter((match): match is RegExpExecArray => match !== null)
+    .sort((left, right) => hashStrength(right[1]!) - hashStrength(left[1]!));
+  const selected = candidates[0];
+  if (!selected) return undefined;
+  const algorithm = selected[1]!.toUpperCase().replace(/^SHA(?=\d)/u, 'SHA-');
+  if (!['SHA-1', 'SHA-256', 'SHA-384', 'SHA-512'].includes(algorithm)) return undefined;
+  try {
+    return { algorithm, value: Buffer.from(selected[2]!, 'base64').toString('hex') };
+  } catch {
+    return undefined;
+  }
+}
+
+function hashStrength(algorithm: string): number {
+  return { sha512: 4, sha384: 3, sha256: 2, sha1: 1 }[algorithm.toLowerCase()] ?? 0;
 }
 
 function compareStrings(left: string, right: string): number {
@@ -752,7 +1029,11 @@ function runPnpm(
   options: Parameters<typeof execFileSync>[2],
 ): Buffer | string {
   const invocation = pnpmInvocation(args);
-  return execFileSync(invocation.command, invocation.args, options);
+  const safeOptions =
+    options && typeof options === 'object'
+      ? { ...options, env: safeChildEnvironment() }
+      : { env: safeChildEnvironment() };
+  return execFileSync(invocation.command, invocation.args, safeOptions);
 }
 
 function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {

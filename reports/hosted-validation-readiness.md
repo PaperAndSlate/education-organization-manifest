@@ -1,8 +1,9 @@
 # Hosted validation readiness
 
-This report records the engineering changes that prepare the repository for
-hosted execution after the local RC3 evidence phase. It is not an RC3 release
-report and does not rebind the existing RC3 evidence.
+This report records the engineering changes and hosted execution evidence that
+prepare the repository for remote validation after the local RC3 evidence
+phase. It is not an RC3 release report and does not rebind the existing RC3
+evidence.
 
 ## Evidence boundary
 
@@ -16,6 +17,25 @@ The preserved RC3 evidence remains bound to:
 Hosted-readiness changes are post-RC3 source changes. A future release packet
 must be regenerated and rescanned from the commit that contains them; this
 report must not be used as evidence that the existing RC3 packet covers them.
+
+## Hosted execution evidence
+
+The implementation candidate at source revision
+`661c0b5c0385ff990872c3a3571895507eaaa8c8` completed the following pull-request
+workflows successfully:
+
+- [CI run 33223565091](https://github.com/PaperAndSlate/education-organization-manifest/actions/runs/33223565091): all six Ubuntu, Windows, and macOS jobs passed for Node `24.17.0` and `24.x`.
+- [CodeQL run 33223565098](https://github.com/PaperAndSlate/education-organization-manifest/actions/runs/33223565098): pull-request JavaScript/TypeScript analysis passed; SARIF upload was intentionally skipped for the untrusted PR event.
+- [Supply-chain and security run 33223565104](https://github.com/PaperAndSlate/education-organization-manifest/actions/runs/33223565104): dependency review, secret scan, REUSE, and local-security jobs passed.
+
+The matrix jobs ran the complete `pnpm verify:hosted` surface described below,
+including clean package packing/consumer imports, browser and accessibility
+tests, deterministic generation, examples, documentation, conformance, and
+hosted structural traceability. These runs are hosted implementation evidence,
+not a release publication, certification, or external interoperability result.
+The exact run identities for any later report-only or evidence-only revision
+must be read from the pull-request check rollup rather than inferred from this
+candidate entry.
 
 ## Hosted workflow coverage
 
@@ -126,9 +146,10 @@ scan path.
 
 ## External and hosted gates
 
-This report does not claim hosted execution, CodeQL findings, dependency review
-results, cross-platform success, branch-protection configuration, IANA
-registration, independent interoperability, legal or governance approval,
-pilots/adoption, deployment, or stable publication. Those require the actual
-hosted or external evidence and remain pending or blocked as previously
-recorded.
+This report does not claim CodeQL findings, dependency review results,
+branch-protection configuration, IANA registration, independent
+interoperability, legal or governance approval, pilots/adoption, deployment,
+or stable publication. Those require the actual hosted or external evidence
+and remain pending or blocked as previously recorded. The hosted execution
+results above are limited to the named implementation candidate and do not
+satisfy the external gates.

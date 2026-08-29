@@ -13,8 +13,40 @@ import {
   startFixturePublisher,
 } from '@paperandslate/eom-testkit';
 import { validateDocument } from '@paperandslate/eom-validator';
+import {
+  isLoopbackFixtureOrigin,
+  runConformanceCli,
+} from '../apps/conformance-runner/src/index.js';
 
 describe('EOM offline conformance testkit', () => {
+  it('limits network safety overrides to explicit loopback fixture publishers', async () => {
+    expect(isLoopbackFixtureOrigin('http://127.0.0.1:4174')).toBe(true);
+    expect(isLoopbackFixtureOrigin('http://[::1]:4174')).toBe(true);
+    expect(isLoopbackFixtureOrigin('https://127.0.0.1:4174')).toBe(false);
+    expect(isLoopbackFixtureOrigin('http://localhost:4174')).toBe(false);
+
+    await expect(
+      runConformanceCli([
+        'examples/ecme-high/public',
+        '--origin',
+        'https://publisher.example',
+        '--allow-private-hosts',
+      ]),
+    ).resolves.toBe(2);
+    await expect(
+      runConformanceCli([
+        'examples/ecme-high/public',
+        '--mode',
+        'consumer',
+        '--origin',
+        'http://127.0.0.1:4174',
+        '--fixture-authority-origin',
+        'https://ecme-high.example',
+        '--allow-http',
+      ]),
+    ).resolves.toBe(2);
+  });
+
   it('runs the complete fictional Ecme publication through the core publisher profile', async () => {
     const report = await runConformance({
       directory: resolve('examples/ecme-high/public'),

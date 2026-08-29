@@ -1,6 +1,17 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
-import { lstat, mkdir, mkdtemp, open, opendir, realpath, rename, rm, stat } from 'node:fs/promises';
+import {
+  lstat,
+  mkdir,
+  mkdtemp,
+  open,
+  opendir,
+  readFile,
+  realpath,
+  rename,
+  rm,
+  stat,
+} from 'node:fs/promises';
 import { request as httpRequest, type ClientRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
@@ -15,11 +26,14 @@ export const DEFAULT_FETCH_MAX_REDIRECTS = 5;
 export const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
 export const DEFAULT_FETCH_CACHE_MAX_AGE_MS = 5 * 60 * 1000;
 export const DEFAULT_FETCH_CACHE_MAX_ENTRIES = 128;
+export const DEFAULT_FETCH_CACHE_MAX_BYTES = 64 * 1024 * 1024;
 export const MAX_FETCH_BYTES = 64 * 1024 * 1024;
 export const MAX_FETCH_REDIRECTS = 20;
 export const MAX_FETCH_TIMEOUT_MS = 120_000;
 export const MAX_FETCH_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 export const MAX_FETCH_CACHE_MAX_ENTRIES = 4096;
+export const MAX_FETCH_CACHE_MAX_BYTES = 512 * 1024 * 1024;
+const CACHE_WRITE_LOCK_MAX_AGE_MS = 10 * 60 * 1000;
 
 export type EomFetchErrorCode =
   | 'EOM_FETCH_SCHEME'
@@ -51,6 +65,8 @@ export interface FetchOptions {
   readonly cacheDirectory?: string;
   readonly cacheMaxAgeMs?: number;
   readonly cacheMaxEntries?: number;
+  /** Maximum aggregate serialized bytes retained in the persistent cache. */
+  readonly cacheMaxBytes?: number;
   /** Test-only escape hatch for deterministic local HTTP fixtures. */
   readonly allowHttp?: boolean;
   /** Test-only escape hatch for deterministic local HTTP fixtures. */
@@ -159,13 +175,17 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
     DEFAULT_FETCH_TIMEOUT_MS,
     MAX_FETCH_TIMEOUT_MS,
   );
+  // The timeout is an operation budget, not a fresh budget for every redirect
+  // hop.  A hostile redirect chain must not multiply the configured wait time.
+  const deadline = Date.now() + timeoutMs;
   const cacheKey = cacheKeyFor(requestedUrl, options.method ?? 'GET');
   const redirects: RedirectHop[] = [];
   const visited = new Set<string>([canonicalUrl(requestedUrl)]);
   let current = requestedUrl;
 
   for (;;) {
-    const address = await assertSafeTarget(current, options, redirects, timeoutMs);
+    const remainingTimeout = remainingOperationTimeout(deadline, current, redirects);
+    const address = await assertSafeTarget(current, options, redirects, remainingTimeout);
     if (current === requestedUrl) {
       const cached = await readCachedResponse(cacheKey, requestedUrl, options, maxBytes);
       if (cached && cached.redirects.length <= maxRedirects) {
@@ -183,10 +203,25 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
         }
         // Cached responses must still revalidate the current and final DNS answers so the
         // cache cannot bypass the SSRF/rebinding policy.
-        await assertSafeTarget(cached.finalUrl, options, redirects, timeoutMs);
+        await assertSafeTarget(
+          cached.finalUrl,
+          options,
+          redirects,
+          remainingOperationTimeout(deadline, cached.finalUrl, cached.redirects),
+        );
         for (const hop of cached.redirects) {
-          await assertSafeTarget(hop.from, options, redirects, timeoutMs);
-          await assertSafeTarget(hop.to, options, redirects, timeoutMs);
+          await assertSafeTarget(
+            hop.from,
+            options,
+            redirects,
+            remainingOperationTimeout(deadline, hop.from, cached.redirects),
+          );
+          await assertSafeTarget(
+            hop.to,
+            options,
+            redirects,
+            remainingOperationTimeout(deadline, hop.to, cached.redirects),
+          );
         }
         return {
           ...cached,
@@ -196,7 +231,14 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
         };
       }
     }
-    const response = await request(current, address, options, timeoutMs, maxBytes, redirects);
+    const response = await request(
+      current,
+      address,
+      options,
+      remainingOperationTimeout(deadline, current, redirects),
+      maxBytes,
+      redirects,
+    );
     const location = response.headers.get('location');
     if (isRedirectStatus(response.status)) {
       if (!location) {
@@ -297,6 +339,23 @@ export async function fetchEom(url: string, options: FetchOptions = {}): Promise
     await writeCachedResponse(cacheKey, result, options);
     return result;
   }
+}
+
+function remainingOperationTimeout(
+  deadline: number,
+  url: string,
+  redirects: readonly RedirectHop[],
+): number {
+  const remaining = deadline - Date.now();
+  if (remaining <= 0) {
+    throw new EomFetchError(
+      'EOM_FETCH_TIMEOUT',
+      'The EOM fetch operation exceeded its time budget.',
+      url,
+      redirects,
+    );
+  }
+  return remaining;
 }
 
 export async function fetchManifest(
@@ -938,6 +997,7 @@ async function writeCachedResponse(
   if (!options.cacheDirectory) return;
   let temporaryDirectory: string | undefined;
   let stableDirectory: string | undefined;
+  let releaseLock: (() => Promise<void>) | undefined;
   try {
     const directory = httpCacheDirectory(options);
     // Cache writes are an optimization and must never use recursive mkdir on
@@ -946,19 +1006,49 @@ async function writeCachedResponse(
     const resolvedDirectory = await ensureStableCacheDirectory(directory);
     stableDirectory = resolvedDirectory;
     if (resolvedDirectory === undefined) return;
+    releaseLock = await acquireCacheWriteLock(resolvedDirectory);
+    if (releaseLock === undefined) return;
     const maxEntries = boundedPositive(
       options.cacheMaxEntries ?? DEFAULT_FETCH_CACHE_MAX_ENTRIES,
       DEFAULT_FETCH_CACHE_MAX_ENTRIES,
       MAX_FETCH_CACHE_MAX_ENTRIES,
     );
+    const maxCacheBytes = boundedPositive(
+      options.cacheMaxBytes ?? DEFAULT_FETCH_CACHE_MAX_BYTES,
+      DEFAULT_FETCH_CACHE_MAX_BYTES,
+      MAX_FETCH_CACHE_MAX_BYTES,
+    );
+    const maxAge = boundedNonNegative(
+      options.cacheMaxAgeMs ?? DEFAULT_FETCH_CACHE_MAX_AGE_MS,
+      DEFAULT_FETCH_CACHE_MAX_AGE_MS,
+      MAX_FETCH_CACHE_MAX_AGE_MS,
+    );
     const entries = await boundedCacheEntries(resolvedDirectory);
     if (entries === undefined) return;
     const path = join(resolvedDirectory, `${key}.json`);
-    // Cache eviction is deliberately non-destructive.  Once the bounded
-    // cache is full, skip new keys rather than deleting paths that may have
-    // changed identity between enumeration and removal.
-    if (entries.length >= maxEntries && !entries.includes(path)) return;
     if (!(await isStableCacheDirectory(resolvedDirectory))) return;
+    const now = Date.now();
+    const freshEntries: CacheEntry[] = [];
+    for (const entry of entries) {
+      if (now - entry.mtimeMs > maxAge) {
+        if (await removeStaleCacheEntry(resolvedDirectory, entry)) continue;
+      }
+      freshEntries.push(entry);
+    }
+    const cacheableResponse = cacheableResponseText(response);
+    const serializedBytes = Buffer.byteLength(cacheableResponse, 'utf8');
+    const maxEntryBytes = Math.min(
+      16 * 1024 * 1024,
+      Math.max(Buffer.byteLength(response.body, 'utf8') * 4, 1024 * 1024),
+    );
+    if (serializedBytes > maxEntryBytes) return;
+    const existing = freshEntries.find((entry) => entry.path === path);
+    if (freshEntries.length >= maxEntries && existing === undefined) return;
+    const currentBytes = freshEntries.reduce(
+      (total, entry) => total + (entry.path === path ? 0 : entry.size),
+      0,
+    );
+    if (currentBytes + serializedBytes > maxCacheBytes) return;
     temporaryDirectory = await mkdtemp(join(resolvedDirectory, '.eom-cache-'));
     const temporary = join(temporaryDirectory, `${key}.json`);
     const temporaryHandle = await open(temporary, 'wx');
@@ -966,14 +1056,7 @@ async function writeCachedResponse(
       // Cache provenance is transport metadata, not part of the cached
       // representation. A network response is written as cacheable content;
       // the next read marks it as cached explicitly.
-      const { cached: _cached, ...cacheableResponse } = response;
-      await temporaryHandle.writeFile(
-        JSON.stringify({
-          ...cacheableResponse,
-          cacheIntegrity: cacheIntegrityFor(response),
-        }),
-        'utf8',
-      );
+      await temporaryHandle.writeFile(cacheableResponse, 'utf8');
     } finally {
       await temporaryHandle.close();
     }
@@ -985,25 +1068,105 @@ async function writeCachedResponse(
     if (temporaryDirectory && stableDirectory && (await isStableCacheDirectory(stableDirectory))) {
       await rm(temporaryDirectory, { recursive: true, force: true }).catch(() => undefined);
     }
+    if (releaseLock) await releaseLock();
   }
 }
 
-async function boundedCacheEntries(directory: string): Promise<string[] | undefined> {
+interface CacheEntry {
+  readonly path: string;
+  readonly size: number;
+  readonly mtimeMs: number;
+}
+
+async function boundedCacheEntries(directory: string): Promise<CacheEntry[] | undefined> {
   const handle = await opendir(directory);
-  const entries: string[] = [];
+  const entries: CacheEntry[] = [];
   let count = 0;
   try {
     for await (const entry of handle) {
       count += 1;
       if (count > MAX_FETCH_CACHE_MAX_ENTRIES) return undefined;
       if (entry.isFile() && /^[a-f0-9]{64}\.json$/u.test(entry.name)) {
-        entries.push(join(directory, entry.name));
+        const path = join(directory, entry.name);
+        const information = await stat(path);
+        if (information.isFile()) {
+          entries.push({ path, size: information.size, mtimeMs: information.mtimeMs });
+        }
       }
     }
     return entries;
   } finally {
     await handle.close().catch(() => undefined);
   }
+}
+
+function cacheableResponseText(response: FetchResponse): string {
+  const { cached: _cached, ...cacheableResponse } = response;
+  return JSON.stringify({
+    ...cacheableResponse,
+    cacheIntegrity: cacheIntegrityFor(response),
+  });
+}
+
+async function removeStaleCacheEntry(directory: string, entry: CacheEntry): Promise<boolean> {
+  try {
+    const parent = resolve(entry.path, '..');
+    if (normalizeFsPath(parent) !== normalizeFsPath(directory)) return false;
+    const information = await lstat(entry.path);
+    if (!information.isFile() || information.isSymbolicLink()) return false;
+    if (information.size !== entry.size || information.mtimeMs !== entry.mtimeMs) return false;
+    if (normalizeFsPath(await realpath(entry.path)) !== normalizeFsPath(entry.path)) return false;
+    await rm(entry.path, { force: true });
+    return true;
+  } catch {
+    // Stale cache cleanup is best effort and must never affect retrieval.
+    return false;
+  }
+}
+
+async function acquireCacheWriteLock(
+  directory: string,
+): Promise<(() => Promise<void>) | undefined> {
+  const lockPath = join(directory, '.eom-cache-write.lock');
+  const token = randomUUID();
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const handle = await open(lockPath, 'wx');
+      try {
+        await handle.writeFile(token, 'utf8');
+      } finally {
+        await handle.close();
+      }
+      return async (): Promise<void> => {
+        try {
+          const information = await lstat(lockPath);
+          if (!information.isFile() || information.isSymbolicLink()) return;
+          if (normalizeFsPath(await realpath(lockPath)) !== normalizeFsPath(lockPath)) return;
+          if ((await readFile(lockPath, 'utf8')) !== token) return;
+          await rm(lockPath, { force: true });
+        } catch {
+          // Cache locking is an optimization; a failed release cannot affect retrieval.
+        }
+      };
+    } catch (error) {
+      if (!(error instanceof Error && 'code' in error && error.code === 'EEXIST')) return undefined;
+      try {
+        const information = await lstat(lockPath);
+        if (
+          !information.isFile() ||
+          information.isSymbolicLink() ||
+          Date.now() - information.mtimeMs <= CACHE_WRITE_LOCK_MAX_AGE_MS ||
+          normalizeFsPath(await realpath(lockPath)) !== normalizeFsPath(lockPath)
+        ) {
+          return undefined;
+        }
+        await rm(lockPath, { force: true });
+      } catch {
+        return undefined;
+      }
+    }
+  }
+  return undefined;
 }
 
 async function isStableCacheDirectory(directory: string): Promise<boolean> {

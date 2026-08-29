@@ -1,0 +1,10 @@
+name: EOM CodeQL configuration
+
+# The browser and documentation dist trees are generated from source during
+# the CodeQL build. Source files remain in the analysis; generated bundles are
+# excluded so one source issue is not reported again for every bundled copy.
+paths-ignore:
+  - '**/dist/**'
+  - 'coverage/**'
+  - 'playwright-report/**'
+  - 'test-results/**'

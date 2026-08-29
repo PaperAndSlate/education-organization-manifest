@@ -4,13 +4,16 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  MAX_STABLE_JSON_BYTES,
   parseStrictJson,
   type FetchResponse,
   type ManifestFetchResponse,
 } from '@paperandslate/eom-core';
 import {
+  MAX_SEMANTIC_COURSE_CODE_FINDINGS,
   publicationSetFindings,
   renderValidationReport,
+  semanticFindings,
   validateDocument,
   validatePublicationDirectory,
   validatePublicationUrl,
@@ -113,6 +116,17 @@ describe('EOM structural and semantic validation', () => {
     expect(cyclicResult.valid).toBe(false);
     expect(cyclicResult.findings).toEqual(
       expect.arrayContaining([expect.objectContaining({ code: 'EOM_JSON_CYCLE' })]),
+    );
+  });
+
+  it('rejects oversized runtime JSON string data before schema validation', () => {
+    const result = validateDocument(
+      { type: 'manifest', description: 'x'.repeat(MAX_STABLE_JSON_BYTES + 1) },
+      { semantic: false },
+    );
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_JSON_INPUT_TOO_LARGE' })]),
     );
   });
 
@@ -289,6 +303,70 @@ describe('EOM structural and semantic validation', () => {
     );
   });
 
+  it('does not expand an invalid fetched document as a graph frontier', async () => {
+    const manifest = structuredClone(
+      fixture('fixtures/valid/core/minimal-school-manifest.json'),
+    ) as Record<string, unknown>;
+    manifest.capabilities = [];
+    const resource = (manifest.resources as Array<Record<string, unknown>>)[0]!;
+    manifest.resources = [resource];
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    const childUrl = 'https://ecme-high.example/eom/child.json';
+    const invalidResource = {
+      ...(fixture('fixtures/valid/core/minimal-school-organization.json') as Record<
+        string,
+        unknown
+      >),
+      resources: [
+        {
+          id: 'https://ecme-high.example/eom/resource/child',
+          type: 'news-feed',
+          href: childUrl,
+          mediaType: 'application/json',
+          version: '1.0',
+          subjects: ['https://ecme-high.example/id/school'],
+        },
+      ],
+    };
+    const requested: string[] = [];
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      transport: {
+        fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+        fetchEom: (url: string): Promise<FetchResponse> => {
+          requested.push(url);
+          return Promise.resolve({
+            requestedUrl: url,
+            finalUrl: resource.href as string,
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+            contentType: 'application/json',
+            body: JSON.stringify(invalidResource),
+            redirects: [],
+            observedAt: '2027-08-01T00:00:00.000Z',
+          });
+        },
+      },
+      now: new Date('2027-08-01T00:00:00Z'),
+    });
+    expect(result.valid).toBe(false);
+    expect(requested).toEqual([resource.href]);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'EOM_SCHEMA_ADDITIONALPROPERTIES' }),
+      ]),
+    );
+  });
+
   it('reports malformed fetched resource JSON as a fetch finding', async () => {
     const manifest = structuredClone(
       fixture('fixtures/valid/core/minimal-school-manifest.json'),
@@ -456,21 +534,30 @@ describe('EOM structural and semantic validation', () => {
     ) as Record<string, unknown>;
     manifest.capabilities = [];
     const firstResource = {
-      id: 'https://ecme-high.example/eom/resource/one',
+      id: 'https://ecme-high.example/eom/one.json',
       type: 'manifest',
       href: 'https://ecme-high.example/eom/one.json',
       mediaType: 'application/json',
       version: '1.0',
-      subjects: ['https://ecme-high.example/eom/resource/one'],
+      subjects: ['https://ecme-high.example/eom/one.json'],
     };
     manifest.resources = [firstResource];
+    manifest.organizations = [
+      ...(manifest.organizations as unknown[]),
+      {
+        id: firstResource.id,
+        type: 'secondary-school',
+        name: 'First resource organization',
+        canonicalUrl: 'https://ecme-high.example/eom/one.json',
+      },
+    ];
     const secondResource = {
       id: 'https://ecme-high.example/eom/resource/two',
       type: 'manifest',
       href: 'https://ecme-high.example/eom/two.json',
       mediaType: 'application/json',
       version: '1.0',
-      subjects: ['https://ecme-high.example/eom/resource/two'],
+      subjects: ['https://ecme-high.example/id/school'],
     };
     const firstDocument = {
       $schema: 'https://paperandslate.org/schemas/eom/1.0/manifest.schema.json',
@@ -486,7 +573,14 @@ describe('EOM structural and semantic validation', () => {
         website: 'https://ecme-high.example/',
       },
       scope: { origin: 'https://ecme-high.example', paths: ['/'] },
-      organizations: [],
+      organizations: [
+        {
+          id: 'https://ecme-high.example/id/school',
+          type: 'secondary-school',
+          name: 'Ecme High School',
+          canonicalUrl: 'https://ecme-high.example/',
+        },
+      ],
       capabilities: [],
       resources: [secondResource],
     };
@@ -575,7 +669,7 @@ describe('EOM structural and semantic validation', () => {
         href: manifest.canonical,
         mediaType: 'application/json',
         version: '1.0',
-        subjects: ['https://ecme-high.example/id/not-the-school'],
+        subjects: ['https://ecme-high.example/id/school'],
       },
     ];
     const rootResponse: ManifestFetchResponse = {
@@ -634,7 +728,38 @@ describe('EOM structural and semantic validation', () => {
     });
     expect(result.valid).toBe(false);
     expect(result.findings).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'EOM_RESOURCE_URL_INVALID' })]),
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_SCHEMA_PATTERN' })]),
+    );
+  });
+
+  it('enforces one wall-clock budget across the complete publication graph', async () => {
+    const manifest = structuredClone(
+      fixture('fixtures/valid/core/minimal-school-manifest.json'),
+    ) as Record<string, unknown>;
+    manifest.capabilities = [];
+    const rootResponse: ManifestFetchResponse = {
+      requestedUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      finalUrl: 'https://ecme-high.example/.well-known/educational-organization-manifest',
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+      contentType: 'application/json',
+      body: JSON.stringify(manifest),
+      redirects: [],
+      observedAt: '2027-08-01T00:00:00.000Z',
+      document: manifest as never,
+    };
+    const startedAt = Date.now();
+    const result = await validatePublicationUrl('https://ecme-high.example', {
+      maxTotalTimeMs: 25,
+      transport: {
+        fetchManifest: (): Promise<ManifestFetchResponse> => Promise.resolve(rootResponse),
+        fetchEom: (): Promise<FetchResponse> => new Promise(() => undefined),
+      },
+    });
+    expect(Date.now() - startedAt).toBeLessThan(500);
+    expect(result.valid).toBe(false);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'EOM_FETCH_TIMEOUT' })]),
     );
   });
 
@@ -741,6 +866,61 @@ describe('EOM structural and semantic validation', () => {
   it('accepts a historical catalog version with stable course identity', () => {
     const result = validateDocument(fixture('fixtures/valid/course/historical-catalog.json'));
     expect(result.valid, JSON.stringify(result.findings)).toBe(true);
+  });
+
+  it('bounds repeated course-code comparisons and reports a failed validation', () => {
+    const items = Array.from({ length: 600 }, (_, index) => ({
+      id: `https://catalog.example/id/course/${index}`,
+      type: 'course',
+      name: `Course ${index}`,
+      code: 'SHARED',
+      effective: {
+        from: `${2000 + index}-01-01T00:00:00Z`,
+        until: `${2000 + index}-01-01T00:00:00Z`,
+      },
+    }));
+    const findings = semanticFindings({ type: 'course-catalog', items });
+
+    expect(findings.some((item) => item.code === 'EOM_SEMANTIC_WORK_LIMIT')).toBe(true);
+    expect(findings.filter((item) => item.code === 'EOM_COURSE_CODE_OVERLAP')).toHaveLength(0);
+  });
+
+  it('keeps normal course-code overlap detection bounded to one finding per course', () => {
+    const findings = semanticFindings({
+      type: 'course-catalog',
+      items: [
+        {
+          id: 'https://catalog.example/id/course/one',
+          type: 'course',
+          name: 'Course One',
+          code: 'SHARED',
+        },
+        {
+          id: 'https://catalog.example/id/course/two',
+          type: 'course',
+          name: 'Course Two',
+          code: 'SHARED',
+        },
+      ],
+    });
+
+    expect(findings.filter((item) => item.code === 'EOM_COURSE_CODE_OVERLAP')).toHaveLength(1);
+    expect(findings.some((item) => item.code === 'EOM_SEMANTIC_WORK_LIMIT')).toBe(false);
+  });
+
+  it('bounds overlap finding output for an all-overlap course-code catalog', () => {
+    const items = Array.from({ length: MAX_SEMANTIC_COURSE_CODE_FINDINGS + 8 }, (_, index) => ({
+      id: `https://catalog.example/id/course/overlap-${index}`,
+      type: 'course',
+      name: `Overlap Course ${index}`,
+      code: 'SHARED',
+    }));
+    const findings = semanticFindings({ type: 'course-catalog', items });
+
+    expect(findings.some((item) => item.code === 'EOM_SEMANTIC_WORK_LIMIT')).toBe(true);
+    expect(findings.filter((item) => item.code === 'EOM_COURSE_CODE_OVERLAP')).toHaveLength(
+      MAX_SEMANTIC_COURSE_CODE_FINDINGS,
+    );
   });
 
   it('resolves course, offering, and program references across a publication set', () => {

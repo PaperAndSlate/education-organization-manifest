@@ -180,13 +180,27 @@ async function hasFragment(path: string, fragment: string): Promise<boolean> {
 }
 
 function slugifyHeading(heading: string): string {
-  return heading
+  return stripInlineMarkup(heading)
     .replace(/[`*_~]/gu, '')
-    .replace(/<[^>]*>/gu, '')
     .trim()
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s-]/gu, '')
     .replace(/\s+/gu, '-');
+}
+
+function stripInlineMarkup(value: string): string {
+  let output = '';
+  let inTag = false;
+  for (const character of value) {
+    if (inTag) {
+      if (character === '>') inTag = false;
+    } else if (character === '<') {
+      inTag = true;
+    } else {
+      output += character;
+    }
+  }
+  return output;
 }
 
 function escapeRegExp(value: string): string {

@@ -2,7 +2,7 @@ import { generateKeyPairSync, webcrypto } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { evaluateAuthority } from '@paperandslate/eom-authority';
+import { evaluateAuthority, resourceDescriptorMatchesDocument } from '@paperandslate/eom-authority';
 import {
   canonicalizeJson,
   canonicalizeJsonText,
@@ -36,6 +36,34 @@ function delegatedResource(type: string, id: string): unknown {
 }
 
 describe('EOM delegated authority', () => {
+  it('requires fetched subject context to equal the declared descriptor set', () => {
+    const descriptor = {
+      id: 'https://ecme-high.example/eom/resource/organization',
+      type: 'organization-profile',
+      href: 'https://ecme-high.example/eom/organization.json',
+      subjects: ['https://ecme-high.example/id/school'],
+    };
+    expect(
+      resourceDescriptorMatchesDocument(descriptor, {
+        id: 'https://ecme-high.example/id/organization',
+        type: 'organization-profile',
+        canonical: descriptor.href,
+        subjects: [
+          'https://ecme-high.example/id/school',
+          'https://ecme-high.example/id/another-school',
+        ],
+      }),
+    ).toBe(false);
+    expect(
+      resourceDescriptorMatchesDocument(descriptor, {
+        id: 'https://ecme-high.example/id/organization',
+        type: 'organization-profile',
+        canonical: descriptor.href,
+        subjects: ['https://ecme-high.example/id/school'],
+      }),
+    ).toBe(true);
+  });
+
   it('accepts scoped vendor and district resources while preserving root identity', () => {
     const vendor = fixture('fixtures/delegation/vendor-meals.json');
     const district = fixture('fixtures/delegation/district-transport.json');

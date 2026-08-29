@@ -952,15 +952,16 @@ function parseCalendarEvent(value: string):
 }
 
 function feedXmlRecord(value: string): Record<string, unknown> | undefined {
-  const item = value.match(/<(?:item|entry)\b[\s\S]*?<\/(?:item|entry)>/iu)?.[0] ?? value;
+  const item =
+    findXmlElement(value, 'item')?.content ?? findXmlElement(value, 'entry')?.content ?? value;
   const read = (names: readonly string[]): string | undefined => {
     for (const name of names) {
-      const match = item.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, 'iu'));
-      if (match?.[1]) return stripMarkup(match[1]);
+      const element = findXmlElement(item, name);
+      if (element?.content) return stripMarkup(element.content);
     }
     return undefined;
   };
-  const link = item.match(/<link[^>]+href=["']([^"']+)["'][^>]*>/iu)?.[1] ?? read(['link']);
+  const link = readXmlAttribute(item, 'link', 'href') ?? read(['link']);
   return {
     ...(read(['guid', 'id']) ? { id: read(['guid', 'id']) } : {}),
     ...(read(['title']) ? { title: read(['title']) } : {}),
@@ -975,20 +976,200 @@ function feedXmlRecord(value: string): Record<string, unknown> | undefined {
 }
 
 function xmlTag(value: string, tag: string): string | undefined {
-  const match = value.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, 'iu'));
-  return match?.[1] ? stripMarkup(match[1]) : undefined;
+  const element = findXmlElement(value, tag);
+  return element?.content ? stripMarkup(element.content) : undefined;
 }
 
 function stripMarkup(value: string): string {
-  return value
-    .replace(/<[^>]+>/gu, '')
-    .replace(
-      /&(?:amp|lt|gt|quot|apos);/gu,
-      (entity) =>
-        ({ '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&apos;': "'" })[entity] ??
-        entity,
-    )
-    .trim();
+  const lower = value.toLowerCase();
+  let output = '';
+  let cursor = 0;
+  while (cursor < value.length) {
+    const tagStart = value.indexOf('<', cursor);
+    if (tagStart < 0) {
+      output += value.slice(cursor);
+      break;
+    }
+    output += value.slice(cursor, tagStart);
+    if (lower.startsWith('<![cdata[', tagStart)) {
+      const cdataEnd = value.indexOf(']]>', tagStart + 9);
+      if (cdataEnd < 0) break;
+      output += value.slice(tagStart + 9, cdataEnd);
+      cursor = cdataEnd + 3;
+      continue;
+    }
+    const tagEnd = findXmlTagEnd(value, tagStart);
+    if (tagEnd < 0) break;
+    cursor = tagEnd + 1;
+  }
+  return decodeXmlEntities(output).trim();
+}
+
+type XmlOpeningTag = {
+  readonly start: number;
+  readonly end: number;
+  readonly nameEnd: number;
+};
+
+type XmlElement = XmlOpeningTag & {
+  readonly content: string;
+};
+
+function findXmlElement(value: string, tagName: string): XmlElement | undefined {
+  const opening = findXmlOpeningTag(value, tagName);
+  if (!opening || value[opening.end - 1] === '/') {
+    return opening && value[opening.end - 1] === '/' ? { ...opening, content: '' } : undefined;
+  }
+  const closingStart = findXmlClosingTag(value, opening.end + 1, tagName);
+  if (closingStart < 0) return undefined;
+  const closingEnd = findXmlTagEnd(value, closingStart);
+  if (closingEnd < 0) return undefined;
+  return {
+    ...opening,
+    content: value.slice(opening.end + 1, closingStart),
+  };
+}
+
+function findXmlOpeningTag(value: string, tagName: string, start = 0): XmlOpeningTag | undefined {
+  const lower = value.toLowerCase();
+  const normalizedTag = tagName.toLowerCase();
+  const prefix = `<${normalizedTag}`;
+  for (let index = start; index + prefix.length < value.length; index += 1) {
+    if (!lower.startsWith(prefix, index)) continue;
+    const boundary = value[index + prefix.length];
+    if (!isXmlNameBoundary(boundary)) continue;
+    const end = findXmlTagEnd(value, index);
+    if (end < 0) return undefined;
+    return { start: index, end, nameEnd: index + prefix.length };
+  }
+  return undefined;
+}
+
+function findXmlClosingTag(value: string, start: number, tagName: string): number {
+  const lower = value.toLowerCase();
+  const normalizedTag = tagName.toLowerCase();
+  const prefix = `</${normalizedTag}`;
+  for (let index = start; index + prefix.length < value.length; index += 1) {
+    if (!lower.startsWith(prefix, index)) continue;
+    if (isXmlNameBoundary(value[index + prefix.length])) return index;
+  }
+  return -1;
+}
+
+function findXmlTagEnd(value: string, start: number): number {
+  let quote = '';
+  for (let index = start + 1; index < value.length; index += 1) {
+    const character = value[index];
+    if (quote) {
+      if (character === quote) quote = '';
+    } else if (character === '"' || character === "'") {
+      quote = character;
+    } else if (character === '>') {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function isXmlNameBoundary(character: string | undefined): boolean {
+  return (
+    character === undefined ||
+    character === '>' ||
+    character === '/' ||
+    character === ' ' ||
+    character === '\t' ||
+    character === '\r' ||
+    character === '\n'
+  );
+}
+
+function readXmlAttribute(
+  value: string,
+  tagName: string,
+  attributeName: string,
+): string | undefined {
+  const opening = findXmlOpeningTag(value, tagName);
+  if (!opening) return undefined;
+  const normalizedAttribute = attributeName.toLowerCase();
+  let cursor = opening.nameEnd;
+  while (cursor < opening.end) {
+    while (cursor < opening.end && isXmlWhitespace(value[cursor])) cursor += 1;
+    if (cursor >= opening.end || value[cursor] === '/') break;
+    const nameStart = cursor;
+    while (
+      cursor < opening.end &&
+      !isXmlWhitespace(value[cursor]) &&
+      value[cursor] !== '=' &&
+      value[cursor] !== '/'
+    ) {
+      cursor += 1;
+    }
+    const currentName = value.slice(nameStart, cursor).toLowerCase();
+    while (cursor < opening.end && isXmlWhitespace(value[cursor])) cursor += 1;
+    if (value[cursor] !== '=') {
+      while (cursor < opening.end && !isXmlWhitespace(value[cursor])) cursor += 1;
+      continue;
+    }
+    cursor += 1;
+    while (cursor < opening.end && isXmlWhitespace(value[cursor])) cursor += 1;
+    const quote = value[cursor];
+    let attributeValue: string | undefined;
+    if (quote === '"' || quote === "'") {
+      cursor += 1;
+      const valueStart = cursor;
+      while (cursor < opening.end && value[cursor] !== quote) cursor += 1;
+      if (cursor >= opening.end) return undefined;
+      attributeValue = value.slice(valueStart, cursor);
+      cursor += 1;
+    } else {
+      const valueStart = cursor;
+      while (cursor < opening.end && !isXmlWhitespace(value[cursor])) cursor += 1;
+      attributeValue = value.slice(valueStart, cursor);
+    }
+    if (currentName === normalizedAttribute) return decodeXmlEntities(attributeValue);
+  }
+  return undefined;
+}
+
+function isXmlWhitespace(character: string | undefined): boolean {
+  return character === ' ' || character === '\t' || character === '\r' || character === '\n';
+}
+
+function decodeXmlEntities(value: string): string {
+  const entities = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&apos;': "'",
+  } as const;
+  const output: string[] = [];
+  let cursor = 0;
+  while (cursor < value.length) {
+    if (value[cursor] !== '&') {
+      output.push(value[cursor] ?? '');
+      cursor += 1;
+      continue;
+    }
+    // Scan each malformed entity candidate once.  Searching for a semicolon
+    // from every ampersand makes input such as "&&&&..." quadratic when no
+    // semicolon is present.
+    const entityStart = cursor;
+    cursor += 1;
+    while (cursor < value.length && value[cursor] !== ';' && value[cursor] !== '&') {
+      cursor += 1;
+    }
+    if (value[cursor] !== ';') {
+      output.push('&');
+      cursor = entityStart + 1;
+    } else {
+      const entity = value.slice(entityStart, cursor + 1);
+      const decoded = entities[entity as keyof typeof entities];
+      output.push(decoded ?? entity);
+      cursor += 1;
+    }
+  }
+  return output.join('');
 }
 
 function unescapeIcs(value: string): string {

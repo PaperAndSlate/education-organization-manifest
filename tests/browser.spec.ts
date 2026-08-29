@@ -1,7 +1,7 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { generateKeyPairSync } from 'node:crypto';
-import { publicKeyRecord, signDetached } from '@paperandslate/eom-signatures';
+import { generateKeyPairSync, sign as signBytes } from 'node:crypto';
+import { canonicalizeJson, publicKeyRecord, signDetached } from '@paperandslate/eom-signatures';
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -66,6 +66,109 @@ test('verifies a real detached Ed25519 signature in the browser engine', async (
     });
   }, serialized);
   expect(result).toEqual({ overall: true, findings: [], keyScopeValid: true });
+});
+
+test('rejects invalid UTF-8 and oversized protected headers in the browser verifier', async ({
+  page,
+}) => {
+  const resource = {
+    $schema: 'https://paperandslate.org/schemas/eom/1.0/organization-profile.schema.json',
+    specification: 'https://paperandslate.org/spec/eom/1.0',
+    version: '1.0',
+    id: 'https://browser-signature-bytes.example/id/organization',
+    type: 'organization-profile',
+    canonical: 'https://browser-signature-bytes.example/eom/organization.json',
+    name: 'Browser Byte Safety School',
+    organizationType: 'secondary-school',
+  };
+  const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+  const keyId = 'https://browser-signature-bytes.example/eom/keys#test-2027';
+  const validSignature = signDetached(resource, {
+    privateKey,
+    keyId,
+    createdAt: '2027-01-01T00:00:00Z',
+  });
+  const validHeader = JSON.parse(
+    Buffer.from(validSignature.protected, 'base64url').toString('utf8'),
+  ) as Record<string, unknown>;
+  const headerText = JSON.stringify({ ...validHeader, diagnostic: 'x' });
+  const invalidHeader = Buffer.from(headerText, 'utf8');
+  const marker = Buffer.from('"x"', 'utf8');
+  const markerOffset = invalidHeader.lastIndexOf(marker);
+  expect(markerOffset).toBeGreaterThanOrEqual(0);
+  invalidHeader[markerOffset + 1] = 0xff;
+  const protectedValue = invalidHeader.toString('base64url');
+  const signatureValue = signBytes(
+    null,
+    Buffer.from(`${protectedValue}.${canonicalizeJson(resource)}`, 'utf8'),
+    privateKey,
+  ).toString('base64url');
+  const keySet = { keys: [publicKeyRecord(publicKey, { keyId })] };
+  const browserPayload = {
+    resource,
+    signature: {
+      ...validSignature,
+      protected: protectedValue,
+      signature: signatureValue,
+      compact: `${protectedValue}..${signatureValue}`,
+    },
+    keySet,
+  };
+  const invalidUtf8Result = await page.evaluate(async (serialized) => {
+    const { resource, signature, keySet } = JSON.parse(serialized) as {
+      resource: unknown;
+      signature: unknown;
+      keySet: unknown;
+    };
+    const playground = (window as unknown as { __EOM_PLAYGROUND__: unknown })
+      .__EOM_PLAYGROUND__ as {
+      verifyDetachedSignature: (
+        value: unknown,
+        detachedSignature: unknown,
+        detachedKeySet: unknown,
+        options?: { now?: string },
+      ) => Promise<{ overall: boolean; findings: readonly string[] }>;
+    };
+    return playground.verifyDetachedSignature(resource, signature, keySet, {
+      now: '2027-01-02T00:00:00Z',
+    });
+  }, JSON.stringify(browserPayload));
+  expect(invalidUtf8Result.overall).toBe(false);
+  expect(invalidUtf8Result.findings.join(' ')).toContain('not valid UTF-8');
+
+  const oversizedProtectedValue = 'A'.repeat(100_000);
+  const oversizedResult = await page.evaluate(
+    async (serialized) => {
+      const { resource, signature, keySet } = JSON.parse(serialized) as {
+        resource: unknown;
+        signature: unknown;
+        keySet: unknown;
+      };
+      const playground = (window as unknown as { __EOM_PLAYGROUND__: unknown })
+        .__EOM_PLAYGROUND__ as {
+        verifyDetachedSignature: (
+          value: unknown,
+          detachedSignature: unknown,
+          detachedKeySet: unknown,
+          options?: { now?: string },
+        ) => Promise<{ overall: boolean; findings: readonly string[] }>;
+      };
+      return playground.verifyDetachedSignature(resource, signature, keySet, {
+        now: '2027-01-02T00:00:00Z',
+      });
+    },
+    JSON.stringify({
+      resource,
+      signature: {
+        ...validSignature,
+        protected: oversizedProtectedValue,
+        compact: `${oversizedProtectedValue}..${validSignature.signature}`,
+      },
+      keySet,
+    }),
+  );
+  expect(oversizedResult.overall).toBe(false);
+  expect(oversizedResult.findings.join(' ')).toContain('64 KiB safety limit');
 });
 
 test('rejects detached signature lifetime removal in the browser engine', async ({ page }) => {

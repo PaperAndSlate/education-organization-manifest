@@ -263,6 +263,46 @@ describe('EOM hardened HTTP retrieval', () => {
     }
   });
 
+  it('does not admit a serialized cache entry beyond the aggregate byte budget', async () => {
+    const cacheDirectory = await mkdtemp(join(tmpdir(), 'eom-fetch-cache-budget-'));
+    try {
+      const local = {
+        allowHttp: true,
+        allowPrivateHosts: true,
+        allowNonStandardPorts: true,
+        cacheDirectory,
+        cacheMaxBytes: 64,
+      } as const;
+      const first = await fetchManifest(baseUrl, local);
+      const second = await fetchManifest(baseUrl, local);
+      expect(first.cached).toBe(false);
+      expect(second.cached).toBe(false);
+    } finally {
+      await rm(cacheDirectory, { recursive: true, force: true });
+    }
+  });
+
+  it('evicts stale cache entries only after stable identity checks', async () => {
+    const cacheDirectory = await mkdtemp(join(tmpdir(), 'eom-fetch-cache-expiry-'));
+    try {
+      const local = {
+        allowHttp: true,
+        allowPrivateHosts: true,
+        allowNonStandardPorts: true,
+        cacheDirectory,
+      } as const;
+      const expiring = { ...local, cacheMaxAgeMs: 0 } as const;
+      const first = await fetchManifest(baseUrl, expiring);
+      const second = await fetchManifest(baseUrl, expiring);
+      const third = await fetchManifest(baseUrl, local);
+      expect(first.cached).toBe(false);
+      expect(second.cached).toBe(false);
+      expect(third.cached).toBe(true);
+    } finally {
+      await rm(cacheDirectory, { recursive: true, force: true });
+    }
+  });
+
   it('does not create cache directories through a symlink', async () => {
     const root = await mkdtemp(join(tmpdir(), 'eom-fetch-cache-safety-'));
     const external = await mkdtemp(join(tmpdir(), 'eom-fetch-cache-external-'));

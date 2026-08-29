@@ -10,6 +10,9 @@ const SCHEMA_BASE = 'https://paperandslate.org/schemas/eom/1.0/';
 export const MAX_SOURCE_BYTES = 2 * 1024 * 1024;
 const MAX_BROWSER_JSON_DEPTH = 128;
 const MAX_BROWSER_JSON_NODES = 100_000;
+const MAX_BROWSER_PROTECTED_HEADER_BYTES = 64 * 1024;
+const MAX_BROWSER_PROTECTED_HEADER_BASE64URL_LENGTH =
+  Math.ceil(MAX_BROWSER_PROTECTED_HEADER_BYTES / 3) * 4;
 const TYPE_TO_SCHEMA = {
   manifest: 'manifest.schema.json',
   resource: 'resource.schema.json',
@@ -459,10 +462,18 @@ export async function verifyDetachedBrowser(value, signature, keySet, options = 
   let protectedHeader;
   if (typeof signature.protected === 'string' && /^[A-Za-z0-9_-]+$/u.test(signature.protected)) {
     try {
-      const decoded = parseStrictJson(
-        new TextDecoder().decode(fromBase64Url(signature.protected)),
-        'protected header',
-      );
+      if (signature.protected.length > MAX_BROWSER_PROTECTED_HEADER_BASE64URL_LENGTH)
+        throw new Error('The protected header exceeds the 64 KiB safety limit.');
+      const protectedBytes = fromBase64Url(signature.protected);
+      if (protectedBytes.byteLength > MAX_BROWSER_PROTECTED_HEADER_BYTES)
+        throw new Error('The protected header exceeds the 64 KiB safety limit.');
+      let protectedText;
+      try {
+        protectedText = new TextDecoder('utf-8', { fatal: true }).decode(protectedBytes);
+      } catch {
+        throw new Error('The protected header is not valid UTF-8.');
+      }
+      const decoded = parseStrictJson(protectedText, 'protected header');
       if (!isPlainObject(decoded)) throw new Error('The protected header must be an object.');
       protectedHeader = decoded;
       if (

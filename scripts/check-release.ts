@@ -235,8 +235,50 @@ if (
 const sbom = parseStrictJson(await readText('sbom.cdx.json'), 'release/sbom.cdx.json');
 if (!isRecord(sbom) || sbom.bomFormat !== 'CycloneDX' || sbom.specVersion !== '1.5')
   failures.push('SBOM must be a CycloneDX 1.5 document.');
-if (isRecord(sbom) && !Array.isArray(sbom.components))
-  failures.push('SBOM must contain components.');
+if (isRecord(sbom)) {
+  if (!Array.isArray(sbom.components) || sbom.components.length === 0) {
+    failures.push('SBOM must contain components.');
+  }
+  if (!Array.isArray(sbom.dependencies)) {
+    failures.push('SBOM must contain lockfile-derived dependency edges.');
+  } else {
+    const components = Array.isArray(sbom.components) ? sbom.components : [];
+    const componentRefs = new Set<string>();
+    for (const component of components) {
+      if (!isRecord(component) || typeof component['bom-ref'] !== 'string') {
+        failures.push('SBOM component is missing a bom-ref.');
+        continue;
+      }
+      if (componentRefs.has(component['bom-ref'])) {
+        failures.push(`SBOM repeats component ${component['bom-ref']}.`);
+      }
+      componentRefs.add(component['bom-ref']);
+    }
+    const dependencyRefs = new Set<string>();
+    for (const dependency of sbom.dependencies) {
+      if (!isRecord(dependency) || typeof dependency.ref !== 'string') {
+        failures.push('SBOM dependency entry is missing a ref.');
+        continue;
+      }
+      if (dependencyRefs.has(dependency.ref)) {
+        failures.push(`SBOM repeats dependency entry ${dependency.ref}.`);
+      }
+      dependencyRefs.add(dependency.ref);
+      if (!componentRefs.has(dependency.ref)) {
+        failures.push(`SBOM dependency ref is not a component: ${dependency.ref}.`);
+      }
+      if (
+        !Array.isArray(dependency.dependsOn) ||
+        !dependency.dependsOn.every((ref) => typeof ref === 'string' && componentRefs.has(ref))
+      ) {
+        failures.push(`SBOM dependency edges are invalid for ${dependency.ref}.`);
+      }
+    }
+    for (const ref of componentRefs) {
+      if (!dependencyRefs.has(ref)) failures.push(`SBOM is missing dependency entry ${ref}.`);
+    }
+  }
+}
 
 const packagePackManifest = parseStrictJson(
   await readText('package-pack-manifest.json'),

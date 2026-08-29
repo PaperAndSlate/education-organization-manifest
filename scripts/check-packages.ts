@@ -3,9 +3,10 @@ import { lstat, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { basename, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { isJsonObject, parseStrictJson } from '@paperandslate/eom-core';
-import { CLEAN_PACKAGE_INSTALL_ARGS } from './package-install-options.js';
+import { CLEAN_PACKAGE_INSTALL_ARGS, CLEAN_PACKAGE_LOCK_ARGS } from './package-install-options.js';
 import { pnpmInvocation } from './pnpm-runner.js';
-import { readTarGz } from './tar.js';
+import { MAX_TAR_GZIP_BYTES, readTarGz } from './tar.js';
+import { safeChildEnvironment } from './safe-child-env.js';
 
 const root = resolve(process.cwd());
 const packageDirectories = [
@@ -73,6 +74,7 @@ try {
         cwd: directory,
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],
+        env: safeChildEnvironment(),
       },
     );
     const parsed = parseStrictJson(output.toString(), `${packageJson.name} pnpm pack output`);
@@ -84,11 +86,18 @@ try {
     if (!packed.filename)
       throw new Error(`${packageJson.name}: pnpm pack did not return a tarball.`);
     packageTarballs.set(packageJson.name, packed.filename);
-    const entries =
-      packed.files
-        ?.map((entry) => entry.path)
-        .filter((path): path is string => typeof path === 'string') ??
-      readTarGz(await readFile(packed.filename)).map((entry) => entry.path);
+    const actualEntries = readTarGz(
+      await readBoundedBinary(packed.filename, MAX_TAR_GZIP_BYTES),
+    ).map((entry) => packageFilePath(entry.path));
+    const reportedEntries = packed.files
+      ?.map((entry) => entry.path)
+      .filter((path): path is string => typeof path === 'string')
+      .map(packageFilePath)
+      .sort();
+    if (reportedEntries && !reportedEntriesArePresent(reportedEntries, actualEntries)) {
+      throw new Error(`${packageJson.name}: pnpm pack file metadata does not match the tarball.`);
+    }
+    const entries = actualEntries;
     if (entries.some((entry) => entry.startsWith('src/')))
       throw new Error(`${packageJson.name}: packed source files are not allowed.`);
     if (!entries.includes('dist/index.js') || !entries.includes('dist/index.d.ts'))
@@ -122,10 +131,17 @@ try {
     'utf8',
   );
   await writeFile(join(smokeRoot, 'pnpm-workspace.yaml'), `overrides:\n${overrides}\n`, 'utf8');
+  runPnpm(CLEAN_PACKAGE_LOCK_ARGS, {
+    cwd: smokeRoot,
+    encoding: 'utf8',
+    stdio: 'inherit',
+    env: safeChildEnvironment(),
+  });
   runPnpm(CLEAN_PACKAGE_INSTALL_ARGS, {
     cwd: smokeRoot,
     encoding: 'utf8',
     stdio: 'inherit',
+    env: safeChildEnvironment(),
   });
   const importScript = `const names = ${JSON.stringify(packageNames)}; for (const name of names) await import(name); console.log('clean package imports passed: ' + names.length);\n`;
   await writeFile(join(smokeRoot, 'runtime-smoke.mjs'), importScript, 'utf8');
@@ -133,6 +149,7 @@ try {
     cwd: smokeRoot,
     encoding: 'utf8',
     stdio: 'inherit',
+    env: safeChildEnvironment(),
   });
   const typeImports = packageNames
     .map(
@@ -154,7 +171,7 @@ try {
       '--skipLibCheck',
       join(smokeRoot, 'type-smoke.ts'),
     ],
-    { cwd: smokeRoot, encoding: 'utf8', stdio: 'inherit' },
+    { cwd: smokeRoot, encoding: 'utf8', stdio: 'inherit', env: safeChildEnvironment() },
   );
   console.log(`package smoke passed: ${packageNames.length} clean tarball installations`);
 } finally {
@@ -186,4 +203,33 @@ async function readBoundedText(path: string, label: string): Promise<string> {
     throw new Error(`${label} exceeds the ${MAX_PACKAGE_JSON_BYTES}-byte safety limit.`);
   }
   return contents;
+}
+
+async function readBoundedBinary(path: string, maxBytes: number): Promise<Buffer> {
+  const information = await lstat(path);
+  if (!information.isFile() || information.isSymbolicLink()) {
+    throw new Error(`package tarball must be a regular file: ${path}`);
+  }
+  if (information.size > maxBytes) {
+    throw new Error(`package tarball exceeds its ${maxBytes}-byte safety limit: ${path}`);
+  }
+  const contents = await readFile(path);
+  if (contents.length > maxBytes) {
+    throw new Error(`package tarball exceeds its ${maxBytes}-byte safety limit: ${path}`);
+  }
+  return contents;
+}
+
+function packageFilePath(path: string): string {
+  return path.startsWith('package/') ? path.slice('package/'.length) : path;
+}
+
+function reportedEntriesArePresent(
+  reported: readonly string[],
+  actual: readonly string[],
+): boolean {
+  const actualSet = new Set(actual);
+  return (
+    new Set(reported).size === reported.length && reported.every((path) => actualSet.has(path))
+  );
 }

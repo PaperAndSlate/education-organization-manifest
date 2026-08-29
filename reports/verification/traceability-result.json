@@ -4,17 +4,17 @@
   "command": "pnpm traceability:check",
   "validationMode": "hosted-structure",
   "repositoryRevision": {
-    "commit": "26545a877b0905c61f1dff266d996af4751d0d59",
-    "tree": "82b2e2c63fe34c24e73544759074955fd10c6da6"
+    "commit": "dfed842b2e328467b371db00dfd3eec1dbc50ff7",
+    "tree": "00089bfc9396c3ea84bf2594212c0e4d1284c9ba"
   },
   "invocationRevision": {
-    "commit": "26545a877b0905c61f1dff266d996af4751d0d59",
-    "tree": "82b2e2c63fe34c24e73544759074955fd10c6da6"
+    "commit": "dfed842b2e328467b371db00dfd3eec1dbc50ff7",
+    "tree": "00089bfc9396c3ea84bf2594212c0e4d1284c9ba"
   },
   "evidencePolicy": "This generated result records the exact repository revision checked by pnpm traceability:check. A passed result is valid only for its recorded revision, source tree, and validation mode; report prose is not evidence.",
   "sourceRevision": {
-    "commit": "26545a877b0905c61f1dff266d996af4751d0d59",
-    "tree": "82b2e2c63fe34c24e73544759074955fd10c6da6"
+    "commit": "dfed842b2e328467b371db00dfd3eec1dbc50ff7",
+    "tree": "00089bfc9396c3ea84bf2594212c0e4d1284c9ba"
   },
   "planningPack": {
     "path": "plans/pack-manifest.json",

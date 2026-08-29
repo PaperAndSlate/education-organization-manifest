@@ -16,6 +16,8 @@ export const MAX_STRICT_JSON_BYTES = 32 * 1024 * 1024;
 export const MAX_STRICT_JSON_DEPTH = 128;
 /** Maximum number of runtime JSON values canonicalization will traverse. */
 export const MAX_STABLE_JSON_NODES = 100_000;
+/** Maximum UTF-8 bytes of string data accepted from runtime JSON values. */
+export const MAX_STABLE_JSON_BYTES = MAX_STRICT_JSON_BYTES;
 
 export class StrictJsonError extends Error {
   public constructor(
@@ -298,10 +300,15 @@ export function isJsonObject(value: unknown): value is JsonObject {
 interface StableJsonState {
   readonly ancestors: WeakSet<object>;
   nodes: number;
+  bytes: number;
 }
 
 export function stableJsonValue(value: JsonValue): JsonValue {
-  return stableJsonValueInternal(value, { ancestors: new WeakSet<object>(), nodes: 0 }, 0);
+  return stableJsonValueInternal(
+    value,
+    { ancestors: new WeakSet<object>(), nodes: 0, bytes: 0 },
+    0,
+  );
 }
 
 function stableJsonValueInternal(value: unknown, state: StableJsonState, depth: number): JsonValue {
@@ -335,6 +342,7 @@ function stableJsonValueInternal(value: unknown, state: StableJsonState, depth: 
   }
   if (typeof candidate === 'string') {
     assertWellFormedUnicode(candidate);
+    accountStableJsonBytes(candidate, state);
     return candidate;
   }
   if (Array.isArray(candidate)) {
@@ -369,6 +377,7 @@ function stableJsonValueInternal(value: unknown, state: StableJsonState, depth: 
     const sorted: JsonObject = {};
     for (const key of Object.keys(candidate).sort(compareJsonKeys)) {
       assertWellFormedUnicode(key);
+      accountStableJsonBytes(key, state);
       const child = candidate[key];
       if (child === undefined) {
         throw new StrictJsonError(
@@ -409,6 +418,17 @@ function withStableContainer<T extends JsonValue>(
     return callback();
   } finally {
     state.ancestors.delete(value);
+  }
+}
+
+function accountStableJsonBytes(value: string, state: StableJsonState): void {
+  state.bytes += new TextEncoder().encode(value).byteLength;
+  if (state.bytes > MAX_STABLE_JSON_BYTES) {
+    throw new StrictJsonError(
+      `Runtime JSON string data exceeds the ${MAX_STABLE_JSON_BYTES}-byte safety limit.`,
+      undefined,
+      'EOM_JSON_INPUT_TOO_LARGE',
+    );
   }
 }
 
