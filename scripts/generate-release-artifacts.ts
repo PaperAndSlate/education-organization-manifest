@@ -19,6 +19,7 @@ import { format as formatJson } from 'prettier';
 import { isJsonObject, parseStrictJson, stringifyCanonical } from '@paperandslate/eom-core';
 import { normalizeFsPath } from '@paperandslate/eom-core/fs-path';
 import { readSecurityScanEvidence } from './security-scan-evidence.js';
+import { safeChildEnvironment } from './safe-child-env.js';
 import { MAX_TAR_BYTES, createTarGz, readTarGz, type TarEntry } from './tar.js';
 import { pnpmInvocation } from './pnpm-runner.js';
 
@@ -752,7 +753,11 @@ function runPnpm(
   options: Parameters<typeof execFileSync>[2],
 ): Buffer | string {
   const invocation = pnpmInvocation(args);
-  return execFileSync(invocation.command, invocation.args, options);
+  const safeOptions =
+    options && typeof options === 'object'
+      ? { ...options, env: safeChildEnvironment() }
+      : { env: safeChildEnvironment() };
+  return execFileSync(invocation.command, invocation.args, safeOptions);
 }
 
 function sourceTreeMatchesWorkingSource(sourceTree: string): boolean {

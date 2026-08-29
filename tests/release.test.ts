@@ -35,6 +35,15 @@ describe('EOM release evidence', () => {
     expect(packageCheck).not.toMatch(/pnpm:\s*\{\s*overrides/u);
   });
 
+  it('does not pass ambient environment variables into release package commands', () => {
+    const releaseTooling = readFileSync(
+      join(root, 'scripts', 'generate-release-artifacts.ts'),
+      'utf8',
+    );
+    expect(releaseTooling).toContain("import { safeChildEnvironment } from './safe-child-env.js';");
+    expect(releaseTooling).toContain('env: safeChildEnvironment()');
+  });
+
   it('contains a self-consistent candidate manifest and checksums', () => {
     const releaseRoot = join(root, 'release');
     const manifest = parseStrictJson(readFileSync(join(releaseRoot, 'manifest.json'), 'utf8'));
