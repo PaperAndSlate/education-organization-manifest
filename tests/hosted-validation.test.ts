@@ -78,6 +78,12 @@ describe('hosted validation contract', () => {
     }
   });
 
+  it('restricts manual release evidence to a protected default branch', async () => {
+    const workflow = await readFile('.github/workflows/release-candidate.yml', 'utf8');
+    expect(workflow).toContain("if: github.ref == 'refs/heads/main' && github.ref_protected");
+    expect(workflow).toContain('fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5');
+  });
+
   it('allows open status only for structural hosted traceability checks', () => {
     expect(statusBlocksTraceability('open', true)).toBe(false);
     expect(statusBlocksTraceability('open', false)).toBe(true);

@@ -42,6 +42,20 @@ describe('EOM release evidence', () => {
     );
     expect(releaseTooling).toContain("import { safeChildEnvironment } from './safe-child-env.js';");
     expect(releaseTooling).toContain('env: safeChildEnvironment()');
+    expect(releaseTooling).toContain('assertPinnedPnpmVersion();');
+    expect(releaseTooling).toContain("version !== '10.6.0'");
+  });
+
+  it('derives package policy from parsed tar entries', () => {
+    const packageCheck = readFileSync(join(root, 'scripts', 'check-packages.ts'), 'utf8');
+    const releaseTooling = readFileSync(
+      join(root, 'scripts', 'generate-release-artifacts.ts'),
+      'utf8',
+    );
+    expect(packageCheck).toContain('const actualEntries = readTarGz(');
+    expect(packageCheck).toContain('pnpm pack file metadata does not match the tarball.');
+    expect(releaseTooling).toContain('const actualFiles = tarEntries');
+    expect(releaseTooling).toContain('pnpm pack file metadata does not match the tarball.');
   });
 
   it('contains a self-consistent candidate manifest and checksums', () => {

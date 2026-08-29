@@ -12,6 +12,10 @@ concurrency:
 
 jobs:
   verify-candidate:
+    # Release-bound evidence may only be produced from the protected default
+    # branch. A manual dispatch from a feature or unprotected ref is skipped,
+    # so it cannot create a misleading candidate artifact.
+    if: github.ref == 'refs/heads/main' && github.ref_protected
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
@@ -42,6 +46,8 @@ jobs:
         run: pnpm exec playwright install-deps chromium
       - name: Verify hosted workflow policy
         run: pnpm workflow:check
+      - name: REUSE compliance
+        uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6
       - name: Verify candidate
         run: pnpm verify
       - name: Upload release evidence
