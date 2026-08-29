@@ -88,14 +88,32 @@ export function resourceDescriptorMatchesDocument(descriptor: unknown, document:
   }
   const rawObservedSubjects = valueAt(document, ['subjects']);
   if (hasOwnAt(document, ['subjects']) && !isDenseArray(rawObservedSubjects)) return false;
+  if (
+    hasOwnAt(document, ['subjects']) &&
+    !arrayAt(document, ['subjects']).every(
+      (subject) => typeof subject === 'string' && isAbsoluteUri(subject),
+    )
+  ) {
+    return false;
+  }
   const rawObservedSubject = valueAt(document, ['subject']);
   if (hasOwnAt(document, ['subject']) && typeof rawObservedSubject !== 'string') return false;
-  const observedSubjects = [
-    ...arrayAt(document, ['subjects']).filter(isString),
-    ...(typeof rawObservedSubject === 'string' ? [rawObservedSubject] : []),
-    ...(typeof documentId === 'string' ? [documentId] : []),
-  ];
-  return declaredSubjects.every((subject) => observedSubjects.includes(subject));
+  if (typeof rawObservedSubject === 'string' && !isAbsoluteUri(rawObservedSubject)) return false;
+  if (new Set(declaredSubjects).size !== declaredSubjects.length) return false;
+  const hasObservedSubjectContext =
+    hasOwnAt(document, ['subjects']) || hasOwnAt(document, ['subject']);
+  const observedSubjects = hasObservedSubjectContext
+    ? [
+        ...arrayAt(document, ['subjects']).filter(isString),
+        ...(typeof rawObservedSubject === 'string' ? [rawObservedSubject] : []),
+      ]
+    : [documentId];
+  const declaredSet = new Set(declaredSubjects);
+  const observedSet = new Set(observedSubjects);
+  return (
+    observedSet.size === declaredSet.size &&
+    [...declaredSet].every((subject) => observedSet.has(subject))
+  );
 }
 
 /** Return whether a fetched root manifest is bound to the origin that served it. */

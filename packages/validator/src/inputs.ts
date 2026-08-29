@@ -459,6 +459,10 @@ export async function validatePublicationUrl(
         // A cross-origin discovery redirect cannot be authorized yet: the
         // redirected document is not trusted until a root manifest from the
         // requested origin has been obtained. Do not follow its declarations.
+      } else if (!rootResult.valid) {
+        // Do not treat declarations inside an invalid root document as a
+        // trusted graph frontier. Structural and semantic validation must
+        // succeed before the root can authorize further retrieval.
       } else if (Date.now() >= deadline) {
         graphTimedOut = true;
         findings.push(
@@ -645,7 +649,7 @@ export async function validatePublicationUrl(
           // A resource that failed any declared/final/redirect authority check
           // is still reported and validated as data, but its declarations are
           // not trusted as a new graph frontier.
-          if (authorityAccepted && isJsonObject(document)) {
+          if (authorityAccepted && result.valid && isJsonObject(document)) {
             const enqueueResult = enqueueResources(
               document,
               next.depth + 1,
