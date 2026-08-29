@@ -25,7 +25,10 @@ redirect observations, and HEAD behavior; consumer mode accepts an adapter contr
 observations without granting the adapter publication authority. Expected status/check metadata is
 recorded as checks in the report. Generator profiles additionally require the generator marker and
 reproducibility evidence. Signed profiles perform real Ed25519 verification when a signature and
-public key set are present.
+public key set are present. The standalone runner's HTTP, private-host, and non-standard-port
+allowances are test-only overrides: they may be used only for an explicit publisher check against a
+literal loopback HTTP origin with an HTTPS fictional fixture-authority origin. They must be rejected
+as usage errors for remote origins, consumer/other modes, or missing fixture authority.
 
 ## Independent interoperability
 

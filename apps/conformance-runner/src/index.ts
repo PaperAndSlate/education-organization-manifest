@@ -27,6 +27,7 @@ export async function runConformanceCli(
     if (parsed.offline && parsed.origin) {
       throw new CliUsageError('--offline cannot be combined with --origin.');
     }
+    validateFixtureFetchOptions(parsed);
     const report = await runConformance({
       directory: parsed.directory,
       ...(parsed.profile ? { profile: parsed.profile } : {}),
@@ -93,6 +94,53 @@ interface ParsedArguments {
 }
 
 class CliUsageError extends Error {}
+
+function validateFixtureFetchOptions(parsed: ParsedArguments): void {
+  const requestsFixtureOverride =
+    parsed.allowHttp || parsed.allowPrivateHosts || parsed.allowNonStandardPorts;
+  if (!requestsFixtureOverride) return;
+  if (
+    !parsed.origin ||
+    (parsed.mode !== undefined && parsed.mode !== 'publisher') ||
+    !isLoopbackFixtureOrigin(parsed.origin) ||
+    !parsed.fixtureAuthorityOrigin ||
+    !isHttpsAuthorityOrigin(parsed.fixtureAuthorityOrigin)
+  ) {
+    throw new CliUsageError(
+      'Network safety overrides are limited to an explicit publisher check against a loopback HTTP origin with an HTTPS --fixture-authority-origin.',
+    );
+  }
+}
+
+export function isLoopbackFixtureOrigin(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return (
+      parsed.protocol === 'http:' &&
+      !parsed.username &&
+      !parsed.password &&
+      (parsed.hostname === '127.0.0.1' || parsed.hostname === '[::1]')
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isHttpsAuthorityOrigin(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return (
+      parsed.protocol === 'https:' &&
+      !parsed.username &&
+      !parsed.password &&
+      parsed.pathname === '/' &&
+      parsed.search === '' &&
+      parsed.hash === ''
+    );
+  } catch {
+    return false;
+  }
+}
 
 async function writeOutputFile(output: string, content: string): Promise<void> {
   const target = resolve(output);
